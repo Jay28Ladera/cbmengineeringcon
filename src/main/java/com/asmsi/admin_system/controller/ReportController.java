@@ -13,7 +13,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import com.asmsi.admin_system.dto.FamilySaintGridEntry;
 
-
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,8 +27,6 @@ public class ReportController {
     @Autowired
     private AdmissionDataRepository admissionDataRepository;
 
-  
-
     // ✅ Optimized: Using SQL aggregation to reduce data load
     @GetMapping("/exam-place")
     @ResponseBody
@@ -37,9 +34,9 @@ public class ReportController {
         List<Object[]> results = admissionDataRepository.getExamPlaceStats();
         return results.stream()
                 .map(row -> new ExamPlaceStats(
-                        (String) row[0],      // exam_place
-                        (Long) row[1],        // total students
-                        (Long) row[2]))       // arrived students
+                        (String) row[0], // exam_place
+                        (Long) row[1], // total students
+                        (Long) row[2])) // arrived students
                 .collect(Collectors.toList());
     }
 
@@ -74,7 +71,8 @@ public class ReportController {
     }
 
     private List<Integer> parseCodes(String csv) {
-        if (csv == null || csv.isEmpty()) return Collections.emptyList();
+        if (csv == null || csv.isEmpty())
+            return Collections.emptyList();
         return Arrays.stream(csv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
@@ -83,70 +81,62 @@ public class ReportController {
                 .collect(Collectors.toList());
     }
 
+    @GetMapping("/family-saint-stats-grid")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public Map<String, List<Map<String, String>>> getFamilySaintStatsGrid() {
+        List<AdmissionData> allData = admissionDataRepository.findAllByFamilySaintIsNotNullAndCodeNumberIsNotNull();
+        Map<String, List<AdmissionData>> groupedBySaint = allData.stream()
+                .collect(Collectors.groupingBy(AdmissionData::getFamilySaint));
 
- @GetMapping("/family-saint-stats-grid")
-@ResponseBody
-@Transactional(readOnly = true)
-public Map<String, List<FamilySaintGridEntry>> getFamilySaintStatsGrid() {
-    Map<String, List<FamilySaintGridEntry>> gridData = new LinkedHashMap<>();
-    List<String> saints = admissionDataRepository.findDistinctFamilySaints();
+        Map<String, List<Map<String, String>>> result = new LinkedHashMap<>();
 
-    for (String saint : saints) {
-        List<AdmissionData> students = admissionDataRepository.findByFamilySaint(saint);
-        List<FamilySaintGridEntry> rows = new ArrayList<>();
+        for (Map.Entry<String, List<AdmissionData>> entry : groupedBySaint.entrySet()) {
+            String saint = entry.getKey();
+            List<AdmissionData> students = entry.getValue();
 
-        for (int i = 1; i <= 50; i++) {
-            final int code = i; // 👈 fix here
-        
-            AdmissionData matched = students.stream()
-                .filter(s -> s.getCodeNumber() == code)
-                .findFirst()
-                .orElse(null);
-        
-            FamilySaintGridEntry entry = new FamilySaintGridEntry();
-            entry.setCodeNumber(String.valueOf(code)); // ✅ FIXED
+            List<Map<String, String>> grid = new ArrayList<>();
 
-            entry.setStudentName(matched != null
-                ? matched.getLastName() + " " + matched.getFirstName()
-                : "");
-            entry.setProvince(matched != null ? matched.getProvince() : "");
-        
-            rows.add(entry);
+            for (int i = 1; i <= 50; i++) {
+                final int cn = i;
+                AdmissionData matched = students.stream()
+                        .filter(d -> d.getCodeNumber() != null && d.getCodeNumber() == cn)
+                        .findFirst()
+                        .orElse(null);
+
+                Map<String, String> row = new HashMap<>();
+                row.put("codeNumber", String.valueOf(cn));
+                row.put("studentName", matched != null ? matched.getLastName() + " " + matched.getFirstName() : "");
+                row.put("province", matched != null ? matched.getProvince() : "");
+
+                grid.add(row);
+            }
+
+            result.put(saint, grid);
         }
-        
 
-        gridData.put(saint, rows);
+        return result;
     }
 
-    return gridData;
-}
+    @GetMapping("/reports/family-saint-grid")
+    @ResponseBody
+    public Map<String, List<Map<String, Object>>> getFamilySaintGrid() {
+        List<AdmissionData> allData = admissionDataRepository.findAll();
+        Map<String, List<Map<String, Object>>> saintGrid = new HashMap<>();
 
+        for (AdmissionData data : allData) {
+            String saint = data.getFamilySaint();
+            saintGrid.putIfAbsent(saint, new ArrayList<>());
 
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("codeNumber", data.getCodeNumber());
+            entry.put("studentName", data.getLastName() + ", " + data.getFirstName());
+            entry.put("province", data.getProvince());
 
+            saintGrid.get(saint).add(entry);
+        }
 
-@GetMapping("/reports/family-saint-grid")
-@ResponseBody
-public Map<String, List<Map<String, Object>>> getFamilySaintGrid() {
-    List<AdmissionData> allData = admissionDataRepository.findAll();
-    Map<String, List<Map<String, Object>>> saintGrid = new HashMap<>();
-
-    for (AdmissionData data : allData) {
-        String saint = data.getFamilySaint();
-        saintGrid.putIfAbsent(saint, new ArrayList<>());
-
-        Map<String, Object> entry = new HashMap<>();
-        entry.put("codeNumber", data.getCodeNumber());
-        entry.put("studentName", data.getLastName() + ", " + data.getFirstName());
-        entry.put("province", data.getProvince());
-
-        saintGrid.get(saint).add(entry);
+        return saintGrid;
     }
 
-    return saintGrid;
 }
-
-
-    
-}
-
-

@@ -32,7 +32,7 @@ public interface AdmissionDataRepository extends JpaRepository<AdmissionData, Lo
     List<String> findDistinctSchoolYears();
 
     @Query("SELECT a.examPlace, COUNT(a), SUM(CASE WHEN a.status = 'Arrived' THEN 1 ELSE 0 END) " +
-           "FROM AdmissionData a GROUP BY a.examPlace")
+            "FROM AdmissionData a GROUP BY a.examPlace")
     List<Object[]> getExamPlaceStats();
 
     // ✅ Use this for fast count of Arrived
@@ -40,14 +40,15 @@ public interface AdmissionDataRepository extends JpaRepository<AdmissionData, Lo
 
     // ✅ PostgreSQL-compatible version
     @Query(value = """
-        SELECT family_saint, COUNT(*) AS total, STRING_AGG(code_number::text, ',' ORDER BY code_number)
-        FROM admission_data
-        WHERE family_saint IS NOT NULL
-        GROUP BY family_saint
-    """, nativeQuery = true)
+                SELECT family_saint, COUNT(*) AS total, STRING_AGG(code_number::text, ',' ORDER BY code_number)
+                FROM admission_data
+                WHERE family_saint IS NOT NULL
+                GROUP BY family_saint
+            """, nativeQuery = true)
     List<Object[]> getFamilySaintStatsSummary();
 
     List<AdmissionData> findAll(); // Optional if already inherited
 
-    
+    List<AdmissionData> findAllByFamilySaintIsNotNullAndCodeNumberIsNotNull();
+
 }
