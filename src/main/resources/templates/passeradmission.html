@@ -94,7 +94,11 @@
                 <td th:text="${student.guardianContact}"></td>
                 <td th:text="${student.codeNumber}"></td>
                 <td th:text="${student.familySaint}"></td>
-                <td><span class="badge bg-success" th:text="${student.status}"></span></td>
+                <td>
+                  <span th:class="'badge ' + (${student.status} == 'Sent Home' ? 'bg-danger' : 'bg-success')" 
+                        th:text="${student.status}">
+                  </span>
+                </td>
                 <td th:text="${student.timestamp}"></td>
                 <td>
                   <button class="btn btn-sm btn-primary"

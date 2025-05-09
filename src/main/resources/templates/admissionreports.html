@@ -157,19 +157,27 @@
               role="tabpanel"
               aria-labelledby="admission-tab"
             >
-              <div class="row mb-3" id="mainStats">
-                <div class="col-md-6">
-                  <div class="alert alert-primary">
-                    Total Students:
-                    <strong id="totalStudents">Loading...</strong>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="alert alert-success">
-                    Total Arrived: <strong id="totalArrived">Loading...</strong>
-                  </div>
+            <div class="row mb-3" id="mainStats">
+              <div class="col-md-4">
+                <div class="alert alert-primary">
+                  Total Students:
+                  <strong id="totalStudents">Loading...</strong>
                 </div>
               </div>
+              <div class="col-md-4">
+                <div class="alert alert-success">
+                  Total Arrived:
+                  <strong id="totalArrived">Loading...</strong>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="alert alert-danger">
+                  Total Sent Home:
+                  <strong id="totalSentHome">Loading...</strong>
+                </div>
+              </div>
+            </div>
+            
               <h5>Family Saint Statistics</h5>
               <table id="familySaintStats" class="table table-bordered">
                 <thead>
@@ -224,6 +232,7 @@
                     <th>Exam Place</th>
                     <th>Total Students</th>
                     <th>Arrived</th>
+                    <th>Sent Home</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -251,6 +260,7 @@
   <td>${row.examPlace}</td>
   <td>${row.total}</td>
   <td>${row.arrived}</td>
+  <td>${row.sentHome}</td> 
 `;
 
               tableBody.appendChild(tr);
@@ -274,18 +284,19 @@
       document.addEventListener("DOMContentLoaded", function () {
         // Fetch Overall Stats (only once)
         fetch("/reports/overall-stats")
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("Overall stats:", data);
-            document.getElementById("totalStudents").textContent =
-              data.total ?? 0;
-            document.getElementById("totalArrived").textContent =
-              data.arrived ?? 0;
-          })
-          .catch(() => {
-            document.getElementById("totalStudents").textContent = "0";
-            document.getElementById("totalArrived").textContent = "0";
-          });
+  .then((res) => res.json())
+  .then((data) => {
+    console.log("Overall stats:", data);
+    document.getElementById("totalStudents").textContent = data.total ?? 0;
+    document.getElementById("totalArrived").textContent = data.arrived ?? 0;
+    document.getElementById("totalSentHome").textContent = data.sentHome ?? 0;
+  })
+  .catch(() => {
+    document.getElementById("totalStudents").textContent = "0";
+    document.getElementById("totalArrived").textContent = "0";
+    document.getElementById("totalSentHome").textContent = "0";
+  });
+
 
         // Fetch Family Saint Stats
         fetch("/reports/family-saint-stats")

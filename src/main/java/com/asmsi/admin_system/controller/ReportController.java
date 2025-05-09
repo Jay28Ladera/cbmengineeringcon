@@ -28,31 +28,37 @@ public class ReportController {
     private AdmissionDataRepository admissionDataRepository;
 
     // ✅ Optimized: Using SQL aggregation to reduce data load
-    @GetMapping("/exam-place")
-    @ResponseBody
-    public List<ExamPlaceStats> getExamPlaceStats() {
-        List<Object[]> results = admissionDataRepository.getExamPlaceStats();
-        return results.stream()
-                .map(row -> new ExamPlaceStats(
-                        (String) row[0], // exam_place
-                        (Long) row[1], // total students
-                        (Long) row[2])) // arrived students
-                .collect(Collectors.toList());
-    }
+  @GetMapping("/exam-place")
+@ResponseBody
+public List<ExamPlaceStats> getExamPlaceStats() {
+    List<Object[]> results = admissionDataRepository.getExamPlaceStats();
+    return results.stream()
+            .map(row -> new ExamPlaceStats(
+                    (String) row[0],      // exam_place
+                    ((Number) row[1]).longValue(), // total
+                    ((Number) row[2]).longValue(), // arrived
+                    ((Number) row[3]).longValue()  // sent home
+            ))
+            .collect(Collectors.toList());
+}
 
     // ✅ Optimized: Fast count without loading full list
     @GetMapping("/overall-stats")
-    @ResponseBody
-    @Transactional(readOnly = true)
-    public Map<String, Long> getOverallStats() {
-        long total = admissionDataRepository.count();
-        long arrived = admissionDataRepository.countByStatusIgnoreCase("Arrived");
+@ResponseBody
+@Transactional(readOnly = true)
+public Map<String, Long> getOverallStats() {
+    long total = admissionDataRepository.count();
+    long arrived = admissionDataRepository.countByStatusIgnoreCase("Arrived");
+    long sentHome = admissionDataRepository.countByStatusIgnoreCase("Sent Home");
 
-        Map<String, Long> stats = new HashMap<>();
-        stats.put("total", total);
-        stats.put("arrived", arrived);
-        return stats;
-    }
+    Map<String, Long> stats = new HashMap<>();
+    stats.put("total", total);
+    stats.put("arrived", arrived);
+    stats.put("sentHome", sentHome); // ✅ key must match frontend: data.sentHome
+
+    return stats;
+}
+
 
     // ✅ Optimized: SQL aggregation instead of full list
     @GetMapping("/family-saint-stats")

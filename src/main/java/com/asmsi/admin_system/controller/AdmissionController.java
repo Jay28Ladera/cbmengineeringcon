@@ -298,6 +298,35 @@ public String viewPasserAdmission(Model model) {
     return "passeradmission"; // must match your HTML filename (e.g., passeradmission.html)
 }
 
+@GetMapping("/senthome")
+public String viewSentHomePage(Model model) {
+    List<AdmissionData> passerList = admissionDataRepository.findAll(); // Or use filter
+    model.addAttribute("passerList", passerList);
+    return "senthome"; // must match your Thymeleaf template name
+}
+
+@PostMapping("/api/admission/send-home")
+public ResponseEntity<?> sendHome(@RequestParam String idNum) {
+    List<AdmissionData> students = admissionDataRepository.findByIdNum(idNum);
+    if (!students.isEmpty()) {
+        AdmissionData student = students.get(0);
+
+        // 🔴 Debug: Print current status
+        System.out.println("Before update status: " + student.getStatus());
+
+        student.setStatus("Sent Home");
+        student.setFamilySaint("");         // if this is a String
+        student.setCodeNumber(null);        // ✅ clear Integer field properly
+        admissionDataRepository.save(student);
+
+        // 🔴 Debug: Confirm save
+        System.out.println("Saved status: " + student.getStatus());
+
+        return ResponseEntity.ok("Updated");
+    }
+    return ResponseEntity.status(404).body("Student not found");
+}
+
 
 
     

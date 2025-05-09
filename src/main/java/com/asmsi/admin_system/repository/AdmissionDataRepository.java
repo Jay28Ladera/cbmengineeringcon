@@ -31,9 +31,11 @@ public interface AdmissionDataRepository extends JpaRepository<AdmissionData, Lo
     @Query("SELECT DISTINCT a.schoolYear FROM AdmissionData a")
     List<String> findDistinctSchoolYears();
 
-    @Query("SELECT a.examPlace, COUNT(a), SUM(CASE WHEN a.status = 'Arrived' THEN 1 ELSE 0 END) " +
-            "FROM AdmissionData a GROUP BY a.examPlace")
-    List<Object[]> getExamPlaceStats();
+    @Query("SELECT a.examPlace, COUNT(a), " +
+    "SUM(CASE WHEN LOWER(a.status) = 'arrived' THEN 1 ELSE 0 END), " +
+    "SUM(CASE WHEN LOWER(a.status) = 'sent home' THEN 1 ELSE 0 END) " +
+    "FROM AdmissionData a GROUP BY a.examPlace")
+List<Object[]> getExamPlaceStats();
 
     // ✅ Use this for fast count of Arrived
     long countByStatusIgnoreCase(String status);

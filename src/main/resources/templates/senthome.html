@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admission</title>
+
+  <!-- Bootstrap + Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+  <link rel="stylesheet" href="/css/admission.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
+
+  <!-- jQuery + DataTables -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <style>
+    body {
+      font-family: Cambria, serif;
+      font-size: 12pt;
+    }
+  
+    .table, .modal-content, .modal p, .modal li, .modal span, .modal td, .modal th {
+      font-size: 12pt;
+    }
+  
+    h2 { font-weight: bold; color: #0d6efd; }
+    .card { background-color: #fff; }
+  
+    .dt-buttons .dt-button {
+      background-color: #0d6efd !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 4px;
+      padding: 6px 12px;
+      margin-right: 10px;
+    }
+  
+    .dt-button:hover { background-color: #0b5ed7 !important; }
+  
+    .dataTables_filter input {
+      width: 300px !important;
+      margin-left: 10px;
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+  
+    table.dataTable tbody tr.table-success { background-color: #d1e7dd !important; }
+    .table-striped > tbody > tr:nth-of-type(odd) { background-color: #f4f6f9; }
+    .table th, .table td { vertical-align: middle; text-align: center; }
+  
+    .dataTables_wrapper .row:first-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dataTables_wrapper .row { margin-bottom: 10px; }
+
+    @media print {
+  #sentHomePreview {
+    font-size: 14pt!important;
+    margin: 0.5in!important;
+    padding: 0;
+    width: 100%;
+    height: auto;
+    background: white;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+
+
+    @media print {
+  #sentHomeModal .modal-dialog,
+  #sentHomePreview.modal-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+
+    box-sizing: border-box;
+  }
+}
+    @media print {
+  @page {
+    size: 8.5in 11in;
+  
+  }
+
+ 
+    h5.print-heading {
+      font-size: 50pt !important;
+    }
+  
+
+  body * {
+    visibility: hidden !important;
+    font-family: Cambria, serif;
+    font-size: 16pt !important;
+    line-height: 1.5;
+    margin: 0;
+    padding: 0;
+  }
+
+  #sentHomePreview, #sentHomePreview * {
+    visibility: visible !important;
+  }
+
+  #sentHomePreview {
+    
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: auto !important;
+    width: 100% !important;
+    padding: 0 !important;
+    font-family: "Times New Roman", serif !important;
+    padding: 0in 0.9in !important; /* Top-Bottom and Left-Right padding */
+    font-size: 12pt !important;
+    background: white !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .modal-footer, .modal-backdrop {
+    display: none !important;
+  }
+
+  .modal-content {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  
+}
+
+@media print {
+  .letter-header {
+    font-size: 16pt !important;
+    gap: 20px !important;
+  }
+
+  .letter-header img {
+    height: 150px !important;
+    margin-right: 20px !important;
+    
+  }
+
+  .letter-header .text {
+    font-size: 14pt !important;
+    line-height: 1.6 !important;
+  }
+
+  .letter-header .text h5 {
+    font-size: 18pt !important;
+    font-weight: bold !important;
+    margin: 0 0 5px 0 !important;
+  }
+}
+
+
+
+  </style>
+
+
+  
+</head>
+
+<body>
+<div th:replace="fragments/header :: header(${username})"></div>
+<div class="container-fluid">
+  <div class="row">
+    <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+    <div class="col-md-9 p-4">
+      <h2 class="mb-4">List of Passers</h2>
+      <div class="card shadow-sm border-0 rounded p-4">
+        <table id="passerTable" class="table table-bordered table-hover table-striped align-middle nowrap w-100">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>ID Number</th>
+              <th>Last Name</th>
+              <th>First Name</th>
+              <th>Middle Name</th>
+              <th>Exam Place</th>
+              <th>Guardian Contact</th>
+              <th>Code Number</th>
+              <th>Family Saint</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="student : ${passerList}" th:classappend="${student.status} == 'Arrived' ? 'table-success'">
+              <td th:text="${student.idNum}"></td>
+              <td th:text="${student.lastName}"></td>
+              <td th:text="${student.firstName}"></td>
+              <td th:text="${student.middleName}"></td>
+              <td th:text="${student.examPlace}"></td>
+              <td th:text="${student.guardianContact}"></td>
+              <td th:text="${student.codeNumber}"></td>
+              <td th:text="${student.familySaint}"></td>
+              <td>
+                <span th:class="'badge ' + (${student.status} == 'Sent Home' ? 'bg-danger' : 'bg-success')" 
+                      th:text="${student.status}">
+                </span>
+              </td>
+              <td th:text="${student.timestamp}"></td>
+              <td>
+                <button class="btn btn-sm btn-warning"
+        th:attr="onclick=|handleSendHome({idNum: '${student.idNum}', firstName: '${student.firstName}', lastName: '${student.lastName}', grade: '7', familySaint: '${student.familySaint}'})|">
+  <i class="bi bi-file-earmark-text"></i> Send Home
+</button>
+
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Sent Home Modal -->
+<div class="modal fade" id="sentHomeModal" tabindex="-1" aria-labelledby="sentHomeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div id="sentHomePreview" class="modal-content p-4">
+
+      <div class="letter-header d-flex align-items-center justify-content-center mb-2" style="color: #0000cc; font-family: 'Times New Roman', serif;">
+        <img src="/images/header.jpg" alt="School Logo" style="height: 100px; margin-right: 15px;">
+      </div>
+      <hr style="border: 1px solid #000; margin-bottom: 15px;">
+      <div class="letter-divider"></div>
+
+      <div class="text-end mb-3">
+        <span id="todayDate"></span>
+      </div>
+
+      <div class="mb-3" style="height: 80px;">
+        <p>__________________________________<br>
+           _________________________________<br>
+           _________________________________</p>
+      </div><br>
+
+      <p>
+        Ikinalulungkot po naming ipabatid sa inyo na ang inyong anak na si <strong id="sh_name">____________________</strong> na nasa ika-<strong id="sh_grade">_________</strong> baitang ng <strong id="sh_family">___________________</strong> ay amin na pong ibinabalik sa inyong pangangalaga dahil sa mga sumusunod na kadahilanan (lagyan ng tsek).
+      </p>
+
+      <ul style="list-style: none; padding-left: 0;">
+        <li>______ Walang interes sa kanyang pag-aaral at madalas lumiban sa klase.</li>
+        <li>______ Masyadong mababa ang kanyang marka sa paaralan.</li>
+        <li>______ Nahihirapang makisama sa kanyang mga kamag-aral.</li>
+        <li>______ Hindi sumusunod sa mga patakaran at regulasyon ng paaralan.</li>
+        <li>______ May karamdaman na malubha.</li>
+        <li>______ May kakayahang pag-aralin ng mga magulang.</li>
+        <li>______ Kusang sinundo ng mga magulang para siya ay pag-aralin.</li>
+        <li>______ Napag-alaman na siya ay may kapatid na nakapagtapos o nag-aaral pa sa Sisters of Mary Schools.</li>
+      </ul>
+
+      <p>Iba pang mga dahilan:</p>
+      <div style="border-bottom: 1px solid #000; height: 20px; margin-bottom: 5px;"></div>
+<div style="border-bottom: 1px solid #000; height: 20px; margin-bottom: 5px;"></div>
+<div style="border-bottom: 1px solid #000; height: 20px; margin-bottom: 15px;"></div>
+
+      <p>
+        Inaasahan po namin na mauunawaan ninyo kami at dalangin namin ang maluwalhati ninyong pagsubaybay at pangangalaga sa inyong anak.
+      </p>
+
+      <p>Maraming salamat po!</p>
+      <p><strong>Gumagalang,</strong></p>
+
+      <div class="row">
+        <div class="col-6"><br>
+          <p>______________________________________________<br>Tagapamahala</p>
+          <p><br>______________________________________________<br>Punong-guro</p>
+          <p><br>______________________________________________<br>Lagda ng Sister-in-Charge</p>
+          <p><br>______________________________________________<br><br>Lagda ng Magulang/Tagapangalaga</p>
+          <p><br>______________________________________________<br>Petsa</p>
+        </div>
+        <div class="col-6">
+          <p><strong>Requirements Released:</strong></p>
+          <div>______ Birth Certificate (original)</div>
+          <div>______ Baptismal Certificate</div>
+          <div>______ SF9</div>
+          <div>______ Confirmation Cert</div>
+          <div>______ Certificate of Transfer</div>
+          <div>______ All requirements submitted during acceptance (new student only) </div>
+          
+        </div>
+              </div>
+
+     
+
+      <div class="modal-footer justify-content-center d-print-none">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" onclick="window.print()">Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal header will be inserted from letter-header section dynamically -->
+<script>
+  $(document).ready(function () {
+    $('#passerTable').DataTable({
+      dom: "<'row mb-3'<'col-md-6 d-flex align-items-center'B><'col-md-6 d-flex justify-content-end'f>>" +
+        "<'row'<'col-sm-12'tr>>" +
+        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+      buttons: ['excelHtml5', 'pdfHtml5'],
+      responsive: true,
+      pageLength: 10
+    });
+  });
+
+  function showSentHomeForm(student) {
+  // Fill in only the editable fields
+  document.getElementById("sh_name").innerText = `${student.firstName} ${student.lastName}`;
+  document.getElementById("sh_grade").innerText = student.grade || "_____";
+  document.getElementById("sh_family").innerText = student.familySaint || "_____";
+
+  // Open the modal
+  const modalEl = document.getElementById("sentHomeModal");
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+}
+</script>
+
+<script>
+  document.getElementById("todayDate").innerText = new Date().toLocaleDateString('en-PH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+</script>
+<script>
+ function handleSendHome(student) {
+  if (confirm("Are you sure you want to send him/her home?")) {
+    fetch(`/api/admission/send-home?idNum=${student.idNum}`, {
+      method: "POST"
+    })
+    .then(res => {
+      if (res.ok) {
+        // ✅ Only update frontend if backend confirms save
+        const table = $('#passerTable').DataTable();
+        const rowIdx = table.rows().eq(0).filter(idx => {
+          return table.cell(idx, 0).data().trim() === student.idNum;
+        });
+
+        if (rowIdx.length) {
+          table.cell(rowIdx[0], 6).data(''); // ← Clear Code Number (column index 6)
+  table.cell(rowIdx[0], 7).data(''); // ← Clear Family Saint
+  table.cell(rowIdx[0], 8).data('<span class="badge bg-danger">Sent Home</span>').draw(false); // Update Status
+        }
+
+        showSentHomeForm(student); // Show modal after saving to DB
+      } else if (res.status === 208) {
+        alert("This student is already marked as Sent Home.");
+      } else {
+        alert("Failed to update backend.");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Error contacting server.");
+    });
+  }
+}
+
+</script>
+
+
+</body>
+</html>
