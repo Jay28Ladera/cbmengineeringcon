@@ -2,37 +2,26 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
- 
-
-  
   <meta name="_csrf" th:content="${_csrf.token}" />
-<meta name="_csrf_header" th:content="${_csrf.headerName}" />
-
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
   <title>Visiting Day</title>
 
-  <!-- Bootstrap CSS -->
+  <!-- Bootstrap & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <!-- SweetAlert2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- Custom CSS -->
   <link rel="stylesheet" th:href="@{/css/header.css}" />
   <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
   <link rel="stylesheet" th:href="@{/css/home.css}" />
-  
 </head>
-
-
 <body>
   <!-- Header -->
   <div th:replace="fragments/header :: header(${username})"></div>
-
-
-
 
   <div class="container-fluid">
     <div class="row">
@@ -40,13 +29,8 @@
       <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
 
       <!-- Main Content -->
-       
       <div class="col-md-9 p-4">
         <h1>Sisters of Mary School - Boystown Family Day</h1>
-        
-
-
-     
 
         <!-- 🕒 Real-time Clock & Date -->
         <div class="mb-4 d-flex justify-content-between align-items-center">
@@ -69,13 +53,12 @@
           <div class="input-group">
             <input type="text" class="form-control" id="search-id" placeholder="e.g. TAL2022-005" />
             <button class="btn btn-primary d-none" type="button">Search</button>
-
           </div>
         </div>
 
         <div class="row mb-4" id="student-info-row">
           <!-- Student Info Card -->
-          <div class="col-md-5 mb-3" id="student-info-card">
+          <div class="col-md-5 mb-3" id="student-info-card" style="display:none;">
             <div class="card shadow-sm h-100 text-center">
               <div class="card-body">
                 <img id="student-photo"
@@ -89,16 +72,17 @@
                 <p><strong>Campus:</strong> <span id="campus">-</span></p>
                 <p><strong>Family Saint:</strong> <span id="family-saint">-</span></p>
                 <p><strong>Batch Number:</strong> <span id="batch-number">-</span></p>
+                <p><strong>Address:</strong> <span id="address">-</span></p>
               </div>
             </div>
           </div>
 
-          <!-- Attendance Logs Card -->
+          <!-- Visiting Logs Card -->
           <div class="col-md-7 mb-3">
             <div class="card shadow-sm h-100">
               <div class="card-body">
                 <h5 class="fw-bold mb-3">
-                  <i class="bi bi-journal-text me-2"></i>Attendance Logs
+                  <i class="bi bi-journal-text me-2"></i>Visitors logs
                 </h5>
 
                 <table class="table table-bordered table-striped">
@@ -109,24 +93,25 @@
                       <th>ID Number</th>
                       <th>Date</th>
                       <th>Time In</th>
-                      <th>Time Out</th>
-                                  
-                      <th>Recorded By</th>
+                      <th>Address</th>
+                      <th>Adult Visitor</th>
+                      <th>Kid Visitor</th>
+                      <th>Total Visitors</th>
                     </tr>
                   </thead>
                   <tbody id="logs-table-body">
-                    <!-- Logs will be inserted here -->
+                    <!-- Logs insert here -->
                   </tbody>
                 </table>
-                
+
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Submit Button -->
+        <!-- Hidden submit (not used; we submit after modal confirm) -->
         <div class="text-center">
-          <button class="btn btn-success px-5 d-none" onclick="submitAttendance()">Submit Attendance</button>
+          <button class="btn btn-success px-5 d-none" onclick="submitVisitingDay()">Submit Attendance</button>
         </div>
       </div>
     </div>
@@ -135,112 +120,16 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- JS Logic -->
+  <!-- Inline Thymeleaf vars (fallbacks for local dev) -->
   <script th:inline="javascript">
     const currentUser = /*[[${username}]]*/ "admin";
   </script>
-  
 
   <script>
     let currentStudent = null;
+    let pendingCounts = null; // {adultVisitor, kidVisitor, totalVisitors}
 
-    async function searchStudent() {
-      const id = document.getElementById("search-id").value.trim();
-      if (!id) return alert("Please enter an ID number.");
-
-      try {
-        const res = await fetch(`/api/attendance/student/${id}`);
-        if (!res.ok) throw new Error("Student not found.");
-
-        const student = await res.json();
-        currentStudent = student;
-
-        document.getElementById("lrn").innerText = student.lrn;
-        document.getElementById("id-number").innerText = student.idNumber;
-        document.getElementById("name").innerText = student.name;
-        document.getElementById("campus").innerText = student.campus;
-        document.getElementById("family-saint").innerText = student.familySaint;
-        document.getElementById("batch-number").innerText = student.batchNumber;
-        document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
-
-        document.getElementById("student-info-card").style.display = "block";
-      } catch (err) {
-        alert(err.message);
-        document.getElementById("student-info-card").style.display = "none";
-        currentStudent = null;
-      }
-    }
-
-    async function submitAttendance() {
-  if (!currentStudent) return alert("Search and select a student first.");
-
-  const now = new Date();
-  const date = now.toISOString().split("T")[0];
-  const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
-  const account = currentUser;
-
-  const attendance = {
-    idNumber: currentStudent.idNumber,
-    lrn: currentStudent.lrn,
-    name: currentStudent.name,
-    campus: currentStudent.campus,
-    familySaint: currentStudent.familySaint,
-    batchNumber: currentStudent.batchNumber,
-    imageUrl: currentStudent.imageUrl,
-    date,
-    timeIn,
-    timeOut: null,
-    status: "present",
-    remarks: "",
-    account
-  };
-
-  try {
-    const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
-    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
-
-    const res = await fetch("/api/attendance/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [header]: token
-      },
-      body: JSON.stringify(attendance)
-    });
-
-    if (res.ok) {
-  const message = await res.text(); // "Time In recorded." or "Time Out recorded."
-
-  // Show SweetAlert2 popup
-  Swal.fire({
-    title: message.includes("Time Out") 
-      ? '<span style="color: red;">Time Out</span>' 
-      : 'Attendance Recorded!',
-    html: `
-      <div style="font-size: 3rem; margin-top: 10px;">
-        <i class="bi bi-check-circle-fill ${message.includes("Time Out") ? 'text-danger' : 'text-success'}"></i>
-      </div>
-      <p style="font-size: 1.2rem; margin-top: 10px;">${message}</p>
-    `,
-    showConfirmButton: false,
-    timer: 2000,
-    timerProgressBar: true,
-    position: 'center',
-    backdrop: true,
-    didOpen: () => {
-      Swal.showLoading();
-    }
-  });
-      // ✅ Refresh the logs display
-      loadAttendanceLogs();
-    } else {
-      throw new Error();
-    }
-  } catch (error) {
-    alert("❌ Failed to submit attendance.");
-  }
-}
-
+    // -------- Clock ----------
     function updateClock() {
       const now = new Date();
       const date = now.toLocaleDateString('en-US', {
@@ -253,64 +142,214 @@
       document.getElementById('current-date').textContent = date;
       document.getElementById('current-time').textContent = time;
     }
-
     setInterval(updateClock, 1000);
     updateClock();
 
-    async function loadAttendanceLogs() {
-  try {
-    const res = await fetch("/api/attendance/logs");
-    if (!res.ok) throw new Error("Failed to load logs");
+    // -------- API helpers ----------
+    function getCsrfHeaders() {
+      const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content") || "";
+      const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content") || "X-CSRF-TOKEN";
+      return { headerName: header, token };
+    }
 
-    const logs = await res.json();
-    const tbody = document.getElementById("logs-table-body");
-    tbody.innerHTML = "";
+    // -------- Search student ----------
+    async function searchStudent() {
+      const id = document.getElementById("search-id").value.trim();
+      if (!id) {
+        alert("Please enter an ID number.");
+        return;
+      }
+      try {
+        const res = await fetch(`/api/attendance/student/${encodeURIComponent(id)}`);
+        if (!res.ok) throw new Error("Student not found.");
 
-    // ✅ Only take the first 5 logs
-    const latestEightLogs = logs.slice(0, 8);
+        const student = await res.json();
+        currentStudent = student;
 
-    latestEightLogs.forEach(log => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><img src="${log.imageUrl || '/images/default-profile.png'}" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" /></td>
-        <td>${log.name || '-'}</td>
-        <td>${log.idNumber || '-'}</td>
-        <td>${log.date || '-'}</td>
-        <td>${log.timeIn || '-'}</td>
-        <td>${log.timeOut || '-'}</td>
-     
-      
-        <td>${log.account || '-'}</td>
-      `;
-      tbody.appendChild(row);
+        // Fill UI
+        document.getElementById("lrn").innerText = student.lrn ?? '-';
+        document.getElementById("id-number").innerText = student.idNumber ?? '-';
+        document.getElementById("name").innerText = student.name ?? '-';
+        document.getElementById("campus").innerText = student.campus ?? '-';
+        document.getElementById("family-saint").innerText = student.familySaint ?? '-';
+        document.getElementById("batch-number").innerText = student.batchNumber ?? '-';
+        document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
+        document.getElementById("address").innerText = student.address || '-';
+
+        document.getElementById("student-info-card").style.display = "block";
+
+        // Open visitors modal
+        await openVisitorModal(student);
+      } catch (err) {
+        alert(err.message || "Lookup failed.");
+        document.getElementById("student-info-card").style.display = "none";
+        currentStudent = null;
+      }
+    }
+
+    // -------- Modal for visitor counts ----------
+    async function openVisitorModal(student) {
+      return Swal.fire({
+        title: `Visitors for ${student.name || student.idNumber}`,
+        html: `
+          <div class="text-start">
+            <div class="mb-2"><strong>ID:</strong> ${student.idNumber || '-'}</div>
+            <div class="row g-2">
+              <div class="col-4">
+                <label class="form-label">Adult</label>
+                <input id="swal-adult" type="number" min="0" value="0" class="form-control" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">Kids</label>
+                <input id="swal-kid" type="number" min="0" value="0" class="form-control" />
+              </div>
+              <div class="col-4">
+                <label class="form-label">Total</label>
+                <input id="swal-total" type="number" min="0" value="0" class="form-control" readonly />
+              </div>
+            </div>
+          </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Save',
+        didOpen: () => {
+          const adult = document.getElementById('swal-adult');
+          const kid = document.getElementById('swal-kid');
+          const total = document.getElementById('swal-total');
+          const recalc = () => {
+            const a = parseInt(adult.value || '0', 10);
+            const k = parseInt(kid.value || '0', 10);
+            total.value = (isNaN(a) ? 0 : a) + (isNaN(k) ? 0 : k);
+          };
+          adult.addEventListener('input', recalc);
+          kid.addEventListener('input', recalc);
+          recalc();
+        },
+        preConfirm: () => {
+          const a = parseInt(document.getElementById('swal-adult').value || '0', 10);
+          const k = parseInt(document.getElementById('swal-kid').value || '0', 10);
+          const t = parseInt(document.getElementById('swal-total').value || '0', 10);
+          if (a < 0 || k < 0) {
+            Swal.showValidationMessage('Counts cannot be negative.');
+            return false;
+          }
+          return { adultVisitor: a, kidVisitor: k, totalVisitors: t };
+        }
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          pendingCounts = result.value;
+          await submitVisitingDay(); // save immediately after confirm
+        }
+      });
+    }
+
+    // -------- Submit visiting day record ----------
+    async function submitVisitingDay() {
+      if (!currentStudent) {
+        alert("Search and select a student first.");
+        return;
+      }
+      const now = new Date();
+      const payload = {
+        idNumber: currentStudent.idNumber,
+        lrn: currentStudent.lrn,
+        name: currentStudent.name,
+        campus: currentStudent.campus,
+        familySaint: currentStudent.familySaint,
+        batchNumber: currentStudent.batchNumber,
+        imageUrl: currentStudent.imageUrl,
+        address: currentStudent.address || null,
+
+        date: now.toISOString().split("T")[0],
+        timeIn: now.toLocaleTimeString('en-US', { hour12: false }), // backend can ignore if not used
+
+        adultVisitor: pendingCounts?.adultVisitor ?? 0,
+        kidVisitor: pendingCounts?.kidVisitor ?? 0,
+        totalVisitors: pendingCounts?.totalVisitors ?? 0,
+
+        account: document.getElementById('current-user')?.value || currentUser || 'system'
+      };
+
+      try {
+        const { headerName, token } = getCsrfHeaders();
+        const res = await fetch("/api/visitingday/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            [headerName]: token
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error("Failed to save visiting day record.");
+
+        await Swal.fire({
+          title: 'Saved!',
+          html: `
+            <div style="font-size: 3rem; margin-top: 10px;">
+              <i class="bi bi-check-circle-fill text-success"></i>
+            </div>
+            <p style="font-size: 1.1rem; margin-top: 10px;">Visiting Day record saved.</p>
+          `,
+          timer: 1600,
+          showConfirmButton: false
+        });
+
+        pendingCounts = null;
+        await loadVisitingLogs();
+      } catch (err) {
+        console.error(err);
+        alert("❌ Failed to submit Visiting Day record.");
+      }
+    }
+
+    // -------- Load logs ----------
+    async function loadVisitingLogs() {
+      try {
+        const res = await fetch("/api/visitingday/logs");
+        if (!res.ok) throw new Error("Failed to load logs");
+
+        const logs = await res.json();
+        const tbody = document.getElementById("logs-table-body");
+        tbody.innerHTML = "";
+
+        const latest = logs.slice(0, 8);
+        latest.forEach(log => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td><img src="${log.imageUrl || '/images/default-profile.png'}"
+                     style="width: 60px; height: 60px; object-fit: cover;"
+                     class="rounded" /></td>
+            <td>${log.name || '-'}</td>
+            <td>${log.idNumber || '-'}</td>
+            <td>${log.date || '-'}</td>
+            <td>${log.timeIn || '-'}</td>
+            <td>${log.address || '-'}</td>
+            <td>${log.adultVisitor ?? '-'}</td>
+            <td>${log.kidVisitor ?? '-'}</td>
+            <td>${log.totalVisitors ?? '-'}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error(err);
+        alert("Error loading visiting day logs.");
+      }
+    }
+
+    // -------- Key handler: Enter triggers search -> modal -> save ----------
+    document.getElementById("search-id").addEventListener("keydown", async function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        await searchStudent(); // opens modal and then saves
+        this.value = "";
+        this.focus();
+      }
     });
-  } catch (err) {
-    console.error(err);
-    alert("Error loading attendance logs.");
-  }
-}
 
-
-setInterval(updateClock, 1000);
-updateClock();
-loadAttendanceLogs(); // 👈 Add this line to fetch logs on load
-
-
-document.getElementById("search-id").addEventListener("keydown", async function (event) {
-  if (event.key === "Enter") {
-    event.preventDefault(); // Prevent default form submission behavior
-
-    await searchStudent();     // 🔍 Auto-search
-    await submitAttendance();  // 📝 Auto-submit
-
-    this.value = "";           // 🔄 Clear the field
-    this.focus();              // 🎯 Keep focus for next scan
-  }
-});
-
-
+    // Initial load
+    loadVisitingLogs();
   </script>
-
-  
 </body>
 </html>
