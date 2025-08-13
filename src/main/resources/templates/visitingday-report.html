@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Visiting Day</title>
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+  <link rel="stylesheet" th:href="@{/css/home.css}" />
+</head>
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: header(${username})"></div>
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+
+      <!-- Main Content -->
+      <div class="col-md-9 p-4">
+        <h1>Family Day Report</h1>
+
+  <div class="row g-3 align-items-end mb-3">
+    <div class="col-auto">
+      <label class="form-label">Start</label>
+      <input id="start" type="date" class="form-control">
+    </div>
+    <div class="col-auto">
+      <label class="form-label">End</label>
+      <input id="end" type="date" class="form-control">
+    </div>
+    <div class="col-auto">
+      <button id="refresh" class="btn btn-primary">Refresh</button>
+    </div>
+    <div class="col-auto">
+      <a id="download" class="btn btn-success" href="#">Download Excel</a>
+    </div>
+  </div>
+
+  <div id="summary" class="row g-3">
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <h6>Total Visitors</h6><div id="totalVisitors" class="fs-3">0</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <h6>Total Adults</h6><div id="totalAdults" class="fs-3">0</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <h6>Total Kids</h6><div id="totalKids" class="fs-3">0</div>
+      </div></div>
+    </div>
+    <div class="col-md-3">
+      <div class="card"><div class="card-body">
+        <h6>Students w/ Visitors</h6><div id="totalStudentsVisited" class="fs-3">0</div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h5>Visitors per Year Level</h5>
+      <table class="table table-sm table-striped" id="tblYear">
+        <thead><tr><th>Year Level</th><th>Visitors</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h5>Visitors per Family Saint</h5>
+      <table class="table table-sm table-striped" id="tblSaint">
+        <thead><tr><th>Family Saint</th><th>Visitors</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <h5>Students with Visitors</h5>
+      <table class="table table-sm table-striped" id="tblWith">
+        <thead><tr><th>ID</th><th>Name</th><th>Family Saint</th><th>Year Level</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h5>Students without Visitors</h5>
+      <table class="table table-sm table-striped" id="tblWithout">
+        <thead><tr><th>ID</th><th>Name</th><th>Family Saint</th><th>Year Level</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  function todayStr() {
+    const d = new Date();
+    return d.toISOString().substring(0,10);
+  }
+
+  const startEl = document.getElementById('start');
+  const endEl   = document.getElementById('end');
+  startEl.value = todayStr();
+  endEl.value   = todayStr();
+
+  async function load() {
+    const start = startEl.value;
+    const end   = endEl.value;
+
+    const url = `/api/visitingday/report/summary?start=${start}&end=${end}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // Top cards
+    document.getElementById('totalVisitors').innerText = data.totalVisitors;
+    document.getElementById('totalAdults').innerText = data.totalAdults;
+    document.getElementById('totalKids').innerText = data.totalKids;
+    document.getElementById('totalStudentsVisited').innerText = data.totalStudentsVisited;
+
+    // Tables helper
+    const fill = (tbody, rows) => {
+      tbody.innerHTML = '';
+      rows.forEach(r => tbody.insertAdjacentHTML('beforeend', r));
+    };
+
+    // Year level
+    const yearTbody = document.querySelector('#tblYear tbody');
+    fill(yearTbody, Object.entries(data.visitorsPerBatchNumber || {})
+      .map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`));
+
+    // Family saint
+    const saintTbody = document.querySelector('#tblSaint tbody');
+    fill(saintTbody, Object.entries(data.visitorsPerFamilySaint || {})
+      .map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`));
+
+    // With visitors
+    const withTbody = document.querySelector('#tblWith tbody');
+    fill(withTbody, (data.studentsWithVisitors || [])
+      .map(s => `<tr><td>${s.idNumber||''}</td><td>${s.name||''}</td><td>${s.familySaint||''}</td><td>${s.yearLevel||''}</td></tr>`));
+
+    // Without visitors
+    const withoutTbody = document.querySelector('#tblWithout tbody');
+    fill(withoutTbody, (data.studentsWithoutVisitors || [])
+      .map(s => `<tr><td>${s.idNumber||''}</td><td>${s.name||''}</td><td>${s.familySaint||''}</td><td>${s.yearLevel||''}</td></tr>`));
+
+    // Download link
+    const dl = document.getElementById('download');
+    dl.href = `/api/visitingday/report/export?start=${start}&end=${end}`;
+  }
+
+  document.getElementById('refresh').addEventListener('click', load);
+  load();
+</script>
+</body>
+</html>
