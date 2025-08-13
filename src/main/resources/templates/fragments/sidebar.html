@@ -157,6 +157,39 @@
         </ul>
       </div>
     </li>
+   <!-- Family Day Collapse -->
+<li>
+  <a
+    class="nav-link text-white d-flex justify-content-between align-items-center"
+    data-bs-toggle="collapse"
+    href="#familyDaySettings"
+    role="button"
+    th:attr="aria-expanded=${familyDayExpanded}"
+    onclick="toggleIcon(this)"
+  >
+    <span><i class="bi bi-people"></i> Family Day</span>
+    <i class="bi bi-chevron-down toggle-arrow"></i>
+  </a>
+
+  <div
+    class="collapse ps-4"
+    id="familyDaySettings"
+    th:classappend="${familyDayExpanded} ? 'show'"
+  >
+    <ul class="nav flex-column">
+      <li>
+        <a th:href="@{/visitingday}" class="nav-link text-white">
+          <i class="bi bi-calendar-check"></i> Visiting Day Portal
+        </a>
+      </li>
+      <li class="nav-item">
+        <a th:href="@{/visitingdayreport}" class="nav-link text-white">Visiting Day Report</a>
+      </li>
+    </ul>
+  </div>
+</li>
+
+
 
     <!-- Admin Only -->
     <li th:if="${role == 'admin'}">

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+ 
+
+  
+  <meta name="_csrf" th:content="${_csrf.token}" />
+<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+  <title>Visiting Day</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+  <link rel="stylesheet" th:href="@{/css/home.css}" />
+  
+</head>
+
+
+<body>
+  <!-- Header -->
+  <div th:replace="fragments/header :: header(${username})"></div>
+
+
+
+
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+
+      <!-- Main Content -->
+       
+      <div class="col-md-9 p-4">
+        <h1>Sisters of Mary School - Boystown Family Day</h1>
+        
+
+
+     
+
+        <!-- 🕒 Real-time Clock & Date -->
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+          <div>
+            <span class="fw-bold">📅 Date:</span>
+            <span id="current-date"></span>
+          </div>
+          <div>
+            <span class="fw-bold">⏰ Time:</span>
+            <span id="current-time"></span>
+          </div>
+        </div>
+
+        <!-- Hidden current user -->
+        <input type="hidden" id="current-user" th:value="${username}" />
+
+        <!-- Search Section -->
+        <div class="mb-4">
+          <label for="search-id" class="form-label">Search by ID Number</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="search-id" placeholder="e.g. TAL2022-005" />
+            <button class="btn btn-primary d-none" type="button">Search</button>
+
+          </div>
+        </div>
+
+        <div class="row mb-4" id="student-info-row">
+          <!-- Student Info Card -->
+          <div class="col-md-5 mb-3" id="student-info-card">
+            <div class="card shadow-sm h-100 text-center">
+              <div class="card-body">
+                <img id="student-photo"
+                     src="/images/default-profile.png"
+                     alt="Student Photo"
+                     class="rounded mb-3"
+                     style="width: 400px; height: 400px; object-fit: cover;" />
+                <p><strong>LRN:</strong> <span id="lrn">-</span></p>
+                <p><strong>ID Number:</strong> <span id="id-number">-</span></p>
+                <p><strong>Name:</strong> <span id="name">-</span></p>
+                <p><strong>Campus:</strong> <span id="campus">-</span></p>
+                <p><strong>Family Saint:</strong> <span id="family-saint">-</span></p>
+                <p><strong>Batch Number:</strong> <span id="batch-number">-</span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance Logs Card -->
+          <div class="col-md-7 mb-3">
+            <div class="card shadow-sm h-100">
+              <div class="card-body">
+                <h5 class="fw-bold mb-3">
+                  <i class="bi bi-journal-text me-2"></i>Attendance Logs
+                </h5>
+
+                <table class="table table-bordered table-striped">
+                  <thead>
+                    <tr>
+                      <th>Photo</th>
+                      <th>Name</th>
+                      <th>ID Number</th>
+                      <th>Date</th>
+                      <th>Time In</th>
+                      <th>Time Out</th>
+                                  
+                      <th>Recorded By</th>
+                    </tr>
+                  </thead>
+                  <tbody id="logs-table-body">
+                    <!-- Logs will be inserted here -->
+                  </tbody>
+                </table>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center">
+          <button class="btn btn-success px-5 d-none" onclick="submitAttendance()">Submit Attendance</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- JS Logic -->
+  <script th:inline="javascript">
+    const currentUser = /*[[${username}]]*/ "admin";
+  </script>
+  
+
+  <script>
+    let currentStudent = null;
+
+    async function searchStudent() {
+      const id = document.getElementById("search-id").value.trim();
+      if (!id) return alert("Please enter an ID number.");
+
+      try {
+        const res = await fetch(`/api/attendance/student/${id}`);
+        if (!res.ok) throw new Error("Student not found.");
+
+        const student = await res.json();
+        currentStudent = student;
+
+        document.getElementById("lrn").innerText = student.lrn;
+        document.getElementById("id-number").innerText = student.idNumber;
+        document.getElementById("name").innerText = student.name;
+        document.getElementById("campus").innerText = student.campus;
+        document.getElementById("family-saint").innerText = student.familySaint;
+        document.getElementById("batch-number").innerText = student.batchNumber;
+        document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
+
+        document.getElementById("student-info-card").style.display = "block";
+      } catch (err) {
+        alert(err.message);
+        document.getElementById("student-info-card").style.display = "none";
+        currentStudent = null;
+      }
+    }
+
+    async function submitAttendance() {
+  if (!currentStudent) return alert("Search and select a student first.");
+
+  const now = new Date();
+  const date = now.toISOString().split("T")[0];
+  const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
+  const account = currentUser;
+
+  const attendance = {
+    idNumber: currentStudent.idNumber,
+    lrn: currentStudent.lrn,
+    name: currentStudent.name,
+    campus: currentStudent.campus,
+    familySaint: currentStudent.familySaint,
+    batchNumber: currentStudent.batchNumber,
+    imageUrl: currentStudent.imageUrl,
+    date,
+    timeIn,
+    timeOut: null,
+    status: "present",
+    remarks: "",
+    account
+  };
+
+  try {
+    const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+
+    const res = await fetch("/api/attendance/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        [header]: token
+      },
+      body: JSON.stringify(attendance)
+    });
+
+    if (res.ok) {
+  const message = await res.text(); // "Time In recorded." or "Time Out recorded."
+
+  // Show SweetAlert2 popup
+  Swal.fire({
+    title: message.includes("Time Out") 
+      ? '<span style="color: red;">Time Out</span>' 
+      : 'Attendance Recorded!',
+    html: `
+      <div style="font-size: 3rem; margin-top: 10px;">
+        <i class="bi bi-check-circle-fill ${message.includes("Time Out") ? 'text-danger' : 'text-success'}"></i>
+      </div>
+      <p style="font-size: 1.2rem; margin-top: 10px;">${message}</p>
+    `,
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true,
+    position: 'center',
+    backdrop: true,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+      // ✅ Refresh the logs display
+      loadAttendanceLogs();
+    } else {
+      throw new Error();
+    }
+  } catch (error) {
+    alert("❌ Failed to submit attendance.");
+  }
+}
+
+    function updateClock() {
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const time = now.toLocaleTimeString('en-US');
+      document.getElementById('current-date').textContent = date;
+      document.getElementById('current-time').textContent = time;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    async function loadAttendanceLogs() {
+  try {
+    const res = await fetch("/api/attendance/logs");
+    if (!res.ok) throw new Error("Failed to load logs");
+
+    const logs = await res.json();
+    const tbody = document.getElementById("logs-table-body");
+    tbody.innerHTML = "";
+
+    // ✅ Only take the first 5 logs
+    const latestEightLogs = logs.slice(0, 8);
+
+    latestEightLogs.forEach(log => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${log.imageUrl || '/images/default-profile.png'}" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" /></td>
+        <td>${log.name || '-'}</td>
+        <td>${log.idNumber || '-'}</td>
+        <td>${log.date || '-'}</td>
+        <td>${log.timeIn || '-'}</td>
+        <td>${log.timeOut || '-'}</td>
+     
+      
+        <td>${log.account || '-'}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  } catch (err) {
+    console.error(err);
+    alert("Error loading attendance logs.");
+  }
+}
+
+
+setInterval(updateClock, 1000);
+updateClock();
+loadAttendanceLogs(); // 👈 Add this line to fetch logs on load
+
+
+document.getElementById("search-id").addEventListener("keydown", async function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault(); // Prevent default form submission behavior
+
+    await searchStudent();     // 🔍 Auto-search
+    await submitAttendance();  // 📝 Auto-submit
+
+    this.value = "";           // 🔄 Clear the field
+    this.focus();              // 🎯 Keep focus for next scan
+  }
+});
+
+
+  </script>
+
+  
+</body>
+</html>
