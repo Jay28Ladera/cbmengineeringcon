@@ -18,7 +18,11 @@ import java.util.UUID;
         @Index(name = "idx_visitingday_idnumber", columnList = "idNumber")
     }
 )
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class VisitingDayRecord {
 
     @Id
@@ -48,6 +52,13 @@ public class VisitingDayRecord {
     private Integer adultVisitor;
     private Integer kidVisitor;
     private Integer totalVisitors;
+
+    // Optional metadata captured in the modal
+    @Column(length = 32)
+    private String contactNumber;   // e.g. "0917-123-4567"
+
+    @Column(length = 24)
+    private String vehicleType;     // e.g. "MOTORCYCLE" or "FOUR_WHEELED"
 
     // Audit
     private String account;

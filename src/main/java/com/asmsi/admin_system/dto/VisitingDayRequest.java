@@ -23,10 +23,13 @@ public class VisitingDayRequest {
     // Visit info
     private String timeIn;          // "HH:mm:ss" from frontend (optional)
     private LocalDate date;         // optional; defaults to today
+    
 
     private Integer adultVisitor;   // optional; defaults to 0
     private Integer kidVisitor;     // optional; defaults to 0
     private Integer totalVisitors;  // optional; computed if null
+    private String contactNumber; // NEW
+  private String vehicleType;   // NEW
 
     // Audit
     private String account;

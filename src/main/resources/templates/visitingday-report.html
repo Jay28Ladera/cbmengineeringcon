@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="_csrf" th:content="${_csrf.token}" />
   <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-  <title>Visiting Day</title>
+  <title>Visiting Day Report</title>
 
   <!-- Bootstrap & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
 
-  <!-- SweetAlert2 -->
+  <!-- (Optional) SweetAlert2 -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -18,6 +18,103 @@
   <link rel="stylesheet" th:href="@{/css/header.css}" />
   <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
   <link rel="stylesheet" th:href="@{/css/home.css}" />
+
+  <!-- Page styles -->
+  <style>
+    
+    /* Blue zebra striping for Bootstrap tables */
+.table-striped-blue tbody tr:nth-of-type(odd) > * {
+  --bs-table-accent-bg: rgba(13,110,253,.08); /* light blue */
+}
+.table-striped-blue.table-hover tbody tr:hover > * {
+  background-color: rgba(13,110,253,.16) !important; /* deeper on hover */
+}
+
+    :root {
+      /* Blue theme accents (Bootstrap’s blue with slight tweaks) */
+      --brand-700: #0b5ed7;   /* buttons/links */
+      --brand-600: #0d6efd;   /* primary */
+      --brand-500: #3d8bfd;   /* accents */
+      --brand-100: #e7f1ff;   /* light bg */
+    }
+
+    .page-title {
+      display: flex; align-items: center; gap: .6rem;
+      font-weight: 700;
+    }
+    .page-title .bi { color: var(--brand-600); }
+
+    /* Toolbar */
+    .toolbar {
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-left: 4px solid var(--brand-600);
+      border-radius: .9rem;
+      padding: 1rem;
+      box-shadow: 0 6px 18px rgba(13,110,253,.06);
+      position: sticky; top: .75rem; z-index: 5;
+    }
+    .toolbar .form-label { font-size: .8rem; color: #6c757d; margin-bottom: .25rem; }
+
+    /* Stat cards */
+    .stat-card {
+      border: 0;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(13,110,253,.12);
+      background: linear-gradient(135deg, var(--brand-600), var(--brand-500));
+      color: #fff;
+    }
+    .stat-card .label { opacity: .85; font-size: .9rem; }
+    .stat-card .value { font-size: 2rem; font-weight: 800; letter-spacing: .5px; }
+
+    /* Section headers */
+    .section-title {
+      font-weight: 700;
+      color: #0f1730;
+      margin: 1.25rem 0 .5rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .section-title .bi { color: var(--brand-600); }
+
+    /* Tables */
+    .table-card {
+      background: #fff;
+      border: 1px solid #e9ecef;
+      border-radius: 1rem;
+      box-shadow: 0 8px 24px rgba(15, 23, 48, .06);
+      overflow: hidden;
+    }
+    .table-wrap { max-height: 52vh; overflow: auto; }
+    table thead th {
+      position: sticky; top: 0; z-index: 2;
+      background: #f8f9fb; color: #495057; font-weight: 700;
+      border-bottom: 1px solid #e9ecef;
+    }
+    tbody tr:hover { background: var(--brand-100); }
+    .empty-row td {
+      text-align: center; color: #6c757d; font-style: italic;
+      padding: 1.25rem;
+    }
+
+    /* Filter chips row */
+    .filters {
+      background: #fff; border: 1px solid #e9ecef; border-radius: 1rem;
+      padding: .85rem; box-shadow: 0 6px 18px rgba(13,110,253,.06);
+    }
+    .input-icon {
+      position: relative;
+    }
+    .input-icon .bi {
+      position: absolute; left: .65rem; top: 50%; transform: translateY(-50%);
+      color: #6c757d;
+    }
+    .input-icon input { padding-left: 2rem; }
+    .badge-pill {
+      background: var(--brand-100); color: var(--brand-600);
+      border: 1px solid #d7e7ff; font-weight: 600;
+    }
+  </style>
 </head>
 <body>
   <!-- Header -->
@@ -28,143 +125,332 @@
       <!-- Sidebar -->
       <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
 
-      <!-- Main Content -->
+      <!-- Main -->
       <div class="col-md-9 p-4">
-        <h1>Family Day Report</h1>
 
-  <div class="row g-3 align-items-end mb-3">
-    <div class="col-auto">
-      <label class="form-label">Start</label>
-      <input id="start" type="date" class="form-control">
-    </div>
-    <div class="col-auto">
-      <label class="form-label">End</label>
-      <input id="end" type="date" class="form-control">
-    </div>
-    <div class="col-auto">
-      <button id="refresh" class="btn btn-primary">Refresh</button>
-    </div>
-    <div class="col-auto">
-      <a id="download" class="btn btn-success" href="#">Download Excel</a>
-    </div>
-  </div>
+        <h1 class="page-title mb-3">
+          <i class="bi bi-graph-up-arrow"></i> Visiting Day Report
+        </h1>
 
-  <div id="summary" class="row g-3">
-    <div class="col-md-3">
-      <div class="card"><div class="card-body">
-        <h6>Total Visitors</h6><div id="totalVisitors" class="fs-3">0</div>
-      </div></div>
-    </div>
-    <div class="col-md-3">
-      <div class="card"><div class="card-body">
-        <h6>Total Adults</h6><div id="totalAdults" class="fs-3">0</div>
-      </div></div>
-    </div>
-    <div class="col-md-3">
-      <div class="card"><div class="card-body">
-        <h6>Total Kids</h6><div id="totalKids" class="fs-3">0</div>
-      </div></div>
-    </div>
-    <div class="col-md-3">
-      <div class="card"><div class="card-body">
-        <h6>Students w/ Visitors</h6><div id="totalStudentsVisited" class="fs-3">0</div>
-      </div></div>
-    </div>
-  </div>
+        <!-- Toolbar -->
+        <div class="toolbar mb-3">
+          <div class="row g-3 align-items-end">
+            <div class="col-sm-4 col-md-3 col-lg-2">
+              <label class="form-label">Start</label>
+              <input id="start" type="date" class="form-control">
+            </div>
+            <div class="col-sm-4 col-md-3 col-lg-2">
+              <label class="form-label">End</label>
+              <input id="end" type="date" class="form-control">
+            </div>
+            <div class="col-sm-4 col-md-3 col-lg-2 d-grid d-sm-block">
+              <button id="refresh" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat me-1"></i> Refresh
+              </button>
+            </div>
+            <div class="col-sm-12 col-md-3 col-lg-3 ms-auto d-grid d-sm-block text-end">
+              <a id="download" class="btn btn-success">
+                <i class="bi bi-file-earmark-excel-fill me-1"></i> Download Excel
+              </a>
+            </div>
+          </div>
+        </div>
 
-  <div class="row mt-4">
-    <div class="col-md-6">
-      <h5>Visitors per Year Level</h5>
-      <table class="table table-sm table-striped" id="tblYear">
-        <thead><tr><th>Year Level</th><th>Visitors</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="col-md-6">
-      <h5>Visitors per Family Saint</h5>
-      <table class="table table-sm table-striped" id="tblSaint">
-        <thead><tr><th>Family Saint</th><th>Visitors</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
+        <!-- Stats -->
+        <div id="summary" class="row g-3 mb-2">
+          <div class="col-6 col-md-3">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="label mb-1"><i class="bi bi-people-fill me-1"></i>Total Visitors</div>
+                <div id="totalVisitors" class="value">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="label mb-1"><i class="bi bi-person-fill me-1"></i>Adults</div>
+                <div id="totalAdults" class="value">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="label mb-1"><i class="bi bi-person-hearts me-1"></i>Kids</div>
+                <div id="totalKids" class="value">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card stat-card">
+              <div class="card-body">
+                <div class="label mb-1"><i class="bi bi-check2-square me-1"></i>Students w/ Visitors</div>
+                <div id="totalStudentsVisited" class="value">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <div class="row mt-4">
-    <div class="col-md-6">
-      <h5>Students with Visitors</h5>
-      <table class="table table-sm table-striped" id="tblWith">
-        <thead><tr><th>ID</th><th>Name</th><th>Family Saint</th><th>Year Level</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <div class="col-md-6">
-      <h5>Students without Visitors</h5>
-      <table class="table table-sm table-striped" id="tblWithout">
-        <thead><tr><th>ID</th><th>Name</th><th>Family Saint</th><th>Year Level</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+        <!-- Aggregations -->
+        <div class="row g-3">
+          <div class="col-md-6">
+            <h5 class="section-title"><i class="bi bi-collection"></i> Visitors per Batch Number</h5>
+            <div class="table-card">
+              <div class="table-wrap">
+                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblYear">
+                  <thead><tr><th>Batch Number</th><th class="text-end">Visitors</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h5 class="section-title"><i class="bi bi-award"></i> Visitors per Family Saint</h5>
+            <div class="table-card">
+              <div class="table-wrap">
+                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblSaint">
+                  <thead><tr><th>Family Saint</th><th class="text-end">Visitors</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<script>
-  function todayStr() {
-    const d = new Date();
-    return d.toISOString().substring(0,10);
-  }
+        <!-- Filters -->
+        <div class="filters mt-4">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label">Search (ID or Name)</label>
+              <div class="input-icon">
+                <i class="bi bi-search"></i>
+                <input id="fltSearch" class="form-control" placeholder="e.g. TAL2022-001 or Juan Dela Cruz" />
+              </div>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Batch Number</label>
+              <select id="fltBatch" class="form-select">
+                <option value="">All</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Family Saint</label>
+              <select id="fltSaint" class="form-select">
+                <option value="">All</option>
+              </select>
+            </div>
+            <div class="col-md-1 d-grid">
+              <button id="fltClear" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            </div>
+          </div>
+        </div>
 
-  const startEl = document.getElementById('start');
-  const endEl   = document.getElementById('end');
-  startEl.value = todayStr();
-  endEl.value   = todayStr();
+        <!-- Tables -->
+        <div class="row g-3 mt-1">
+          <div class="col-md-6">
+            <h5 class="section-title"><i class="bi bi-person-check"></i> Students with Visitors
+              <span class="badge rounded-pill badge-pill ms-1" id="withCount">0</span>
+            </h5>
+            <div class="table-card">
+              <div class="table-wrap">
+                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblWith">
+                  <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Family Saint</th>
+                    <th>Batch Number</th>
+                    <th>Time Arrived</th>
+                    <th class="text-end">Total Visitors</th>
+                  </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
 
-  async function load() {
-    const start = startEl.value;
-    const end   = endEl.value;
+          <div class="col-md-6">
+            <h5 class="section-title"><i class="bi bi-person-x"></i> Students without Visitors
+              <span class="badge rounded-pill badge-pill ms-1" id="withoutCount">0</span>
+            </h5>
+            <div class="table-card">
+              <div class="table-wrap">
+                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblWithout">
+                  <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Family Saint</th>
+                    <th>Batch Number</th>
+                  </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    const url = `/api/visitingday/report/summary?start=${start}&end=${end}`;
-    const res = await fetch(url);
-    const data = await res.json();
+      </div><!-- /main -->
+    </div><!-- /row -->
+  </div><!-- /container -->
 
-    // Top cards
-    document.getElementById('totalVisitors').innerText = data.totalVisitors;
-    document.getElementById('totalAdults').innerText = data.totalAdults;
-    document.getElementById('totalKids').innerText = data.totalKids;
-    document.getElementById('totalStudentsVisited').innerText = data.totalStudentsVisited;
+  <script>
+    // ---------- Date helpers ----------
+    function todayStr() {
+      const d = new Date();
+      return d.toISOString().substring(0, 10);
+    }
 
-    // Tables helper
-    const fill = (tbody, rows) => {
-      tbody.innerHTML = '';
-      rows.forEach(r => tbody.insertAdjacentHTML('beforeend', r));
-    };
+    const startEl = document.getElementById('start');
+    const endEl   = document.getElementById('end');
+    startEl.value = todayStr();
+    endEl.value   = todayStr();
 
-    // Year level
-    const yearTbody = document.querySelector('#tblYear tbody');
-    fill(yearTbody, Object.entries(data.visitorsPerBatchNumber || {})
-      .map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`));
+    // ---------- State ----------
+    let _summary = null;
 
-    // Family saint
-    const saintTbody = document.querySelector('#tblSaint tbody');
-    fill(saintTbody, Object.entries(data.visitorsPerFamilySaint || {})
-      .map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`));
+    // ---------- Load summary from API ----------
+    async function load() {
+      const start = startEl.value;
+      const end   = endEl.value;
 
-    // With visitors
-    const withTbody = document.querySelector('#tblWith tbody');
-    fill(withTbody, (data.studentsWithVisitors || [])
-      .map(s => `<tr><td>${s.idNumber||''}</td><td>${s.name||''}</td><td>${s.familySaint||''}</td><td>${s.yearLevel||''}</td></tr>`));
+      const res = await fetch(`/api/visitingday/report/summary?start=${start}&end=${end}`);
+      const data = await res.json();
+      _summary = data;
 
-    // Without visitors
-    const withoutTbody = document.querySelector('#tblWithout tbody');
-    fill(withoutTbody, (data.studentsWithoutVisitors || [])
-      .map(s => `<tr><td>${s.idNumber||''}</td><td>${s.name||''}</td><td>${s.familySaint||''}</td><td>${s.yearLevel||''}</td></tr>`));
+      // Summary cards
+      document.getElementById('totalVisitors').innerText = data.totalVisitors ?? 0;
+      document.getElementById('totalAdults').innerText = data.totalAdults ?? 0;
+      document.getElementById('totalKids').innerText = data.totalKids ?? 0;
+      document.getElementById('totalStudentsVisited').innerText = data.totalStudentsVisited ?? 0;
 
-    // Download link
-    const dl = document.getElementById('download');
-    dl.href = `/api/visitingday/report/export?start=${start}&end=${end}`;
-  }
+      // Aggregations
+      const yearTbody = document.querySelector('#tblYear tbody');
+      yearTbody.innerHTML = renderAggRows(data.visitorsPerBatchNumber);
 
-  document.getElementById('refresh').addEventListener('click', load);
-  load();
-</script>
+      const saintTbody = document.querySelector('#tblSaint tbody');
+      saintTbody.innerHTML = renderAggRows(data.visitorsPerFamilySaint);
+
+      // Filters + tables
+      populateFilters(data);
+      applyFilters();
+
+      // Excel download
+      document.getElementById('download').href = `/api/visitingday/report/export?start=${start}&end=${end}`;
+    }
+
+    function renderAggRows(mapObj) {
+      const entries = Object.entries(mapObj || {});
+      if (!entries.length) return `<tr class="empty-row"><td colspan="2">No data</td></tr>`;
+      return entries.map(([k, v]) =>
+        `<tr><td>${escapeHtml(k)}</td><td class="text-end">${v}</td></tr>`
+      ).join('');
+    }
+
+    // ---------- Filters ----------
+    function populateFilters(data) {
+      const batches = new Set();
+      const saints  = new Set();
+
+      [...(data.studentsWithVisitors || []), ...(data.studentsWithoutVisitors || [])].forEach(s => {
+        if (s.batchNumber) batches.add(s.batchNumber);
+        if (s.familySaint) saints.add(s.familySaint);
+      });
+
+      setOptions(document.getElementById('fltBatch'), batches);
+      setOptions(document.getElementById('fltSaint'), saints);
+    }
+
+    function setOptions(el, values) {
+      const cur = el.value;
+      el.innerHTML = '<option value="">All</option>' +
+        Array.from(values).sort().map(v => `<option>${escapeHtml(v)}</option>`).join('');
+      if (cur && [...values].includes(cur)) el.value = cur;
+    }
+
+    function applyFilters() {
+      if (!_summary) return;
+
+      const q     = (document.getElementById('fltSearch').value || '').toLowerCase().trim();
+      const batch = document.getElementById('fltBatch').value;
+      const saint = document.getElementById('fltSaint').value;
+
+      const match = s =>
+        (!q || (s.idNumber || '').toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q)) &&
+        (!batch || (s.batchNumber || '') === batch) &&
+        (!saint || (s.familySaint || '') === saint);
+
+      const withList = (_summary.studentsWithVisitors || []).filter(match);
+      const withoutList = (_summary.studentsWithoutVisitors || []).filter(match);
+
+      renderTables(withList, withoutList);
+    }
+
+    function renderTables(withList, withoutList) {
+      const withTb = document.querySelector('#tblWith tbody');
+      const woTb   = document.querySelector('#tblWithout tbody');
+
+      document.getElementById('withCount').textContent = withList.length;
+      document.getElementById('withoutCount').textContent = withoutList.length;
+
+      if (!withList.length) {
+        withTb.innerHTML = `<tr class="empty-row"><td colspan="6">No matching students</td></tr>`;
+      } else {
+        withTb.innerHTML = withList.map(s => `
+          <tr>
+            <td>${escapeHtml(s.idNumber || '')}</td>
+            <td>${escapeHtml(s.name || '')}</td>
+            <td>${escapeHtml(s.familySaint || '')}</td>
+            <td>${escapeHtml(s.batchNumber || '')}</td>
+            <td>${escapeHtml(s.arrivalTime || '')}</td>
+            <td class="text-end">${(s.totalVisitors ?? 0)}</td>
+          </tr>
+        `).join('');
+      }
+
+      if (!withoutList.length) {
+        woTb.innerHTML = `<tr class="empty-row"><td colspan="4">No matching students</td></tr>`;
+      } else {
+        woTb.innerHTML = withoutList.map(s => `
+          <tr>
+            <td>${escapeHtml(s.idNumber || '')}</td>
+            <td>${escapeHtml(s.name || '')}</td>
+            <td>${escapeHtml(s.familySaint || '')}</td>
+            <td>${escapeHtml(s.batchNumber || '')}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // Basic HTML escaping for safety when injecting strings
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
+    // Events
+    document.getElementById('fltSearch').addEventListener('input', applyFilters);
+    document.getElementById('fltBatch').addEventListener('change', applyFilters);
+    document.getElementById('fltSaint').addEventListener('change', applyFilters);
+    document.getElementById('fltClear').addEventListener('click', () => {
+      document.getElementById('fltSearch').value = '';
+      document.getElementById('fltBatch').value = '';
+      document.getElementById('fltSaint').value = '';
+      applyFilters();
+    });
+    document.getElementById('refresh').addEventListener('click', load);
+
+    // Initial load
+    load();
+  </script>
 </body>
 </html>

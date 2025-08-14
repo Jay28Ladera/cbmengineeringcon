@@ -53,6 +53,9 @@ public class VisitingDayService {
                 .adultVisitor(adult)
                 .kidVisitor(kid)
                 .totalVisitors(total)
+                   
+                .contactNumber(req.getContactNumber())
+                .vehicleType(req.getVehicleType())
 
                 .account(req.getAccount())
                 .build();

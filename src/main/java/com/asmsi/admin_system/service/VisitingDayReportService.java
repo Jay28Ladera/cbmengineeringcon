@@ -1,8 +1,8 @@
 package com.asmsi.admin_system.service;
 
 import com.asmsi.admin_system.dto.VisitingDaySummary;
-import com.asmsi.admin_system.entity.VisitingDayRecord;
 import com.asmsi.admin_system.entity.Student;
+import com.asmsi.admin_system.entity.VisitingDayRecord;
 import com.asmsi.admin_system.repository.StudentRepository;
 import com.asmsi.admin_system.repository.VisitingDayRepository;
 import org.apache.poi.ss.usermodel.*;
@@ -11,8 +11,14 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 
 @Service
 public class VisitingDayReportService {
@@ -25,64 +31,130 @@ public class VisitingDayReportService {
         this.studentRepo = studentRepo;
     }
 
-    // --------- Aggregation ---------
-
+    // ------------------------------------------------------------
+    // Summary / Aggregation
+    // ------------------------------------------------------------
     public VisitingDaySummary buildSummary(LocalDate start, LocalDate end) {
-        List<VisitingDayRecord> records = (start != null && end != null)
-                ? visitRepo.findByDateBetweenOrderByDateAsc(start, end)
-                : visitRepo.findByDate(LocalDate.now());
+        final List<VisitingDayRecord> records =
+                (start != null && end != null)
+                        ? visitRepo.findByDateBetweenOrderByDateAsc(start, end)
+                        : visitRepo.findByDate(LocalDate.now());
 
-        int totalAdults   = records.stream().map(r -> safe(r.getAdultVisitor())).reduce(0, Integer::sum);
-        int totalKids     = records.stream().map(r -> safe(r.getKidVisitor())).reduce(0, Integer::sum);
-        int totalVisitors = totalAdults + totalKids;
+        // Totals
+        final int totalAdults   = records.stream().map(r -> safe(r.getAdultVisitor())).reduce(0, Integer::sum);
+        final int totalKids     = records.stream().map(r -> safe(r.getKidVisitor())).reduce(0, Integer::sum);
+        final int totalVisitors = totalAdults + totalKids;
 
-        // Distinct students that had visitors
-        Set<String> visitedIds = records.stream()
+        // Distinct student IDs that had visitors in the range
+        final Set<String> visitedIds = records.stream()
                 .map(VisitingDayRecord::getIdNumber)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        final int totalStudentsVisited = visitedIds.size();
 
-        int totalStudentsVisited = visitedIds.size();
+        // Enrich with student master data
+        final Map<String, Student> studentsById = studentRepo.findByIdNumberIn(visitedIds).stream()
+                .collect(Collectors.toMap(Student::getIdNumber, s -> s, (a, b) -> a, LinkedHashMap::new));
 
-        // Load students for enrichment (batch number, family saint)
-        Map<String, Student> studentsByIdNum = studentRepo.findByIdNumberIn(visitedIds).stream()
-                .collect(Collectors.toMap(Student::getIdNumber, s -> s, (a,b)->a, LinkedHashMap::new));
+        // Per family saint / per batch number
+        final Map<String, Integer> perFamilySaint = new TreeMap<>();
+        final Map<String, Integer> perBatchNumber = new TreeMap<>();
 
-        // Per Family Saint (prefer record value, fallback to student)
-        Map<String, Integer> perFamilySaint = new TreeMap<>();
         for (VisitingDayRecord r : records) {
-            int add = safe(r.getAdultVisitor()) + safe(r.getKidVisitor());
-            String key = firstNonBlank(
+            final int add = safe(r.getAdultVisitor()) + safe(r.getKidVisitor());
+
+            final String fs = firstNonBlank(
                     r.getFamilySaint(),
-                    Optional.ofNullable(studentsByIdNum.get(r.getIdNumber()))
-                            .map(Student::getFamilySaint).orElse("Unknown")
+                    Optional.ofNullable(studentsById.get(r.getIdNumber())).map(Student::getFamilySaint).orElse(null)
             );
-            perFamilySaint.merge(key, add, Integer::sum);
-        }
+            perFamilySaint.merge(fs, add, Integer::sum);
 
-        // Per Batch Number (prefer record value, fallback to student)
-        Map<String, Integer> perBatchNumber = new TreeMap<>();
-        for (VisitingDayRecord r : records) {
-            int add = safe(r.getAdultVisitor()) + safe(r.getKidVisitor());
-            String key = firstNonBlank(
+            final String bn = firstNonBlank(
                     r.getBatchNumber(),
-                    Optional.ofNullable(studentsByIdNum.get(r.getIdNumber()))
-                            .map(Student::getBatchNumber).orElse("Unknown")
+                    Optional.ofNullable(studentsById.get(r.getIdNumber())).map(Student::getBatchNumber).orElse(null)
             );
-            perBatchNumber.merge(key, add, Integer::sum);
+            perBatchNumber.merge(bn, add, Integer::sum);
         }
 
-        // Build lists: with visitors (from records) and without visitors (from full student table)
-        List<Student> allStudents = studentRepo.findAll();
+        // Per-student aggregates for WITH visitors
+        final Map<String, Integer> sumAdults = new HashMap<>();
+        final Map<String, Integer> sumKids   = new HashMap<>();
+        final Map<String, String> earliestTime = new HashMap<>(); // keep "HH:mm:ss" as String
+        final Map<String, VisitingDayRecord> latestRecord = new HashMap<>();
+        final Map<String, LocalDateTime> latestKey = new HashMap<>();
 
-        List<VisitingDaySummary.SimpleStudent> withVisitors = visitedIds.stream()
-                .map(id -> toSimple(studentsByIdNum.get(id)))
-                .filter(Objects::nonNull)
+        for (VisitingDayRecord r : records) {
+            final String id = r.getIdNumber();
+            if (id == null) continue;
+
+            // sums
+            sumAdults.merge(id, safe(r.getAdultVisitor()), Integer::sum);
+            sumKids.merge(id, safe(r.getKidVisitor()), Integer::sum);
+
+            // earliest time (string compare is fine for HH:mm:ss)
+            final String t = safeStr(r.getTimeIn());
+            if (!t.isBlank()) {
+                final String cur = earliestTime.get(id);
+                if (cur == null || t.compareTo(cur) < 0) {
+                    earliestTime.put(id, t);
+                }
+            }
+
+            // latest record (for contact/vehicle/name fallbacks)
+            final LocalDate d = (r.getDate() != null) ? r.getDate() : LocalDate.MIN;
+            final LocalTime lt = parseTime(t);
+            final LocalDateTime key = LocalDateTime.of(d, lt);
+
+            final LocalDateTime curKey = latestKey.get(id);
+            if (curKey == null || key.isAfter(curKey)) {
+                latestKey.put(id, key);
+                latestRecord.put(id, r);
+            }
+        }
+
+        final List<Student> allStudents = studentRepo.findAll();
+
+        final List<VisitingDaySummary.SimpleStudent> withVisitors = visitedIds.stream()
+                .map(id -> {
+                    final Student s = studentsById.get(id);
+                    final VisitingDayRecord last = latestRecord.get(id);
+
+                    final String familySaint = firstNonBlank(
+                            last != null ? last.getFamilySaint() : null,
+                            s != null ? s.getFamilySaint() : null
+                    );
+                    final String batchNumber = firstNonBlank(
+                            last != null ? last.getBatchNumber() : null,
+                            s != null ? s.getBatchNumber() : null
+                    );
+                    final String name = (s != null) ? s.getName() : (last != null ? last.getName() : null);
+
+                    final int a = sumAdults.getOrDefault(id, 0);
+                    final int k = sumKids.getOrDefault(id, 0);
+
+                    return VisitingDaySummary.SimpleStudent.builder()
+                            .idNumber(id)
+                            .name(name)
+                            .familySaint(familySaint)
+                            .batchNumber(batchNumber)
+                            .arrivalTime(earliestTime.get(id))
+                            .adultVisitor(a)
+                            .kidVisitor(k)
+                            .totalVisitors(a + k)
+                            .contactNumber(last != null ? last.getContactNumber() : null) // <--
+                            .vehicleType(last != null ? last.getVehicleType() : null)     // <--
+                            .build();
+                })
                 .toList();
 
-        List<VisitingDaySummary.SimpleStudent> withoutVisitors = allStudents.stream()
-                .filter(s -> !visitedIds.contains(s.getIdNumber()))
-                .map(this::toSimple)
+        final List<VisitingDaySummary.SimpleStudent> withoutVisitors = allStudents.stream()
+                .filter(s -> s.getIdNumber() != null && !visitedIds.contains(s.getIdNumber()))
+                .map(s -> VisitingDaySummary.SimpleStudent.builder()
+                        .idNumber(s.getIdNumber())
+                        .name(s.getName())
+                        .familySaint(s.getFamilySaint())
+                        .batchNumber(s.getBatchNumber())
+                        .build())
                 .toList();
 
         return VisitingDaySummary.builder()
@@ -97,26 +169,9 @@ public class VisitingDayReportService {
                 .build();
     }
 
-    private int safe(Integer n) { return n == null ? 0 : Math.max(0, n); }
-
-    private String firstNonBlank(String a, String b) {
-        if (a != null && !a.isBlank()) return a;
-        if (b != null && !b.isBlank()) return b;
-        return "Unknown";
-    }
-
-    private VisitingDaySummary.SimpleStudent toSimple(Student s) {
-        if (s == null) return null;
-        return VisitingDaySummary.SimpleStudent.builder()
-                .idNumber(s.getIdNumber())
-                .name(s.getName())
-                .familySaint(s.getFamilySaint())
-                .batchNumber(s.getBatchNumber())
-                .build();
-    }
-
-    // --------- Excel Export ---------
-
+    // ------------------------------------------------------------
+    // Excel
+    // ------------------------------------------------------------
     public byte[] buildExcel(LocalDate start, LocalDate end) {
         VisitingDaySummary summary = buildSummary(start, end);
 
@@ -127,7 +182,7 @@ public class VisitingDayReportService {
             headerFont.setBold(true);
             header.setFont(headerFont);
 
-            // Sheet 1: Summary
+            // Summary sheet
             Sheet s1 = wb.createSheet("Summary");
             int r = 0;
             r = writeRow(s1, r, header, "Metric", "Value");
@@ -137,7 +192,7 @@ public class VisitingDayReportService {
             r = writeRow(s1, r, null, "Students with visitors", String.valueOf(summary.getTotalStudentsVisited()));
             autosize(s1, 2);
 
-            // Sheet 2: Visitors per Batch
+            // Visitors per Batch
             Sheet s2 = wb.createSheet("Visitors per Batch");
             r = 0;
             r = writeRow(s2, r, header, "Batch Number", "Visitors");
@@ -146,8 +201,8 @@ public class VisitingDayReportService {
             }
             autosize(s2, 2);
 
-            // Sheet 3: Visitors per Family Saint
-            Sheet s3 = wb.createSheet("Visitors per FamilySaint");
+            // Visitors per Family Saint
+            Sheet s3 = wb.createSheet("Visitors per Family Saint");
             r = 0;
             r = writeRow(s3, r, header, "Family Saint", "Visitors");
             for (var e : summary.getVisitorsPerFamilySaint().entrySet()) {
@@ -155,21 +210,39 @@ public class VisitingDayReportService {
             }
             autosize(s3, 2);
 
-            // Sheet 4: Students with Visitors
+            // With visitors
             Sheet s4 = wb.createSheet("With Visitors");
             r = 0;
-            r = writeRow(s4, r, header, "ID Number", "Name", "Family Saint", "Batch Number");
+            r = writeRow(s4, r, header,
+                    "ID Number", "Name", "Family Saint", "Batch Number",
+                    "Arrival Time", "Adults", "Kids", "Total Visitors",
+                    "Contact #", "Vehicle");
             for (var st : summary.getStudentsWithVisitors()) {
-                r = writeRow(s4, r, null, st.getIdNumber(), st.getName(), st.getFamilySaint(), st.getBatchNumber());
+                r = writeRow(s4, r, null,
+                        nv(st.getIdNumber()),
+                        nv(st.getName()),
+                        nv(st.getFamilySaint()),
+                        nv(st.getBatchNumber()),
+                        nv(st.getArrivalTime()),
+                        String.valueOf(Optional.ofNullable(st.getAdultVisitor()).orElse(0)),
+                        String.valueOf(Optional.ofNullable(st.getKidVisitor()).orElse(0)),
+                        String.valueOf(Optional.ofNullable(st.getTotalVisitors()).orElse(0)),
+                        nv(st.getContactNumber()),
+                        nv(st.getVehicleType())
+                );
             }
-            autosize(s4, 4);
+            autosize(s4, 10);
 
-            // Sheet 5: Students without Visitors
+            // Without visitors
             Sheet s5 = wb.createSheet("Without Visitors");
             r = 0;
             r = writeRow(s5, r, header, "ID Number", "Name", "Family Saint", "Batch Number");
             for (var st : summary.getStudentsWithoutVisitors()) {
-                r = writeRow(s5, r, null, st.getIdNumber(), st.getName(), st.getFamilySaint(), st.getBatchNumber());
+                r = writeRow(s5, r, null,
+                        nv(st.getIdNumber()),
+                        nv(st.getName()),
+                        nv(st.getFamilySaint()),
+                        nv(st.getBatchNumber()));
             }
             autosize(s5, 4);
 
@@ -178,6 +251,41 @@ public class VisitingDayReportService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate Visiting Day Excel", e);
         }
+    }
+
+    // ------------------------------------------------------------
+    // Helpers
+    // ------------------------------------------------------------
+    private int safe(Integer n) {
+        return n == null ? 0 : Math.max(0, n);
+    }
+
+   // existing one probably already here
+private String safeStr(String s) { return s == null ? "" : s; }
+
+// NEW: support LocalTime → "HH:mm:ss"
+private static final DateTimeFormatter HHMMSS = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+private String safeStr(LocalTime t) {
+    return (t == null) ? "" : t.format(HHMMSS);
+}
+
+
+
+
+    private LocalTime parseTime(String hhmmss) {
+        try {
+            if (hhmmss == null || hhmmss.isBlank()) return LocalTime.MIDNIGHT;
+            return LocalTime.parse(hhmmss);
+        } catch (Exception ex) {
+            return LocalTime.MIDNIGHT;
+        }
+    }
+
+    private String firstNonBlank(String a, String b) {
+        if (a != null && !a.isBlank()) return a;
+        if (b != null && !b.isBlank()) return b;
+        return "Unknown";
     }
 
     private int writeRow(Sheet sheet, int rowIndex, CellStyle headerStyle, String... cells) {
@@ -192,5 +300,9 @@ public class VisitingDayReportService {
 
     private void autosize(Sheet s, int cols) {
         for (int i = 0; i < cols; i++) s.autoSizeColumn(i);
+    }
+
+    private String nv(String v) {
+        return v == null ? "" : v;
     }
 }
