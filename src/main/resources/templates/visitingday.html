@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="_csrf" th:content="${_csrf.token}" />
   <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-  <title>Visiting Day</title>
+  <title>Family Day Portal</title>
 
   <!-- Bootstrap & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
@@ -14,80 +14,35 @@
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- Custom CSS -->
+  <!-- Your app CSS -->
   <link rel="stylesheet" th:href="@{/css/header.css}" />
   <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
   <link rel="stylesheet" th:href="@{/css/home.css}" />
 
   <style>
-    /* SweetAlert2: compact modal with blue title bar */
-.swal2-popup.vmodal {
-  padding: 0;                 /* remove default inner padding */
-  border-radius: .75rem;
-  overflow: hidden;           /* so the blue header clips nicely */
-}
+    .tabs-wrap { background:#eef2f6; border-radius:.5rem; padding:.5rem; margin-bottom:1rem; }
+    .tabs-wrap .nav-link { font-weight:600; }
+    .tabs-wrap .nav-link.active { background:#2b3ded; color:#fff; }
 
-.swal2-popup.vmodal .swal2-title.vmodal-title {
-  margin: 0;                  /* flush to the edges */
-  padding: 14px 18px;
-  background: #0d6efd;        /* Bootstrap primary blue */
-  color: #fff;
-  font-weight: 600;
-  font-size: 1.25rem;
-  line-height: 1.2;
-}
+    .page-title { font-weight:700; letter-spacing:.2px; }
+    .card { border-radius:.75rem; }
+    .card-body { padding:1rem 1.1rem; }
+    .entity-photo { width:220px; height:220px; object-fit:cover; border-radius:.5rem; }
+    .table-wrap { max-height:320px; overflow-y:auto; overflow-x:hidden; border-radius:.5rem; }
+    .table thead th { position:sticky; top:0; background:#fff; z-index:1; box-shadow:0 1px 0 rgba(0,0,0,.05); }
+    .table-sm td, .table-sm th { padding:.45rem .55rem; }
+    .table-bordered>:not(caption)>*>* { border-width:0 0 1px 0; }
+    .col-photo { width:70px; }
+    .col-small { width:86px; }
+    .log-img { width:46px; height:46px; object-fit:cover; border-radius:.5rem; }
 
-.swal2-popup.vmodal .swal2-html-container {
-  padding: 16px 18px 0;       /* put the body padding back */
-  margin: 0;
-}
+    .swal2-popup.vmodal { padding:0; border-radius:.75rem; overflow:hidden; }
+    .swal2-popup.vmodal .swal2-title.vmodal-title { margin:0; padding:14px 18px; background:#0d6efd; color:#fff; font-weight:600; font-size:1.25rem; }
+    .swal2-popup.vmodal .swal2-html-container { padding:16px 18px 0; margin:0; }
+    .swal2-popup.vmodal .swal2-actions { padding:0 18px 16px; margin:16px 0 0 0; }
+    .swal2-popup.vmodal .swal2-cancel { margin-left:.5rem; }
 
-.swal2-popup.vmodal .swal2-actions {
-  padding: 0 18px 16px;       /* buttons area padding */
-  margin: 16px 0 0 0;
-}
-
-.swal2-popup.vmodal .swal2-cancel {
-  margin-left: .5rem;         /* small gap between buttons */
-}
-
-    /* Layout tweaks */
-    .page-title { font-weight: 700; letter-spacing: .2px; }
-    .student-card img {
-      width: 220px; height: 220px; object-fit: cover;
-    }
-    .student-card p { margin-bottom: .35rem; }
-
-    /* Card polish */
-    .card { border-radius: .75rem; }
-    .card-body { padding: 1rem 1.1rem; }
-
-    /* Table sizing & containment */
-    .table-wrap {
-      max-height: 320px;   /* ~5 compact rows + header */
-      overflow-y: auto;
-      overflow-x: hidden;
-      border-radius: .5rem;
-    }
-    .table thead th {
-      position: sticky; top: 0;
-      background: #fff; z-index: 1;
-      box-shadow: 0 1px 0 rgba(0,0,0,.05);
-    }
-    .table-sm td, .table-sm th { padding: .45rem .55rem; }
-    .table-bordered>:not(caption)>*>* { border-width: 0 0 1px 0; }
-
-    /* Make the log table columns a bit narrower */
-    .col-photo { width: 70px; }
-    .col-small { width: 86px; }
-    .log-img {
-      width: 46px; height: 46px; object-fit: cover; border-radius: .5rem;
-    }
-
-    /* Reduce top/bottom gaps on smaller screens */
-    @media (max-width: 992px) {
-      .student-card img { width: 180px; height: 180px; }
-    }
+    @media (max-width: 992px) { .entity-photo { width:180px; height:180px; } }
   </style>
 </head>
 <body>
@@ -96,353 +51,698 @@
 
   <div class="container-fluid">
     <div class="row">
-      <!-- Sidebar -->
+      <!-- Sidebar (untouched) -->
       <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
 
-      <!-- Main Content -->
+      <!-- Main -->
       <div class="col-lg-9 p-4">
         <h1 class="page-title mb-3">Sisters of Mary School – Boystown Family Day</h1>
 
-        <!-- Date & clock -->
-        <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
-          <div class="d-flex align-items-center gap-2">
-            <span class="fw-semibold">📅 Date:</span> <span id="current-date"></span>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span class="fw-semibold">⏰ Time:</span> <span id="current-time"></span>
-          </div>
+        <!-- Tabs -->
+        <div class="tabs-wrap">
+          <ul class="nav nav-pills gap-2" id="portalTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="tab-students-btn" data-bs-toggle="tab" data-bs-target="#tab-students" type="button" role="tab">Students</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-nts-btn" data-bs-toggle="tab" data-bs-target="#tab-nts" type="button" role="tab">NTS</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-faculty-btn" data-bs-toggle="tab" data-bs-target="#tab-faculty" type="button" role="tab">Faculty</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="tab-grads-btn" data-bs-toggle="tab" data-bs-target="#tab-grads" type="button" role="tab">Graduates</button>
+            </li>
+          </ul>
         </div>
 
-        <!-- Hidden current user -->
-        <input type="hidden" id="current-user" th:value="${username}" />
+        <div class="tab-content">
+          <!-- ===================== STUDENTS ===================== -->
+          <div class="tab-pane fade show active" id="tab-students" role="tabpanel" aria-labelledby="tab-students-btn">
+            <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">📅 Date:</span> <span id="date-stu"></span></div>
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">⏰ Time:</span> <span id="time-stu"></span></div>
+            </div>
 
-        <!-- Search -->
-        <div class="mb-3">
-          <label for="search-id" class="form-label">Search by ID Number</label>
-          <div class="input-group">
-            <input type="text" class="form-control" id="search-id" placeholder="e.g. TAL2022-005" />
-            <button class="btn btn-primary d-none" type="button">Search</button>
-          </div>
-        </div>
+            <!-- current user (for students only) -->
+            <input type="hidden" id="current-user" th:value="${username}" />
 
-        <div class="row g-3" id="student-info-row">
-          <!-- Student Info -->
-          <div class="col-lg-5" id="student-info-card" style="display:none;">
-            <div class="card shadow-sm h-100">
-              <div class="card-body student-card text-center">
-                <img id="student-photo" src="/images/default-profile.png" alt="Student Photo" class="mb-3"/>
-                <p><strong>LRN:</strong> <span id="lrn">-</span></p>
-                <p><strong>ID Number:</strong> <span id="id-number">-</span></p>
-                <p><strong>Name:</strong> <span id="name">-</span></p>
-                <p><strong>Campus:</strong> <span id="campus">-</span></p>
-                <p><strong>Family Saint:</strong> <span id="family-saint">-</span></p>
-                <p><strong>Batch Number:</strong> <span id="batch-number">-</span></p>
-                <p class="mb-0"><strong>Address:</strong> <span id="address">-</span></p>
+            <div class="mb-3">
+              <label for="search-stu" class="form-label">Search by ID Number</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="search-stu" placeholder="e.g. TAL2022-005" />
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-lg-5">
+                <div class="card shadow-sm h-100" id="card-stu" style="display:none;">
+                  <div class="card-body text-center">
+                    <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                    <p><strong>LRN:</strong> <span id="lrn-stu">-</span></p>
+                    <p><strong>ID Number:</strong> <span id="id-stu">-</span></p>
+                    <p><strong>Name:</strong> <span id="name-stu">-</span></p>
+                    <p><strong>Location:</strong> <span id="campus-stu">-</span></p>
+                    <p><strong>Family Saint:</strong> <span id="saint-stu">-</span></p>
+                    <p><strong>Batch Number:</strong> <span id="batch-stu">-</span></p>
+                    <p class="mb-0"><strong>Address:</strong> <span id="addr-stu">-</span></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-7">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Visitors logs</h5>
+                      <small class="text-muted">showing latest 5</small>
+                    </div>
+
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th class="col-photo">Photo</th>
+                            <th>Name</th>
+                            <th>ID Number</th>
+                            <th class="col-small">Date</th>
+                            <th class="col-small">Time In</th>
+                            <th>Address</th>
+                            <th class="col-small">Adult</th>
+                            <th class="col-small">Kid</th>
+                            <th class="col-small">Total</th>
+                            <th class="col-small">Contact #</th>
+                            <th class="col-small">Vehicle</th>
+                          </tr>
+                        </thead>
+                        <tbody id="logs-stu"></tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Logs -->
-          <div class="col-lg-7">
-            <div class="card shadow-sm h-100">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Visitors logs</h5>
-                  <small class="text-muted">showing latest 5</small>
-                </div>
+          <!-- ===================== NTS ===================== -->
+          <div class="tab-pane fade" id="tab-nts" role="tabpanel" aria-labelledby="tab-nts-btn">
+            <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">📅 Date:</span> <span id="date-nts"></span></div>
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">⏰ Time:</span> <span id="time-nts"></span></div>
+            </div>
 
-                <div class="table-responsive table-wrap">
-                  <table class="table table-sm table-striped table-bordered align-middle mb-0">
-                    <thead>
-                      <tr>
-                        <th class="col-photo">Photo</th>
-                        <th>Name</th>
-                        <th>ID Number</th>
-                        <th class="col-small">Date</th>
-                        <th class="col-small">Time In</th>
-                        <th>Address</th>
-                        <th class="col-small">Adult</th>
-                        <th class="col-small">Kid</th>
-                        <th class="col-small">Total</th>
-                        <th class="col-small">Contact #</th>
-                        <th class="col-small">Vehicle</th>
-                      </tr>
-                    </thead>
-                    <tbody id="logs-table-body">
-                      <!-- rows injected here -->
-                    </tbody>
-                  </table>
-                </div>
+            <div class="mb-3">
+              <label for="search-nts" class="form-label">Search by Employee ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="search-nts" placeholder="e.g. SMS-NTS-002" />
+              </div>
+            </div>
 
+            <div class="row g-3">
+              <div class="col-lg-5">
+                <div class="card shadow-sm h-100" id="card-nts" style="display:none;">
+                  <div class="card-body text-center">
+                    <img id="photo-nts" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                    <p><strong>Employee ID:</strong> <span id="id-nts">-</span></p>
+                    <p><strong>Name:</strong> <span id="name-nts">-</span></p>
+                    <p><strong>Position:</strong> <span id="pos-nts">-</span></p>
+                    <p class="mb-0"><strong>Department:</strong> <span id="dept-nts">-</span></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-7">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Latest records</h5>
+                      <small class="text-muted">showing latest 5</small>
+                    </div>
+
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th class="col-photo">Photo</th>
+                            <th>Name</th>
+                            <th>Employee ID</th>
+                            <th class="col-small">Date</th>
+                            <th class="col-small">Time</th>
+                            <th>Position</th>
+                            <th>Department</th>
+                          </tr>
+                        </thead>
+                        <tbody id="logs-nts"></tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Hidden submit (we save after modal confirm) -->
-        <div class="text-center">
-          <button class="btn btn-success px-5 d-none" onclick="submitVisitingDay()">Submit Attendance</button>
-        </div>
-      </div>
+          <!-- ===================== FACULTY ===================== -->
+          <div class="tab-pane fade" id="tab-faculty" role="tabpanel" aria-labelledby="tab-faculty-btn">
+            <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">📅 Date:</span> <span id="date-fac"></span></div>
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">⏰ Time:</span> <span id="time-fac"></span></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="search-fac" class="form-label">Search by Employee ID</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="search-fac" placeholder="e.g. SMS-001" />
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-lg-5">
+                <div class="card shadow-sm h-100" id="card-fac" style="display:none;">
+                  <div class="card-body text-center">
+                    <img id="photo-fac" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                    <p><strong>Employee ID:</strong> <span id="id-fac">-</span></p>
+                    <p><strong>Name:</strong> <span id="name-fac">-</span></p>
+                    <p><strong>Position:</strong> <span id="pos-fac">-</span></p>
+                    <p class="mb-0"><strong>Department:</strong> <span id="dept-fac">-</span></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-7">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Latest records</h5>
+                      <small class="text-muted">showing latest 5</small>
+                    </div>
+
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th class="col-photo">Photo</th>
+                            <th>Name</th>
+                            <th>Employee ID</th>
+                            <th class="col-small">Date</th>
+                            <th class="col-small">Time</th>
+                            <th>Position</th>
+                            <th>Department</th>
+                          </tr>
+                        </thead>
+                        <tbody id="logs-fac"></tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===================== GRADUATES ===================== -->
+          <div class="tab-pane fade" id="tab-grads" role="tabpanel" aria-labelledby="tab-grads-btn">
+            <div class="mb-3 d-flex flex-wrap gap-3 align-items-center">
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">📅 Date:</span> <span id="date-gra"></span></div>
+              <div class="d-flex align-items-center gap-2"><span class="fw-semibold">⏰ Time:</span> <span id="time-gra"></span></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="search-gra" class="form-label">Search by ID Number</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="search-gra" placeholder="e.g. TAL2017-045" />
+              </div>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-lg-5">
+                <div class="card shadow-sm h-100" id="card-gra" style="display:none;">
+                  <div class="card-body text-center">
+                    <img id="photo-gra" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                    <p><strong>ID Number:</strong> <span id="id-gra">-</span></p>
+                    <p><strong>Batch Number:</strong> <span id="batch-gra">-</span></p>
+                    <p class="mb-0"><strong>Address:</strong> <span id="addr-gra">-</span></p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-7">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2"></i>Latest records</h5>
+                      <small class="text-muted">showing latest 5</small>
+                    </div>
+
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                        <thead>
+                          <tr>
+                            <th class="col-photo">Photo</th>
+                            <th>ID Number</th>
+                            <th class="col-small">Date</th>
+                            <th class="col-small">Time</th>
+                            <th>Address</th>
+                            <th class="col-small">Batch #</th>
+                          </tr>
+                        </thead>
+                        <tbody id="logs-gra"></tbody>
+                      </table>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /tab-content -->
+      </div><!-- /main -->
     </div>
   </div>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Inline Thymeleaf vars (fallbacks for local dev) -->
-  <script th:inline="javascript">
-    const currentUser = /*[[${username}]]*/ "admin";
-  </script>
+  <!-- Inline Thymeleaf var (fallback) -->
+  <script th:inline="javascript">const currentUser = /*[[${username}]]*/ "admin";</script>
 
   <script>
-    let currentStudent = null;
-    let pendingCounts = null; // {adultVisitor, kidVisitor, totalVisitors, contactNumber, vehicleType}
-
-    /* ---------- Clock ---------- */
-    function updateClock() {
-      const now = new Date();
-      const date = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-      const time = now.toLocaleTimeString('en-US');
-      document.getElementById('current-date').textContent = date;
-      document.getElementById('current-time').textContent = time;
+    /* ===== clocks per tab ===== */
+    function startClock(dateElId, timeElId) {
+      const de = document.getElementById(dateElId);
+      const te = document.getElementById(timeElId);
+      function tick() {
+        const now = new Date();
+        de.textContent = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+        te.textContent = now.toLocaleTimeString('en-US');
+      }
+      tick(); return setInterval(tick, 1000);
     }
-    setInterval(updateClock, 1000); updateClock();
+    startClock('date-stu','time-stu');
+    startClock('date-nts','time-nts');
+    startClock('date-fac','time-fac');
+    startClock('date-gra','time-gra');
 
-    /* ---------- CSRF ---------- */
-    function getCsrfHeaders() {
+    /* ===== CSRF helper ===== */
+    function csrfHeader() {
       const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content") || "";
       const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content") || "X-CSRF-TOKEN";
       return { headerName: header, token };
     }
 
-    /* ---------- Search student ---------- */
-    async function searchStudent() {
-      const id = document.getElementById("search-id").value.trim();
-      if (!id) { alert("Please enter an ID number."); return; }
-
-      try {
-        const res = await fetch(`/api/attendance/student/${encodeURIComponent(id)}`);
-        if (!res.ok) throw new Error("Student not found.");
-
-        const student = await res.json();
-        currentStudent = student;
-
-        // Fill UI
-        document.getElementById("lrn").innerText = student.lrn ?? '-';
-        document.getElementById("id-number").innerText = student.idNumber ?? '-';
-        document.getElementById("name").innerText = student.name ?? '-';
-        document.getElementById("campus").innerText = student.campus ?? '-';
-        document.getElementById("family-saint").innerText = student.familySaint ?? '-';
-        document.getElementById("batch-number").innerText = student.batchNumber ?? '-';
-        document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
-        document.getElementById("address").innerText = student.address || '-';
-
-        document.getElementById("student-info-card").style.display = "block";
-
-        // Open modal to capture counts/contact/vehicle
-        await openVisitorModal(student);
-      } catch (err) {
-        alert(err.message || "Lookup failed.");
-        document.getElementById("student-info-card").style.display = "none";
-        currentStudent = null;
-      }
+    /* =========================================================
+       STUDENTS: search -> modal -> POST /api/visitingday/submit
+       ========================================================= */
+    async function openVisitorModal(student) {
+      return Swal.fire({
+        title: `Visitors for ${student.name || student.idNumber}`,
+        customClass: { popup:'vmodal', title:'vmodal-title', confirmButton:'btn btn-primary', cancelButton:'btn btn-outline-secondary' },
+        buttonsStyling:false,
+        html: `
+          <div class="text-start">
+            <div class="mb-2"><strong>ID:</strong> ${student.idNumber || '-'}</div>
+            <div class="row g-2">
+              <div class="col-4"><label class="form-label">Adult</label><input id="swal-adult" type="number" min="0" value="1" class="form-control" /></div>
+              <div class="col-4"><label class="form-label">Kids</label><input id="swal-kid" type="number" min="0" value="0" class="form-control" /></div>
+              <div class="col-4"><label class="form-label">Total</label><input id="swal-total" type="number" min="0" value="0" class="form-control" readonly /></div>
+            </div>
+            <div class="mt-3">
+              <label class="form-label">Active Contact Number <small class="text-muted">(optional)</small></label>
+              <input id="swal-contact" type="tel" class="form-control" placeholder="e.g. 09XXXXXXXXX" />
+            </div>
+            <div class="mt-3">
+              <label class="form-label d-block">Vehicle <small class="text-muted">(optional)</small></label>
+              <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-mc" value="MOTORCYCLE"><label class="form-check-label" for="veh-mc">Motorcycle</label></div>
+              <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-car" value="FOUR_WHEELED"><label class="form-check-label" for="veh-car">4-wheeled Car</label></div>
+            </div>
+          </div>`,
+        showCancelButton: true, confirmButtonText: 'Save',
+        didOpen: () => {
+          const adult = document.getElementById('swal-adult');
+          const kid   = document.getElementById('swal-kid');
+          const total = document.getElementById('swal-total');
+          const recalc = () => {
+            const a = parseInt(adult.value || '0',10);
+            const k = parseInt(kid.value || '0',10);
+            total.value = (isNaN(a)?0:a) + (isNaN(k)?0:k);
+          };
+          adult.addEventListener('input',recalc); kid.addEventListener('input',recalc); recalc();
+        },
+        preConfirm: () => {
+          const a = parseInt(document.getElementById('swal-adult').value || '0',10);
+          const k = parseInt(document.getElementById('swal-kid').value || '0',10);
+          const t = parseInt(document.getElementById('swal-total').value || '0',10);
+          const contact = document.getElementById('swal-contact').value.trim() || null;
+          const vehicle = document.querySelector('input[name="swal-vehicle"]:checked')?.value || null;
+          if (a < 0 || k < 0) { Swal.showValidationMessage('Counts cannot be negative.'); return false; }
+          return { adultVisitor:a, kidVisitor:k, totalVisitors:t, contactNumber:contact, vehicleType:vehicle };
+        }
+      }).then(res => res);
     }
 
-    /* ---------- Modal for visitor counts + contact + vehicle ---------- */
-   async function openVisitorModal(student) {
-  return Swal.fire({
-    title: `Visitors for ${student.name || student.idNumber}`,
-    customClass: {
-      popup: 'vmodal',           // hooks the CSS above
-      title: 'vmodal-title',
-      confirmButton: 'btn btn-primary',
-      cancelButton: 'btn btn-outline-secondary'
-    },
-    buttonsStyling: false,       // use Bootstrap button classes
-    html: `
-      <div class="text-start">
-        <div class="mb-2"><strong>ID:</strong> ${student.idNumber || '-'}</div>
-        <div class="row g-2">
-          <div class="col-4">
-            <label class="form-label">Adult</label>
-            <input id="swal-adult" type="number" min="0" value="0" class="form-control" />
-          </div>
-          <div class="col-4">
-            <label class="form-label">Kids</label>
-            <input id="swal-kid" type="number" min="0" value="0" class="form-control" />
-          </div>
-          <div class="col-4">
-            <label class="form-label">Total</label>
-            <input id="swal-total" type="number" min="0" value="0" class="form-control" readonly />
-          </div>
-        </div>
-
-        <div class="mt-3">
-          <label class="form-label">Active Contact Number <small class="text-muted">(optional)</small></label>
-          <input id="swal-contact" type="tel" class="form-control" placeholder="e.g. 09XXXXXXXXX" />
-        </div>
-
-        <div class="mt-3">
-          <label class="form-label d-block">Vehicle <small class="text-muted">(optional)</small></label>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="swal-vehicle" id="veh-mc" value="MOTORCYCLE">
-            <label class="form-check-label" for="veh-mc">Motorcycle</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="swal-vehicle" id="veh-car" value="FOUR_WHEELED">
-            <label class="form-check-label" for="veh-car">4-wheeled Car</label>
-          </div>
-         
-        </div>
-      </div>
-    `,
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: 'Save',
-    didOpen: () => {
-      const adult = document.getElementById('swal-adult');
-      const kid = document.getElementById('swal-kid');
-      const total = document.getElementById('swal-total');
-      const recalc = () => {
-        const a = parseInt(adult.value || '0', 10);
-        const k = parseInt(kid.value || '0', 10);
-        total.value = (isNaN(a) ? 0 : a) + (isNaN(k) ? 0 : k);
-      };
-      adult.addEventListener('input', recalc);
-      kid.addEventListener('input', recalc);
-      recalc();
-    },
-    preConfirm: () => {
-      const a = parseInt(document.getElementById('swal-adult').value || '0', 10);
-      const k = parseInt(document.getElementById('swal-kid').value || '0', 10);
-      const t = parseInt(document.getElementById('swal-total').value || '0', 10);
-      const contact = document.getElementById('swal-contact').value.trim() || null;
-      const vehicle = document.querySelector('input[name="swal-vehicle"]:checked')?.value || null;
-
-      if (a < 0 || k < 0) {
-        Swal.showValidationMessage('Counts cannot be negative.');
-        return false;
-      }
-      return { adultVisitor: a, kidVisitor: k, totalVisitors: t, contactNumber: contact, vehicleType: vehicle };
-    }
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      pendingCounts = result.value;
-      await submitVisitingDay();
-    }
-  });
-}
-
-    /* ---------- Submit visiting day record ---------- */
-    async function submitVisitingDay() {
-      if (!currentStudent) { alert("Search and select a student first."); return; }
-
+    async function submitStudentVisit(student, counts) {
       const now = new Date();
       const payload = {
-        idNumber: currentStudent.idNumber,
-        lrn: currentStudent.lrn,
-        name: currentStudent.name,
-        campus: currentStudent.campus,
-        familySaint: currentStudent.familySaint,
-        batchNumber: currentStudent.batchNumber,
-        imageUrl: currentStudent.imageUrl,
-        address: currentStudent.address || null,
-
+        idNumber: student.idNumber,
+        lrn: student.lrn,
+        name: student.name,
+        campus: student.campus,
+        familySaint: student.familySaint,
+        batchNumber: student.batchNumber,
+        imageUrl: student.imageUrl,
+        address: student.address || null,
         date: now.toISOString().split("T")[0],
-        timeIn: now.toLocaleTimeString('en-US', { hour12: false }),
-
-        adultVisitor: pendingCounts?.adultVisitor ?? 0,
-        kidVisitor: pendingCounts?.kidVisitor ?? 0,
-        totalVisitors: pendingCounts?.totalVisitors ?? 0,
-        contactNumber: pendingCounts?.contactNumber ?? null,
-        vehicleType: pendingCounts?.vehicleType ?? null,
-
+        timeIn: now.toLocaleTimeString('en-US', { hour12:false }),
+        adultVisitor: counts?.adultVisitor ?? 0,
+        kidVisitor: counts?.kidVisitor ?? 0,
+        totalVisitors: counts?.totalVisitors ?? 0,
+        contactNumber: counts?.contactNumber ?? null,
+        vehicleType: counts?.vehicleType ?? null,
         account: document.getElementById('current-user')?.value || currentUser || 'system'
       };
+      const { headerName, token } = csrfHeader();
+      const res = await fetch("/api/visitingday/submit", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", [headerName]:token },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`Save failed (${res.status})`);
+    }
 
+    async function searchStudentById(id) {
+      const res = await fetch(`/api/attendance/student/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error("Student not found");
+      return res.json();
+    }
+
+    async function loadStudentLogs() {
+      const res = await fetch("/api/visitingday/logs");
+      if (!res.ok) return;
+      const logs = await res.json();
+      const tbody = document.getElementById("logs-stu");
+      tbody.innerHTML = "";
+      (logs.slice(0,5)).forEach(log => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+          <td>${log.name || '-'}</td>
+          <td>${log.idNumber || '-'}</td>
+          <td>${log.date || '-'}</td>
+          <td>${log.timeIn || '-'}</td>
+          <td>${log.address || '-'}</td>
+          <td>${log.adultVisitor ?? '-'}</td>
+          <td>${log.kidVisitor ?? '-'}</td>
+          <td>${log.totalVisitors ?? '-'}</td>
+          <td>${log.contactNumber || '-'}</td>
+          <td>${log.vehicleType || '-'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById("search-stu").addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const id = e.target.value.trim(); if (!id) return;
       try {
-        const { headerName, token } = getCsrfHeaders();
-        const res = await fetch("/api/visitingday/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", [headerName]: token },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error("Failed to save visiting day record.");
+        const s = await searchStudentById(id);
+        document.getElementById("photo-stu").src = s.imageUrl || "/images/default-profile.png";
+        document.getElementById("lrn-stu").textContent = s.lrn ?? "-";
+        document.getElementById("id-stu").textContent = s.idNumber ?? "-";
+        document.getElementById("name-stu").textContent = s.name ?? "-";
+        document.getElementById("campus-stu").textContent = s.campus ?? "-";
+        document.getElementById("saint-stu").textContent = s.familySaint ?? "-";
+        document.getElementById("batch-stu").textContent = s.batchNumber ?? "-";
+        document.getElementById("addr-stu").textContent = s.address ?? "-";
+        document.getElementById("card-stu").style.display = "block";
 
-        await Swal.fire({
-          title: 'Saved!',
-          html: `
-            <div style="font-size: 3rem; margin-top: 10px;">
-              <i class="bi bi-check-circle-fill text-success"></i>
-            </div>
-            <p class="mt-2 mb-0">Visiting Day record saved.</p>
-          `,
-          timer: 1400, showConfirmButton: false
-        });
-
-        pendingCounts = null;
-        await loadVisitingLogs();
+        const modal = await openVisitorModal(s);
+        if (modal.isConfirmed) {
+          await submitStudentVisit(s, modal.value);
+          await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+          await loadStudentLogs();
+        }
       } catch (err) {
-        console.error(err);
-        alert("❌ Failed to submit Visiting Day record.");
-      }
-    }
-
-    /* ---------- Helpers ---------- */
-    function formatVehicle(v) {
-      if (!v) return '-';
-      if (v === 'MOTORCYCLE') return 'Motorcycle';
-      if (v === 'FOUR_WHEELED') return '4-wheeled Car';
-      return v;
-    }
-
-    /* ---------- Load logs (max 5 rows) ---------- */
-    async function loadVisitingLogs() {
-      try {
-        const res = await fetch("/api/visitingday/logs");
-        if (!res.ok) throw new Error("Failed to load logs");
-
-        const logs = await res.json();
-        const tbody = document.getElementById("logs-table-body");
-        tbody.innerHTML = "";
-
-        const latest = logs.slice(0, 8); // <-- limit to 5 rows
-        latest.forEach(log => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img" /></td>
-            <td>${log.name || '-'}</td>
-            <td>${log.idNumber || '-'}</td>
-            <td>${log.date || '-'}</td>
-            <td>${log.timeIn || '-'}</td>
-            <td>${log.address || '-'}</td>
-            <td>${log.adultVisitor ?? '-'}</td>
-            <td>${log.kidVisitor ?? '-'}</td>
-            <td>${log.totalVisitors ?? '-'}</td>
-            <td>${log.contactNumber || '-'}</td>
-            <td>${formatVehicle(log.vehicleType)}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error(err);
-        alert("Error loading visiting day logs.");
-      }
-    }
-
-    /* ---------- Enter to search ---------- */
-    document.getElementById("search-id").addEventListener("keydown", async function (e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        await searchStudent(); // opens modal then saves
-        this.value = "";
-        this.focus();
+        await Swal.fire({ icon:'error', title: 'Lookup failed', text: err.message || 'Try again.' });
+        document.getElementById("card-stu").style.display = "none";
+      } finally {
+        e.target.value = ""; e.target.focus();
       }
     });
 
-    // Initial load
-    loadVisitingLogs();
+    loadStudentLogs();
+
+    /* =========================================================
+       NTS: search -> POST /api/nts/visit -> reload /api/nts/logs
+       ========================================================= */
+    async function simpleFetch(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${res.status}`);
+      return res.json();
+    }
+
+    document.getElementById("search-nts").addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const id = e.target.value.trim(); if (!id) return;
+
+  try {
+    // 1) get profile
+    const emp = await simpleFetch(`/api/nts/${encodeURIComponent(id)}`);
+
+    // 2) fill card
+    document.getElementById("photo-nts").src = emp.imageUrl || "/images/default-profile.png";
+    document.getElementById("id-nts").textContent   = emp.employeeId ?? "-";
+    document.getElementById("name-nts").textContent = emp.name ?? "-";
+    document.getElementById("pos-nts").textContent  = emp.position ?? "-";
+    document.getElementById("dept-nts").textContent = emp.department ?? "-";
+    document.getElementById("card-nts").style.display = "block";
+
+    // 3) write visit
+    const { headerName, token } = csrfHeader();
+    const visitRes = await fetch("/api/nts/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", [headerName]: token },
+      body: JSON.stringify({ employeeId: emp.employeeId })
+    });
+    if (!visitRes.ok) {
+      const t = await visitRes.text();
+      throw new Error(`Visit failed (${visitRes.status}) ${t}`);
+    }
+
+    // >>> NEW: success toast just like Students
+    await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+
+    // 4) refresh table
+    await loadNtsLogs();
+
+  } catch (err) {
+    await Swal.fire({
+      icon:'error',
+      title:'Request failed',
+      text: err.message.includes('404') ? 'Employee not found' : err.message
+    });
+    document.getElementById("card-nts").style.display = "none";
+  } finally {
+    e.target.value=""; e.target.focus();
+  }
+});
+
+
+    async function loadNtsLogs() {
+      try {
+        const res = await fetch("/api/nts/logs");
+        if (!res.ok) return;
+        const logs = await res.json();
+        const tbody = document.getElementById("logs-nts");
+        tbody.innerHTML = "";
+        (logs.slice(0,5)).forEach(log => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+            <td>${log.name || '-'}</td>
+            <td>${log.employeeId || '-'}</td>
+            <td>${log.date || '-'}</td>
+            <td>${log.time || '-'}</td>
+            <td>${log.position || '-'}</td>
+            <td>${log.department || '-'}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch {}
+    }
+    loadNtsLogs();
+
+    /* =========================================================
+       FACULTY: search -> POST /api/faculty/visit -> reload logs
+       ========================================================= */
+   // ---- FACULTY ----
+document.getElementById("search-fac").addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const id = e.target.value.trim(); if (!id) return;
+
+  try {
+    // 1) Fetch profile
+    const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(id)}`);
+
+    // 2) Fill card
+    document.getElementById("photo-fac").src = fac.imageUrl || "/images/default-profile.png";
+    document.getElementById("id-fac").textContent   = fac.employeeId ?? "-";
+    document.getElementById("name-fac").textContent = fac.name ?? "-";
+    document.getElementById("pos-fac").textContent  = fac.position ?? "-";
+    document.getElementById("dept-fac").textContent = fac.department ?? "-";
+    document.getElementById("card-fac").style.display = "block";
+
+    // 3) Save visit
+    const { headerName, token } = csrfHeader();
+    const visitRes = await fetch("/api/faculty/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", [headerName]: token },
+      body: JSON.stringify({ employeeId: fac.employeeId })
+    });
+    if (!visitRes.ok) {
+      const t = await visitRes.text();
+      throw new Error(`Visit failed (${visitRes.status}) ${t}`);
+    }
+
+    // 4) Success toast (same as students & NTS)
+    await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+
+    // 5) Refresh logs
+    await loadFacultyLogs();
+
+  } catch (err) {
+    await Swal.fire({
+      icon:'error',
+      title:'Request failed',
+      text: err.message.includes('404') ? 'Employee not found' : err.message
+    });
+    document.getElementById("card-fac").style.display = "none";
+  } finally {
+    e.target.value=""; e.target.focus();
+  }
+});
+
+async function loadFacultyLogs() {
+  try {
+    const res = await fetch("/api/faculty/logs");
+    if (!res.ok) return;
+    const logs = await res.json();
+    const tbody = document.getElementById("logs-fac");
+    tbody.innerHTML = "";
+    (logs || []).forEach(log => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+        <td>${log.name || '-'}</td>
+        <td>${log.employeeId || '-'}</td>
+        <td>${log.date || '-'}</td>
+        <td>${log.time || '-'}</td>
+        <td>${log.position || '-'}</td>
+        <td>${log.department || '-'}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch {}
+}
+loadFacultyLogs();
+
+
+    /* =========================================================
+       GRADUATES: search -> POST /api/graduates/visit -> reload logs
+       ========================================================= */
+   // ---- GRADUATES ----
+document.getElementById("search-gra").addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+  e.preventDefault();
+  const id = e.target.value.trim();
+  if (!id) return;
+
+  // 1) LOOKUP (if this fails, show "Not found" and stop)
+  let g;
+  try {
+    g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
+    // fill card
+    document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
+    document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
+    document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
+    document.getElementById("addr-gra").textContent  = g.address ?? "-";
+    document.getElementById("card-gra").style.display = "block";
+  } catch (err) {
+    await Swal.fire({ icon: "error", title: "Not found", text: "Check ID Number" });
+    document.getElementById("card-gra").style.display = "none";
+    e.target.value = ""; e.target.focus();
+    return; // <-- stop here if lookup failed
+  }
+
+  // 2) SAVE VISIT (separate try/catch so a failure here doesn't show "Not found")
+  try {
+    const { headerName, token } = csrfHeader();
+    const res = await fetch("/api/graduates/visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", [headerName]: token },
+      body: JSON.stringify({ idNumber: g.idNumber })
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || "Save failed");
+    }
+
+    await Swal.fire({
+      icon: "success",
+      title: "Saved",
+      timer: 1200,
+      showConfirmButton: false
+    });
+
+    await loadGradLogs();
+  } catch (err) {
+    console.error(err);
+    await Swal.fire({
+      icon: "warning",
+      title: "Card loaded, but logging failed",
+      text: err.message || "Please try again."
+    });
+  } finally {
+    e.target.value = ""; e.target.focus();
+  }
+});
+
   </script>
+  <script>
+  // ... your existing helpers ...
+
+  async function loadGradLogs() {
+    try {
+      const res = await fetch("/api/graduates/logs");
+      if (!res.ok) throw new Error("HTTP " + res.status);
+
+      const rows = await res.json();
+      const tbody = document.getElementById("logs-gra");
+      tbody.innerHTML = "";
+
+      (rows || []).forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><img src="${row.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+          <td>${row.idNumber || '-'}</td>
+          <td>${row.date || '-'}</td>
+          <td>${row.time || '-'}</td>
+          <td>${row.address || '-'}</td>
+          <td>${row.batchNumber || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error("loadGradLogs failed:", err);
+      // optional: show a tiny toast instead of breaking flow
+      // Swal.fire({ icon:'warning', title:'Couldn’t refresh logs', timer:1200, showConfirmButton:false });
+    }
+  }
+
+  // keep this so the table has initial data
+  loadGradLogs();
+
+  // ... your existing graduates keydown handler that calls loadGradLogs() after POST ...
+</script>
+
 </body>
 </html>

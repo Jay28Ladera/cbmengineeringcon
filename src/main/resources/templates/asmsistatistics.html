@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>ASMSI Alumni Statistics</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" th:href="@{/css/header.css}" />
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    .card { border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
+    .stat { font-weight: 800; font-size: 26px; }
+    .muted { color:#6b7280; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div th:replace="fragments/header :: header(${username})"></div>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+
+      <div class="col-md-9 p-4">
+        <h1 class="mb-4">Alumni Statistics</h1>
+
+        <!-- KPI Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="card p-3">
+              <div class="muted">Total Alumni</div>
+              <div class="stat" th:text="${empStats.total}">0</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-3">
+              <div class="muted">Employed</div>
+              <div class="stat" th:text="${empStats.employed}">0</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card p-3">
+              <div class="muted">Self-Employed</div>
+              <div class="stat" th:text="${empStats.selfEmployed}">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-4">
+          <div class="col-lg-7">
+            <div class="card p-3">
+              <h5 class="mb-3">Graduates per Batch</h5>
+              <canvas id="batchChart" height="140"></canvas>
+            </div>
+          </div>
+          <div class="col-lg-5">
+            <div class="card p-3">
+              <h5 class="mb-3">Employment Summary</h5>
+              <canvas id="employmentChart" height="190"></canvas>
+              <div class="mt-2 muted">Counts of “Yes” for Employed and Self-Employed.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inline data → JS -->
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const batchLabels = /*[[${batchLabels}]]*/ [];
+    const batchCounts = /*[[${batchCounts}]]*/ [];
+    const employed    = /*[[${empStats.employed}]]*/ 0;
+    const selfEmployed= /*[[${empStats.selfEmployed}]]*/ 0;
+    /*]]>*/
+  </script>
+
+  <script>
+    // Bar: graduates per batch
+    new Chart(document.getElementById('batchChart'), {
+      type: 'bar',
+      data: {
+        labels: batchLabels,
+        datasets: [{
+          label: 'Graduates',
+          data: batchCounts
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { grid: { display:false } },
+          y: { beginAtZero:true, ticks:{ precision:0 } }
+        }
+      }
+    });
+
+    // Doughnut: employment
+    new Chart(document.getElementById('employmentChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Employed', 'Self-Employed'],
+        datasets: [{ data: [employed, selfEmployed] }]
+      },
+      options: { responsive:true, cutout:'60%' }
+    });
+  </script>
+</body>
+</html>

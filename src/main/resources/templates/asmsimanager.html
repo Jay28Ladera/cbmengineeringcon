@@ -37,9 +37,7 @@
       position: relative;
       box-shadow: 0 1px 0 rgba(0,0,0,.03) inset;
     }
-    .id-head{
-      display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    }
+    .id-head{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
     .id-head .logo { width:56px; height:56px; object-fit:contain; display:block; margin:0 auto 6px; }
     .id-head .school { font-weight:800; font-size:19px; text-transform:uppercase; letter-spacing:.15px; }
     .id-head .addr   { font-size:13px; font-style:italic; margin-top:2px; color:#333; }
@@ -76,7 +74,6 @@
     }
 
     .note { margin-top: 18px; font-size: 12px; font-style: italic; color:#0f0f0f; line-height: 1.35; }
-    .note .u { text-decoration: underline; }
 
     /* Hidden full-size card for download/print */
     #idPassPrint { position:fixed; left:-99999px; top:-99999px; }
@@ -110,6 +107,23 @@
       }
     }
   </style>
+  <style>
+  /* --- force full grid lines on ASMSI table --- */
+  #asmsiTable {
+    border-collapse: collapse !important;   /* make borders touch */
+  }
+  #asmsiTable thead th,
+  #asmsiTable tbody td {
+    border: 1px solid #e2e6ea !important;   /* cell borders */
+    vertical-align: middle;
+  }
+  /* header & hover polish (optional) */
+  #asmsiTable thead th { background: #f8fafc; }
+  #asmsiTable tbody tr:hover td { background: #f9fbff; }
+  /* DataTables footer line (so last row has a bottom line too) */
+  table.dataTable.no-footer { border-bottom: 1px solid #e2e6ea !important; }
+</style>
+
 </head>
 
 <body>
@@ -140,6 +154,7 @@
         <table class="table table-bordered" id="asmsiTable">
           <thead>
           <tr>
+            <th>Picture</th>
             <th>ID Number</th>
             <th>Batch Number</th>
             <th>Last Name</th>
@@ -161,6 +176,10 @@
           </thead>
           <tbody>
           <tr th:each="alumni : ${alumniList}">
+            <td>
+              <img th:src="${alumni.imageUrl != null ? alumni.imageUrl : '/images/default-profile.png'}"
+                   alt="Photo" width="50" height="50" class="rounded-circle">
+            </td>
             <td th:text="${alumni.idNumber}">ASM-0001</td>
             <td th:text="${alumni.batchNumber}">2015</td>
             <td th:text="${alumni.lastName}">Dela Cruz</td>
@@ -208,12 +227,14 @@
                       th:data-employername="${alumni.employerName}"
                       th:data-contactnumber="${alumni.contactNumber}"
                       th:data-email="${alumni.email}"
-                      th:data-fbaccount="${alumni.fbAccount}">
+                      th:data-fbaccount="${alumni.fbAccount}"
+                      th:data-imageurl="${alumni.imageUrl}">
                 <i class="bi bi-pencil-square"></i>
               </button>
 
               <!-- Delete -->
               <form th:action="@{/asmsi/delete}" method="post" class="d-inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <input type="hidden" name="id" th:value="${alumni.id}">
                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this alumni record?');">
                   <i class="bi bi-trash"></i>
@@ -228,23 +249,33 @@
         <div class="modal fade" id="editAlumniModal" tabindex="-1" aria-labelledby="editAlumniModalLabel" aria-hidden="true">
           <div class="modal-dialog modal-xl">
             <div class="modal-content">
-              <form id="editAlumniForm" th:action="@{/asmsi/edit}" method="post">
+              <form id="editAlumniForm" th:action="@{/asmsi/edit}" method="post" enctype="multipart/form-data">
                 <div class="modal-header">
                   <h5 class="modal-title">Edit Alumni</h5>
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                   <input type="hidden" name="id" id="edit-id">
-                  <div class="row g-3">
-                    <div class="col-md-4">
+
+                  <div class="row g-3 align-items-end">
+                    <div class="col-md-3 text-center">
+                      <img id="edit-imagePreview" src="/images/default-profile.png" width="100" height="100" class="rounded-circle mb-2" alt="Preview">
+                      <div>
+                        <label class="form-label">Update Photo</label>
+                        <input type="file" class="form-control" name="imageFile" id="edit-imageFile" accept="image/*">
+                      </div>
+                    </div>
+
+                    <div class="col-md-3">
                       <label class="form-label">ID Number</label>
                       <input type="text" name="idNumber" id="edit-idNumber" class="form-control" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                       <label class="form-label">Batch Number</label>
                       <input type="text" name="batchNumber" id="edit-batchNumber" class="form-control" required>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                       <label class="form-label">Date of Birth</label>
                       <input type="date" name="dateOfBirth" id="edit-dateOfBirth" class="form-control" required>
                     </div>
@@ -324,13 +355,23 @@
         <div class="modal fade" id="addAlumniModal" tabindex="-1" aria-labelledby="addAlumniModalLabel" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
+
               <div class="modal-header">
                 <h5 class="modal-title" id="addAlumniModalLabel">Add Alumni</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="modal-body">
-                <form th:action="@{/asmsi/add}" method="post">
+
+              <!-- Important: multipart for photo -->
+              <form id="addAlumniForm" th:action="@{/asmsi/add}" method="post" enctype="multipart/form-data" autocomplete="off" novalidate>
+                <div class="modal-body">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
                   <div class="row g-3">
+                    <div class="col-12">
+                      <label class="form-label">Photo</label>
+                      <input type="file" class="form-control" name="imageFile" accept="image/*">
+                    </div>
+
                     <div class="col-md-6">
                       <label class="form-label">ID Number</label>
                       <input type="text" class="form-control" name="idNumber" required>
@@ -406,12 +447,12 @@
                       <input type="text" class="form-control" name="fbAccount">
                     </div>
                   </div>
+                </div>
 
-                  <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save Alumni</button>
-                  </div>
-                </form>
-              </div>
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary" form="addAlumniForm">Save Alumni</button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
@@ -443,7 +484,6 @@
                 <div>
                   <div class="title">ALUMNI PASS</div>
                   <div id="passNamePrev" class="student-name">ALUMNI NAME</div>
-                  <div id="passSaintPrev" class="saint">&nbsp;</div>
                 </div>
 
                 <div class="qr-col">
@@ -469,7 +509,6 @@
               <div>
                 <div class="title">ALUMNI PASS</div>
                 <div id="passNamePrint" class="student-name">ALUMNI NAME</div>
-                <div id="passSaintPrint" class="saint">&nbsp;</div>
               </div>
               <div class="qr-col">
                 <div id="qrBoxPrint" class="qr-box"><i class="bi bi-qr-code"></i></div>
@@ -530,13 +569,11 @@
       currentQr.idNumber = $(this).data('idnumber') || '';
       currentQr.name     = $(this).data('name') || '';
 
-      // Fill preview/print text
       document.getElementById('passNamePrev').textContent   = toUpper(currentQr.name);
       document.getElementById('vertIdPrev').textContent     = currentQr.idNumber || '';
       document.getElementById('passNamePrint').textContent  = toUpper(currentQr.name);
       document.getElementById('vertIdPrint').textContent    = currentQr.idNumber || '';
 
-      // Build QRs
       qrPrev  = buildQR(document.getElementById('qrBoxPrev'),  currentQr.idNumber);
       qrPrint = buildQR(document.getElementById('qrBoxPrint'), currentQr.idNumber);
     });
@@ -562,7 +599,7 @@
       window.print();
     });
 
-    // Fill Edit modal from row button
+    // Fill Edit modal from row button (+ image preview)
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function () {
         document.getElementById('edit-id').value               = this.dataset.id || '';
@@ -582,8 +619,21 @@
         document.getElementById('edit-contactNumber').value    = this.dataset.contactnumber || '';
         document.getElementById('edit-email').value            = this.dataset.email || '';
         document.getElementById('edit-fbAccount').value        = this.dataset.fbaccount || '';
+
+        const imgUrl = this.dataset.imageurl || '/images/default-profile.png';
+        document.getElementById('edit-imagePreview').src = imgUrl;
       });
     });
+
+    // Live preview when a new photo is chosen in Edit
+    const editImageInput = document.getElementById('edit-imageFile');
+    if (editImageInput) {
+      editImageInput.addEventListener('change', function(){
+        if (this.files && this.files[0]) {
+          document.getElementById('edit-imagePreview').src = URL.createObjectURL(this.files[0]);
+        }
+      });
+    }
   </script>
 </body>
 </html>

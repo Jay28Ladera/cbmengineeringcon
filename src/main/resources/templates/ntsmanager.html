@@ -110,6 +110,92 @@
       }
     }
   </style>
+
+  <style>
+  /* ===== NTS TABLE — Professional look (no markup changes) ===== */
+  #ntsTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border: 1px solid #e6e9ee;
+    border-radius: 14px;
+    overflow: hidden;              /* rounds header + body */
+    box-shadow: 0 6px 18px rgba(16,24,40,.06);
+  }
+
+  /* Header */
+  #ntsTable thead th {
+    background: linear-gradient(#f8fafc, #f3f6fb);
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: .2px;
+    font-size: 13.5px;
+    border-bottom: 1px solid #e6e9ee !important;
+    padding: 12px 14px;
+    white-space: nowrap;
+  }
+
+  /* Body cells */
+  #ntsTable tbody td {
+    vertical-align: middle;
+    padding: 12px 14px;
+    border-top: 1px solid #f0f2f6;
+    font-size: 13.5px;
+    color: #0f172a;
+  }
+
+  /* Zebra + hover */
+  #ntsTable tbody tr:nth-child(even) { background: #fbfdff; }
+  #ntsTable tbody tr:hover {
+    background: #eef6ff;
+    transition: background .15s ease;
+  }
+
+  /* Picture column: slightly larger + soft ring */
+  #ntsTable tbody td:first-child img {
+    width: 44px; height: 44px; object-fit: cover;
+    box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e8eef7;
+  }
+
+  /* Action buttons: tight and aligned */
+  #ntsTable td.text-nowrap .btn {
+    padding: 6px 9px;
+    border-radius: 8px;
+    box-shadow: 0 1px 0 rgba(16,24,40,.04);
+  }
+  #ntsTable td.text-nowrap .btn + .btn,
+  #ntsTable td.text-nowrap form + form,
+  #ntsTable td.text-nowrap .btn + form {
+    margin-left: 6px;
+  }
+
+  /* DataTables chrome */
+  .dataTables_wrapper .dataTables_filter {
+    margin-bottom: 10px;
+  }
+  .dataTables_wrapper .dataTables_filter input {
+    border: 1px solid #d7dce5;
+    border-radius: 10px;
+    padding: 8px 12px;
+    box-shadow: inset 0 1px 2px rgba(16,24,40,.04);
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 8px !important;
+    border: 1px solid #e6e9ee !important;
+    padding: 4px 10px !important;
+    margin: 0 3px !important;
+    background: #fff !important;
+  }
+  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #1d4ed8 !important;
+    color: #fff !important;
+    border-color: #1d4ed8 !important;
+  }
+  .dataTables_wrapper .dataTables_info {
+    color: #475569;
+  }
+</style>
+
 </head>
 
 <body>
