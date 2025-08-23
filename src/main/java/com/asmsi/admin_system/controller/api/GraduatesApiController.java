@@ -1,92 +1,72 @@
 package com.asmsi.admin_system.controller.api;
 
-import com.asmsi.admin_system.dto.GraduateVisitRow;
-import com.asmsi.admin_system.entity.AsmsiAlumni;
-import com.asmsi.admin_system.entity.AsmsiVisitor;
+import com.asmsi.admin_system.dto.GraduateLogRow;
+import com.asmsi.admin_system.dto.GraduateVisitRequest;
+import com.asmsi.admin_system.entity.VehicleType;
 import com.asmsi.admin_system.repository.AsmsiAlumniRepository;
-import com.asmsi.admin_system.repository.AsmsiVisitorRepository;
-import org.springframework.data.domain.PageRequest;
+import com.asmsi.admin_system.service.GraduateVisitorService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/graduates")
 public class GraduatesApiController {
 
     private final AsmsiAlumniRepository alumniRepo;
-    private final AsmsiVisitorRepository visitRepo;
-
-    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private final GraduateVisitorService visitService;
 
     public GraduatesApiController(AsmsiAlumniRepository alumniRepo,
-                                  AsmsiVisitorRepository visitRepo) {
+                                  GraduateVisitorService visitService) {
         this.alumniRepo = alumniRepo;
-        this.visitRepo = visitRepo;
+        this.visitService = visitService;
     }
 
-    // Card lookup: GET /api/graduates/{idNumber}
+    /** Card lookup for search box. */
     @GetMapping("/{idNumber}")
-    public ResponseEntity<Map<String, Object>> getGraduate(@PathVariable String idNumber) {
-        AsmsiAlumni a = alumniRepo.findByIdNumber(idNumber)
-                .orElseThrow(() -> new NoSuchElementException("Graduate not found"));
-
-        Map<String, Object> dto = new LinkedHashMap<>();
-        dto.put("idNumber",    a.getIdNumber());
-        dto.put("batchNumber", a.getBatchNumber());
-        dto.put("address",     a.getAddress());
-        dto.put("imageUrl",    a.getImageUrl());
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<?> getGraduate(@PathVariable String idNumber) {
+        return alumniRepo.findByIdNumber(idNumber)
+            .<ResponseEntity<?>>map(a -> ResponseEntity.ok(Map.of(
+                    "idNumber", a.getIdNumber(),
+                    "batchNumber", a.getBatchNumber(),
+                    "address", a.getAddress(),
+                    "imageUrl", a.getImageUrl()
+            )))
+            .orElseGet(() -> ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "Graduate not found")));
     }
 
-    // Save a visit row: POST /api/graduates/visit   body: { "idNumber": "TAL2017-045" }
+    /** Save a visit row including Adult/Kid/Total/Contact/Vehicle. */
     @PostMapping("/visit")
-    public ResponseEntity<?> visit(@RequestBody Map<String, String> body, Principal principal) {
-        String idNumber = body.getOrDefault("idNumber", "").trim();
-        if (idNumber.isEmpty()) return ResponseEntity.badRequest().body("idNumber required");
+    public ResponseEntity<?> visit(@RequestBody GraduateVisitRequest req, Principal principal) {
+        if (req == null || req.idNumber() == null || req.idNumber().isBlank()) {
+            return ResponseEntity.badRequest().body("idNumber required");
+        }
 
-        AsmsiAlumni a = alumniRepo.findByIdNumber(idNumber)
-                .orElseThrow(() -> new NoSuchElementException("Graduate not found"));
+        VehicleType vt = null;
+        if (req.vehicleType() != null && !req.vehicleType().isBlank()) {
+            try { vt = VehicleType.valueOf(req.vehicleType().toUpperCase()); }
+            catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body("invalid vehicleType"); }
+        }
 
-        AsmsiVisitor v = new AsmsiVisitor();
-        v.setAlumni(a);
-        v.setVisitedAt(Instant.now());
-        if (principal != null) v.setRecordedBy(principal.getName());
-        visitRepo.save(v);
+        int a = req.adultVisitor()==null ? 0 : req.adultVisitor();
+        int k = req.kidVisitor()==null ? 0 : req.kidVisitor();
+        int t = req.totalVisitors()==null ? (a+k) : req.totalVisitors();
 
+        var recordedBy = (principal != null ? principal.getName() : null);
+
+        visitService.logVisit(req.idNumber(), a, k, t, req.contactNumber(), vt, recordedBy);
         return ResponseEntity.ok().build();
     }
 
-    // Right-table logs: latest 8 visits
+    /** Latest rows for the right table. */
     @GetMapping("/logs")
-    public List<GraduateVisitRow> latestLogs() {
-        ZoneId zone = ZoneId.systemDefault();
-        return visitRepo.findRecent(PageRequest.of(0, 8)).stream()
-                .map(v -> {
-                    AsmsiAlumni a = v.getAlumni();
-                    LocalDateTime dt = LocalDateTime.ofInstant(v.getVisitedAt(), zone);
-                    return new GraduateVisitRow(
-                            a.getImageUrl(),
-                            a.getIdNumber(),
-                            DF.format(dt),
-                            TF.format(dt),
-                            a.getAddress(),
-                            a.getBatchNumber()
-                    );
-                })
-                .toList();
+    public List<GraduateLogRow> latestLogs() {
+        return visitService.recentRows(8);
     }
-
-    // Make 404s clean
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> notFound(NoSuchElementException ex) {
-        return ResponseEntity.status(404).body(ex.getMessage());
-    }
-
-    
 }

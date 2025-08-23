@@ -28,7 +28,10 @@
     .card { border-radius:.75rem; }
     .card-body { padding:1rem 1.1rem; }
     .entity-photo { width:220px; height:220px; object-fit:cover; border-radius:.5rem; }
-    .table-wrap { max-height:320px; overflow-y:auto; overflow-x:hidden; border-radius:.5rem; }
+
+    .table-wrap { max-height:320px; overflow-y:auto; overflow-x:auto; border-radius:.5rem; }
+    .table--wide { min-width:1200px; } /* forces horizontal scroll for logs */
+
     .table thead th { position:sticky; top:0; background:#fff; z-index:1; box-shadow:0 1px 0 rgba(0,0,0,.05); }
     .table-sm td, .table-sm th { padding:.45rem .55rem; }
     .table-bordered>:not(caption)>*>* { border-width:0 0 1px 0; }
@@ -43,6 +46,13 @@
     .swal2-popup.vmodal .swal2-cancel { margin-left:.5rem; }
 
     @media (max-width: 992px) { .entity-photo { width:180px; height:180px; } }
+
+    /* masterlist table narrow column widths (fits col-lg-2) */
+    .ml-table { min-width: 280px; }
+    .ml-table th:first-child, .ml-table td:first-child { width: 58%; }
+    .ml-table th:last-child, .ml-table td:last-child { width: 42%; }
+    .ml-item { cursor:pointer; }
+    .ml-item:hover { background:#f3f6ff; }
   </style>
 </head>
 <body>
@@ -51,7 +61,7 @@
 
   <div class="container-fluid">
     <div class="row">
-      <!-- Sidebar (untouched) -->
+      <!-- Sidebar -->
       <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
 
       <!-- Main -->
@@ -95,6 +105,7 @@
             </div>
 
             <div class="row g-3">
+              <!-- Profile -->
               <div class="col-lg-5">
                 <div class="card shadow-sm h-100" id="card-stu" style="display:none;">
                   <div class="card-body text-center">
@@ -110,7 +121,8 @@
                 </div>
               </div>
 
-              <div class="col-lg-7">
+              <!-- Logs -->
+              <div class="col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -119,7 +131,7 @@
                     </div>
 
                     <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
                         <thead>
                           <tr>
                             <th class="col-photo">Photo</th>
@@ -142,6 +154,23 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Masterlist table (Name + ID) -->
+              <div class="col-lg-2">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
+                    <input id="ml-stu-q" type="text" class="form-control mb-2" placeholder="Search name / ID…">
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-bordered mb-0 ml-table">
+                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                        <tbody id="ml-stu"></tbody>
+                      </table>
+                    </div>
+                    <small class="text-muted d-block mt-2">Tip: click a row to use the ID.</small>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -160,6 +189,7 @@
             </div>
 
             <div class="row g-3">
+              <!-- Profile -->
               <div class="col-lg-5">
                 <div class="card shadow-sm h-100" id="card-nts" style="display:none;">
                   <div class="card-body text-center">
@@ -172,7 +202,8 @@
                 </div>
               </div>
 
-              <div class="col-lg-7">
+              <!-- Logs -->
+              <div class="col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -181,7 +212,7 @@
                     </div>
 
                     <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
                         <thead>
                           <tr>
                             <th class="col-photo">Photo</th>
@@ -191,6 +222,11 @@
                             <th class="col-small">Time</th>
                             <th>Position</th>
                             <th>Department</th>
+                            <th class="col-small">Adult</th>
+                            <th class="col-small">Kid</th>
+                            <th class="col-small">Total</th>
+                            <th class="col-small">Contact #</th>
+                            <th class="col-small">Vehicle</th>
                           </tr>
                         </thead>
                         <tbody id="logs-nts"></tbody>
@@ -200,6 +236,24 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Masterlist table -->
+              <div class="col-lg-2">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
+                    <input id="ml-nts-q" type="text" class="form-control mb-2" placeholder="Search name / ID…">
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-bordered mb-0 ml-table">
+                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                        <tbody id="ml-nts"></tbody>
+                      </table>
+                    </div>
+                    <small class="text-muted d-block mt-2">Click a row to use the ID.</small>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -218,6 +272,7 @@
             </div>
 
             <div class="row g-3">
+              <!-- Profile -->
               <div class="col-lg-5">
                 <div class="card shadow-sm h-100" id="card-fac" style="display:none;">
                   <div class="card-body text-center">
@@ -230,7 +285,8 @@
                 </div>
               </div>
 
-              <div class="col-lg-7">
+              <!-- Logs -->
+              <div class="col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -239,7 +295,7 @@
                     </div>
 
                     <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
                         <thead>
                           <tr>
                             <th class="col-photo">Photo</th>
@@ -249,6 +305,11 @@
                             <th class="col-small">Time</th>
                             <th>Position</th>
                             <th>Department</th>
+                            <th class="col-small">Adult</th>
+                            <th class="col-small">Kid</th>
+                            <th class="col-small">Total</th>
+                            <th class="col-small">Contact #</th>
+                            <th class="col-small">Vehicle</th>
                           </tr>
                         </thead>
                         <tbody id="logs-fac"></tbody>
@@ -258,6 +319,24 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Masterlist table -->
+              <div class="col-lg-2">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
+                    <input id="ml-fac-q" type="text" class="form-control mb-2" placeholder="Search name / ID…">
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-bordered mb-0 ml-table">
+                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                        <tbody id="ml-fac"></tbody>
+                      </table>
+                    </div>
+                    <small class="text-muted d-block mt-2">Click a row to use the ID.</small>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -276,6 +355,7 @@
             </div>
 
             <div class="row g-3">
+              <!-- Profile -->
               <div class="col-lg-5">
                 <div class="card shadow-sm h-100" id="card-gra" style="display:none;">
                   <div class="card-body text-center">
@@ -287,7 +367,8 @@
                 </div>
               </div>
 
-              <div class="col-lg-7">
+              <!-- Logs -->
+              <div class="col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -296,7 +377,7 @@
                     </div>
 
                     <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0">
+                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
                         <thead>
                           <tr>
                             <th class="col-photo">Photo</th>
@@ -305,6 +386,11 @@
                             <th class="col-small">Time</th>
                             <th>Address</th>
                             <th class="col-small">Batch #</th>
+                            <th class="col-small">Adult</th>
+                            <th class="col-small">Kid</th>
+                            <th class="col-small">Total</th>
+                            <th class="col-small">Contact #</th>
+                            <th class="col-small">Vehicle</th>
                           </tr>
                         </thead>
                         <tbody id="logs-gra"></tbody>
@@ -314,6 +400,24 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Masterlist table -->
+              <div class="col-lg-2">
+                <div class="card shadow-sm h-100">
+                  <div class="card-body">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
+                    <input id="ml-gra-q" type="text" class="form-control mb-2" placeholder="Search ID…">
+                    <div class="table-responsive table-wrap">
+                      <table class="table table-sm table-bordered mb-0 ml-table">
+                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                        <tbody id="ml-gra"></tbody>
+                      </table>
+                    </div>
+                    <small class="text-muted d-block mt-2">Click a row to use the ID.</small>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </div><!-- /tab-content -->
@@ -328,16 +432,10 @@
 
   <script>
     /* ===== clocks per tab ===== */
-    function startClock(dateElId, timeElId) {
-      const de = document.getElementById(dateElId);
-      const te = document.getElementById(timeElId);
-      function tick() {
-        const now = new Date();
-        de.textContent = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-        te.textContent = now.toLocaleTimeString('en-US');
-      }
-      tick(); return setInterval(tick, 1000);
-    }
+    const startClock=(d,t)=>{const de=document.getElementById(d),te=document.getElementById(t);
+      const tick=()=>{const now=new Date();de.textContent=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});te.textContent=now.toLocaleTimeString('en-US');};
+      tick(); return setInterval(tick,1000);
+    };
     startClock('date-stu','time-stu');
     startClock('date-nts','time-nts');
     startClock('date-fac','time-fac');
@@ -351,24 +449,24 @@
     }
 
     /* =========================================================
-       STUDENTS: search -> modal -> POST /api/visitingday/submit
+       SHARED: counts/contact/vehicle modal (used by all tabs)
        ========================================================= */
-    async function openVisitorModal(student) {
+    async function openCountsModal({ title, idLabel, idValue, defaultAdults=1 }) {
       return Swal.fire({
-        title: `Visitors for ${student.name || student.idNumber}`,
-        customClass: { popup:'vmodal', title:'vmodal-title', confirmButton:'btn btn-primary', cancelButton:'btn btn-outline-secondary' },
+        title,
+        customClass:{ popup:'vmodal', title:'vmodal-title', confirmButton:'btn btn-primary', cancelButton:'btn btn-outline-secondary' },
         buttonsStyling:false,
         html: `
           <div class="text-start">
-            <div class="mb-2"><strong>ID:</strong> ${student.idNumber || '-'}</div>
+            <div class="mb-2"><strong>${idLabel}:</strong> ${idValue || '-'}</div>
             <div class="row g-2">
-              <div class="col-4"><label class="form-label">Adult</label><input id="swal-adult" type="number" min="0" value="1" class="form-control" /></div>
-              <div class="col-4"><label class="form-label">Kids</label><input id="swal-kid" type="number" min="0" value="0" class="form-control" /></div>
-              <div class="col-4"><label class="form-label">Total</label><input id="swal-total" type="number" min="0" value="0" class="form-control" readonly /></div>
+              <div class="col-4"><label class="form-label">Adult</label><input id="swal-adult" type="number" min="0" value="${defaultAdults}" class="form-control"/></div>
+              <div class="col-4"><label class="form-label">Kids</label><input id="swal-kid" type="number" min="0" value="0" class="form-control"/></div>
+              <div class="col-4"><label class="form-label">Total</label><input id="swal-total" type="number" min="0" value="${defaultAdults}" class="form-control" readonly/></div>
             </div>
             <div class="mt-3">
               <label class="form-label">Active Contact Number <small class="text-muted">(optional)</small></label>
-              <input id="swal-contact" type="tel" class="form-control" placeholder="e.g. 09XXXXXXXXX" />
+              <input id="swal-contact" type="tel" class="form-control" placeholder="e.g. 09XXXXXXXXX"/>
             </div>
             <div class="mt-3">
               <label class="form-label d-block">Vehicle <small class="text-muted">(optional)</small></label>
@@ -376,30 +474,28 @@
               <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-car" value="FOUR_WHEELED"><label class="form-check-label" for="veh-car">4-wheeled Car</label></div>
             </div>
           </div>`,
-        showCancelButton: true, confirmButtonText: 'Save',
+        showCancelButton:true,
+        confirmButtonText:'Save',
         didOpen: () => {
-          const adult = document.getElementById('swal-adult');
-          const kid   = document.getElementById('swal-kid');
-          const total = document.getElementById('swal-total');
-          const recalc = () => {
-            const a = parseInt(adult.value || '0',10);
-            const k = parseInt(kid.value || '0',10);
-            total.value = (isNaN(a)?0:a) + (isNaN(k)?0:k);
-          };
-          adult.addEventListener('input',recalc); kid.addEventListener('input',recalc); recalc();
+          const a=document.getElementById('swal-adult'), k=document.getElementById('swal-kid'), t=document.getElementById('swal-total');
+          const recalc=()=>{ const av=parseInt(a.value||'0',10), kv=parseInt(k.value||'0',10); t.value=(isNaN(av)?0:av)+(isNaN(kv)?0:kv); };
+          a.addEventListener('input',recalc); k.addEventListener('input',recalc); recalc();
         },
         preConfirm: () => {
-          const a = parseInt(document.getElementById('swal-adult').value || '0',10);
-          const k = parseInt(document.getElementById('swal-kid').value || '0',10);
-          const t = parseInt(document.getElementById('swal-total').value || '0',10);
-          const contact = document.getElementById('swal-contact').value.trim() || null;
-          const vehicle = document.querySelector('input[name="swal-vehicle"]:checked')?.value || null;
+          const a=parseInt(document.getElementById('swal-adult').value||'0',10);
+          const k=parseInt(document.getElementById('swal-kid').value||'0',10);
+          const t=parseInt(document.getElementById('swal-total').value||'0',10);
+          const contact=document.getElementById('swal-contact').value.trim() || null;
+          const vehicle=document.querySelector('input[name="swal-vehicle"]:checked')?.value || null;
           if (a < 0 || k < 0) { Swal.showValidationMessage('Counts cannot be negative.'); return false; }
           return { adultVisitor:a, kidVisitor:k, totalVisitors:t, contactNumber:contact, vehicleType:vehicle };
         }
-      }).then(res => res);
+      }).then(r=>r);
     }
 
+    /* =========================================================
+       STUDENTS
+       ========================================================= */
     async function submitStudentVisit(student, counts) {
       const now = new Date();
       const payload = {
@@ -475,24 +571,22 @@
         document.getElementById("addr-stu").textContent = s.address ?? "-";
         document.getElementById("card-stu").style.display = "block";
 
-        const modal = await openVisitorModal(s);
+        const modal = await openCountsModal({ title:`Visitors for ${s.name || s.idNumber}`, idLabel:'ID', idValue:s.idNumber, defaultAdults:1 });
         if (modal.isConfirmed) {
           await submitStudentVisit(s, modal.value);
           await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
           await loadStudentLogs();
         }
       } catch (err) {
-        await Swal.fire({ icon:'error', title: 'Lookup failed', text: err.message || 'Try again.' });
+        await Swal.fire({ icon:'error', title:'Lookup failed', text: err.message || 'Try again.' });
         document.getElementById("card-stu").style.display = "none";
-      } finally {
-        e.target.value = ""; e.target.focus();
-      }
+      } finally { e.target.value=""; e.target.focus(); }
     });
 
     loadStudentLogs();
 
     /* =========================================================
-       NTS: search -> POST /api/nts/visit -> reload /api/nts/logs
+       SHARED simple GET
        ========================================================= */
     async function simpleFetch(url) {
       const res = await fetch(url);
@@ -500,53 +594,59 @@
       return res.json();
     }
 
+    /* =========================================================
+       NTS (with modal)
+       ========================================================= */
     document.getElementById("search-nts").addEventListener("keydown", async (e) => {
-  if (e.key !== "Enter") return;
-  e.preventDefault();
-  const id = e.target.value.trim(); if (!id) return;
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const id = e.target.value.trim(); if (!id) return;
 
-  try {
-    // 1) get profile
-    const emp = await simpleFetch(`/api/nts/${encodeURIComponent(id)}`);
+      try {
+        const emp = await simpleFetch(`/api/nts/${encodeURIComponent(id)}`);
 
-    // 2) fill card
-    document.getElementById("photo-nts").src = emp.imageUrl || "/images/default-profile.png";
-    document.getElementById("id-nts").textContent   = emp.employeeId ?? "-";
-    document.getElementById("name-nts").textContent = emp.name ?? "-";
-    document.getElementById("pos-nts").textContent  = emp.position ?? "-";
-    document.getElementById("dept-nts").textContent = emp.department ?? "-";
-    document.getElementById("card-nts").style.display = "block";
+        document.getElementById("photo-nts").src = emp.imageUrl || "/images/default-profile.png";
+        document.getElementById("id-nts").textContent   = emp.employeeId ?? "-";
+        document.getElementById("name-nts").textContent = emp.name ?? "-";
+        document.getElementById("pos-nts").textContent  = emp.position ?? "-";
+        document.getElementById("dept-nts").textContent = emp.department ?? "-";
+        document.getElementById("card-nts").style.display = "block";
 
-    // 3) write visit
-    const { headerName, token } = csrfHeader();
-    const visitRes = await fetch("/api/nts/visit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", [headerName]: token },
-      body: JSON.stringify({ employeeId: emp.employeeId })
+        const modal = await openCountsModal({
+          title:`Visitors for ${emp.name || emp.employeeId}`,
+          idLabel:'Employee ID',
+          idValue:emp.employeeId,
+          defaultAdults:1
+        });
+        if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
+
+        const { headerName, token } = csrfHeader();
+        const visitRes = await fetch("/api/nts/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", [headerName]: token },
+          body: JSON.stringify({
+            employeeId: emp.employeeId,
+            adultVisitor: modal.value.adultVisitor,
+            kidVisitor: modal.value.kidVisitor,
+            totalVisitors: modal.value.totalVisitors,
+            contactNumber: modal.value.contactNumber,
+            vehicleType: modal.value.vehicleType
+          })
+        });
+        if (!visitRes.ok) throw new Error(`Visit failed (${visitRes.status})`);
+
+        await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+        await loadNtsLogs();
+
+      } catch (err) {
+        await Swal.fire({
+          icon:'error',
+          title:'Request failed',
+          text: err.message.includes('404') ? 'Employee not found' : err.message
+        });
+        document.getElementById("card-nts").style.display = "none";
+      } finally { e.target.value=""; e.target.focus(); }
     });
-    if (!visitRes.ok) {
-      const t = await visitRes.text();
-      throw new Error(`Visit failed (${visitRes.status}) ${t}`);
-    }
-
-    // >>> NEW: success toast just like Students
-    await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
-
-    // 4) refresh table
-    await loadNtsLogs();
-
-  } catch (err) {
-    await Swal.fire({
-      icon:'error',
-      title:'Request failed',
-      text: err.message.includes('404') ? 'Employee not found' : err.message
-    });
-    document.getElementById("card-nts").style.display = "none";
-  } finally {
-    e.target.value=""; e.target.focus();
-  }
-});
-
 
     async function loadNtsLogs() {
       try {
@@ -564,7 +664,12 @@
             <td>${log.date || '-'}</td>
             <td>${log.time || '-'}</td>
             <td>${log.position || '-'}</td>
-            <td>${log.department || '-'}</td>`;
+            <td>${log.department || '-'}</td>
+            <td>${log.adultVisitor ?? '-'}</td>
+            <td>${log.kidVisitor ?? '-'}</td>
+            <td>${log.totalVisitors ?? '-'}</td>
+            <td>${log.contactNumber || '-'}</td>
+            <td>${log.vehicleType || '-'}</td>`;
           tbody.appendChild(tr);
         });
       } catch {}
@@ -572,177 +677,262 @@
     loadNtsLogs();
 
     /* =========================================================
-       FACULTY: search -> POST /api/faculty/visit -> reload logs
+       FACULTY (with modal)
        ========================================================= */
-   // ---- FACULTY ----
-document.getElementById("search-fac").addEventListener("keydown", async (e) => {
-  if (e.key !== "Enter") return;
-  e.preventDefault();
-  const id = e.target.value.trim(); if (!id) return;
+    document.getElementById("search-fac").addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const id = e.target.value.trim(); if (!id) return;
 
-  try {
-    // 1) Fetch profile
-    const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(id)}`);
+      try {
+        const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(id)}`);
 
-    // 2) Fill card
-    document.getElementById("photo-fac").src = fac.imageUrl || "/images/default-profile.png";
-    document.getElementById("id-fac").textContent   = fac.employeeId ?? "-";
-    document.getElementById("name-fac").textContent = fac.name ?? "-";
-    document.getElementById("pos-fac").textContent  = fac.position ?? "-";
-    document.getElementById("dept-fac").textContent = fac.department ?? "-";
-    document.getElementById("card-fac").style.display = "block";
+        document.getElementById("photo-fac").src = fac.imageUrl || "/images/default-profile.png";
+        document.getElementById("id-fac").textContent   = fac.employeeId ?? "-";
+        document.getElementById("name-fac").textContent = fac.name ?? "-";
+        document.getElementById("pos-fac").textContent  = fac.position ?? "-";
+        document.getElementById("dept-fac").textContent = fac.department ?? "-";
+        document.getElementById("card-fac").style.display = "block";
 
-    // 3) Save visit
-    const { headerName, token } = csrfHeader();
-    const visitRes = await fetch("/api/faculty/visit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", [headerName]: token },
-      body: JSON.stringify({ employeeId: fac.employeeId })
+        const modal = await openCountsModal({
+          title:`Visitors for ${fac.name || fac.employeeId}`,
+          idLabel:'Employee ID',
+          idValue:fac.employeeId,
+          defaultAdults:1
+        });
+        if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
+
+        const { headerName, token } = csrfHeader();
+        const visitRes = await fetch("/api/faculty/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", [headerName]: token },
+          body: JSON.stringify({
+            employeeId: fac.employeeId,
+            adultVisitor: modal.value.adultVisitor,
+            kidVisitor: modal.value.kidVisitor,
+            totalVisitors: modal.value.totalVisitors,
+            contactNumber: modal.value.contactNumber,
+            vehicleType: modal.value.vehicleType
+          })
+        });
+        if (!visitRes.ok) throw new Error(`Visit failed (${visitRes.status})`);
+
+        await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+        await loadFacultyLogs();
+
+      } catch (err) {
+        await Swal.fire({
+          icon:'error',
+          title:'Request failed',
+          text: err.message.includes('404') ? 'Employee not found' : err.message
+        });
+        document.getElementById("card-fac").style.display = "none";
+      } finally { e.target.value=""; e.target.focus(); }
     });
-    if (!visitRes.ok) {
-      const t = await visitRes.text();
-      throw new Error(`Visit failed (${visitRes.status}) ${t}`);
+
+    async function loadFacultyLogs() {
+      try {
+        const res = await fetch("/api/faculty/logs");
+        if (!res.ok) return;
+        const logs = await res.json();
+        const tbody = document.getElementById("logs-fac");
+        tbody.innerHTML = "";
+        (logs || []).forEach(log => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+            <td>${log.name || '-'}</td>
+            <td>${log.employeeId || '-'}</td>
+            <td>${log.date || '-'}</td>
+            <td>${log.time || '-'}</td>
+            <td>${log.position || '-'}</td>
+            <td>${log.department || '-'}</td>
+            <td>${log.adultVisitor ?? '-'}</td>
+            <td>${log.kidVisitor ?? '-'}</td>
+            <td>${log.totalVisitors ?? '-'}</td>
+            <td>${log.contactNumber || '-'}</td>
+            <td>${log.vehicleType || '-'}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch {}
     }
-
-    // 4) Success toast (same as students & NTS)
-    await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
-
-    // 5) Refresh logs
-    await loadFacultyLogs();
-
-  } catch (err) {
-    await Swal.fire({
-      icon:'error',
-      title:'Request failed',
-      text: err.message.includes('404') ? 'Employee not found' : err.message
-    });
-    document.getElementById("card-fac").style.display = "none";
-  } finally {
-    e.target.value=""; e.target.focus();
-  }
-});
-
-async function loadFacultyLogs() {
-  try {
-    const res = await fetch("/api/faculty/logs");
-    if (!res.ok) return;
-    const logs = await res.json();
-    const tbody = document.getElementById("logs-fac");
-    tbody.innerHTML = "";
-    (logs || []).forEach(log => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
-        <td>${log.name || '-'}</td>
-        <td>${log.employeeId || '-'}</td>
-        <td>${log.date || '-'}</td>
-        <td>${log.time || '-'}</td>
-        <td>${log.position || '-'}</td>
-        <td>${log.department || '-'}</td>`;
-      tbody.appendChild(tr);
-    });
-  } catch {}
-}
-loadFacultyLogs();
-
+    loadFacultyLogs();
 
     /* =========================================================
-       GRADUATES: search -> POST /api/graduates/visit -> reload logs
+       GRADUATES (with modal)
        ========================================================= */
-   // ---- GRADUATES ----
-document.getElementById("search-gra").addEventListener("keydown", async (e) => {
-  if (e.key !== "Enter") return;
-  e.preventDefault();
-  const id = e.target.value.trim();
-  if (!id) return;
+    document.getElementById("search-gra").addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const id = e.target.value.trim(); if (!id) return;
 
-  // 1) LOOKUP (if this fails, show "Not found" and stop)
-  let g;
-  try {
-    g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
-    // fill card
-    document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
-    document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
-    document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
-    document.getElementById("addr-gra").textContent  = g.address ?? "-";
-    document.getElementById("card-gra").style.display = "block";
-  } catch (err) {
-    await Swal.fire({ icon: "error", title: "Not found", text: "Check ID Number" });
-    document.getElementById("card-gra").style.display = "none";
-    e.target.value = ""; e.target.focus();
-    return; // <-- stop here if lookup failed
-  }
+      // 1) Lookup
+      let g;
+      try {
+        g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
+        document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
+        document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
+        document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
+        document.getElementById("addr-gra").textContent  = g.address ?? "-";
+        document.getElementById("card-gra").style.display = "block";
+      } catch (err) {
+        await Swal.fire({ icon: "error", title: "Not found", text: "Check ID Number" });
+        document.getElementById("card-gra").style.display = "none";
+        e.target.value=""; e.target.focus();
+        return;
+      }
 
-  // 2) SAVE VISIT (separate try/catch so a failure here doesn't show "Not found")
-  try {
-    const { headerName, token } = csrfHeader();
-    const res = await fetch("/api/graduates/visit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", [headerName]: token },
-      body: JSON.stringify({ idNumber: g.idNumber })
+      // 2) Modal + Save
+      try {
+        const modal = await openCountsModal({
+          title:`Visitors for ${g.idNumber}`,
+          idLabel:'ID Number',
+          idValue:g.idNumber,
+          defaultAdults:1
+        });
+        if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
+
+        const { headerName, token } = csrfHeader();
+        const res = await fetch("/api/graduates/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", [headerName]: token },
+          body: JSON.stringify({
+            idNumber: g.idNumber,
+            adultVisitor: modal.value.adultVisitor,
+            kidVisitor: modal.value.kidVisitor,
+            totalVisitors: modal.value.totalVisitors,
+            contactNumber: modal.value.contactNumber,
+            vehicleType: modal.value.vehicleType
+          })
+        });
+        if (!res.ok) throw new Error(await res.text() || "Save failed");
+
+        await Swal.fire({ icon: "success", title: "Saved", timer: 1200, showConfirmButton: false });
+        await loadGradLogs();
+
+      } catch (err) {
+        await Swal.fire({ icon:"warning", title:"Card loaded, but logging failed", text: err.message || "Please try again." });
+      } finally {
+        e.target.value=""; e.target.focus();
+      }
     });
-    if (!res.ok) {
-      const msg = await res.text();
-      throw new Error(msg || "Save failed");
+
+    async function loadGradLogs() {
+      try {
+        const res = await fetch("/api/graduates/logs");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const rows = await res.json();
+        const tbody = document.getElementById("logs-gra");
+        tbody.innerHTML = "";
+        (rows || []).forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><img src="${row.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+            <td>${row.idNumber || '-'}</td>
+            <td>${row.date || '-'}</td>
+            <td>${row.time || '-'}</td>
+            <td>${row.address || '-'}</td>
+            <td>${row.batchNumber || '-'}</td>
+            <td>${row.adultVisitor ?? '-'}</td>
+            <td>${row.kidVisitor ?? '-'}</td>
+            <td>${row.totalVisitors ?? '-'}</td>
+            <td>${row.contactNumber || '-'}</td>
+            <td>${row.vehicleType || '-'}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("loadGradLogs failed:", err);
+      }
     }
+    loadGradLogs();
 
-    await Swal.fire({
-      icon: "success",
-      title: "Saved",
-      timer: 1200,
-      showConfirmButton: false
-    });
-
-    await loadGradLogs();
-  } catch (err) {
-    console.error(err);
-    await Swal.fire({
-      icon: "warning",
-      title: "Card loaded, but logging failed",
-      text: err.message || "Please try again."
-    });
-  } finally {
-    e.target.value = ""; e.target.focus();
-  }
-});
-
-  </script>
-  <script>
-  // ... your existing helpers ...
-
-  async function loadGradLogs() {
-    try {
-      const res = await fetch("/api/graduates/logs");
-      if (!res.ok) throw new Error("HTTP " + res.status);
-
-      const rows = await res.json();
-      const tbody = document.getElementById("logs-gra");
-      tbody.innerHTML = "";
-
-      (rows || []).forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><img src="${row.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
-          <td>${row.idNumber || '-'}</td>
-          <td>${row.date || '-'}</td>
-          <td>${row.time || '-'}</td>
-          <td>${row.address || '-'}</td>
-          <td>${row.batchNumber || '-'}</td>
-        `;
-        tbody.appendChild(tr);
+    /* =========================================================
+       MASTERLIST TABLES (Name + ID only). Click to use ID.
+       Endpoints used (adjust to your API if needed):
+         - Students : GET /api/attendance/students?query=...
+         - NTS      : GET /api/nts/masterlist?q=...
+         - Faculty  : GET /api/faculty/masterlist?q=...
+         - Graduates: GET /api/graduates/masterlist?q=...
+       Each returns array of objects like:
+         - Students : { idNumber, name }
+         - NTS/Fac  : { employeeId, name }
+         - Graduates: { idNumber, name? }
+       ========================================================= */
+    async function fetchJson(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(r.status);
+      return r.json();
+    }
+    function renderMlRows(tbodyId, rows, getName, getId, targetInputId) {
+      const tb = document.getElementById(tbodyId);
+      tb.innerHTML = "";
+      if (!rows || !rows.length) {
+        const tr=document.createElement('tr');
+        const td=document.createElement('td');
+        td.colSpan=2; td.className='text-center text-muted'; td.textContent='No matches';
+        tr.appendChild(td); tb.appendChild(tr); return;
+      }
+      rows.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.className='ml-item';
+        const tdName=document.createElement('td'); tdName.textContent = getName(r) ?? '-';
+        const tdId=document.createElement('td'); tdId.textContent = getId(r) ?? '-';
+        tr.appendChild(tdName); tr.appendChild(tdId);
+        tr.addEventListener('click', ()=>{
+          const id = getId(r); if (!id) return;
+          const input = document.getElementById(targetInputId);
+          input.value = id;
+          // trigger the existing Enter flow
+          input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+        });
+        tb.appendChild(tr);
       });
-    } catch (err) {
-      console.error("loadGradLogs failed:", err);
-      // optional: show a tiny toast instead of breaking flow
-      // Swal.fire({ icon:'warning', title:'Couldn’t refresh logs', timer:1200, showConfirmButton:false });
     }
-  }
 
-  // keep this so the table has initial data
-  loadGradLogs();
+    // Students masterlist
+    async function loadMlStudents(q='') {
+      const data = await fetchJson(`/api/attendance/students?query=${encodeURIComponent(q)}`);
+      renderMlRows('ml-stu', data, r=>r.name, r=>r.idNumber, 'search-stu');
+    }
+    document.getElementById('ml-stu-q').addEventListener('keydown', (e)=>{
+      if (e.key!=='Enter') return;
+      loadMlStudents(e.target.value.trim());
+    });
+    loadMlStudents('');
 
-  // ... your existing graduates keydown handler that calls loadGradLogs() after POST ...
-</script>
+    // NTS masterlist
+    async function loadMlNts(q='') {
+      const data = await fetchJson(`/api/nts/masterlist?q=${encodeURIComponent(q)}`);
+      renderMlRows('ml-nts', data, r=>r.name, r=>r.employeeId, 'search-nts');
+    }
+    document.getElementById('ml-nts-q').addEventListener('keydown', (e)=>{
+      if (e.key!=='Enter') return;
+      loadMlNts(e.target.value.trim());
+    });
+    loadMlNts('');
 
+    // Faculty masterlist
+    async function loadMlFaculty(q='') {
+      const data = await fetchJson(`/api/faculty/masterlist?q=${encodeURIComponent(q)}`);
+      renderMlRows('ml-fac', data, r=>r.name, r=>r.employeeId, 'search-fac');
+    }
+    document.getElementById('ml-fac-q').addEventListener('keydown', (e)=>{
+      if (e.key!=='Enter') return;
+      loadMlFaculty(e.target.value.trim());
+    });
+    loadMlFaculty('');
+
+    // Graduates masterlist
+    async function loadMlGrads(q='') {
+      const data = await fetchJson(`/api/graduates/masterlist?q=${encodeURIComponent(q)}`);
+      // name may be missing in your alumni master; show '-' if absent
+      renderMlRows('ml-gra', data, r=>r.name ?? '-', r=>r.idNumber, 'search-gra');
+    }
+    document.getElementById('ml-gra-q').addEventListener('keydown', (e)=>{
+      if (e.key!=='Enter') return;
+      loadMlGrads(e.target.value.trim());
+    });
+    loadMlGrads('');
+  </script>
 </body>
 </html>

@@ -24,6 +24,115 @@
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
+
+    /* ===== Faculty table polish (CSS only) ===== */
+
+/* Wrapper as a soft card */
+.dataTables_wrapper {
+  background: #fff;
+  border: 1px solid #e9eef5;
+  border-radius: 12px;
+  padding: 12px 12px 6px;
+  box-shadow: 0 2px 10px rgba(20, 40, 80, .04);
+}
+
+/* Search input */
+.dataTables_filter {
+  margin-bottom: .25rem;
+}
+.dataTables_filter label { font-weight: 600; color: #556070; }
+.dataTables_filter input {
+  border: 1px solid #e4e8f0;
+  border-radius: 10px;
+  padding: .35rem .6rem;
+  outline: none;
+  width: 220px;
+}
+.dataTables_filter input:focus {
+  border-color: #2b3ded;
+  box-shadow: 0 0 0 3px rgba(43, 61, 237, .08);
+}
+
+/* Table base */
+#ntsTable { width: 100% !important; border-collapse: separate; border-spacing: 0; }
+#ntsTable thead th,
+#ntsTable tbody td { vertical-align: middle; border-color: #edf1f6 !important; }
+
+#ntsTable thead th {
+  background: #f7f9fc;
+  color: #334155;
+  font-weight: 700;
+  position: sticky;            /* keeps header visible while scrolling inside wrapper */
+  top: 0;
+  z-index: 1;
+}
+
+/* DataTables sorting arrows look cleaner */
+table.dataTable thead .sorting,
+table.dataTable thead .sorting_asc,
+table.dataTable thead .sorting_desc { background-position: right .6rem center; }
+
+/* Row density + zebra + hover */
+#ntsTable thead th { padding: .7rem 1rem; }
+#ntsTable tbody td { padding: .65rem 1rem; }
+
+#ntsTable tbody tr:nth-child(odd)  td { background: #fcfdff; }
+#ntsTable tbody tr:hover td { background: #f3f7ff; }
+
+/* Column sizing */
+#ntsTable thead th:first-child,
+#ntsTable tbody td:first-child { width: 72px; }
+#ntsTable thead th:last-child,
+#ntsTable tbody td:last-child  { min-width: 140px; }
+
+/* Avatar ring */
+#ntsTable img.rounded-circle {
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px #e9efff;
+}
+
+/* Action buttons spacing & feel */
+#ntsTable td.text-nowrap .btn { margin-right: .3rem; border-radius: 10px; }
+#ntsTable td.text-nowrap .btn:last-child { margin-right: 0; }
+#ntsTable .btn-info.btn-sm    { background:#60d2e9; border-color:#60d2e9; }
+#ntsTable .btn-warning.btn-sm { background:#ffd166; border-color:#ffd166; color:#1f2a37; }
+#ntsTable .btn-danger.btn-sm  { background:#ff6b6b; border-color:#ff6b6b; }
+
+/* Pagination */
+.dataTables_paginate {
+  padding: .25rem .25rem .5rem;
+}
+.dataTables_paginate .paginate_button {
+  border: 1px solid #e4e8f0 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #334155 !important;
+  margin: 0 .12rem !important;
+  padding: .25rem .55rem !important;
+}
+.dataTables_paginate .paginate_button.current,
+.dataTables_paginate .paginate_button:hover {
+  background: #2b3ded !important;
+  color: #fff !important;
+  border-color: #2b3ded !important;
+}
+
+/* Info text */
+.dataTables_info { color: #6b7280; padding-left: .25rem; }
+
+/* Make the table horizontally scrollable on small screens without JS changes */
+@media (max-width: 992px) {
+  .dataTables_wrapper { overflow-x: auto; }
+  #ntsTable { min-width: 760px; } /* prevents columns from collapsing too much */
+  #ntsTable thead th { position: sticky; top: 0; }
+}
+
+/* Slightly tighter layout on very small devices */
+@media (max-width: 576px) {
+  #ntsTable thead th, #ntsTable tbody td { padding: .55rem .7rem; }
+  .dataTables_filter input { width: 170px; }
+}
+
     /* PASS CARD — balanced, professional layout */
     .id-pass {
       width: min(760px, 100%);

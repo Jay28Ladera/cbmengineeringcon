@@ -10,110 +10,59 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
 
-  <!-- (Optional) SweetAlert2 -->
+  <!-- SweetAlert2 (optional) -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <!-- Custom CSS -->
+  <!-- Your CSS -->
   <link rel="stylesheet" th:href="@{/css/header.css}" />
   <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
   <link rel="stylesheet" th:href="@{/css/home.css}" />
 
-  <!-- Page styles -->
   <style>
-    
-    /* Blue zebra striping for Bootstrap tables */
-.table-striped-blue tbody tr:nth-of-type(odd) > * {
-  --bs-table-accent-bg: rgba(13,110,253,.08); /* light blue */
-}
-.table-striped-blue.table-hover tbody tr:hover > * {
-  background-color: rgba(13,110,253,.16) !important; /* deeper on hover */
-}
-
+    /* ===== Theme bits ===== */
     :root {
-      /* Blue theme accents (Bootstrap’s blue with slight tweaks) */
-      --brand-700: #0b5ed7;   /* buttons/links */
-      --brand-600: #0d6efd;   /* primary */
-      --brand-500: #3d8bfd;   /* accents */
-      --brand-100: #e7f1ff;   /* light bg */
+      --brand-700:#0b5ed7; --brand-600:#0d6efd; --brand-500:#3d8bfd; --brand-100:#e7f1ff;
     }
+    .page-title{display:flex;align-items:center;gap:.6rem;font-weight:700}
+    .page-title .bi{color:var(--brand-600)}
+    .tabs-wrap{background:#eef2f6;border-radius:.6rem;padding:.5rem .6rem;margin:0 0 1rem}
+    .tabs-wrap .nav-link{font-weight:700}
+    .tabs-wrap .nav-link.active{background:var(--brand-600);color:#fff}
 
-    .page-title {
-      display: flex; align-items: center; gap: .6rem;
-      font-weight: 700;
-    }
-    .page-title .bi { color: var(--brand-600); }
-
-    /* Toolbar */
-    .toolbar {
-      background: #fff;
-      border: 1px solid #e9ecef;
-      border-left: 4px solid var(--brand-600);
-      border-radius: .9rem;
-      padding: 1rem;
-      box-shadow: 0 6px 18px rgba(13,110,253,.06);
-      position: sticky; top: .75rem; z-index: 5;
-    }
-    .toolbar .form-label { font-size: .8rem; color: #6c757d; margin-bottom: .25rem; }
+    /* Toolbar (shared) */
+    .toolbar{background:#fff;border:1px solid #e9ecef;border-left:4px solid var(--brand-600);
+      border-radius:.9rem;padding:1rem;box-shadow:0 6px 18px rgba(13,110,253,.06);position:sticky;top:.75rem;z-index:5}
+    .toolbar .form-label{font-size:.8rem;color:#6c757d;margin-bottom:.25rem}
 
     /* Stat cards */
-    .stat-card {
-      border: 0;
-      border-radius: 1rem;
-      overflow: hidden;
-      box-shadow: 0 10px 24px rgba(13,110,253,.12);
-      background: linear-gradient(135deg, var(--brand-600), var(--brand-500));
-      color: #fff;
-    }
-    .stat-card .label { opacity: .85; font-size: .9rem; }
-    .stat-card .value { font-size: 2rem; font-weight: 800; letter-spacing: .5px; }
-
-    /* Section headers */
-    .section-title {
-      font-weight: 700;
-      color: #0f1730;
-      margin: 1.25rem 0 .5rem;
-      display: flex; align-items: center; gap: .5rem;
-    }
-    .section-title .bi { color: var(--brand-600); }
+    .stat-card{border:0;border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,var(--brand-600),var(--brand-500));
+      color:#fff;box-shadow:0 10px 24px rgba(13,110,253,.12)}
+    .stat-card .label{opacity:.85;font-size:.9rem}
+    .stat-card .value{font-size:1.8rem;font-weight:800;letter-spacing:.3px}
 
     /* Tables */
-    .table-card {
-      background: #fff;
-      border: 1px solid #e9ecef;
-      border-radius: 1rem;
-      box-shadow: 0 8px 24px rgba(15, 23, 48, .06);
-      overflow: hidden;
-    }
-    .table-wrap { max-height: 52vh; overflow: auto; }
-    table thead th {
-      position: sticky; top: 0; z-index: 2;
-      background: #f8f9fb; color: #495057; font-weight: 700;
-      border-bottom: 1px solid #e9ecef;
-    }
-    tbody tr:hover { background: var(--brand-100); }
-    .empty-row td {
-      text-align: center; color: #6c757d; font-style: italic;
-      padding: 1.25rem;
-    }
+    .table-card{background:#fff;border:1px solid #e9ecef;border-radius:1rem;box-shadow:0 8px 24px rgba(15,23,48,.06);overflow:hidden}
+    .table-wrap{max-height:52vh;overflow:auto}
+    table thead th{position:sticky;top:0;z-index:2;background:#f8f9fb;color:#495057;font-weight:700;border-bottom:1px solid #e9ecef}
+    .empty-row td{text-align:center;color:#6c757d;font-style:italic;padding:1.25rem}
+    tbody tr:hover{background:var(--brand-100)}
+    /* Blue zebra */
+    .table-striped-blue tbody tr:nth-of-type(odd)>*{--bs-table-accent-bg:rgba(13,110,253,.08)}
+    .table-striped-blue.table-hover tbody tr:hover>*{background-color:rgba(13,110,253,.16)!important}
 
-    /* Filter chips row */
-    .filters {
-      background: #fff; border: 1px solid #e9ecef; border-radius: 1rem;
-      padding: .85rem; box-shadow: 0 6px 18px rgba(13,110,253,.06);
-    }
-    .input-icon {
-      position: relative;
-    }
-    .input-icon .bi {
-      position: absolute; left: .65rem; top: 50%; transform: translateY(-50%);
-      color: #6c757d;
-    }
-    .input-icon input { padding-left: 2rem; }
-    .badge-pill {
-      background: var(--brand-100); color: var(--brand-600);
-      border: 1px solid #d7e7ff; font-weight: 600;
-    }
+    /* Filter chip row (students) */
+    .filters{background:#fff;border:1px solid #e9ecef;border-radius:1rem;padding:.85rem;box-shadow:0 6px 18px rgba(13,110,253,.06)}
+    .input-icon{position:relative}
+    .input-icon .bi{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:#6c757d}
+    .input-icon input{padding-left:2rem}
+    .badge-pill{background:var(--brand-100);color:var(--brand-600);border:1px solid #d7e7ff;font-weight:600}
+
+    /* Simple search rows (nts/fac/grads) */
+    .mini-filters .form-label{font-size:.8rem;color:#6c757d}
+    .mini-filters .form-control{max-width:320px}
+    .count-badge{font-weight:700;background:#eef4ff;color:#2741ff;border:1px solid #dfe6ff}
+    .avatar{width:44px;height:44px;object-fit:cover;border-radius:.6rem;border:2px solid #fff;box-shadow:0 0 0 2px #e9efff}
   </style>
 </head>
 <body>
@@ -128,11 +77,9 @@
       <!-- Main -->
       <div class="col-md-9 p-4">
 
-        <h1 class="page-title mb-3">
-          <i class="bi bi-graph-up-arrow"></i> Visiting Day Report
-        </h1>
+        <h1 class="page-title mb-3"><i class="bi bi-graph-up-arrow"></i> Visiting Day Report</h1>
 
-        <!-- Toolbar -->
+        <!-- Shared date controls -->
         <div class="toolbar mb-3">
           <div class="row g-3 align-items-end">
             <div class="col-sm-4 col-md-3 col-lg-2">
@@ -144,9 +91,7 @@
               <input id="end" type="date" class="form-control">
             </div>
             <div class="col-sm-4 col-md-3 col-lg-2 d-grid d-sm-block">
-              <button id="refresh" class="btn btn-primary">
-                <i class="bi bi-arrow-repeat me-1"></i> Refresh
-              </button>
+              <button id="refresh" class="btn btn-primary"><i class="bi bi-arrow-repeat me-1"></i> Refresh</button>
             </div>
             <div class="col-sm-12 col-md-3 col-lg-3 ms-auto d-grid d-sm-block text-end">
               <a id="download" class="btn btn-success">
@@ -156,301 +101,353 @@
           </div>
         </div>
 
-        <!-- Stats -->
-        <div id="summary" class="row g-3 mb-2">
-          <div class="col-6 col-md-3">
-            <div class="card stat-card">
-              <div class="card-body">
-                <div class="label mb-1"><i class="bi bi-people-fill me-1"></i>Total Visitors</div>
-                <div id="totalVisitors" class="value">0</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="card stat-card">
-              <div class="card-body">
-                <div class="label mb-1"><i class="bi bi-person-fill me-1"></i>Adults</div>
-                <div id="totalAdults" class="value">0</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="card stat-card">
-              <div class="card-body">
-                <div class="label mb-1"><i class="bi bi-person-hearts me-1"></i>Kids</div>
-                <div id="totalKids" class="value">0</div>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="card stat-card">
-              <div class="card-body">
-                <div class="label mb-1"><i class="bi bi-check2-square me-1"></i>Students w/ Visitors</div>
-                <div id="totalStudentsVisited" class="value">0</div>
-              </div>
-            </div>
-          </div>
+        <!-- Tabs -->
+        <div class="tabs-wrap">
+          <ul class="nav nav-pills gap-2" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overall" type="button">Overall</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-students" type="button">Students</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-nts" type="button">NTS</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-faculty" type="button">Faculty</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-grads" type="button">Graduates</button></li>
+          </ul>
         </div>
 
-        <!-- Aggregations -->
-        <div class="row g-3">
-          <div class="col-md-6">
-            <h5 class="section-title"><i class="bi bi-collection"></i> Visitors per Batch Number</h5>
-            <div class="table-card">
-              <div class="table-wrap">
-                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblYear">
-                  <thead><tr><th>Batch Number</th><th class="text-end">Visitors</th></tr></thead>
-                  <tbody></tbody>
-                </table>
-              </div>
+        <div class="tab-content">
+          <!-- ================= OVERALL ================= -->
+          <div class="tab-pane fade show active" id="tab-overall" role="tabpanel">
+            <div id="overallCards" class="row g-3">
+              <!-- row 1 -->
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-people-fill me-1"></i>Total Visitors</div><div id="ovTotalVisitors" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-fill me-1"></i>Adults</div><div id="ovAdults" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-hearts me-1"></i>Kids</div><div id="ovKids" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-check2-square me-1"></i>Students w/ Visitors</div><div id="ovStuWith" class="value">0</div></div></div></div>
+              <!-- row 2 -->
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-x-square me-1"></i>Students w/o Visitors</div><div id="ovStuWithout" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-mortarboard-fill me-1"></i>Graduate Visitors</div><div id="ovGrad" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-workspace me-1"></i>NTS Visitors</div><div id="ovNts" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-badge-fill me-1"></i>Faculty Visitors</div><div id="ovFaculty" class="value">0</div></div></div></div>
+              <!-- row 3 -->
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-truck-front-fill me-1"></i>4-wheel Vehicles</div><div id="ovVehicles4" class="value">0</div></div></div></div>
+              <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-bicycle me-1"></i>Motorcycles</div><div id="ovVehicles2" class="value">0</div></div></div></div>
             </div>
           </div>
-          <div class="col-md-6">
-            <h5 class="section-title"><i class="bi bi-award"></i> Visitors per Family Saint</h5>
-            <div class="table-card">
-              <div class="table-wrap">
-                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblSaint">
-                  <thead><tr><th>Family Saint</th><th class="text-end">Visitors</th></tr></thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Filters -->
-        <div class="filters mt-4">
-          <div class="row g-2 align-items-end">
-            <div class="col-md-5">
-              <label class="form-label">Search (ID or Name)</label>
-              <div class="input-icon">
-                <i class="bi bi-search"></i>
-                <input id="fltSearch" class="form-control" placeholder="e.g. TAL2022-001 or Juan Dela Cruz" />
+          <!-- ================= STUDENTS ================= -->
+          <div class="tab-pane fade" id="tab-students" role="tabpanel">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <h5 class="section-title"><i class="bi bi-collection"></i> Visitors per Batch Number</h5>
+                <div class="table-card"><div class="table-wrap">
+                  <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblYear">
+                    <thead><tr><th>Batch Number</th><th class="text-end">Visitors</th></tr></thead><tbody></tbody>
+                  </table>
+                </div></div>
+              </div>
+              <div class="col-md-6">
+                <h5 class="section-title"><i class="bi bi-award"></i> Visitors per Family Saint</h5>
+                <div class="table-card"><div class="table-wrap">
+                  <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblSaint">
+                    <thead><tr><th>Family Saint</th><th class="text-end">Visitors</th></tr></thead><tbody></tbody>
+                  </table>
+                </div></div>
               </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label">Batch Number</label>
-              <select id="fltBatch" class="form-select">
-                <option value="">All</option>
-              </select>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label">Family Saint</label>
-              <select id="fltSaint" class="form-select">
-                <option value="">All</option>
-              </select>
-            </div>
-            <div class="col-md-1 d-grid">
-              <button id="fltClear" class="btn btn-outline-secondary">
-                <i class="bi bi-x-circle"></i>
-              </button>
-            </div>
-          </div>
-        </div>
 
-        <!-- Tables -->
-        <div class="row g-3 mt-1">
-          <div class="col-md-6">
-            <h5 class="section-title"><i class="bi bi-person-check"></i> Students with Visitors
-              <span class="badge rounded-pill badge-pill ms-1" id="withCount">0</span>
-            </h5>
-            <div class="table-card">
-              <div class="table-wrap">
-                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblWith">
-                  <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Family Saint</th>
-                    <th>Batch Number</th>
-                    <th>Time Arrived</th>
-                    <th class="text-end">Total Visitors</th>
-                  </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
+            <div class="filters mt-4">
+              <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                  <label class="form-label">Search (ID or Name)</label>
+                  <div class="input-icon">
+                    <i class="bi bi-search"></i>
+                    <input id="fltSearch" class="form-control" placeholder="e.g. TAL2022-001 or Juan Dela Cruz" />
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Batch Number</label>
+                  <select id="fltBatch" class="form-select"><option value="">All</option></select>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Family Saint</label>
+                  <select id="fltSaint" class="form-select"><option value="">All</option></select>
+                </div>
+                <div class="col-md-1 d-grid">
+                  <button id="fltClear" class="btn btn-outline-secondary"><i class="bi bi-x-circle"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-md-6">
+                <h5 class="section-title"><i class="bi bi-person-check"></i> Students with Visitors
+                  <span class="badge rounded-pill badge-pill ms-1" id="withCount">0</span>
+                </h5>
+                <div class="table-card"><div class="table-wrap">
+                  <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblWith">
+                    <thead><tr>
+                      <th>ID</th><th>Name</th><th>Family Saint</th><th>Batch Number</th><th>Time Arrived</th><th class="text-end">Total Visitors</th>
+                    </tr></thead><tbody></tbody>
+                  </table>
+                </div></div>
+              </div>
+
+              <div class="col-md-6">
+                <h5 class="section-title"><i class="bi bi-person-x"></i> Students without Visitors
+                  <span class="badge rounded-pill badge-pill ms-1" id="withoutCount">0</span>
+                </h5>
+                <div class="table-card"><div class="table-wrap">
+                  <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblWithout">
+                    <thead><tr><th>ID</th><th>Name</th><th>Family Saint</th><th>Batch Number</th></tr></thead><tbody></tbody>
+                  </table>
+                </div></div>
               </div>
             </div>
           </div>
 
-          <div class="col-md-6">
-            <h5 class="section-title"><i class="bi bi-person-x"></i> Students without Visitors
-              <span class="badge rounded-pill badge-pill ms-1" id="withoutCount">0</span>
-            </h5>
-            <div class="table-card">
-              <div class="table-wrap">
-                <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblWithout">
-                  <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Family Saint</th>
-                    <th>Batch Number</th>
-                  </tr>
-                  </thead>
-                  <tbody></tbody>
-                </table>
+          <!-- ================= NTS ================= -->
+          <div class="tab-pane fade" id="tab-nts" role="tabpanel">
+            <div class="d-flex align-items-center justify-content-between mini-filters mb-2">
+              <div>
+                <label class="form-label mb-0 me-2">Search</label>
+                <input id="ntsSearch" class="form-control d-inline-block" style="width:320px" placeholder="Name / ID / Department / Position" />
               </div>
+              <span class="badge rounded-pill count-badge" id="ntsTotal">0</span>
             </div>
+            <div class="table-card"><div class="table-wrap">
+              <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblNts">
+                <thead><tr>
+                  <th>Photo</th><th>Name</th><th>Employee ID</th><th>Department</th><th>Position</th><th>Date</th><th>Time</th>
+                </tr></thead><tbody></tbody>
+              </table>
+            </div></div>
           </div>
-        </div>
+
+          <!-- ================= FACULTY ================= -->
+          <div class="tab-pane fade" id="tab-faculty" role="tabpanel">
+            <div class="d-flex align-items-center justify-content-between mini-filters mb-2">
+              <div>
+                <label class="form-label mb-0 me-2">Search</label>
+                <input id="facSearch" class="form-control d-inline-block" style="width:320px" placeholder="Name / ID / Department / Position" />
+              </div>
+              <span class="badge rounded-pill count-badge" id="facTotal">0</span>
+            </div>
+            <div class="table-card"><div class="table-wrap">
+              <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblFaculty">
+                <thead><tr>
+                  <th>Photo</th><th>Name</th><th>Employee ID</th><th>Department</th><th>Position</th><th>Date</th><th>Time</th>
+                </tr></thead><tbody></tbody>
+              </table>
+            </div></div>
+          </div>
+
+          <!-- ================= GRADUATES ================= -->
+          <div class="tab-pane fade" id="tab-grads" role="tabpanel">
+            <div class="d-flex align-items-center justify-content-between mini-filters mb-2">
+              <div>
+                <label class="form-label mb-0 me-2">Search</label>
+                <input id="graSearch" class="form-control d-inline-block" style="width:320px" placeholder="ID Number / Address / Batch #" />
+              </div>
+              <span class="badge rounded-pill count-badge" id="graTotal">0</span>
+            </div>
+            <div class="table-card"><div class="table-wrap">
+              <table class="table table-hover table-sm mb-0 table-striped table-striped-blue" id="tblGrad">
+                <thead><tr>
+                  <th>Photo</th><th>ID Number</th><th>Batch #</th><th>Address</th><th>Date</th><th>Time</th>
+                </tr></thead><tbody></tbody>
+              </table>
+            </div></div>
+          </div>
+        </div><!-- /tab-content -->
 
       </div><!-- /main -->
     </div><!-- /row -->
   </div><!-- /container -->
 
   <script>
-    // ---------- Date helpers ----------
-    function todayStr() {
-      const d = new Date();
-      return d.toISOString().substring(0, 10);
+    // ===== helpers =====
+    const startEl=document.getElementById('start'), endEl=document.getElementById('end');
+    const todayStr=()=>new Date().toISOString().substring(0,10);
+    startEl.value=todayStr(); endEl.value=todayStr();
+
+    const escapeHtml = s => String(s ?? '')
+      .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+      .replaceAll('"','&quot;').replaceAll("'","&#39;");
+
+    // ===== State =====
+    let STU=null, NTS=null, FAC=null, GRA=null;
+
+    // ===== Load all =====
+    async function loadAll() {
+      const qs=`start=${startEl.value}&end=${endEl.value}`;
+      const [stuRes, ntsRes, facRes, graRes] = await Promise.all([
+        fetch(`/api/visitingday/report/summary?${qs}`),
+        fetch(`/api/nts/report/summary?${qs}`),
+        fetch(`/api/faculty/report/summary?${qs}`),
+        fetch(`/api/graduates/report/summary?${qs}`)
+      ]);
+
+      STU = await stuRes.json();   // expected shape: your current summary + vehicles {FOUR_WHEELED, MOTORCYCLE}
+      NTS = await ntsRes.json();   // { total, visits:[{employeeId,name,position,department,imageUrl,date,time}] }
+      FAC = await facRes.json();   // same as NTS
+      GRA = await graRes.json();   // { total, visits:[{idNumber,batchNumber,address,imageUrl,date,time}] }
+
+      renderOverall();
+      renderStudents();
+      renderNts(); renderFaculty(); renderGrads();
+
+      // Export link (overall)
+      document.getElementById('download').href = `/api/report/overall/export?${qs}`;
     }
 
-    const startEl = document.getElementById('start');
-    const endEl   = document.getElementById('end');
-    startEl.value = todayStr();
-    endEl.value   = todayStr();
+    // ===== Overall cards =====
+    function renderOverall(){
+      const stuTotalVisitors = Number(STU?.totalVisitors||0);
+      const stuAdults  = Number(STU?.totalAdults||0);
+      const stuKids    = Number(STU?.totalKids||0);
+      const stuWith    = Number(STU?.totalStudentsVisited ?? (STU?.studentsWithVisitors?.length||0));
+      const stuWithout = Number(STU?.studentsWithoutVisitors?.length||0);
 
-    // ---------- State ----------
-    let _summary = null;
+      const gradTotal = Number(GRA?.total||0);
+      const ntsTotal  = Number(NTS?.total||0);
+      const facTotal  = Number(FAC?.total||0);
 
-    // ---------- Load summary from API ----------
-    async function load() {
-      const start = startEl.value;
-      const end   = endEl.value;
+      const overallVisitors = stuTotalVisitors + gradTotal + ntsTotal + facTotal;
+      const overallAdults   = stuAdults + gradTotal + ntsTotal + facTotal; // non-student entries are adults
+      const overallKids     = stuKids;
 
-      const res = await fetch(`/api/visitingday/report/summary?start=${start}&end=${end}`);
-      const data = await res.json();
-      _summary = data;
+      document.getElementById('ovTotalVisitors').textContent = overallVisitors;
+      document.getElementById('ovAdults').textContent = overallAdults;
+      document.getElementById('ovKids').textContent = overallKids;
+      document.getElementById('ovStuWith').textContent = stuWith;
+      document.getElementById('ovStuWithout').textContent = stuWithout;
+      document.getElementById('ovGrad').textContent = gradTotal;
+      document.getElementById('ovNts').textContent = ntsTotal;
+      document.getElementById('ovFaculty').textContent = facTotal;
 
-      // Summary cards
-      document.getElementById('totalVisitors').innerText = data.totalVisitors ?? 0;
-      document.getElementById('totalAdults').innerText = data.totalAdults ?? 0;
-      document.getElementById('totalKids').innerText = data.totalKids ?? 0;
-      document.getElementById('totalStudentsVisited').innerText = data.totalStudentsVisited ?? 0;
-
-      // Aggregations
-      const yearTbody = document.querySelector('#tblYear tbody');
-      yearTbody.innerHTML = renderAggRows(data.visitorsPerBatchNumber);
-
-      const saintTbody = document.querySelector('#tblSaint tbody');
-      saintTbody.innerHTML = renderAggRows(data.visitorsPerFamilySaint);
-
-      // Filters + tables
-      populateFilters(data);
-      applyFilters();
-
-      // Excel download
-      document.getElementById('download').href = `/api/visitingday/report/export?start=${start}&end=${end}`;
+      const v4 = Number(STU?.vehicles?.FOUR_WHEELED||0);
+      const v2 = Number(STU?.vehicles?.MOTORCYCLE||0);
+      document.getElementById('ovVehicles4').textContent = v4;
+      document.getElementById('ovVehicles2').textContent = v2;
     }
 
+    // ===== Students tab =====
     function renderAggRows(mapObj) {
       const entries = Object.entries(mapObj || {});
       if (!entries.length) return `<tr class="empty-row"><td colspan="2">No data</td></tr>`;
-      return entries.map(([k, v]) =>
-        `<tr><td>${escapeHtml(k)}</td><td class="text-end">${v}</td></tr>`
-      ).join('');
+      return entries.map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td class="text-end">${v}</td></tr>`).join('');
     }
-
-    // ---------- Filters ----------
-    function populateFilters(data) {
-      const batches = new Set();
-      const saints  = new Set();
-
-      [...(data.studentsWithVisitors || []), ...(data.studentsWithoutVisitors || [])].forEach(s => {
-        if (s.batchNumber) batches.add(s.batchNumber);
-        if (s.familySaint) saints.add(s.familySaint);
+    function setOptions(el, values) {
+      const cur=el.value;
+      el.innerHTML = '<option value="">All</option>' + Array.from(values).sort()
+        .map(v=>`<option>${escapeHtml(v)}</option>`).join('');
+      if (cur && values.has(cur)) el.value=cur;
+    }
+    function populateStudentFilters(data){
+      const batches=new Set(), saints=new Set();
+      [...(data.studentsWithVisitors||[]), ...(data.studentsWithoutVisitors||[])].forEach(s=>{
+        if(s.batchNumber) batches.add(s.batchNumber);
+        if(s.familySaint) saints.add(s.familySaint);
       });
-
       setOptions(document.getElementById('fltBatch'), batches);
       setOptions(document.getElementById('fltSaint'), saints);
     }
+    function applyStudentFilters(){
+      const q=(document.getElementById('fltSearch').value||'').toLowerCase().trim();
+      const batch=document.getElementById('fltBatch').value;
+      const saint=document.getElementById('fltSaint').value;
+      const match=s=>
+        (!q || (s.idNumber||'').toLowerCase().includes(q) || (s.name||'').toLowerCase().includes(q)) &&
+        (!batch || (s.batchNumber||'')===batch) &&
+        (!saint || (s.familySaint||'')===saint);
 
-    function setOptions(el, values) {
-      const cur = el.value;
-      el.innerHTML = '<option value="">All</option>' +
-        Array.from(values).sort().map(v => `<option>${escapeHtml(v)}</option>`).join('');
-      if (cur && [...values].includes(cur)) el.value = cur;
+      const withList=(STU?.studentsWithVisitors||[]).filter(match);
+      const woList=(STU?.studentsWithoutVisitors||[]).filter(match);
+
+      document.getElementById('withCount').textContent=withList.length;
+      document.getElementById('withoutCount').textContent=woList.length;
+
+      const withTb=document.querySelector('#tblWith tbody');
+      withTb.innerHTML = withList.length? withList.map(s=>`
+        <tr>
+          <td>${escapeHtml(s.idNumber||'')}</td>
+          <td>${escapeHtml(s.name||'')}</td>
+          <td>${escapeHtml(s.familySaint||'')}</td>
+          <td>${escapeHtml(s.batchNumber||'')}</td>
+          <td>${escapeHtml(s.arrivalTime||'')}</td>
+          <td class="text-end">${s.totalVisitors??0}</td>
+        </tr>`).join('') : `<tr class="empty-row"><td colspan="6">No matching students</td></tr>`;
+
+      const woTb=document.querySelector('#tblWithout tbody');
+      woTb.innerHTML = woList.length? woList.map(s=>`
+        <tr>
+          <td>${escapeHtml(s.idNumber||'')}</td>
+          <td>${escapeHtml(s.name||'')}</td>
+          <td>${escapeHtml(s.familySaint||'')}</td>
+          <td>${escapeHtml(s.batchNumber||'')}</td>
+        </tr>`).join('') : `<tr class="empty-row"><td colspan="4">No matching students</td></tr>`;
+    }
+    function renderStudents(){
+      document.querySelector('#tblYear tbody').innerHTML = renderAggRows(STU?.visitorsPerBatchNumber);
+      document.querySelector('#tblSaint tbody').innerHTML = renderAggRows(STU?.visitorsPerFamilySaint);
+      populateStudentFilters(STU||{});
+      applyStudentFilters();
     }
 
-    function applyFilters() {
-      if (!_summary) return;
-
-      const q     = (document.getElementById('fltSearch').value || '').toLowerCase().trim();
-      const batch = document.getElementById('fltBatch').value;
-      const saint = document.getElementById('fltSaint').value;
-
-      const match = s =>
-        (!q || (s.idNumber || '').toLowerCase().includes(q) || (s.name || '').toLowerCase().includes(q)) &&
-        (!batch || (s.batchNumber || '') === batch) &&
-        (!saint || (s.familySaint || '') === saint);
-
-      const withList = (_summary.studentsWithVisitors || []).filter(match);
-      const withoutList = (_summary.studentsWithoutVisitors || []).filter(match);
-
-      renderTables(withList, withoutList);
+    // ===== NTS / Faculty / Graduates tabs =====
+    function renderSimpleTable(list, tbodySel, fields){
+      const tb=document.querySelector(tbodySel);
+      if(!list?.length){ tb.innerHTML=`<tr class="empty-row"><td colspan="${fields.length}">No data</td></tr>`; return; }
+      tb.innerHTML = list.map(r=>{
+        return `<tr>` + fields.map(f=>{
+          if(f==='imageUrl') return `<td><img class="avatar" src="${escapeHtml(r.imageUrl||'/images/default-profile.png')}"></td>`;
+          return `<td>${escapeHtml(r[f]||'')}</td>`;
+        }).join('') + `</tr>`;
+      }).join('');
+    }
+    function filterList(list, q, pick){
+      if(!q) return list;
+      const qq=q.toLowerCase();
+      return list.filter(r=> pick(r).some(v => (v||'').toLowerCase().includes(qq)));
+    }
+    function renderNts(){
+      const src = NTS?.visits||[];
+      const q = document.getElementById('ntsSearch').value||'';
+      const list = filterList(src, q, r=>[r.name,r.employeeId,r.department,r.position]);
+      document.getElementById('ntsTotal').textContent = list.length;
+      renderSimpleTable(list, '#tblNts tbody', ['imageUrl','name','employeeId','department','position','date','time']);
+    }
+    function renderFaculty(){
+      const src = FAC?.visits||[];
+      const q = document.getElementById('facSearch').value||'';
+      const list = filterList(src, q, r=>[r.name,r.employeeId,r.department,r.position]);
+      document.getElementById('facTotal').textContent = list.length;
+      renderSimpleTable(list, '#tblFaculty tbody', ['imageUrl','name','employeeId','department','position','date','time']);
+    }
+    function renderGrads(){
+      const src = GRA?.visits||[];
+      const q = document.getElementById('graSearch').value||'';
+      const list = filterList(src, q, r=>[r.idNumber,r.address,r.batchNumber]);
+      document.getElementById('graTotal').textContent = list.length;
+      renderSimpleTable(list, '#tblGrad tbody', ['imageUrl','idNumber','batchNumber','address','date','time']);
     }
 
-    function renderTables(withList, withoutList) {
-      const withTb = document.querySelector('#tblWith tbody');
-      const woTb   = document.querySelector('#tblWithout tbody');
-
-      document.getElementById('withCount').textContent = withList.length;
-      document.getElementById('withoutCount').textContent = withoutList.length;
-
-      if (!withList.length) {
-        withTb.innerHTML = `<tr class="empty-row"><td colspan="6">No matching students</td></tr>`;
-      } else {
-        withTb.innerHTML = withList.map(s => `
-          <tr>
-            <td>${escapeHtml(s.idNumber || '')}</td>
-            <td>${escapeHtml(s.name || '')}</td>
-            <td>${escapeHtml(s.familySaint || '')}</td>
-            <td>${escapeHtml(s.batchNumber || '')}</td>
-            <td>${escapeHtml(s.arrivalTime || '')}</td>
-            <td class="text-end">${(s.totalVisitors ?? 0)}</td>
-          </tr>
-        `).join('');
-      }
-
-      if (!withoutList.length) {
-        woTb.innerHTML = `<tr class="empty-row"><td colspan="4">No matching students</td></tr>`;
-      } else {
-        woTb.innerHTML = withoutList.map(s => `
-          <tr>
-            <td>${escapeHtml(s.idNumber || '')}</td>
-            <td>${escapeHtml(s.name || '')}</td>
-            <td>${escapeHtml(s.familySaint || '')}</td>
-            <td>${escapeHtml(s.batchNumber || '')}</td>
-          </tr>
-        `).join('');
-      }
-    }
-
-    // Basic HTML escaping for safety when injecting strings
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll('&','&amp;')
-        .replaceAll('<','&lt;')
-        .replaceAll('>','&gt;')
-        .replaceAll('"','&quot;')
-        .replaceAll("'",'&#39;');
-    }
-
-    // Events
-    document.getElementById('fltSearch').addEventListener('input', applyFilters);
-    document.getElementById('fltBatch').addEventListener('change', applyFilters);
-    document.getElementById('fltSaint').addEventListener('change', applyFilters);
-    document.getElementById('fltClear').addEventListener('click', () => {
-      document.getElementById('fltSearch').value = '';
-      document.getElementById('fltBatch').value = '';
-      document.getElementById('fltSaint').value = '';
-      applyFilters();
+    // ===== Events =====
+    document.getElementById('refresh').addEventListener('click', loadAll);
+    document.getElementById('fltSearch').addEventListener('input', applyStudentFilters);
+    document.getElementById('fltBatch').addEventListener('change', applyStudentFilters);
+    document.getElementById('fltSaint').addEventListener('change', applyStudentFilters);
+    document.getElementById('fltClear').addEventListener('click', ()=>{
+      document.getElementById('fltSearch').value=''; document.getElementById('fltBatch').value='';
+      document.getElementById('fltSaint').value=''; applyStudentFilters();
     });
-    document.getElementById('refresh').addEventListener('click', load);
 
-    // Initial load
-    load();
+    document.getElementById('ntsSearch').addEventListener('input', renderNts);
+    document.getElementById('facSearch').addEventListener('input', renderFaculty);
+    document.getElementById('graSearch').addEventListener('input', renderGrads);
+
+    // ===== Go! =====
+    loadAll();
   </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

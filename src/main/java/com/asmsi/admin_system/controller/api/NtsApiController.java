@@ -1,20 +1,17 @@
-// src/main/java/com/asmsi/admin_system/controller/api/NtsApiController.java
 package com.asmsi.admin_system.controller.api;
 
 import com.asmsi.admin_system.dto.NtsLogRow;
+import com.asmsi.admin_system.dto.NtsVisitRequest;
+import com.asmsi.admin_system.entity.VehicleType;
 import com.asmsi.admin_system.repository.NonTeachingStaffRepository;
 import com.asmsi.admin_system.service.NtsVisitorService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
-/**
- * NTS API:
- *  - GET  /api/nts/{employeeId}  -> return NTS profile for the search card
- *  - POST /api/nts/visit         -> append a row to ntsvisitor (called after a successful search)
- *  - GET  /api/nts/logs          -> latest visit rows for the table (reads from ntsvisitor)
- */
 @RestController
 @RequestMapping("/api/nts")
 public class NtsApiController {
@@ -32,27 +29,45 @@ public class NtsApiController {
     @GetMapping("/{employeeId}")
     public ResponseEntity<?> getByEmployeeId(@PathVariable String employeeId) {
         return ntsRepo.findByEmployeeId(employeeId)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "NTS not found")));
     }
 
-    /** Called after a successful search to create a visit row in ntsvisitor. */
+    /** Create a visit row with adult/kid/total/contact/vehicle. */
     @PostMapping("/visit")
-    public ResponseEntity<NtsLogRow> logVisit(@RequestBody Map<String, String> body) {
-        String employeeId = Optional.ofNullable(body.get("employeeId"))
-                .map(String::trim).orElse("");
-        if (employeeId.isEmpty()) return ResponseEntity.badRequest().build();
+    public ResponseEntity<?> logVisit(@RequestBody NtsVisitRequest req) {
+        if (req == null || req.employeeId() == null || req.employeeId().isBlank()) {
+            return ResponseEntity.badRequest().body("employeeId required");
+        }
 
-        visitService.logVisit(employeeId);
+        VehicleType vt = null;
+        if (req.vehicleType() != null && !req.vehicleType().isBlank()) {
+            try { vt = VehicleType.valueOf(req.vehicleType().toUpperCase()); }
+            catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body("invalid vehicleType");
+            }
+        }
 
-        // return the most recent row (optional, but handy for debugging/UI)
-        List<NtsLogRow> latest = visitService.recentRows(1);
-        return latest.isEmpty() ? ResponseEntity.ok().build() : ResponseEntity.ok(latest.get(0));
+        // totalVisitors is optional; default to adult + kid if not provided
+        Integer total = (req.totalVisitors() != null)
+                ? req.totalVisitors()
+                : ( (req.adultVisitor() == null ? 0 : req.adultVisitor())
+                  + (req.kidVisitor()   == null ? 0 : req.kidVisitor()) );
+
+        visitService.logVisit(
+            req.employeeId(),
+            req.adultVisitor(), req.kidVisitor(), total,
+            req.contactNumber(), vt
+        );
+
+        return ResponseEntity.ok().build();
     }
 
-    /** Populates the "Latest records" table in the NTS tab (reads from ntsvisitor). */
+    /** Latest rows for the NTS table. */
     @GetMapping("/logs")
     public List<NtsLogRow> logs() {
-        return visitService.recentRows(8); // show top 8
+        return visitService.recentRows(8);
     }
 }

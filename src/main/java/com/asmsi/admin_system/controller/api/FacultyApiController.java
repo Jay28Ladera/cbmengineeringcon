@@ -1,84 +1,69 @@
 package com.asmsi.admin_system.controller.api;
 
-import com.asmsi.admin_system.dto.FacultyVisitRow;
-import com.asmsi.admin_system.entity.Faculty;
-import com.asmsi.admin_system.entity.FacultyVisitor;
+import com.asmsi.admin_system.dto.FacultyLogRow;
+import com.asmsi.admin_system.dto.FacultyVisitRequest;
+import com.asmsi.admin_system.entity.VehicleType;
 import com.asmsi.admin_system.repository.FacultyRepository;
-import com.asmsi.admin_system.repository.FacultyVisitorRepository;
-import org.springframework.data.domain.PageRequest;
+import com.asmsi.admin_system.service.FacultyVisitorService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/faculty")
 public class FacultyApiController {
 
     private final FacultyRepository facultyRepo;
-    private final FacultyVisitorRepository visitorRepo;
-
-    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private final FacultyVisitorService visitService;
 
     public FacultyApiController(FacultyRepository facultyRepo,
-                                FacultyVisitorRepository visitorRepo) {
+                                FacultyVisitorService visitService) {
         this.facultyRepo = facultyRepo;
-        this.visitorRepo = visitorRepo;
+        this.visitService = visitService;
     }
 
-    // Used by the search box: /api/faculty/{employeeId}
+    /** Card lookup for the search box. */
     @GetMapping("/{employeeId}")
-    public ResponseEntity<Map<String, Object>> getFaculty(@PathVariable String employeeId) {
-        Faculty f = facultyRepo.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new NoSuchElementException("Faculty not found"));
-
-        Map<String, Object> dto = new LinkedHashMap<>();
-        dto.put("employeeId", f.getEmployeeId());
-        dto.put("name",       f.getName());
-        dto.put("position",   f.getPosition());
-        dto.put("department", f.getDepartment());
-        dto.put("imageUrl",   f.getImageUrl());
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<?> getByEmployeeId(@PathVariable String employeeId) {
+        return facultyRepo.findByEmployeeId(employeeId)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Faculty not found")));
     }
 
-    // NEW: write a visit row (your UI calls this after a successful lookup)
+    /** Save a visit with Adult/Kid/Total/Contact/Vehicle. */
     @PostMapping("/visit")
-    public ResponseEntity<?> visit(@RequestBody Map<String, String> body, Principal principal) {
-        String employeeId = body.getOrDefault("employeeId", "").trim();
-        if (employeeId.isEmpty()) return ResponseEntity.badRequest().body("employeeId required");
+    public ResponseEntity<?> logVisit(@RequestBody FacultyVisitRequest req) {
+        if (req == null || req.employeeId() == null || req.employeeId().isBlank()) {
+            return ResponseEntity.badRequest().body("employeeId required");
+        }
 
-        Faculty f = facultyRepo.findByEmployeeId(employeeId)
-                .orElseThrow(() -> new NoSuchElementException("Faculty not found"));
+        VehicleType vt = null;
+        if (req.vehicleType() != null && !req.vehicleType().isBlank()) {
+            try { vt = VehicleType.valueOf(req.vehicleType().toUpperCase()); }
+            catch (IllegalArgumentException e) { return ResponseEntity.badRequest().body("invalid vehicleType"); }
+        }
 
-        FacultyVisitor v = new FacultyVisitor();
-        v.setFaculty(f);
-        v.setVisitedAt(Instant.now());
-        if (principal != null) v.setRecordedBy(principal.getName());
-        visitorRepo.save(v);
+        Integer total = (req.totalVisitors() != null)
+                ? req.totalVisitors()
+                : ((req.adultVisitor()==null?0:req.adultVisitor()) + (req.kidVisitor()==null?0:req.kidVisitor()));
+
+        visitService.logVisit(
+            req.employeeId(),
+            req.adultVisitor(), req.kidVisitor(), total,
+            req.contactNumber(), vt
+        );
 
         return ResponseEntity.ok().build();
     }
 
-    // Fills the “Latest records” table (last 8 visits)
+    /** Latest log rows for the table. */
     @GetMapping("/logs")
-    public List<FacultyVisitRow> latestLogs() {
-        ZoneId zone = ZoneId.systemDefault();
-        return visitorRepo.findRecent(PageRequest.of(0, 8)).stream().map(v -> {
-            Faculty f = v.getFaculty();
-            LocalDateTime dt = LocalDateTime.ofInstant(v.getVisitedAt(), zone);
-            return new FacultyVisitRow(
-                    f.getImageUrl(),
-                    f.getName(),
-                    f.getEmployeeId(),
-                    DF.format(dt),
-                    TF.format(dt),
-                    f.getPosition(),
-                    f.getDepartment()
-            );
-        }).toList();
+    public List<FacultyLogRow> logs() {
+        return visitService.recentRows(8);
     }
 }
