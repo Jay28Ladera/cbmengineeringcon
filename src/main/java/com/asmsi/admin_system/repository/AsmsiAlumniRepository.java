@@ -2,19 +2,19 @@
 package com.asmsi.admin_system.repository;
 
 import com.asmsi.admin_system.entity.AsmsiAlumni;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface AsmsiAlumniRepository extends JpaRepository<AsmsiAlumni, Long> {
 
-    /* lookups used by your API/service */
     Optional<AsmsiAlumni> findByIdNumber(String idNumber);
     boolean existsByIdNumber(String idNumber);
 
-    /* ---------- Graduates per batch (label, count) ---------- */
     @Query("""
             select a.batchNumber, count(a)
             from AsmsiAlumni a
@@ -22,9 +22,7 @@ public interface AsmsiAlumniRepository extends JpaRepository<AsmsiAlumni, Long> 
             order by a.batchNumber
            """)
     List<Object[]> countByBatch();
-    // each row -> [0]=String batchNumber, [1]=Long total
 
-    /* ---------- Employed & Self-employed totals (single row) ---------- */
     @Query("""
             select
               sum(case when lower(a.employed) = 'yes' then 1 else 0 end),
@@ -32,5 +30,27 @@ public interface AsmsiAlumniRepository extends JpaRepository<AsmsiAlumni, Long> 
             from AsmsiAlumni a
            """)
     List<Object[]> employmentTotals();
-    // first row -> [0]=Long employedCount, [1]=Long selfEmployedCount
+
+    /* ------------ Masterlist search (ID + full name) ------------- */
+    @Query("""
+        select a from AsmsiAlumni a
+        where (:q is null or :q = '')
+           or lower(a.idNumber) like lower(concat('%', :q, '%'))
+           or lower(
+                concat(
+                    coalesce(a.lastName, ''), ', ',
+                    coalesce(a.firstName, ''), ' ',
+                    coalesce(a.middleName, '')
+                )
+           ) like lower(concat('%', :q, '%'))
+           or lower(
+                concat(
+                    coalesce(a.firstName, ''), ' ',
+                    coalesce(a.middleName, ''), ' ',
+                    coalesce(a.lastName, '')
+                )
+           ) like lower(concat('%', :q, '%'))
+        order by a.lastName asc, a.firstName asc, a.middleName asc
+    """)
+    List<AsmsiAlumni> searchTop(@Param("q") String q, Pageable pageable);
 }

@@ -20,6 +20,25 @@
   <link rel="stylesheet" th:href="@{/css/home.css}" />
 
   <style>
+
+    /* --- compact layout --- */
+.row.g-tight { row-gap: .5rem !important; }
+.card-compact .card-body { padding: .75rem .85rem; }
+.profile-meta p { margin-bottom: .35rem; font-size: .95rem; }
+
+/* smaller profile photo (desktop still looks good) */
+.entity-photo { width: 160px; height: 160px; object-fit: cover; border-radius:.5rem; }
+@media (min-width: 1200px) { .entity-photo { width: 180px; height: 180px; } }
+@media (max-width: 992px)  { .entity-photo { width: 140px; height: 140px; } }
+
+/* tighter tables */
+.table-sm td, .table-sm th { padding: .35rem .45rem; }
+.col-photo { width: 60px; }
+
+/* give logs more breathing room on smaller screens */
+.table--wide { min-width: 1000px; }       /* was 1200px */
+.ml-table { min-width: 240px; }           /* was 280px */
+
     .tabs-wrap { background:#eef2f6; border-radius:.5rem; padding:.5rem; margin-bottom:1rem; }
     .tabs-wrap .nav-link { font-weight:600; }
     .tabs-wrap .nav-link.active { background:#2b3ded; color:#fff; }
@@ -104,12 +123,12 @@
               </div>
             </div>
 
-            <div class="row g-3">
-              <!-- Profile -->
-              <div class="col-lg-5">
-                <div class="card shadow-sm h-100" id="card-stu" style="display:none;">
-                  <div class="card-body text-center">
-                    <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+           <div class="row g-tight">
+  <!-- Profile: narrower -->
+  <div class="col-xl-3 col-lg-4">
+    <div class="card shadow-sm h-100 card-compact" id="card-stu" style="display:none;">
+      <div class="card-body text-center profile-meta">
+        <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
                     <p><strong>LRN:</strong> <span id="lrn-stu">-</span></p>
                     <p><strong>ID Number:</strong> <span id="id-stu">-</span></p>
                     <p><strong>Name:</strong> <span id="name-stu">-</span></p>
@@ -122,7 +141,7 @@
               </div>
 
               <!-- Logs -->
-              <div class="col-lg-5">
+              <div class="col-xl-6 col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -156,7 +175,7 @@
               </div>
 
               <!-- Masterlist table (Name + ID) -->
-              <div class="col-lg-2">
+              <div class="col-lg-3">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
@@ -188,9 +207,9 @@
               </div>
             </div>
 
-            <div class="row g-3">
-              <!-- Profile -->
-              <div class="col-lg-5">
+              <div class="row g-tight">
+  <!-- Profile: narrower -->
+  <div class="col-xl-3 col-lg-4">
                 <div class="card shadow-sm h-100" id="card-nts" style="display:none;">
                   <div class="card-body text-center">
                     <img id="photo-nts" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
@@ -203,7 +222,7 @@
               </div>
 
               <!-- Logs -->
-              <div class="col-lg-5">
+              <div class="col-xl-6 col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -238,7 +257,7 @@
               </div>
 
               <!-- Masterlist table -->
-              <div class="col-lg-2">
+              <div class="col-lg-3">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
@@ -271,9 +290,9 @@
               </div>
             </div>
 
-            <div class="row g-3">
-              <!-- Profile -->
-              <div class="col-lg-5">
+                <div class="row g-tight">
+  <!-- Profile: narrower -->
+  <div class="col-xl-3 col-lg-4">
                 <div class="card shadow-sm h-100" id="card-fac" style="display:none;">
                   <div class="card-body text-center">
                     <img id="photo-fac" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
@@ -286,7 +305,7 @@
               </div>
 
               <!-- Logs -->
-              <div class="col-lg-5">
+              <div class="col-xl-6 col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -321,7 +340,7 @@
               </div>
 
               <!-- Masterlist table -->
-              <div class="col-lg-2">
+              <div class="col-lg-3">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
@@ -354,9 +373,9 @@
               </div>
             </div>
 
-            <div class="row g-3">
-              <!-- Profile -->
-              <div class="col-lg-5">
+               <div class="row g-tight">
+  <!-- Profile: narrower -->
+  <div class="col-xl-3 col-lg-4">
                 <div class="card shadow-sm h-100" id="card-gra" style="display:none;">
                   <div class="card-body text-center">
                     <img id="photo-gra" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
@@ -368,7 +387,7 @@
               </div>
 
               <!-- Logs -->
-              <div class="col-lg-5">
+              <div class="col-xl-6 col-lg-5">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -402,11 +421,11 @@
               </div>
 
               <!-- Masterlist table -->
-              <div class="col-lg-2">
+              <div class="col-lg-3">
                 <div class="card shadow-sm h-100">
                   <div class="card-body">
                     <h6 class="fw-bold mb-2"><i class="bi bi-people me-1"></i>Masterlist</h6>
-                    <input id="ml-gra-q" type="text" class="form-control mb-2" placeholder="Search ID…">
+                    <input id="ml-gra-q" type="text" class="form-control mb-2" placeholder="Search ID or Name…">
                     <div class="table-responsive table-wrap">
                       <table class="table table-sm table-bordered mb-0 ml-table">
                         <thead><tr><th>Name</th><th>ID</th></tr></thead>
@@ -441,16 +460,18 @@
     startClock('date-fac','time-fac');
     startClock('date-gra','time-gra');
 
-    /* ===== CSRF helper ===== */
+    /* ===== helpers ===== */
     function csrfHeader() {
       const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content") || "";
       const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content") || "X-CSRF-TOKEN";
       return { headerName: header, token };
     }
+    async function simpleFetch(url) { const r=await fetch(url); if(!r.ok) throw new Error(r.status); return r.json(); }
+    const esc = s => String(s ?? '')
+      .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+      .replaceAll('"','&quot;').replaceAll("'",'&#39;');
 
-    /* =========================================================
-       SHARED: counts/contact/vehicle modal (used by all tabs)
-       ========================================================= */
+    /* ===== modal (shared) ===== */
     async function openCountsModal({ title, idLabel, idValue, defaultAdults=1 }) {
       return Swal.fire({
         title,
@@ -524,13 +545,11 @@
       });
       if (!res.ok) throw new Error(`Save failed (${res.status})`);
     }
-
     async function searchStudentById(id) {
       const res = await fetch(`/api/attendance/student/${encodeURIComponent(id)}`);
       if (!res.ok) throw new Error("Student not found");
       return res.json();
     }
-
     async function loadStudentLogs() {
       const res = await fetch("/api/visitingday/logs");
       if (!res.ok) return;
@@ -554,7 +573,6 @@
         tbody.appendChild(tr);
       });
     }
-
     document.getElementById("search-stu").addEventListener("keydown", async (e) => {
       if (e.key !== "Enter") return;
       e.preventDefault();
@@ -582,20 +600,34 @@
         document.getElementById("card-stu").style.display = "none";
       } finally { e.target.value=""; e.target.focus(); }
     });
-
     loadStudentLogs();
 
-    /* =========================================================
-       SHARED simple GET
-       ========================================================= */
-    async function simpleFetch(url) {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`${res.status}`);
-      return res.json();
+    /* Students masterlist */
+    async function loadMlStudents(q='') {
+      const data = await simpleFetch(`/api/attendance/students?query=${encodeURIComponent(q)}`);
+      const tb = document.getElementById('ml-stu');
+      tb.innerHTML = '';
+      (data || []).forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.className='ml-item';
+        tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.idNumber)}</td>`;
+        tr.addEventListener('click', ()=>{
+          const box=document.getElementById('search-stu');
+          box.value = r.idNumber; box.focus();
+          box.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
+        });
+        tb.appendChild(tr);
+      });
+      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
     }
+    document.getElementById('ml-stu-q').addEventListener('keydown', e=>{
+      if (e.key!=='Enter') return;
+      loadMlStudents(e.target.value.trim());
+    });
+    loadMlStudents('');
 
     /* =========================================================
-       NTS (with modal)
+       NTS
        ========================================================= */
     document.getElementById("search-nts").addEventListener("keydown", async (e) => {
       if (e.key !== "Enter") return;
@@ -647,7 +679,6 @@
         document.getElementById("card-nts").style.display = "none";
       } finally { e.target.value=""; e.target.focus(); }
     });
-
     async function loadNtsLogs() {
       try {
         const res = await fetch("/api/nts/logs");
@@ -676,60 +707,33 @@
     }
     loadNtsLogs();
 
-    /* =========================================================
-       FACULTY (with modal)
-       ========================================================= */
-    document.getElementById("search-fac").addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      const id = e.target.value.trim(); if (!id) return;
-
-      try {
-        const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(id)}`);
-
-        document.getElementById("photo-fac").src = fac.imageUrl || "/images/default-profile.png";
-        document.getElementById("id-fac").textContent   = fac.employeeId ?? "-";
-        document.getElementById("name-fac").textContent = fac.name ?? "-";
-        document.getElementById("pos-fac").textContent  = fac.position ?? "-";
-        document.getElementById("dept-fac").textContent = fac.department ?? "-";
-        document.getElementById("card-fac").style.display = "block";
-
-        const modal = await openCountsModal({
-          title:`Visitors for ${fac.name || fac.employeeId}`,
-          idLabel:'Employee ID',
-          idValue:fac.employeeId,
-          defaultAdults:1
+    /* NTS masterlist */
+    async function loadMlNts(q='') {
+      const data = await simpleFetch(`/api/nts/masterlist?query=${encodeURIComponent(q)}`);
+      const tb = document.getElementById('ml-nts');
+      tb.innerHTML = '';
+      (data || []).forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.className='ml-item';
+        tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.employeeId)}</td>`;
+        tr.addEventListener('click', ()=>{
+          const box=document.getElementById('search-nts');
+          box.value = r.employeeId; box.focus();
+          box.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
         });
-        if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
-
-        const { headerName, token } = csrfHeader();
-        const visitRes = await fetch("/api/faculty/visit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", [headerName]: token },
-          body: JSON.stringify({
-            employeeId: fac.employeeId,
-            adultVisitor: modal.value.adultVisitor,
-            kidVisitor: modal.value.kidVisitor,
-            totalVisitors: modal.value.totalVisitors,
-            contactNumber: modal.value.contactNumber,
-            vehicleType: modal.value.vehicleType
-          })
-        });
-        if (!visitRes.ok) throw new Error(`Visit failed (${visitRes.status})`);
-
-        await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
-        await loadFacultyLogs();
-
-      } catch (err) {
-        await Swal.fire({
-          icon:'error',
-          title:'Request failed',
-          text: err.message.includes('404') ? 'Employee not found' : err.message
-        });
-        document.getElementById("card-fac").style.display = "none";
-      } finally { e.target.value=""; e.target.focus(); }
+        tb.appendChild(tr);
+      });
+      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
+    }
+    document.getElementById('ml-nts-q').addEventListener('keydown', e=>{
+      if (e.key!=='Enter') return;
+      loadMlNts(e.target.value.trim());
     });
+    loadMlNts('');
 
+    /* =========================================================
+       FACULTY (single binding)
+       ========================================================= */
     async function loadFacultyLogs() {
       try {
         const res = await fetch("/api/faculty/logs");
@@ -758,65 +762,83 @@
     }
     loadFacultyLogs();
 
-    /* =========================================================
-       GRADUATES (with modal)
-       ========================================================= */
-    document.getElementById("search-gra").addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      const id = e.target.value.trim(); if (!id) return;
-
-      // 1) Lookup
-      let g;
+    async function performFacultySearch(empId) {
+      if (!empId) return;
       try {
-        g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
-        document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
-        document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
-        document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
-        document.getElementById("addr-gra").textContent  = g.address ?? "-";
-        document.getElementById("card-gra").style.display = "block";
-      } catch (err) {
-        await Swal.fire({ icon: "error", title: "Not found", text: "Check ID Number" });
-        document.getElementById("card-gra").style.display = "none";
-        e.target.value=""; e.target.focus();
-        return;
-      }
+        const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(empId)}`);
 
-      // 2) Modal + Save
-      try {
+        document.getElementById('photo-fac').src = fac.imageUrl || '/images/default-profile.png';
+        document.getElementById('id-fac').textContent   = fac.employeeId ?? '-';
+        document.getElementById('name-fac').textContent = fac.name ?? '-';
+        document.getElementById('pos-fac').textContent  = fac.position ?? '-';
+        document.getElementById('dept-fac').textContent = fac.department ?? '-';
+        document.getElementById('card-fac').style.display = 'block';
+
         const modal = await openCountsModal({
-          title:`Visitors for ${g.idNumber}`,
-          idLabel:'ID Number',
-          idValue:g.idNumber,
-          defaultAdults:1
+          title: `Visitors for ${fac.name || fac.employeeId}`,
+          idLabel: 'Employee ID',
+          idValue: fac.employeeId,
+          defaultAdults: 1
         });
-        if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
+        if (!modal.isConfirmed) return;
 
         const { headerName, token } = csrfHeader();
-        const res = await fetch("/api/graduates/visit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", [headerName]: token },
+        const res = await fetch('/api/faculty/visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', [headerName]: token },
           body: JSON.stringify({
-            idNumber: g.idNumber,
-            adultVisitor: modal.value.adultVisitor,
-            kidVisitor: modal.value.kidVisitor,
+            employeeId: fac.employeeId,
+            adultVisitor:  modal.value.adultVisitor,
+            kidVisitor:    modal.value.kidVisitor,
             totalVisitors: modal.value.totalVisitors,
             contactNumber: modal.value.contactNumber,
-            vehicleType: modal.value.vehicleType
+            vehicleType:   modal.value.vehicleType
           })
         });
-        if (!res.ok) throw new Error(await res.text() || "Save failed");
+        if (!res.ok) throw new Error(`Visit failed (${res.status})`);
 
-        await Swal.fire({ icon: "success", title: "Saved", timer: 1200, showConfirmButton: false });
-        await loadGradLogs();
-
+        await Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
+        await loadFacultyLogs();
       } catch (err) {
-        await Swal.fire({ icon:"warning", title:"Card loaded, but logging failed", text: err.message || "Please try again." });
-      } finally {
-        e.target.value=""; e.target.focus();
+        await Swal.fire({ icon: 'error', title: 'Request failed', text: err.message || 'Please try again.' });
+        document.getElementById('card-fac').style.display = 'none';
       }
+    }
+    document.getElementById('search-fac').addEventListener('keydown', async (e)=>{
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const id = e.target.value.trim(); if (!id) return;
+      await performFacultySearch(id);
+      e.target.value=''; e.target.focus();
     });
 
+    async function loadMlFaculty(q='') {
+      const data = await simpleFetch(`/api/faculty/masterlist?query=${encodeURIComponent(q)}`);
+      const tb = document.getElementById('ml-fac');
+      tb.innerHTML = '';
+      (data || []).forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.className='ml-item';
+        tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.employeeId)}</td>`;
+        tr.addEventListener('click', ()=>{
+          const box=document.getElementById('search-fac');
+          box.value = r.employeeId; box.focus();
+          // call full flow directly (no fake key)
+          performFacultySearch(r.employeeId);
+        });
+        tb.appendChild(tr);
+      });
+      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
+    }
+    document.getElementById('ml-fac-q').addEventListener('keydown', e=>{
+      if (e.key!=='Enter') return;
+      loadMlFaculty(e.target.value.trim());
+    });
+    loadMlFaculty('');
+
+    /* =========================================================
+       GRADUATES (single binding)
+       ========================================================= */
     async function loadGradLogs() {
       try {
         const res = await fetch("/api/graduates/logs");
@@ -846,89 +868,74 @@
     }
     loadGradLogs();
 
-    /* =========================================================
-       MASTERLIST TABLES (Name + ID only). Click to use ID.
-       Endpoints used (adjust to your API if needed):
-         - Students : GET /api/attendance/students?query=...
-         - NTS      : GET /api/nts/masterlist?q=...
-         - Faculty  : GET /api/faculty/masterlist?q=...
-         - Graduates: GET /api/graduates/masterlist?q=...
-       Each returns array of objects like:
-         - Students : { idNumber, name }
-         - NTS/Fac  : { employeeId, name }
-         - Graduates: { idNumber, name? }
-       ========================================================= */
-    async function fetchJson(url) {
-      const r = await fetch(url);
-      if (!r.ok) throw new Error(r.status);
-      return r.json();
-    }
-    function renderMlRows(tbodyId, rows, getName, getId, targetInputId) {
-      const tb = document.getElementById(tbodyId);
-      tb.innerHTML = "";
-      if (!rows || !rows.length) {
-        const tr=document.createElement('tr');
-        const td=document.createElement('td');
-        td.colSpan=2; td.className='text-center text-muted'; td.textContent='No matches';
-        tr.appendChild(td); tb.appendChild(tr); return;
+    async function performGraduateSearch(id) {
+      if (!id) return;
+      try {
+        const g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
+
+        document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
+        document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
+        document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
+        document.getElementById("addr-gra").textContent  = g.address ?? "-";
+        document.getElementById("card-gra").style.display = "block";
+
+        const modal = await openCountsModal({
+          title:`Visitors for ${g.idNumber}`,
+          idLabel:'ID Number',
+          idValue:g.idNumber,
+          defaultAdults:1
+        });
+        if (!modal.isConfirmed) return;
+
+        const { headerName, token } = csrfHeader();
+        const res = await fetch("/api/graduates/visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", [headerName]: token },
+          body: JSON.stringify({
+            idNumber: g.idNumber,
+            adultVisitor:  modal.value.adultVisitor,
+            kidVisitor:    modal.value.kidVisitor,
+            totalVisitors: modal.value.totalVisitors,
+            contactNumber: modal.value.contactNumber,
+            vehicleType:   modal.value.vehicleType
+          })
+        });
+        if (!res.ok) throw new Error(await res.text() || "Save failed");
+
+        await Swal.fire({ icon: "success", title: "Saved", timer: 1200, showConfirmButton: false });
+        await loadGradLogs();
+      } catch (err) {
+        await Swal.fire({ icon:"error", title:"Request failed", text: err.message || "Please try again." });
+        document.getElementById("card-gra").style.display = "none";
       }
-      rows.forEach(r=>{
+    }
+    document.getElementById("search-gra").addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const id = e.target.value.trim(); if (!id) return;
+      await performGraduateSearch(id);
+      e.target.value=""; e.target.focus();
+    });
+
+    async function loadMlGrads(q='') {
+      const data = await simpleFetch(`/api/graduates/masterlist?query=${encodeURIComponent(q)}`);
+      const tb = document.getElementById('ml-gra');
+      tb.innerHTML = '';
+      (data || []).forEach(r=>{
         const tr=document.createElement('tr');
         tr.className='ml-item';
-        const tdName=document.createElement('td'); tdName.textContent = getName(r) ?? '-';
-        const tdId=document.createElement('td'); tdId.textContent = getId(r) ?? '-';
-        tr.appendChild(tdName); tr.appendChild(tdId);
+        tr.innerHTML=`<td>${esc(r.name ?? '-')}</td><td>${esc(r.idNumber)}</td>`;
         tr.addEventListener('click', ()=>{
-          const id = getId(r); if (!id) return;
-          const input = document.getElementById(targetInputId);
-          input.value = id;
-          // trigger the existing Enter flow
-          input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+          const box=document.getElementById('search-gra');
+          box.value = r.idNumber; box.focus();
+          // run full flow directly (no fake key)
+          performGraduateSearch(r.idNumber);
         });
         tb.appendChild(tr);
       });
+      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
     }
-
-    // Students masterlist
-    async function loadMlStudents(q='') {
-      const data = await fetchJson(`/api/attendance/students?query=${encodeURIComponent(q)}`);
-      renderMlRows('ml-stu', data, r=>r.name, r=>r.idNumber, 'search-stu');
-    }
-    document.getElementById('ml-stu-q').addEventListener('keydown', (e)=>{
-      if (e.key!=='Enter') return;
-      loadMlStudents(e.target.value.trim());
-    });
-    loadMlStudents('');
-
-    // NTS masterlist
-    async function loadMlNts(q='') {
-      const data = await fetchJson(`/api/nts/masterlist?q=${encodeURIComponent(q)}`);
-      renderMlRows('ml-nts', data, r=>r.name, r=>r.employeeId, 'search-nts');
-    }
-    document.getElementById('ml-nts-q').addEventListener('keydown', (e)=>{
-      if (e.key!=='Enter') return;
-      loadMlNts(e.target.value.trim());
-    });
-    loadMlNts('');
-
-    // Faculty masterlist
-    async function loadMlFaculty(q='') {
-      const data = await fetchJson(`/api/faculty/masterlist?q=${encodeURIComponent(q)}`);
-      renderMlRows('ml-fac', data, r=>r.name, r=>r.employeeId, 'search-fac');
-    }
-    document.getElementById('ml-fac-q').addEventListener('keydown', (e)=>{
-      if (e.key!=='Enter') return;
-      loadMlFaculty(e.target.value.trim());
-    });
-    loadMlFaculty('');
-
-    // Graduates masterlist
-    async function loadMlGrads(q='') {
-      const data = await fetchJson(`/api/graduates/masterlist?q=${encodeURIComponent(q)}`);
-      // name may be missing in your alumni master; show '-' if absent
-      renderMlRows('ml-gra', data, r=>r.name ?? '-', r=>r.idNumber, 'search-gra');
-    }
-    document.getElementById('ml-gra-q').addEventListener('keydown', (e)=>{
+    document.getElementById('ml-gra-q').addEventListener('keydown', e=>{
       if (e.key!=='Enter') return;
       loadMlGrads(e.target.value.trim());
     });

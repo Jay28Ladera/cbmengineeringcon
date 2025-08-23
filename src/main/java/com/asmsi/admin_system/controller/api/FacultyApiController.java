@@ -5,6 +5,8 @@ import com.asmsi.admin_system.dto.FacultyVisitRequest;
 import com.asmsi.admin_system.entity.VehicleType;
 import com.asmsi.admin_system.repository.FacultyRepository;
 import com.asmsi.admin_system.service.FacultyVisitorService;
+
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,4 +68,24 @@ public class FacultyApiController {
     public List<FacultyLogRow> logs() {
         return visitService.recentRows(8);
     }
+
+
+
+    // ... your existing endpoints: GET /{employeeId}, POST /visit, GET /logs
+
+    /** Masterlist (name/ID) for the right-side table on Faculty tab. */
+    @GetMapping("/masterlist")
+    public List<Map<String,String>> masterlist(
+            @RequestParam(name = "query", required = false) String q,
+            @RequestParam(name = "limit", defaultValue = "200") int limit
+    ) {
+        int lim = Math.max(1, Math.min(limit, 500));
+        return facultyRepo.searchTop(q, PageRequest.of(0, lim)).stream()
+                .map(f -> Map.of(
+                        "name",       f.getName() == null ? "" : f.getName(),
+                        "employeeId", f.getEmployeeId() == null ? "" : f.getEmployeeId()
+                ))
+                .toList();
+    }
+
 }
