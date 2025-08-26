@@ -1,25 +1,16 @@
 package com.asmsi.admin_system.controller;
 
-import com.asmsi.admin_system.dto.VisitingDaySummary;
-import com.asmsi.admin_system.dto.report.StudentNoVisitorRow;
-import com.asmsi.admin_system.dto.report.StudentWithVisitorRow;
-import com.asmsi.admin_system.dto.report.StudentsReportSummary;
 import com.asmsi.admin_system.repository.AsmsiVisitorRepository;
-import com.asmsi.admin_system.repository.AsmsiVisitorRepository.AsmsiVisitRow;
 import com.asmsi.admin_system.repository.StudentRepository;
 import com.asmsi.admin_system.service.VisitingDayReportService;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 public class VisitingDayReportController {
@@ -45,7 +36,8 @@ public class VisitingDayReportController {
     ) {
         if (start == null || end == null) {
             LocalDate today = LocalDate.now();
-            start = today; end = today;
+            start = today;
+            end   = today;
         }
         model.addAttribute("familyDayExpanded", true);
         model.addAttribute("activeFamilyDayPage", "report");
@@ -53,5 +45,4 @@ public class VisitingDayReportController {
         model.addAttribute("end", end);
         return "visitingday-report";
     }
-
 }
