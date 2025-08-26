@@ -1,6 +1,6 @@
 package com.asmsi.admin_system.service;
 
-import com.asmsi.admin_system.dto.VisitingDaySummary;
+import com.asmsi.admin_system.dto.report.VisitingDaySummary;
 import com.asmsi.admin_system.entity.Student;
 import com.asmsi.admin_system.entity.VisitingDayRecord;
 import com.asmsi.admin_system.repository.StudentRepository;
@@ -10,15 +10,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 @Service
 public class VisitingDayReportService {
@@ -45,10 +41,16 @@ public class VisitingDayReportService {
         final int totalKids     = records.stream().map(r -> safe(r.getKidVisitor())).reduce(0, Integer::sum);
         final int totalVisitors = totalAdults + totalKids;
 
+        // Vehicle counters (for overall cards)
+        final Map<String, Integer> vehicles = new HashMap<>();
+        for (VisitingDayRecord r : records) {
+            final String vt = nv(r.getVehicleType()); // '' if null
+            if (!vt.isEmpty()) vehicles.merge(vt, 1, Integer::sum);
+        }
+
         // Distinct student IDs that had visitors in the range
         final Set<String> visitedIds = records.stream()
-                .map(VisitingDayRecord::getIdNumber)
-                .filter(Objects::nonNull)
+                .map(VisitingDayRecord::getIdNumber).filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         final int totalStudentsVisited = visitedIds.size();
 
@@ -95,9 +97,7 @@ public class VisitingDayReportService {
             final String t = safeStr(r.getTimeIn());
             if (!t.isBlank()) {
                 final String cur = earliestTime.get(id);
-                if (cur == null || t.compareTo(cur) < 0) {
-                    earliestTime.put(id, t);
-                }
+                if (cur == null || t.compareTo(cur) < 0) earliestTime.put(id, t);
             }
 
             // latest record (for contact/vehicle/name fallbacks)
@@ -141,8 +141,8 @@ public class VisitingDayReportService {
                             .adultVisitor(a)
                             .kidVisitor(k)
                             .totalVisitors(a + k)
-                            .contactNumber(last != null ? last.getContactNumber() : null) // <--
-                            .vehicleType(last != null ? last.getVehicleType() : null)     // <--
+                            .contactNumber(last != null ? last.getContactNumber() : null)
+                            .vehicleType(last != null ? last.getVehicleType() : null)
                             .build();
                 })
                 .toList();
@@ -164,6 +164,7 @@ public class VisitingDayReportService {
                 .totalStudentsVisited(totalStudentsVisited)
                 .visitorsPerFamilySaint(perFamilySaint)
                 .visitorsPerBatchNumber(perBatchNumber)
+                .vehicles(vehicles) // <— fixes summary.getVehicles() error
                 .studentsWithVisitors(withVisitors)
                 .studentsWithoutVisitors(withoutVisitors)
                 .build();
@@ -182,21 +183,21 @@ public class VisitingDayReportService {
             headerFont.setBold(true);
             header.setFont(headerFont);
 
-            // Summary sheet
+            // Summary
             Sheet s1 = wb.createSheet("Summary");
             int r = 0;
             r = writeRow(s1, r, header, "Metric", "Value");
-            r = writeRow(s1, r, null, "Total visitors", String.valueOf(summary.getTotalVisitors()));
-            r = writeRow(s1, r, null, "Total adults", String.valueOf(summary.getTotalAdults()));
-            r = writeRow(s1, r, null, "Total kids", String.valueOf(summary.getTotalKids()));
-            r = writeRow(s1, r, null, "Students with visitors", String.valueOf(summary.getTotalStudentsVisited()));
+            r = writeRow(s1, r, null, "Total visitors", String.valueOf(nz(summary.getTotalVisitors())));
+            r = writeRow(s1, r, null, "Total adults", String.valueOf(nz(summary.getTotalAdults())));
+            r = writeRow(s1, r, null, "Total kids", String.valueOf(nz(summary.getTotalKids())));
+            r = writeRow(s1, r, null, "Students with visitors", String.valueOf(nz(summary.getTotalStudentsVisited())));
             autosize(s1, 2);
 
             // Visitors per Batch
             Sheet s2 = wb.createSheet("Visitors per Batch");
             r = 0;
             r = writeRow(s2, r, header, "Batch Number", "Visitors");
-            for (var e : summary.getVisitorsPerBatchNumber().entrySet()) {
+            for (Entry<String,Integer> e : summary.getVisitorsPerBatchNumber().entrySet()) {
                 r = writeRow(s2, r, null, e.getKey(), String.valueOf(e.getValue()));
             }
             autosize(s2, 2);
@@ -205,7 +206,7 @@ public class VisitingDayReportService {
             Sheet s3 = wb.createSheet("Visitors per Family Saint");
             r = 0;
             r = writeRow(s3, r, header, "Family Saint", "Visitors");
-            for (var e : summary.getVisitorsPerFamilySaint().entrySet()) {
+            for (Entry<String,Integer> e : summary.getVisitorsPerFamilySaint().entrySet()) {
                 r = writeRow(s3, r, null, e.getKey(), String.valueOf(e.getValue()));
             }
             autosize(s3, 2);
@@ -224,9 +225,9 @@ public class VisitingDayReportService {
                         nv(st.getFamilySaint()),
                         nv(st.getBatchNumber()),
                         nv(st.getArrivalTime()),
-                        String.valueOf(Optional.ofNullable(st.getAdultVisitor()).orElse(0)),
-                        String.valueOf(Optional.ofNullable(st.getKidVisitor()).orElse(0)),
-                        String.valueOf(Optional.ofNullable(st.getTotalVisitors()).orElse(0)),
+                        String.valueOf(nz(st.getAdultVisitor())),
+                        String.valueOf(nz(st.getKidVisitor())),
+                        String.valueOf(nz(st.getTotalVisitors())),
                         nv(st.getContactNumber()),
                         nv(st.getVehicleType())
                 );
@@ -246,6 +247,15 @@ public class VisitingDayReportService {
             }
             autosize(s5, 4);
 
+            // Vehicles (optional sheet)
+            Sheet s6 = wb.createSheet("Vehicles");
+            r = 0;
+            r = writeRow(s6, r, header, "Type", "Count");
+            for (Entry<String,Integer> e : summary.getVehicles().entrySet()) {
+                r = writeRow(s6, r, null, e.getKey(), String.valueOf(e.getValue()));
+            }
+            autosize(s6, 2);
+
             wb.write(out);
             return out.toByteArray();
         } catch (Exception e) {
@@ -256,22 +266,12 @@ public class VisitingDayReportService {
     // ------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------
-    private int safe(Integer n) {
-        return n == null ? 0 : Math.max(0, n);
-    }
+    private int safe(Integer n) { return n == null ? 0 : Math.max(0, n); }
+    private int nz(Integer n)   { return n == null ? 0 : n; }
 
-   // existing one probably already here
-private String safeStr(String s) { return s == null ? "" : s; }
+    private static final DateTimeFormatter HHMMSS = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-// NEW: support LocalTime → "HH:mm:ss"
-private static final DateTimeFormatter HHMMSS = DateTimeFormatter.ofPattern("HH:mm:ss");
-
-private String safeStr(LocalTime t) {
-    return (t == null) ? "" : t.format(HHMMSS);
-}
-
-
-
+    private String safeStr(LocalTime t) { return (t == null) ? "" : t.format(HHMMSS); }
 
     private LocalTime parseTime(String hhmmss) {
         try {
@@ -298,11 +298,7 @@ private String safeStr(LocalTime t) {
         return rowIndex;
     }
 
-    private void autosize(Sheet s, int cols) {
-        for (int i = 0; i < cols; i++) s.autoSizeColumn(i);
-    }
+    private void autosize(Sheet s, int cols) { for (int i = 0; i < cols; i++) s.autoSizeColumn(i); }
 
-    private String nv(String v) {
-        return v == null ? "" : v;
-    }
+    private String nv(String v) { return v == null ? "" : v; }
 }

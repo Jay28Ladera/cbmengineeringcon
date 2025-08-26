@@ -20,49 +20,43 @@
   <link rel="stylesheet" th:href="@{/css/home.css}" />
 
   <style>
-    /* ===== Theme bits ===== */
-    :root {
-      --brand-700:#0b5ed7; --brand-600:#0d6efd; --brand-500:#3d8bfd; --brand-100:#e7f1ff;
-    }
+    :root { --brand-700:#0b5ed7; --brand-600:#0d6efd; --brand-500:#3d8bfd; --brand-100:#e7f1ff; }
     .page-title{display:flex;align-items:center;gap:.6rem;font-weight:700}
     .page-title .bi{color:var(--brand-600)}
     .tabs-wrap{background:#eef2f6;border-radius:.6rem;padding:.5rem .6rem;margin:0 0 1rem}
     .tabs-wrap .nav-link{font-weight:700}
     .tabs-wrap .nav-link.active{background:var(--brand-600);color:#fff}
 
-    /* Toolbar (shared) */
     .toolbar{background:#fff;border:1px solid #e9ecef;border-left:4px solid var(--brand-600);
       border-radius:.9rem;padding:1rem;box-shadow:0 6px 18px rgba(13,110,253,.06);position:sticky;top:.75rem;z-index:5}
     .toolbar .form-label{font-size:.8rem;color:#6c757d;margin-bottom:.25rem}
 
-    /* Stat cards */
     .stat-card{border:0;border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,var(--brand-600),var(--brand-500));
       color:#fff;box-shadow:0 10px 24px rgba(13,110,253,.12)}
     .stat-card .label{opacity:.85;font-size:.9rem}
     .stat-card .value{font-size:1.8rem;font-weight:800;letter-spacing:.3px}
 
-    /* Tables */
     .table-card{background:#fff;border:1px solid #e9ecef;border-radius:1rem;box-shadow:0 8px 24px rgba(15,23,48,.06);overflow:hidden}
     .table-wrap{max-height:52vh;overflow:auto}
     table thead th{position:sticky;top:0;z-index:2;background:#f8f9fb;color:#495057;font-weight:700;border-bottom:1px solid #e9ecef}
     .empty-row td{text-align:center;color:#6c757d;font-style:italic;padding:1.25rem}
     tbody tr:hover{background:var(--brand-100)}
-    /* Blue zebra */
     .table-striped-blue tbody tr:nth-of-type(odd)>*{--bs-table-accent-bg:rgba(13,110,253,.08)}
     .table-striped-blue.table-hover tbody tr:hover>*{background-color:rgba(13,110,253,.16)!important}
 
-    /* Filter chip row (students) */
     .filters{background:#fff;border:1px solid #e9ecef;border-radius:1rem;padding:.85rem;box-shadow:0 6px 18px rgba(13,110,253,.06)}
     .input-icon{position:relative}
     .input-icon .bi{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:#6c757d}
     .input-icon input{padding-left:2rem}
     .badge-pill{background:var(--brand-100);color:var(--brand-600);border:1px solid #d7e7ff;font-weight:600}
 
-    /* Simple search rows (nts/fac/grads) */
     .mini-filters .form-label{font-size:.8rem;color:#6c757d}
     .mini-filters .form-control{max-width:320px}
     .count-badge{font-weight:700;background:#eef4ff;color:#2741ff;border:1px solid #dfe6ff}
     .avatar{width:44px;height:44px;object-fit:cover;border-radius:.6rem;border:2px solid #fff;box-shadow:0 0 0 2px #e9efff}
+
+    /* tiny diagnostics (toggle with Alt+Shift+D) */
+    #dbg{display:none;white-space:pre-wrap;border:1px dashed #ccc;border-radius:.5rem;padding:.5rem;background:#fff}
   </style>
 </head>
 <body>
@@ -76,7 +70,6 @@
 
       <!-- Main -->
       <div class="col-md-9 p-4">
-
         <h1 class="page-title mb-3"><i class="bi bi-graph-up-arrow"></i> Visiting Day Report</h1>
 
         <!-- Shared date controls -->
@@ -101,6 +94,8 @@
           </div>
         </div>
 
+        <div id="dbg" class="mb-3 small"></div>
+
         <!-- Tabs -->
         <div class="tabs-wrap">
           <ul class="nav nav-pills gap-2" role="tablist">
@@ -116,17 +111,14 @@
           <!-- ================= OVERALL ================= -->
           <div class="tab-pane fade show active" id="tab-overall" role="tabpanel">
             <div id="overallCards" class="row g-3">
-              <!-- row 1 -->
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-people-fill me-1"></i>Total Visitors</div><div id="ovTotalVisitors" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-fill me-1"></i>Adults</div><div id="ovAdults" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-hearts me-1"></i>Kids</div><div id="ovKids" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-check2-square me-1"></i>Students w/ Visitors</div><div id="ovStuWith" class="value">0</div></div></div></div>
-              <!-- row 2 -->
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-x-square me-1"></i>Students w/o Visitors</div><div id="ovStuWithout" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-mortarboard-fill me-1"></i>Graduate Visitors</div><div id="ovGrad" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-workspace me-1"></i>NTS Visitors</div><div id="ovNts" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-person-badge-fill me-1"></i>Faculty Visitors</div><div id="ovFaculty" class="value">0</div></div></div></div>
-              <!-- row 3 -->
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-truck-front-fill me-1"></i>4-wheel Vehicles</div><div id="ovVehicles4" class="value">0</div></div></div></div>
               <div class="col-6 col-md-3"><div class="card stat-card"><div class="card-body"><div class="label mb-1"><i class="bi bi-bicycle me-1"></i>Motorcycles</div><div id="ovVehicles2" class="value">0</div></div></div></div>
             </div>
@@ -263,21 +255,70 @@
   </div><!-- /container -->
 
   <script>
-    // ===== helpers =====
-    const startEl=document.getElementById('start'), endEl=document.getElementById('end');
-    const todayStr=()=>new Date().toISOString().substring(0,10);
-    startEl.value=todayStr(); endEl.value=todayStr();
+    // ===== dates (defaults to today) =====
+    const startEl = document.getElementById('start');
+    const endEl   = document.getElementById('end');
+    const todayStr = () => new Date().toISOString().substring(0,10);
+    if (!startEl.value) startEl.value = todayStr();
+    if (!endEl.value)   endEl.value   = todayStr();
 
-    const escapeHtml = s => String(s ?? '')
+    // ===== helpers =====
+    const sum = (arr, pick) => (arr || []).reduce((a, r) => a + (Number(r[pick] ?? 0)), 0);
+    const veh = (arr, type) => (arr || []).reduce((a, r) => a + (String(r.vehicleType||'') === type ? 1 : 0), 0);
+    const esc = s => String(s ?? '')
       .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
       .replaceAll('"','&quot;').replaceAll("'","&#39;");
 
-    // ===== State =====
-    let STU=null, NTS=null, FAC=null, GRA=null;
+    function first(obj, keys, fallback){
+      for (const k of keys) if (obj && obj[k] != null) return obj[k];
+      return fallback;
+    }
+    function normalizeStudentRow(r){
+      return {
+        idNumber:     first(r, ['idNumber','studentId','id'], ''),
+        name:         first(r, ['name','studentName'], ''),
+        familySaint:  first(r, ['familySaint','saint'], ''),
+        batchNumber:  first(r, ['batchNumber','batch'], ''),
+        arrivalTime:  first(r, ['arrivalTime','timeIn','arrivedAt'], ''),
+        totalVisitors:Number(first(r, ['totalVisitors','total','visitors'], 0))
+      };
+    }
+    function normalizeSTU(raw){
+      const obj = raw || {};
+      const withList = (first(obj, ['studentsWithVisitors','withRows','with'], []) || []).map(normalizeStudentRow);
+      const woList   = (first(obj, ['studentsWithoutVisitors','withoutRows','without'], []) || []).map(normalizeStudentRow);
+      return {
+        totalVisitors:        Number(first(obj, ['totalVisitors','total'], 0)),
+        totalAdults:          Number(first(obj, ['totalAdults','adults'], 0)),
+        totalKids:            Number(first(obj, ['totalKids','kids'], 0)),
+        totalStudentsVisited: Number(first(obj, ['totalStudentsVisited','visitedCount','withCount'], withList.length)),
+        visitorsPerBatchNumber:  first(obj, ['visitorsPerBatchNumber','perBatch','visitorsPerBatch'], {}) || {},
+        visitorsPerFamilySaint:  first(obj, ['visitorsPerFamilySaint','perSaint','visitorsPerSaint'], {}) || {},
+        studentsWithVisitors: withList,
+        studentsWithoutVisitors: woList,
+        vehicles: first(obj, ['vehicles','vehicleCounts'], { FOUR_WHEELED:0, MOTORCYCLE:0 }) || {}
+      };
+    }
 
-    // ===== Load all =====
-    async function loadAll() {
-      const qs=`start=${startEl.value}&end=${endEl.value}`;
+    async function safeJson(res, label){
+      try{
+        if(!res.ok){
+          console.error(label,'HTTP',res.status);
+          return null;
+        }
+        return await res.json();
+      }catch(err){
+        console.error(label,'bad JSON:', err);
+        return null;
+      }
+    }
+
+    // ===== state =====
+    let STU = {}, NTS = {}, FAC = {}, GRA = {};
+
+    // ===== load all =====
+    async function loadAll(){
+      const qs = `start=${startEl.value}&end=${endEl.value}`;
       const [stuRes, ntsRes, facRes, graRes] = await Promise.all([
         fetch(`/api/visitingday/report/summary?${qs}`),
         fetch(`/api/nts/report/summary?${qs}`),
@@ -285,68 +326,94 @@
         fetch(`/api/graduates/report/summary?${qs}`)
       ]);
 
-      STU = await stuRes.json();   // expected shape: your current summary + vehicles {FOUR_WHEELED, MOTORCYCLE}
-      NTS = await ntsRes.json();   // { total, visits:[{employeeId,name,position,department,imageUrl,date,time}] }
-      FAC = await facRes.json();   // same as NTS
-      GRA = await graRes.json();   // { total, visits:[{idNumber,batchNumber,address,imageUrl,date,time}] }
+      const stuRaw = await safeJson(stuRes, 'students summary');
+      STU = normalizeSTU(stuRaw);
+
+      NTS = (await safeJson(ntsRes, 'nts summary')) || {};
+      FAC = (await safeJson(facRes, 'faculty summary')) || {};
+      GRA = (await safeJson(graRes, 'grad summary')) || {};
+
+      // Debug toggle (Alt+Shift+D)
+      const dbg = document.getElementById('dbg');
+      dbg.textContent = [
+        'STUDENTS (normalized):', JSON.stringify(STU, null, 2),
+        'NTS:', JSON.stringify(NTS, null, 2),
+        'FAC:', JSON.stringify(FAC, null, 2),
+        'GRA:', JSON.stringify(GRA, null, 2)
+      ].join('\n');
 
       renderOverall();
       renderStudents();
       renderNts(); renderFaculty(); renderGrads();
 
-      // Export link (overall)
-      document.getElementById('download').href = `/api/report/overall/export?${qs}`;
+      document.getElementById('download').href = `/api/visitingday/report/export?${qs}`;
     }
 
-    // ===== Overall cards =====
+    // ===== overall =====
     function renderOverall(){
-      const stuTotalVisitors = Number(STU?.totalVisitors||0);
-      const stuAdults  = Number(STU?.totalAdults||0);
-      const stuKids    = Number(STU?.totalKids||0);
-      const stuWith    = Number(STU?.totalStudentsVisited ?? (STU?.studentsWithVisitors?.length||0));
-      const stuWithout = Number(STU?.studentsWithoutVisitors?.length||0);
+      // Students (already aggregated)
+      const sTotal  = Number(STU.totalVisitors || 0);
+      const sAdults = Number(STU.totalAdults   || 0);
+      const sKids   = Number(STU.totalKids     || 0);
 
-      const gradTotal = Number(GRA?.total||0);
-      const ntsTotal  = Number(NTS?.total||0);
-      const facTotal  = Number(FAC?.total||0);
+      // Other groups (sum from their visit arrays)
+      const nAdults = sum(NTS?.visits, 'adultVisitor');
+      const nKids   = sum(NTS?.visits, 'kidVisitor');
+      const nTotal  = sum(NTS?.visits, 'totalVisitors');
 
-      const overallVisitors = stuTotalVisitors + gradTotal + ntsTotal + facTotal;
-      const overallAdults   = stuAdults + gradTotal + ntsTotal + facTotal; // non-student entries are adults
-      const overallKids     = stuKids;
+      const fAdults = sum(FAC?.visits, 'adultVisitor');
+      const fKids   = sum(FAC?.visits, 'kidVisitor');
+      const fTotal  = sum(FAC?.visits, 'totalVisitors');
+
+      const gAdults = sum(GRA?.visits, 'adultVisitor');
+      const gKids   = sum(GRA?.visits, 'kidVisitor');
+      const gTotal  = sum(GRA?.visits, 'totalVisitors');
+
+      const overallVisitors = sTotal + nTotal + fTotal + gTotal;
+      const overallAdults   = sAdults + nAdults + fAdults + gAdults;
+      const overallKids     = sKids   + nKids   + fKids   + gKids;
 
       document.getElementById('ovTotalVisitors').textContent = overallVisitors;
-      document.getElementById('ovAdults').textContent = overallAdults;
-      document.getElementById('ovKids').textContent = overallKids;
-      document.getElementById('ovStuWith').textContent = stuWith;
-      document.getElementById('ovStuWithout').textContent = stuWithout;
-      document.getElementById('ovGrad').textContent = gradTotal;
-      document.getElementById('ovNts').textContent = ntsTotal;
-      document.getElementById('ovFaculty').textContent = facTotal;
+      document.getElementById('ovAdults').textContent        = overallAdults;
+      document.getElementById('ovKids').textContent          = overallKids;
 
-      const v4 = Number(STU?.vehicles?.FOUR_WHEELED||0);
-      const v2 = Number(STU?.vehicles?.MOTORCYCLE||0);
+      document.getElementById('ovStuWith').textContent    = (STU.studentsWithVisitors || []).length;
+      document.getElementById('ovStuWithout').textContent = (STU.studentsWithoutVisitors || []).length;
+
+      document.getElementById('ovGrad').textContent    = gTotal;
+      document.getElementById('ovNts').textContent     = nTotal;
+      document.getElementById('ovFaculty').textContent = fTotal;
+
+      const v4 = Number(STU?.vehicles?.FOUR_WHEELED || 0)
+               + veh(NTS?.visits, 'FOUR_WHEELED')
+               + veh(FAC?.visits, 'FOUR_WHEELED')
+               + veh(GRA?.visits, 'FOUR_WHEELED');
+
+      const v2 = Number(STU?.vehicles?.MOTORCYCLE || 0)
+               + veh(NTS?.visits, 'MOTORCYCLE')
+               + veh(FAC?.visits, 'MOTORCYCLE')
+               + veh(GRA?.visits, 'MOTORCYCLE');
+
       document.getElementById('ovVehicles4').textContent = v4;
       document.getElementById('ovVehicles2').textContent = v2;
     }
 
-    // ===== Students tab =====
-    function renderAggRows(mapObj) {
+    // ===== students tab =====
+    function renderAggRows(mapObj){
       const entries = Object.entries(mapObj || {});
       if (!entries.length) return `<tr class="empty-row"><td colspan="2">No data</td></tr>`;
-      return entries.map(([k,v])=>`<tr><td>${escapeHtml(k)}</td><td class="text-end">${v}</td></tr>`).join('');
+      return entries.map(([k,v]) => `<tr><td>${esc(k)}</td><td class="text-end">${v}</td></tr>`).join('');
     }
-    function setOptions(el, values) {
+    function setOptions(el, values){
       const cur=el.value;
-      el.innerHTML = '<option value="">All</option>' + Array.from(values).sort()
-        .map(v=>`<option>${escapeHtml(v)}</option>`).join('');
+      el.innerHTML = '<option value="">All</option>' + Array.from(values || []).sort()
+        .map(v=>`<option>${esc(v)}</option>`).join('');
       if (cur && values.has(cur)) el.value=cur;
     }
     function populateStudentFilters(data){
       const batches=new Set(), saints=new Set();
-      [...(data.studentsWithVisitors||[]), ...(data.studentsWithoutVisitors||[])].forEach(s=>{
-        if(s.batchNumber) batches.add(s.batchNumber);
-        if(s.familySaint) saints.add(s.familySaint);
-      });
+      [...(data.studentsWithVisitors||[]), ...(data.studentsWithoutVisitors||[])]
+        .forEach(s=>{ if(s.batchNumber) batches.add(s.batchNumber); if(s.familySaint) saints.add(s.familySaint); });
       setOptions(document.getElementById('fltBatch'), batches);
       setOptions(document.getElementById('fltSaint'), saints);
     }
@@ -359,47 +426,49 @@
         (!batch || (s.batchNumber||'')===batch) &&
         (!saint || (s.familySaint||'')===saint);
 
-      const withList=(STU?.studentsWithVisitors||[]).filter(match);
-      const woList=(STU?.studentsWithoutVisitors||[]).filter(match);
+      const withList=(STU.studentsWithVisitors||[]).filter(match);
+      const woList  =(STU.studentsWithoutVisitors||[]).filter(match);
 
-      document.getElementById('withCount').textContent=withList.length;
-      document.getElementById('withoutCount').textContent=woList.length;
+      document.getElementById('withCount').textContent    = withList.length;
+      document.getElementById('withoutCount').textContent = woList.length;
 
-      const withTb=document.querySelector('#tblWith tbody');
-      withTb.innerHTML = withList.length? withList.map(s=>`
-        <tr>
-          <td>${escapeHtml(s.idNumber||'')}</td>
-          <td>${escapeHtml(s.name||'')}</td>
-          <td>${escapeHtml(s.familySaint||'')}</td>
-          <td>${escapeHtml(s.batchNumber||'')}</td>
-          <td>${escapeHtml(s.arrivalTime||'')}</td>
-          <td class="text-end">${s.totalVisitors??0}</td>
-        </tr>`).join('') : `<tr class="empty-row"><td colspan="6">No matching students</td></tr>`;
+      document.querySelector('#tblWith tbody').innerHTML = withList.length
+        ? withList.map(s=>`
+            <tr>
+              <td>${esc(s.idNumber||'')}</td>
+              <td>${esc(s.name||'')}</td>
+              <td>${esc(s.familySaint||'')}</td>
+              <td>${esc(s.batchNumber||'')}</td>
+              <td>${esc(s.arrivalTime||'')}</td>
+              <td class="text-end">${s.totalVisitors??0}</td>
+            </tr>`).join('')
+        : `<tr class="empty-row"><td colspan="6">No matching students</td></tr>`;
 
-      const woTb=document.querySelector('#tblWithout tbody');
-      woTb.innerHTML = woList.length? woList.map(s=>`
-        <tr>
-          <td>${escapeHtml(s.idNumber||'')}</td>
-          <td>${escapeHtml(s.name||'')}</td>
-          <td>${escapeHtml(s.familySaint||'')}</td>
-          <td>${escapeHtml(s.batchNumber||'')}</td>
-        </tr>`).join('') : `<tr class="empty-row"><td colspan="4">No matching students</td></tr>`;
+      document.querySelector('#tblWithout tbody').innerHTML = woList.length
+        ? woList.map(s=>`
+            <tr>
+              <td>${esc(s.idNumber||'')}</td>
+              <td>${esc(s.name||'')}</td>
+              <td>${esc(s.familySaint||'')}</td>
+              <td>${esc(s.batchNumber||'')}</td>
+            </tr>`).join('')
+        : `<tr class="empty-row"><td colspan="4">No matching students</td></tr>`;
     }
     function renderStudents(){
-      document.querySelector('#tblYear tbody').innerHTML = renderAggRows(STU?.visitorsPerBatchNumber);
-      document.querySelector('#tblSaint tbody').innerHTML = renderAggRows(STU?.visitorsPerFamilySaint);
-      populateStudentFilters(STU||{});
+      document.querySelector('#tblYear tbody').innerHTML  = renderAggRows(STU.visitorsPerBatchNumber);
+      document.querySelector('#tblSaint tbody').innerHTML = renderAggRows(STU.visitorsPerFamilySaint);
+      populateStudentFilters(STU);
       applyStudentFilters();
     }
 
-    // ===== NTS / Faculty / Graduates tabs =====
+    // ===== nts/fac/grads =====
     function renderSimpleTable(list, tbodySel, fields){
       const tb=document.querySelector(tbodySel);
       if(!list?.length){ tb.innerHTML=`<tr class="empty-row"><td colspan="${fields.length}">No data</td></tr>`; return; }
       tb.innerHTML = list.map(r=>{
         return `<tr>` + fields.map(f=>{
-          if(f==='imageUrl') return `<td><img class="avatar" src="${escapeHtml(r.imageUrl||'/images/default-profile.png')}"></td>`;
-          return `<td>${escapeHtml(r[f]||'')}</td>`;
+          if(f==='imageUrl') return `<td><img class="avatar" src="${esc(r.imageUrl||'/images/default-profile.png')}"></td>`;
+          return `<td>${esc(r[f]||'')}</td>`;
         }).join('') + `</tr>`;
       }).join('');
     }
@@ -430,21 +499,30 @@
       renderSimpleTable(list, '#tblGrad tbody', ['imageUrl','idNumber','batchNumber','address','date','time']);
     }
 
-    // ===== Events =====
+    // ===== events =====
     document.getElementById('refresh').addEventListener('click', loadAll);
+    document.getElementById('ntsSearch').addEventListener('input', renderNts);
+    document.getElementById('facSearch').addEventListener('input', renderFaculty);
+    document.getElementById('graSearch').addEventListener('input', renderGrads);
     document.getElementById('fltSearch').addEventListener('input', applyStudentFilters);
     document.getElementById('fltBatch').addEventListener('change', applyStudentFilters);
     document.getElementById('fltSaint').addEventListener('change', applyStudentFilters);
     document.getElementById('fltClear').addEventListener('click', ()=>{
-      document.getElementById('fltSearch').value=''; document.getElementById('fltBatch').value='';
-      document.getElementById('fltSaint').value=''; applyStudentFilters();
+      document.getElementById('fltSearch').value='';
+      document.getElementById('fltBatch').value='';
+      document.getElementById('fltSaint').value='';
+      applyStudentFilters();
     });
 
-    document.getElementById('ntsSearch').addEventListener('input', renderNts);
-    document.getElementById('facSearch').addEventListener('input', renderFaculty);
-    document.getElementById('graSearch').addEventListener('input', renderGrads);
+    // Toggle little debug panel: Alt+Shift+D
+    window.addEventListener('keydown', (e)=>{
+      if(e.altKey && e.shiftKey && e.code==='KeyD'){
+        const el=document.getElementById('dbg');
+        el.style.display = el.style.display==='none' ? 'block' : 'none';
+      }
+    });
 
-    // ===== Go! =====
+    // ===== go! =====
     loadAll();
   </script>
 
