@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Day – Student Logs by Batch</title>
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+
+    .live-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #dc2626; /* red text */
+  background: #fee2e2; /* light red bg */
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+
+.live-indicator .dot {
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: #dc2626;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+    body{font-family:'Inter',sans-serif;background:#f8fafc;color:#334155;overflow-x:hidden}
+    .app-container{display:flex;min-height:100vh}
+    .main-content{flex:1;display:flex;flex-direction:column;margin-left:280px;transition:margin-left .3s}
+    #sidebar.sidebar-collapsed ~ .main-content{margin-left:75px}
+
+    .content-area{flex:1;padding:2rem}
+    .page-title{font-weight:800;letter-spacing:-.02em;margin-bottom:1rem}
+    .page-title .grad{
+      background:linear-gradient(135deg,#4169e1 0%,#6366f1 100%);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent
+    }
+
+    .time-date-display{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem 1.25rem}
+
+    /* ==== Batch grid (cards side-by-side) ==== */
+    .batches-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      align-items:start;
+    }
+
+    .batch-card{border:1px solid #e2e8f0;border-radius:14px;background:#fff}
+    .batch-card .card-header{
+      background:#eef2ff;border-bottom:1px solid #e2e8f0;
+      border-top-left-radius:14px;border-top-right-radius:14px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:.75rem 1rem;
+    }
+    .batch-title{font-weight:800;color:#4169e1;margin:0}
+    .badge-soft{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-weight:700}
+
+    .table-wrap{border-top:1px solid #e2e8f0;border-bottom-left-radius:14px;border-bottom-right-radius:14px}
+    .table thead th{background:#4169e1;color:#fff}
+    .table-sm td,.table-sm th{padding:.6rem .75rem}
+    .col-photo{width:60px}
+    .log-img{width:40px;height:40px;object-fit:cover;border-radius:10px}
+
+    /* Hide Time In on very narrow screens; keep Name primary */
+    @media (max-width: 576px){
+      .col-time { display:none; }
+    }
+
+    @media (max-width: 992px){
+      .main-content{margin-left:0!important}
+      .content-area{padding:1rem}
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(role=${role},
+                                               activePage='display',
+                                               studentInfoExpanded=${studentInfoExpanded},
+                                               asmsiExpanded=${asmsiExpanded},
+                                               admissionExpanded=${admissionExpanded},
+                                               attendanceExpanded=${attendanceExpanded},
+                                               eventsExpanded=${eventsExpanded},
+                                               familyDayExpanded=${familyDayExpanded})"></div>
+
+  <!-- Main -->
+  <div class="main-content">
+    <!-- Header -->
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <!-- Body -->
+    <main class="content-area">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+       <h1 class="page-title mb-0 d-flex align-items-center gap-2">
+  <i class="bi bi-display me-2 text-primary"></i>
+  <span class="grad">Family Day – Visitor Tracker</span>
+  <span class="live-indicator">
+    <span class="dot"></span> LIVE
+  </span>
+</h1>
+
+        <div class="time-date-display">
+          <div class="d-flex flex-wrap gap-4">
+            <div><i class="bi bi-calendar3 me-1 text-primary"></i><span id="main-date"></span></div>
+            <div><i class="bi bi-clock me-1 text-primary"></i><span id="main-time"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid of batch cards -->
+      <div id="batches-container" class="batches-grid"></div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  /* ===== Live date/time ===== */
+  const dateEl = document.getElementById('main-date');
+  const timeEl = document.getElementById('main-time');
+  function tick(){
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    timeEl.textContent = now.toLocaleTimeString('en-US');
+  }
+  tick(); setInterval(tick, 1000);
+
+  /* ===== Config ===== */
+  const ENDPOINT   = '/api/visitingday/logs'; // adjust if different
+  let   REFRESH_MS = 1000;                    // 1s polling
+
+  /* ===== Helpers (unchanged UI) ===== */
+  const imgTag = src => `<img src="${src || '/images/default-profile.png'}" class="log-img"/>`;
+  const normBatch = v => (v ?? '').toString().trim() || 'Unknown Batch';
+  const batchSortKey = s => { const m = s.match(/(\d+)/); return m ? parseInt(m[1],10) : Number.POSITIVE_INFINITY; };
+
+  function renderBatches(grouped){
+    const container = document.getElementById('batches-container');
+    const batchNames = Object.keys(grouped).sort((a,b)=>{
+      const ka=batchSortKey(a), kb=batchSortKey(b);
+      if(ka!==kb) return ka-kb;
+      return a.localeCompare(b);
+    });
+
+    if (batchNames.length === 0){
+      container.innerHTML = `<div class="alert alert-info mb-0">No logs available.</div>`;
+      return;
+    }
+
+    container.innerHTML = batchNames.map(batch=>{
+      const rows = grouped[batch] || [];
+      const show = Math.min(rows.length, 10); // cap 10 per card
+      const countTxt = `${rows.length} record${rows.length===1?'':'s'}${rows.length>10?` • showing 10`:''}`;
+
+      const body = rows.slice(0, show).map(r=>`
+        <tr>
+          <td class="text-center">${imgTag(r.imageUrl)}</td>
+          <td>${r.name ?? '-'}</td>
+          <td class="col-time">${r.timeIn ?? r.time ?? '-'}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="card batch-card">
+          <div class="card-header">
+            <h5 class="batch-title mb-0">${batch}</h5>
+            <span class="badge-soft rounded-pill px-3 py-2">${countTxt}</span>
+          </div>
+          <div class="table-wrap">
+            <table class="table table-sm table-striped table-bordered align-middle mb-0">
+              <thead>
+                <tr>
+                  <th class="col-photo text-center">Photo</th>
+                  <th>Name</th>
+                  <th class="col-time">Time In</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${body || `<tr><td colspan="3" class="text-center text-muted">No data</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ===== Live loader (polling + dedupe + abort) ===== */
+  let lastHash = null;
+  let inflightController = null;
+  let timer = null;
+
+  function hashString(s){
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h << 5) - h + s.charCodeAt(i) | 0;
+    return h;
+  }
+
+  async function fetchAll(){
+    if (inflightController) inflightController.abort();
+    inflightController = new AbortController();
+
+    const r = await fetch(ENDPOINT, {
+      signal: inflightController.signal,
+      cache: 'no-store',
+      headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+    });
+    if (!r.ok) throw new Error(r.status);
+
+    const data = await r.json();
+
+    // group by batch (no date filter now)
+    const grouped = {};
+    (data || []).forEach(row=>{
+      const key = normBatch(row.batchNumber);
+      (grouped[key] ||= []).push(row);
+    });
+
+    return grouped;
+  }
+
+  async function loop(){
+    try{
+      const grouped = await fetchAll();
+      const snapshot = JSON.stringify(grouped);
+      const h = hashString(snapshot);
+
+      if (h !== lastHash){
+        renderBatches(grouped);
+        lastHash = h;
+      }
+    }catch(e){
+      if (e.name !== 'AbortError'){
+        console.error(e);
+        document.getElementById('batches-container').innerHTML =
+          `<div class="alert alert-danger">Failed to load logs.</div>`;
+      }
+    }finally{
+      timer = setTimeout(loop, REFRESH_MS);
+    }
+  }
+
+  // adaptive interval: slower when tab is hidden
+  function updateInterval(){
+    REFRESH_MS = document.hidden ? 3000 : 1000;
+  }
+  document.addEventListener('visibilitychange', updateInterval);
+  updateInterval();
+
+  // start
+  loop();
+</script>
+
+
+</body>
+</html>

@@ -2,48 +2,237 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <title>ASMSI Alumni Statistics</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASMSI Alumni Statistics - Sisters of Mary Schools</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" th:href="@{/css/header.css}" />
-  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
+  <!-- Bootstrap CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
-    .card { border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.04); }
-    .stat { font-weight: 800; font-size: 26px; }
-    .muted { color:#6b7280; font-size: 13px; }
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
+
+    .app-container { display:flex; min-height:100vh; }
+    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
+    .content-area { flex:1; padding:1.5rem; background:#f8f9fa; } /* tightened */
+
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
+
+    /* Enhanced Cards */
+    .stats-card { 
+      border:none; 
+      border-radius:12px; 
+      box-shadow:0 2px 20px rgba(0,0,0,.08); 
+      transition:transform .2s, box-shadow .2s; 
+      overflow:hidden;
+      background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    }
+    .stats-card:hover { 
+      transform:translateY(-5px); 
+      box-shadow:0 5px 30px rgba(0,0,0,.15); 
+    }
+    
+    .chart-card {
+      border:none; 
+      border-radius:15px; 
+      box-shadow:0 4px 25px rgba(0,0,0,.08); 
+      transition:transform .2s, box-shadow .2s;
+      background: #ffffff;
+    }
+    .chart-card:hover {
+      transform:translateY(-2px); 
+      box-shadow:0 8px 35px rgba(0,0,0,.12);
+    }
+
+    .stat-number { 
+      font-size:2.6rem; /* slightly smaller */
+      font-weight:800; 
+      margin:0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { 
+      font-size:.85rem; 
+      color:#6b7280; 
+      font-weight:500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px;
+      padding: 1.5rem; /* tightened */
+      margin-bottom: 1.25rem; /* tightened */
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .icon-wrapper {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: white;
+    }
+    .icon-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .icon-success { background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%); }
+    .icon-info { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+
+    .chart-container {
+      position: relative;
+      padding: 1rem 1.25rem; /* tightened */
+    }
+
+    .chart-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 1rem; /* tightened */
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chart-description {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: .75rem; /* tightened */
+      padding-top: .75rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .batch-item {
+      background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+      border-radius: 10px;
+      padding: .75rem; /* slightly denser */
+      text-align: center;
+      transition: all 0.2s ease;
+      border: 1px solid #e9ecef;
+    }
+    .batch-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,.1);
+      border-color: #667eea;
+    }
+    .batch-year {
+      font-size: .85rem;
+      color: #6b7280;
+      font-weight: 500;
+      margin-bottom: .35rem;
+    }
+    .batch-count {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #667eea;
+      margin: 0;
+    }
+
+    /* NEW: prevent page from getting too tall — scroll inside the card */
+    .scroll-y {
+      max-height: 420px;     /* desktop cap */
+      overflow-y: auto;
+      padding-right: .5rem;  /* for scrollbar space */
+    }
+
+    /* Keep doughnut chart compact */
+    #employmentChart { max-height: 260px; }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .main-content { margin-left:0 !important; padding-top:70px; }
+      .content-area { padding:1rem; }
+      .stat-number { font-size:2.2rem; }
+      .page-header { padding:1.25rem; }
+      .col-md-4 { margin-bottom:1rem; }
+      .scroll-y { max-height: 55vh; }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding:.75rem; }
+      .stat-number { font-size:1.9rem; }
+      .page-header { padding:1rem; margin-bottom:1rem; }
+      .scroll-y { max-height: 50vh; }
+    }
   </style>
 </head>
 <body>
-  <div th:replace="fragments/header :: header(${username})"></div>
+  <div class="app-container">
 
-  <div class="container-fluid">
-    <div class="row">
-      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='asmsi',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
 
-      <div class="col-md-9 p-4">
-        <h1 class="mb-4">Alumni Statistics</h1>
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
+
+      <!-- Page Body -->
+      <main class="content-area">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h1 class="mb-2"><i class="bi bi-mortarboard me-3"></i>Alumni Statistics</h1>
+              <p class="mb-0 opacity-90">Comprehensive overview of ASMSI alumni employment status and graduation trends</p>
+            </div>
+            <div class="col-md-4 text-center">
+              <i class="bi bi-graph-up" style="font-size:4rem; opacity:.3;"></i>
+            </div>
+          </div>
+        </div>
 
         <!-- KPI Cards -->
         <div class="row g-3 mb-4">
-          <div class="col-md-4">
-            <div class="card p-3">
-              <div class="muted">Total Alumni</div>
-              <div class="stat" th:text="${empStats.total}">0</div>
+          <div class="col-xl-4 col-md-6">
+            <div class="stats-card card">
+              <div class="card-body text-center">
+                <div class="icon-wrapper icon-primary mx-auto">
+                  <i class="bi bi-people"></i>
+                </div>
+                <div class="stat-label">Total Alumni</div>
+                <div class="stat-number" th:text="${empStats.total}">0</div>
+              </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="card p-3">
-              <div class="muted">Employed</div>
-              <div class="stat" th:text="${empStats.employed}">0</div>
+          <div class="col-xl-4 col-md-6">
+            <div class="stats-card card">
+              <div class="card-body text-center">
+                <div class="icon-wrapper icon-success mx-auto">
+                  <i class="bi bi-briefcase"></i>
+                </div>
+                <div class="stat-label">Employed</div>
+                <div class="stat-number" th:text="${empStats.employed}">0</div>
+              </div>
             </div>
           </div>
-          <div class="col-md-4">
-            <div class="card p-3">
-              <div class="muted">Self-Employed</div>
-              <div class="stat" th:text="${empStats.selfEmployed}">0</div>
+          <div class="col-xl-4 col-md-6">
+            <div class="stats-card card">
+              <div class="card-body text-center">
+                <div class="icon-wrapper icon-info mx-auto">
+                  <i class="bi bi-person-gear"></i>
+                </div>
+                <div class="stat-label">Self-Employed</div>
+                <div class="stat-number" th:text="${empStats.selfEmployed}">0</div>
+              </div>
             </div>
           </div>
         </div>
@@ -51,61 +240,169 @@
         <!-- Charts -->
         <div class="row g-4">
           <div class="col-lg-7">
-            <div class="card p-3">
-              <h5 class="mb-3">Graduates per Batch</h5>
-              <canvas id="batchChart" height="140"></canvas>
+            <div class="chart-card card">
+              <div class="chart-container">
+                <h5 class="chart-title">
+                  <i class="bi bi-list-ul text-primary"></i>
+                  Graduates per Batch
+                </h5>
+                <div class="batch-list scroll-y">
+                  <div class="row g-2" id="batchStatsContainer">
+                    <!-- Batch stats will be populated here -->
+                  </div>
+                </div>
+                <div class="chart-description">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Number of graduates by batch year
+                </div>
+              </div>
             </div>
           </div>
           <div class="col-lg-5">
-            <div class="card p-3">
-              <h5 class="mb-3">Employment Summary</h5>
-              <canvas id="employmentChart" height="190"></canvas>
-              <div class="mt-2 muted">Counts of “Yes” for Employed and Self-Employed.</div>
+            <div class="chart-card card">
+              <div class="chart-container">
+                <h5 class="chart-title">
+                  <i class="bi bi-pie-chart text-success"></i>
+                  Employment Summary
+                </h5>
+                <canvas id="employmentChart" height="190"></canvas>
+                <div class="chart-description">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Breakdown of employed vs self-employed alumni
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+
+        <!-- Additional Insights -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="alert alert-info border-0 shadow-sm" style="border-left:4px solid #0dcaf0!important; border-radius:12px;">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-lightbulb-fill me-3" style="font-size:1.5rem;"></i>
+                <div>
+                  <strong>Insight:</strong> 
+                  <span th:if="${empStats.total > 0}">
+                    Employment rate: <strong th:text="${#numbers.formatDecimal((empStats.employed + empStats.selfEmployed) * 100.0 / empStats.total, 1, 1)}">0.0</strong>% 
+                    of alumni are currently in the workforce.
+                  </span>
+                  <span th:unless="${empStats.total > 0}">
+                    No alumni data available at the moment.
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 
   <!-- Inline data → JS -->
   <script th:inline="javascript">
-    /*<![CDATA[*/
+  //<![CDATA[
     const batchLabels = /*[[${batchLabels}]]*/ [];
     const batchCounts = /*[[${batchCounts}]]*/ [];
     const employed    = /*[[${empStats.employed}]]*/ 0;
     const selfEmployed= /*[[${empStats.selfEmployed}]]*/ 0;
-    /*]]>*/
+  //]]>
   </script>
 
-  <script>
-    // Bar: graduates per batch
-    new Chart(document.getElementById('batchChart'), {
-      type: 'bar',
-      data: {
-        labels: batchLabels,
-        datasets: [{
-          label: 'Graduates',
-          data: batchCounts
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: { grid: { display:false } },
-          y: { beginAtZero:true, ticks:{ precision:0 } }
-        }
-      }
-    });
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    // Doughnut: employment
+  <script>
+    // Populate Batch Statistics
+    function populateBatchStats() {
+      const container = document.getElementById('batchStatsContainer');
+      
+      if (batchLabels.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted py-4">No batch data available</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      
+      for (let i = 0; i < batchLabels.length; i++) {
+        const col = document.createElement('div');
+        col.className = 'col-lg-3 col-md-4 col-sm-6';
+        
+        col.innerHTML = `
+          <div class="batch-item">
+            <div class="batch-year">Batch ${batchLabels[i]}</div>
+            <div class="batch-count">${batchCounts[i]}</div>
+          </div>
+        `;
+        
+        container.appendChild(col);
+      }
+    }
+
+    // Enhanced Doughnut Chart: employment
     new Chart(document.getElementById('employmentChart'), {
       type: 'doughnut',
       data: {
         labels: ['Employed', 'Self-Employed'],
-        datasets: [{ data: [employed, selfEmployed] }]
+        datasets: [{
+          data: [employed, selfEmployed],
+          backgroundColor: [
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(6, 182, 212, 0.8)'
+          ],
+          borderColor: [
+            'rgba(34, 197, 94, 1)',
+            'rgba(6, 182, 212, 1)'
+          ],
+          borderWidth: 2,
+          hoverOffset: 10
+        }]
       },
-      options: { responsive:true, cutout:'60%' }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              font: { family: 'Inter', size: 12 },
+              color: '#374151'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: 'white',
+            bodyColor: 'white',
+            cornerRadius: 8,
+            displayColors: true
+          }
+        }
+      }
+    });
+
+    // Add some interactivity
+    document.addEventListener('DOMContentLoaded', () => {
+      // Populate batch statistics
+      populateBatchStats();
+      
+      // Animate stat numbers on load
+      const statNumbers = document.querySelectorAll('.stat-number');
+      statNumbers.forEach((stat, index) => {
+        setTimeout(() => {
+          stat.style.opacity = '0';
+          stat.style.transform = 'translateY(20px)';
+          stat.style.transition = 'all 0.6s ease';
+          
+          setTimeout(() => {
+            stat.style.opacity = '1';
+            stat.style.transform = 'translateY(0)';
+          }, 100);
+        }, index * 200);
+      });
     });
   </script>
 </body>

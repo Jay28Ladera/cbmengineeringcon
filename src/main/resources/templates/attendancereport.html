@@ -2,76 +2,262 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <title>Attendance</title>
-
-  <!-- CSRF Tokens -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="_csrf" th:content="${_csrf.token}" />
   <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Attendance Logs - Sisters of Mary Schools</title>
 
-  <!-- Bootstrap CSS -->
+  <!-- Bootstrap CSS & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- SweetAlert2 CSS -->
+  <!-- SweetAlert2 -->
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
 
-  <!-- Custom CSS -->
-  <link rel="stylesheet" th:href="@{/css/header.css}" />
-  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
-  <link rel="stylesheet" th:href="@{/css/home.css}" />
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
+
+    .app-container { display:flex; min-height:100vh; }
+    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
+    .content-area { flex:1; padding:2rem; background:#f8f9fa; }
+
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
+
+    .page-header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:15px; box-shadow:0 10px 30px rgba(102,126,234,.3); margin-bottom: 2rem; }
+
+    .logs-card { 
+      border:none; 
+      border-radius:12px; 
+      box-shadow:0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08); 
+      background:#fff; 
+      border: 1px solid rgba(0,0,0,.05);
+      transition: box-shadow 0.3s ease;
+    }
+    .logs-card:hover {
+      box-shadow:0 8px 35px rgba(0,0,0,.15), 0 4px 15px rgba(0,0,0,.1);
+    }
+
+    /* DataTables Enhanced Styling */
+    .dataTables_wrapper {
+      font-family: 'Inter', sans-serif;
+      padding: 1.5rem;
+    }
+
+    .dataTables_length select,
+    .dataTables_filter input {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .dataTables_filter input {
+      width: 300px !important;
+      margin-left: 10px;
+    }
+
+    .dataTables_filter input:focus,
+    .dataTables_length select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+      outline: none;
+    }
+
+    /* Enhanced Table Styling */
+    #attendanceTable {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    }
+
+    #attendanceTable thead th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 1rem 0.75rem;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    #attendanceTable tbody td {
+      padding: 0.75rem;
+      vertical-align: middle;
+      text-align: center;
+      border-color: #f1f3f4;
+      font-size: 0.9rem;
+    }
+
+    #attendanceTable tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    #attendanceTable tbody tr:hover {
+      background-color: rgba(102, 126, 234, 0.05);
+      transform: scale(1.001);
+    }
+
+    /* Enhanced DataTables Buttons */
+    .dt-buttons {
+      margin-bottom: 1rem;
+    }
+
+    .dt-buttons .dt-button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 8px !important;
+      padding: 0.5rem 1rem !important;
+      margin-right: 0.5rem !important;
+      font-weight: 600 !important;
+      transition: all 0.3s ease !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+
+    .dt-button:hover {
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+    }
+
+    /* Student Photo */
+    .student-photo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e9ecef;
+    }
+
+    /* Status badges */
+    .time-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .badge-present { background-color: #d1edff; color: #0969da; }
+    .badge-absent { background-color: #ffebe9; color: #cf222e; }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left:0 !important; padding-top:70px; }
+      .content-area { padding:1rem; }
+      .dataTables_wrapper { padding: 1rem; }
+      .dataTables_filter input { width: 200px !important; }
+      #attendanceTable thead th, #attendanceTable tbody td { padding: 0.5rem 0.25rem; font-size: 0.8rem; }
+      .student-photo { width: 40px; height: 40px; }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding:.75rem; }
+      .page-header .card-body { padding:1.5rem; }
+      .dataTables_filter input { width: 150px !important; }
+    }
+  </style>
 </head>
-
 <body>
-  <!-- Header -->
-  <div th:replace="fragments/header :: header(${username})"></div>
+  <div class="app-container">
 
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Sidebar -->
-      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='attendance-logs',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
 
-      <!-- Main Content -->
-      <div class="col-md-9 p-4">
-        <h1>Attendance Logs</h1>
+    <!-- Main Content -->
+    <div class="main-content">
 
-        <div class="container mt-4">
-      
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
 
-          <table id="attendanceTable" class="table table-bordered table-striped display nowrap" style="width:100%">
-            <thead>
-              <tr>
-                <th>Photo</th>
-                <th>Name</th>
-                <th>ID Number</th>
-                <th>Date</th>
-                <th>Time In</th>
-                <th>Time Out</th>
-                <th>Recorded By</th>
-              </tr>
-            </thead>
-            <tbody id="logs-table-body">
-              <!-- Logs will be inserted here -->
-            </tbody>
-          </table>
+      <!-- Page Body -->
+      <main class="content-area">
+        
+        <!-- Page Header -->
+        <div class="page-header card mb-4">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h2 class="card-title mb-3"><i class="bi bi-journal-text me-2"></i>Attendance Logs</h2>
+                <p class="mb-0">View and manage all student attendance records. Export data to various formats for reporting purposes.</p>
+              </div>
+              <div class="col-md-4 text-center">
+                <i class="bi bi-table" style="font-size:4rem; opacity:.3;"></i>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <!-- Attendance Table Card -->
+        <div class="logs-card card">
+          <div class="card-header bg-white border-0 py-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-list-check me-2 text-primary"></i>Complete Attendance Records
+              </h5>
+              <div class="d-flex gap-2">
+                <span class="badge bg-success">
+                  <i class="bi bi-download me-1"></i>Export Available
+                </span>
+                <span class="badge bg-info">
+                  <i class="bi bi-arrow-clockwise me-1"></i>Auto-Refresh
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table id="attendanceTable" class="table table-hover align-middle nowrap mb-0" style="width:100%">
+                <thead>
+                  <tr>
+                    <th><i class="bi bi-image me-1"></i>Photo</th>
+                    <th><i class="bi bi-person me-1"></i>Name</th>
+                    <th><i class="bi bi-hash me-1"></i>ID Number</th>
+                    <th><i class="bi bi-calendar me-1"></i>Date</th>
+                    <th><i class="bi bi-clock me-1"></i>Time In</th>
+                    <th><i class="bi bi-clock-history me-1"></i>Time Out</th>
+                    <th><i class="bi bi-person-badge me-1"></i>Recorded By</th>
+                  </tr>
+                </thead>
+                <tbody id="logs-table-body">
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <br><br>Loading attendance logs...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
     </div>
   </div>
 
   <!-- Scripts -->
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- jQuery -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
   <!-- DataTables JS -->
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-  <!-- DataTables Buttons + File export support -->
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
@@ -80,52 +266,148 @@
   <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
   <script>
+    let attendanceTable = null;
+
     async function loadAttendanceLogs() {
       try {
-        const res = await fetch("/api/attendance/logs");
+        // Show loading state
+        const tbody = document.getElementById("logs-table-body");
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <br><br>Loading recent attendance logs...
+            </td>
+          </tr>
+        `;
+
+        // Fetch only recent logs (last 100 records) for faster loading
+        const res = await fetch("/api/attendance/logs?limit=100");
         if (!res.ok) throw new Error("Failed to load logs");
 
         const logs = await res.json();
-        const tbody = document.getElementById("logs-table-body");
         tbody.innerHTML = "";
 
+        if (logs.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
+                <br><br>No attendance records found.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // Use DocumentFragment for better performance
+        const fragment = document.createDocumentFragment();
+        
         logs.forEach(log => {
           const row = document.createElement("tr");
           row.innerHTML = `
-            <td><img src="${log.imageUrl || '/images/default-profile.png'}" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" /></td>
-            <td>${log.name || '-'}</td>
-            <td>${log.idNumber || '-'}</td>
+            <td>
+              <img src="${log.imageUrl || '/images/default-profile.png'}" 
+                   class="student-photo" 
+                   alt="Student Photo" 
+                   loading="lazy" />
+            </td>
+            <td><strong>${log.name || '-'}</strong></td>
+            <td><code class="text-primary">${log.idNumber || '-'}</code></td>
             <td>${log.date || '-'}</td>
-            <td>${log.timeIn || '-'}</td>
-            <td>${log.timeOut || '-'}</td>
-            <td>${log.account || '-'}</td>
+            <td>
+              ${log.timeIn ? `<span class="badge bg-success time-badge">${log.timeIn}</span>` : '<span class="badge bg-light text-dark time-badge">-</span>'}
+            </td>
+            <td>
+              ${log.timeOut ? `<span class="badge bg-danger time-badge">${log.timeOut}</span>` : '<span class="badge bg-light text-dark time-badge">-</span>'}
+            </td>
+            <td><small class="text-muted">${log.account || '-'}</small></td>
           `;
-          tbody.appendChild(row);
+          fragment.appendChild(row);
         });
 
-        // Initialize DataTable with Buttons
-        $('#attendanceTable').DataTable({
-          dom: 'Bfrtip',
-          buttons: [
-            'copyHtml5',
-            'excelHtml5',
-            'pdfHtml5',
-            'print'
-          ],
-          responsive: true
-        });
+        tbody.appendChild(fragment);
+
+        // Initialize DataTable only once
+        if (!attendanceTable) {
+          attendanceTable = $('#attendanceTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+              {
+                extend: 'copyHtml5',
+                text: '<i class="bi bi-clipboard me-1"></i>Copy',
+                className: 'btn-copy'
+              },
+              {
+                extend: 'excelHtml5',
+                text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel',
+                className: 'btn-excel'
+              },
+              {
+                extend: 'pdfHtml5',
+                text: '<i class="bi bi-filetype-pdf me-1"></i>PDF',
+                className: 'btn-pdf'
+              },
+              {
+                extend: 'print',
+                text: '<i class="bi bi-printer me-1"></i>Print',
+                className: 'btn-print'
+              }
+            ],
+            responsive: true,
+            pageLength: 25,
+            deferRender: true,
+            language: {
+              search: "Search records:",
+              lengthMenu: "Show _MENU_ records per page",
+              info: "Showing _START_ to _END_ of _TOTAL_ attendance records",
+              paginate: {
+                previous: '<i class="bi bi-chevron-left"></i>',
+                next: '<i class="bi bi-chevron-right"></i>'
+              }
+            },
+            order: [[3, 'desc'], [4, 'desc']] // Sort by date and time in descending order
+          });
+        } else {
+          // Just redraw existing table
+          attendanceTable.draw();
+        }
+
       } catch (err) {
         console.error(err);
-        Swal.fire({
-          icon: 'error',
-          title: 'Oops...',
-          text: 'Error loading attendance logs.',
-        });
+        document.getElementById("logs-table-body").innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-danger py-4">
+              <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+              <br><br>Error loading attendance logs.
+              <br><button class="btn btn-sm btn-outline-primary mt-2" onclick="loadAttendanceLogs()">Try Again</button>
+            </td>
+          </tr>
+        `;
       }
     }
 
     // Load logs on page load
-    loadAttendanceLogs();
+    document.addEventListener('DOMContentLoaded', function() {
+      loadAttendanceLogs();
+      
+      // Reduced auto-refresh to every 2 minutes for better performance
+      setInterval(function() {
+        if (attendanceTable && document.visibilityState === 'visible') {
+          loadAttendanceLogs();
+        }
+      }, 120000); // 2 minutes instead of 30 seconds
+    });
+
+    // Pause auto-refresh when tab is not visible
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState === 'visible') {
+        loadAttendanceLogs();
+      }
+    });
   </script>
+
 </body>
 </html>

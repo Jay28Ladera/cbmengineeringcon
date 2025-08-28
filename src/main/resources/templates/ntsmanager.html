@@ -2,93 +2,709 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <title>Non Teaching Staff Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Non Teaching Staff Manager - Sisters of Mary Schools</title>
 
   <!-- Bootstrap CSS & Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Optional custom CSS (if you have these files) -->
-  <link rel="stylesheet" th:href="@{/css/header.css}" />
-  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
-  <link rel="stylesheet" th:href="@{/css/home.css}" />
-  <link rel="stylesheet" th:href="@{/css/studentmanager.css}" />
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
 
-  <!-- DataTables -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
-  <!-- QR + html2canvas -->
+  <!-- jQuery & Scripts -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
-    /* PASS CARD — balanced, professional layout */
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      margin: 0;
+      color: #334155;
+    }
+
+    .app-container { 
+      display: flex; 
+      min-height: 100vh; 
+    }
+    .main-content { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      margin-left: 280px; 
+      transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .content-area { 
+      flex: 1; 
+      padding: 2.5rem; 
+      background: transparent;
+      position: relative;
+    }
+    .content-area::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(65, 105, 225, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left: 75px; }
+
+    /* Clean Page Header - No Background Color */
+    .page-header { 
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 25px rgba(0,0,0,.06);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+    }
+    .page-header .card-body {
+      padding: 2rem;
+    }
+    .page-header h2 {
+      color: #1e293b;
+      font-weight: 800;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .page-header p {
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+    .page-header .display-icon {
+      color: #cbd5e1;
+      font-size: 4rem;
+      opacity: 0.3;
+    }
+
+    /* Enhanced Cards */
+    .card { 
+      border: none; 
+      border-radius: 16px; 
+       box-shadow: 0 12px 40px rgba(0,0,0,.12), 0 4px 16px rgba(65, 105, 225, 0.1);
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+    .card:hover { 
+      transform: translateY(-4px) scale(1.002); 
+      box-shadow: 0 12px 40px rgba(0,0,0,.12), 0 4px 16px rgba(65, 105, 225, 0.1);
+    }
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    /* Action Buttons - Now in Header */
+    .btn-custom {
+      border-radius: 12px;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0,0,0,.1);
+      border: none;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(0,0,0,.2);
+    }
+
+    .btn-custom.btn-primary {
+      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+    }
+
+    .btn-custom.btn-success {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+
+    /* DataTable Container */
+    .dataTables_wrapper {
+      padding: 2rem;
+      background: #fff;
+    }
+
+    /* DataTable Filter & Controls */
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate {
+      margin: 1rem 0;
+    }
+
+    .dataTables_filter input {
+      border-radius: 12px !important;
+      border: 2px solid #cbd5e1 !important;
+      padding: 0.75rem 1rem !important;
+      transition: all 0.3s ease !important;
+      background: #ffffff !important;
+      font-size: 0.95rem !important;
+      width: 250px !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,.04) !important;
+    }
+
+    .dataTables_filter input::placeholder {
+      color: #64748b !important;
+      font-weight: 500 !important;
+      font-style: italic !important;
+      opacity: 1 !important;
+    }
+
+    .dataTables_filter input:focus {
+      border-color: #4169e1 !important;
+      outline: none !important;
+      box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1), 0 4px 12px rgba(65, 105, 225, 0.15) !important;
+      background: #fff !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .dataTables_filter input:focus::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    .dataTables_filter label {
+      font-weight: 600 !important;
+      color: #334155 !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    /* Beautiful Staff Table */
+    #ntsTable {
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 100% !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+    }
+
+    #ntsTable thead th {
+      background: #4169e1;
+      color: white;
+      border: none;
+      font-weight: 700;
+      padding: 1.2rem 1rem;
+      text-align: center;
+      font-size: 0.8rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      position: relative;
+    }
+
+    #ntsTable tbody td {
+      padding: 1.2rem 1rem;
+      border-bottom: 2px solid #e2e8f0;
+      border-right: 1px solid #f1f5f9;
+      vertical-align: middle;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.9rem;
+    }
+
+    #ntsTable tbody td:last-child {
+      border-right: none;
+    }
+
+    #ntsTable tbody tr {
+      transition: all 0.3s ease;
+      background: #fff;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    #ntsTable tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    #ntsTable tbody tr:hover {
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
+      transform: scale(1.005);
+      box-shadow: 0 6px 25px rgba(65,105,225,.12);
+      z-index: 10;
+      position: relative;
+    }
+
+    #ntsTable tbody tr:hover td {
+      border-color: #cbd5e1;
+    }
+
+    /* Staff Image Styling */
+    .staff-image {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 15px rgba(0,0,0,.15);
+      transition: all 0.3s ease;
+    }
+
+    .staff-image:hover {
+      transform: scale(1.15);
+      box-shadow: 0 6px 25px rgba(65,105,225,.3);
+    }
+
+    /* Employee Info Styling */
+    .employee-id {
+      background: linear-gradient(135deg, #4169e1 0%, #6366f1 100%);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: inline-block;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(65,105,225,.3);
+    }
+
+    .employee-name {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .employee-position {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #475569;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      border: 1px solid #cbd5e1;
+    }
+
+    .employee-department {
+      color: #4169e1;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    /* Action Buttons in Table */
+    .table-action-btn {
+      border-radius: 10px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      margin: 0 3px;
+      box-shadow: 0 3px 10px rgba(0,0,0,.1);
+      font-weight: 600;
+    }
+
+    .table-action-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,.2);
+    }
+
+    .btn-qr {
+      background: linear-gradient(135deg, #06b6d4, #0891b2);
+      color: white;
+    }
+
+    .btn-edit {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.15);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: #4169e1;
+      color: white;
+      border-bottom: none;
+      padding: 1.5rem 2rem;
+      font-weight: 700;
+    }
+
+    .modal-header .btn-close {
+      filter: invert(1);
+      opacity: 0.8;
+    }
+
+    .modal-body {
+      padding: 2rem;
+      background: #f8fafc;
+    }
+
+    .modal-footer {
+      padding: 1.5rem 2rem;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+    }
+
+    /* Form Controls */
+    .form-control, .form-select {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,.02);
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #4169e1;
+      box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1), 0 4px 12px rgba(65, 105, 225, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .form-label {
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+    }
+
+    /* QR Pass Styling */
     .id-pass {
       width: min(760px, 100%);
       background: #fff;
       color: #000;
-      border: 1px solid #e7e7e7;
-      border-radius: 10px;
-      padding: 18px 22px;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px 28px;
       box-sizing: border-box;
       font-family: "Inter", Arial, Helvetica, sans-serif;
       position: relative;
-      box-shadow: 0 1px 0 rgba(0,0,0,.03) inset;
+      box-shadow: 0 8px 30px rgba(0,0,0,.1);
     }
-    .id-head{
-      display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    }
-    .id-head .logo { width:56px; height:56px; object-fit:contain; display:block; margin:0 auto 6px; }
-    .id-head .school { font-weight:800; font-size:19px; text-transform:uppercase; letter-spacing:.15px; }
-    .id-head .addr   { font-size:13px; font-style:italic; margin-top:2px; color:#333; }
 
-    .id-body{
-      display:grid;
+    .id-head {
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: center; 
+      text-align: center;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #4169e1;
+      margin-bottom: 1rem;
+    }
+
+    .id-head .logo { 
+      width: 64px; 
+      height: 64px; 
+      object-fit: contain; 
+      display: block; 
+      margin: 0 auto 8px; 
+      border-radius: 8px;
+    }
+
+    .id-head .school { 
+      font-weight: 800; 
+      font-size: 20px; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px;
+      color: #1e293b;
+      margin-bottom: 4px;
+    }
+
+    .id-head .addr { 
+      font-size: 14px; 
+      font-style: italic; 
+      color: #64748b; 
+    }
+
+    .id-body {
+      display: grid;
       grid-template-columns: 1fr 220px;
-      column-gap:22px;
-      align-items:start;
+      column-gap: 28px;
+      align-items: start;
       position: relative;
     }
-    .title { font-weight:900; font-size:30px; line-height:1.08; margin: 6px 0 14px; letter-spacing:.2px; }
-    .student-name { font-weight:800; font-size:20px; margin-top:2px; letter-spacing:.3px; text-transform:uppercase; }
-    .saint { font-weight:800; font-size:18px; margin-top:14px; letter-spacing:.25px; }
 
-    .qr-col{ display:flex; justify-content:flex-end; margin-top:22px; }
-    .qr-box {
-      width: 210px; height: 210px;
-      border: 4px solid #fff; box-shadow: 0 0 0 1px #e7e7e7;
-      border-radius: 6px; background:#fff;
-      display:flex; align-items:center; justify-content:center; color:#9aa3af; font-size:28px;
+    .title { 
+      font-weight: 900; 
+      font-size: 32px; 
+      line-height: 1.1; 
+      margin: 8px 0 16px; 
+      letter-spacing: 0.3px;
+      color: #4169e1;
     }
 
-    .vert-id{
+    .student-name { 
+      font-weight: 800; 
+      font-size: 22px; 
+      margin-top: 4px; 
+      letter-spacing: 0.4px; 
+      text-transform: uppercase;
+      color: #1e293b;
+    }
+
+    .saint { 
+      font-weight: 800; 
+      font-size: 18px; 
+      margin-top: 16px; 
+      letter-spacing: 0.3px;
+      color: #64748b;
+    }
+
+    .qr-col { 
+      display: flex; 
+      justify-content: flex-end; 
+      margin-top: 24px; 
+    }
+
+    .qr-box {
+      width: 210px; 
+      height: 210px;
+      border: 4px solid #4169e1; 
+      border-radius: 12px; 
+      background: #fff;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      color: #cbd5e1; 
+      font-size: 32px;
+      box-shadow: 0 4px 20px rgba(65,105,225,.2);
+    }
+
+    .vert-id {
       position: absolute;
-      right: 10px;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%) rotate(-90deg);
       transform-origin: right top;
       font-size: 18px;
-      letter-spacing: .5px;
-      color: #333;
+      letter-spacing: 0.8px;
+      color: #4169e1;
       white-space: nowrap;
+      font-weight: 700;
     }
 
-    .note { margin-top: 18px; font-size: 12px; font-style: italic; color:#0f0f0f; line-height: 1.35; }
-    .note .u { text-decoration: underline; }
+    .note { 
+      margin-top: 20px; 
+      font-size: 13px; 
+      font-style: italic; 
+      color: #475569; 
+      line-height: 1.4;
+      padding: 1rem;
+      background: #f8fafc;
+      border-radius: 8px;
+      border-left: 4px solid #4169e1;
+    }
 
-    /* Hidden full-size card for download/print */
-    #idPassPrint { position:fixed; left:-99999px; top:-99999px; }
+    .note .u { 
+      text-decoration: underline; 
+    }
 
-    /* Modal preview wrapper */
-    .qr-preview { background:#f7f9fc; }
-    #previewWrap { display:flex; justify-content:center; overflow:auto; padding:12px; }
+    #idPassPrint { 
+      position: fixed; 
+      left: -99999px; 
+      top: -99999px; 
+    }
 
-    /* PRINT: show only the pass, clean white page */
+    .qr-preview { 
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 1.5rem;
+    }
+
+    #previewWrap { 
+      display: flex; 
+      justify-content: center; 
+      overflow: auto; 
+      padding: 1rem; 
+    }
+
+    /* DataTables Pagination Enhancement */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      border-radius: 10px !important;
+      border: 2px solid #e2e8f0 !important;
+      padding: 8px 16px !important;
+      margin: 0 4px !important;
+      background: #fff !important;
+      color: #4169e1 !important;
+      transition: all 0.3s !important;
+      font-weight: 600 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background: #4169e1 !important;
+      color: #fff !important;
+      border-color: #4169e1 !important;
+      box-shadow: 0 4px 15px rgba(65,105,225,.3) !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background: #4169e1 !important;
+      color: #fff !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 15px rgba(65,105,225,.3) !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      padding: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* Loading Animation */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(5px);
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f1f5f9;
+      border-top: 5px solid #4169e1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Enhanced Visual Elements */
+    .fw-bold {
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: -.01em;
+    }
+    
+    .text-muted {
+      color: #64748b !important;
+      font-weight: 500;
+    }
+
+    /* Better Icons */
+    .bi {
+      transition: all .2s ease;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .main-content { margin-left: 0 !important; padding-top: 70px; }
+      .content-area { padding: 1.5rem; }
+      .page-header .card-body { padding: 1.5rem; }
+      .action-buttons { padding: 1.25rem 1.5rem; }
+      .dataTables_wrapper { padding: 1.5rem; }
+      
+      .btn-custom {
+        width: 100%;
+        margin-bottom: 0.75rem;
+      }
+      
+      .dataTables_filter input {
+        width: 100% !important;
+      }
+      
+      #ntsTable {
+        font-size: 0.8rem;
+      }
+      
+      #ntsTable thead th,
+      #ntsTable tbody td {
+        padding: 0.8rem 0.5rem;
+      }
+      
+      .staff-image {
+        width: 45px;
+        height: 45px;
+      }
+      
+      .table-action-btn {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+        margin: 0 2px;
+      }
+
+      .page-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .display-icon {
+        display: none;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding: 1rem; }
+      .page-header .card-body { padding: 1rem; }
+      .action-buttons { padding: 1rem; }
+      .dataTables_wrapper { padding: 1rem; }
+      
+      .page-header h2 {
+        font-size: 1.3rem;
+      }
+
+      .modal-body, .modal-header, .modal-footer {
+        padding: 1rem;
+      }
+    }
+
+    /* Print Styles */
     @media print {
       @page { size: auto; margin: 10mm; }
-      html, body { background:#fff !important; }
+      html, body { background: #fff !important; }
       body * { visibility: hidden !important; }
       #idPassPrint, #idPassPrint * { visibility: visible !important; }
       #idPassPrint {
@@ -98,9 +714,9 @@
         transform: translateX(-50%) !important;
         width: 170mm !important;
         margin: 0 !important;
-        background:#fff !important;
-        box-shadow:none !important;
-        border:none !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        border: 2px solid #000 !important;
         z-index: 9999 !important;
       }
       #idPassPrint .vert-id {
@@ -110,257 +726,177 @@
       }
     }
   </style>
-
-  <style>
-  /* ===== NTS TABLE — Professional look (no markup changes) ===== */
-  #ntsTable {
-    border-collapse: separate;
-    border-spacing: 0;
-    background: #fff;
-    border: 1px solid #e6e9ee;
-    border-radius: 14px;
-    overflow: hidden;              /* rounds header + body */
-    box-shadow: 0 6px 18px rgba(16,24,40,.06);
-  }
-
-  /* Header */
-  #ntsTable thead th {
-    background: linear-gradient(#f8fafc, #f3f6fb);
-    color: #0f172a;
-    font-weight: 700;
-    letter-spacing: .2px;
-    font-size: 13.5px;
-    border-bottom: 1px solid #e6e9ee !important;
-    padding: 12px 14px;
-    white-space: nowrap;
-  }
-
-  /* Body cells */
-  #ntsTable tbody td {
-    vertical-align: middle;
-    padding: 12px 14px;
-    border-top: 1px solid #f0f2f6;
-    font-size: 13.5px;
-    color: #0f172a;
-  }
-
-  /* Zebra + hover */
-  #ntsTable tbody tr:nth-child(even) { background: #fbfdff; }
-  #ntsTable tbody tr:hover {
-    background: #eef6ff;
-    transition: background .15s ease;
-  }
-
-  /* Picture column: slightly larger + soft ring */
-  #ntsTable tbody td:first-child img {
-    width: 44px; height: 44px; object-fit: cover;
-    box-shadow: 0 0 0 3px #fff, 0 0 0 4px #e8eef7;
-  }
-
-  /* Action buttons: tight and aligned */
-  #ntsTable td.text-nowrap .btn {
-    padding: 6px 9px;
-    border-radius: 8px;
-    box-shadow: 0 1px 0 rgba(16,24,40,.04);
-  }
-  #ntsTable td.text-nowrap .btn + .btn,
-  #ntsTable td.text-nowrap form + form,
-  #ntsTable td.text-nowrap .btn + form {
-    margin-left: 6px;
-  }
-
-  /* DataTables chrome */
-  .dataTables_wrapper .dataTables_filter {
-    margin-bottom: 10px;
-  }
-  .dataTables_wrapper .dataTables_filter input {
-    border: 1px solid #d7dce5;
-    border-radius: 10px;
-    padding: 8px 12px;
-    box-shadow: inset 0 1px 2px rgba(16,24,40,.04);
-  }
-  .dataTables_wrapper .dataTables_paginate .paginate_button {
-    border-radius: 8px !important;
-    border: 1px solid #e6e9ee !important;
-    padding: 4px 10px !important;
-    margin: 0 3px !important;
-    background: #fff !important;
-  }
-  .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-    background: #1d4ed8 !important;
-    color: #fff !important;
-    border-color: #1d4ed8 !important;
-  }
-  .dataTables_wrapper .dataTables_info {
-    color: #475569;
-  }
-</style>
-
 </head>
 
 <body>
-  <!-- Header -->
-  <div th:replace="fragments/header :: header(${username})"></div>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
 
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Sidebar -->
-      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='non-teaching-staff',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
 
-      <!-- Main Content -->
-      <div class="col-md-9 p-4">
-        <h1>Non Teaching Staff Management</h1>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
 
-        <div class="d-flex justify-content-end mb-3">
-          <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addNtsModal">
-            Add Staff
-          </button>
-          <form method="POST" action="/nts/upload-csv" enctype="multipart/form-data" id="csvUploadForm">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-            <input type="file" name="file" id="csvFileInput" accept=".csv" required class="d-none"
-                   onchange="document.getElementById('csvUploadForm').submit()" />
-            <button type="button" class="btn btn-primary" onclick="document.getElementById('csvFileInput').click()">Upload CSV</button>
-          </form>
-        </div>
-
-        <table class="table table-bordered" id="ntsTable">
-          <thead>
-          <tr>
-            <th>Picture</th>
-            <th>Employee ID</th>
-            <th>Complete Name</th>
-            <th>Position</th>
-            <th>Department</th>
-            <th>Buttons</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="emp : ${ntsList}">
-            <td>
-              <img th:src="${emp.imageUrl != null ? emp.imageUrl : '/images/default-profile.png'}"
-                   alt="Staff Image" width="50" height="50" class="rounded-circle">
-            </td>
-            <td th:text="${emp.employeeId}">EMP-001</td>
-            <td th:text="${emp.name}">John Doe</td>
-            <td th:text="${emp.position}">Registrar</td>
-            <td th:text="${emp.department}">Admin Office</td>
-            <td class="text-nowrap">
-              <!-- QR pass button (uses employeeId) -->
-              <button
-                class="btn btn-info btn-sm qr-btn"
-                title="QR Pass"
-                data-bs-toggle="modal" data-bs-target="#qrModal"
-                th:data-employeeid="${emp.employeeId}"
-                th:data-name="${emp.name}">
-                <i class="bi bi-qr-code"></i>
-              </button>
-
-              <!-- Edit -->
-              <button class="btn btn-warning btn-sm edit-btn"
-                      data-bs-toggle="modal"
-                      data-bs-target="#editNtsModal"
-                      th:data-id="${emp.id}"
-                      th:data-employeeid="${emp.employeeId}"
-                      th:data-name="${emp.name}"
-                      th:data-position="${emp.position}"
-                      th:data-department="${emp.department}"
-                      th:data-imageurl="${emp.imageUrl}">
-                <i class="bi bi-pencil-square"></i>
-              </button>
-
-              <!-- Delete -->
-              <form th:action="@{/nts/delete}" method="post" class="d-inline">
-                <input type="hidden" name="id" th:value="${emp.id}">
-                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this staff?');">
-                  <i class="bi bi-trash"></i>
+      <!-- Page Body -->
+      <main class="content-area">
+        <!-- Clean Page Header with Action Buttons -->
+        <div class="page-header card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div class="flex-grow-1">
+                <h2><i class="bi bi-people-fill me-3"></i>Non Teaching Staff Management</h2>
+                <p class="mb-0">Manage administrative and support staff members. Add, edit staff information, and generate QR passes for visiting days.</p>
+              </div>
+              <div class="d-flex flex-wrap gap-3">
+                <button type="button" class="btn btn-primary btn-custom" data-bs-toggle="modal" data-bs-target="#addNtsModal">
+                  <i class="bi bi-person-plus me-2"></i>Add New Staff
                 </button>
-              </form>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-
-        <!-- EDIT NTS MODAL -->
-        <div class="modal fade" id="editNtsModal" tabindex="-1" aria-labelledby="editNtsModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <form id="editNtsForm" th:action="@{/nts/edit}" method="post" enctype="multipart/form-data">
-                <div class="modal-header">
-                  <h5 class="modal-title">Edit Staff</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  <input type="hidden" name="id" id="edit-id">
-                  <div class="row mb-3">
-                    <div class="col-md-4">
-                      <img id="edit-imagePreview" src="/images/default-profile.png" width="100" height="100" class="rounded-circle" />
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label">Update Image</label>
-                      <input type="file" class="form-control" name="imageFile" accept="image/*" id="edit-imageFile">
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-md-6 mb-3">
-                      <label>Employee ID</label>
-                      <input type="text" name="employeeId" id="edit-employeeId" class="form-control" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                      <label>Complete Name</label>
-                      <input type="text" name="name" id="edit-name" class="form-control" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                      <label>Position</label>
-                      <input type="text" name="position" id="edit-position" class="form-control" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                      <label>Department</label>
-                      <input type="text" name="department" id="edit-department" class="form-control" required>
-                    </div>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="submit" class="btn btn-primary">Update Staff</button>
-                </div>
-              </form>
+                
+                <form method="POST" action="/nts/upload-csv" enctype="multipart/form-data" id="csvUploadForm" class="d-inline">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                  <input type="file" name="file" id="csvFileInput" accept=".csv" required class="d-none" 
+                         onchange="showLoading(); document.getElementById('csvUploadForm').submit()" />
+                  <button type="button" class="btn btn-success btn-custom" onclick="document.getElementById('csvFileInput').click()">
+                    <i class="bi bi-upload me-2"></i>Upload Staff CSV
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- ADD NTS MODAL -->
+        <!-- Main Content Card -->
+        <div class="card">
+
+          <!-- Staff Table -->
+          <div class="table-responsive">
+            <table class="table" id="ntsTable">
+              <thead>
+                <tr>
+                  <th><i class="bi bi-person-circle me-1"></i>Photo</th>
+                  <th><i class="bi bi-card-text me-1"></i>Employee ID</th>
+                  <th><i class="bi bi-person me-1"></i>Name</th>
+                  <th><i class="bi bi-briefcase me-1"></i>Position</th>
+                  <th><i class="bi bi-building me-1"></i>Department</th>
+                  <th><i class="bi bi-gear me-1"></i>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="emp : ${ntsList}">
+                  <td>
+                    <img th:src="${emp.imageUrl != null ? emp.imageUrl : '/images/default-profile.png'}"
+                         alt="Staff Image" class="staff-image">
+                  </td>
+                  <td>
+                    <span class="employee-id" th:text="${emp.employeeId}">EMP-001</span>
+                  </td>
+                  <td>
+                    <div class="employee-name" th:text="${emp.name}">John Doe</div>
+                  </td>
+                  <td>
+                    <span class="employee-position" th:text="${emp.position}">Registrar</span>
+                  </td>
+                  <td>
+                    <div class="employee-department" th:text="${emp.department}">Admin Office</div>
+                  </td>
+                  <td>
+                    <div class="d-flex justify-content-center flex-wrap gap-1">
+                      <!-- QR Pass Button -->
+                      <button class="table-action-btn btn-qr qr-btn"
+                              title="Generate QR Pass"
+                              data-bs-toggle="modal" 
+                              data-bs-target="#qrModal"
+                              th:data-employeeid="${emp.employeeId}"
+                              th:data-name="${emp.name}">
+                        <i class="bi bi-qr-code"></i>
+                      </button>
+
+                      <!-- Edit Button -->
+                      <button class="table-action-btn btn-edit edit-btn"
+                              title="Edit Staff"
+                              data-bs-toggle="modal"
+                              data-bs-target="#editNtsModal"
+                              th:data-id="${emp.id}"
+                              th:data-employeeid="${emp.employeeId}"
+                              th:data-name="${emp.name}"
+                              th:data-position="${emp.position}"
+                              th:data-department="${emp.department}"
+                              th:data-imageurl="${emp.imageUrl}">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+
+                      <!-- Delete Button -->
+                      <form th:action="@{/nts/delete}" method="post" class="d-inline">
+                        <input type="hidden" name="id" th:value="${emp.id}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <button type="submit" 
+                                class="table-action-btn btn-delete" 
+                                title="Delete Staff"
+                                onclick="return confirm('Are you sure you want to delete this staff member?');">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add Staff Modal -->
         <div class="modal fade" id="addNtsModal" tabindex="-1" aria-labelledby="addNtsModalLabel" aria-hidden="true">
-          <div class="modal-dialog">
+          <div class="modal-dialog modal-lg">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="addNtsModalLabel">Add Staff</h5>
+                <h5 class="modal-title" id="addNtsModalLabel"><i class="bi bi-person-plus me-2"></i>Add New Staff</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <form th:action="@{/nts/add}" method="post" enctype="multipart/form-data">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                   <div class="row">
-                    <div class="col-md-12 mb-3">
-                      <label class="form-label">Profile Image</label>
+                    <div class="col-md-12 mb-4">
+                      <label class="form-label"><i class="bi bi-camera me-1"></i>Profile Image</label>
                       <input type="file" class="form-control" name="imageFile" accept="image/*">
+                      <div class="form-text">Upload a profile picture (optional)</div>
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Employee ID</label>
-                      <input type="text" class="form-control" name="employeeId" required>
+                      <label class="form-label"><i class="bi bi-card-text me-1"></i>Employee ID</label>
+                      <input type="text" class="form-control" name="employeeId" required placeholder="Enter employee ID">
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Complete Name</label>
-                      <input type="text" class="form-control" name="name" required>
+                      <label class="form-label"><i class="bi bi-person me-1"></i>Complete Name</label>
+                      <input type="text" class="form-control" name="name" required placeholder="Enter full name">
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Position</label>
-                      <input type="text" class="form-control" name="position" required>
+                      <label class="form-label"><i class="bi bi-briefcase me-1"></i>Position</label>
+                      <input type="text" class="form-control" name="position" required placeholder="Enter position">
                     </div>
                     <div class="col-md-6 mb-3">
-                      <label class="form-label">Department</label>
-                      <input type="text" class="form-control" name="department" required>
+                      <label class="form-label"><i class="bi bi-building me-1"></i>Department</label>
+                      <input type="text" class="form-control" name="department" required placeholder="Enter department">
                     </div>
                   </div>
                   <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save Staff</button>
+                    <button type="submit" class="btn btn-primary btn-custom">
+                      <i class="bi bi-plus-lg me-2"></i>Add Staff
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                      <i class="bi bi-x-lg me-2"></i>Cancel
+                    </button>
                   </div>
                 </form>
               </div>
@@ -368,95 +904,173 @@
           </div>
         </div>
 
-      </div><!-- /main -->
-    </div><!-- /row -->
-  </div><!-- /container -->
-
-  <!-- QR PASS MODAL (still available; shows employee name + employee ID as QR) -->
-  <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title"><i class="bi bi-qr-code me-1"></i> Visiting Day Pass</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <div class="modal-body qr-preview">
-          <!-- Scaled preview -->
-          <div id="previewWrap">
-            <div id="idPassPreview" class="id-pass">
-              <div class="id-head">
-                <img class="logo" src="/images/logo.png" alt="Logo" onerror="this.style.display='none'"/>
-                <div class="school">SISTERS OF MARY SCHOOL – BOYSTOWN, INC.</div>
-                <div class="addr">Tungkop, Minglanilla, Cebu</div>
-              </div>
-
-              <div class="id-body">
-                <div>
-                  <div class="title">VISITING DAY PASS</div>
-                  <div id="passNamePrev" class="student-name">STAFF NAME</div>
-                  <div id="passSaintPrev" class="saint">&nbsp;</div>
+        <!-- Edit Staff Modal -->
+        <div class="modal fade" id="editNtsModal" tabindex="-1" aria-labelledby="editNtsModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <form id="editNtsForm" th:action="@{/nts/edit}" method="post" enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <div class="modal-header">
+                  <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Edit Staff</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
-                <div class="qr-col">
-                  <div id="qrBoxPrev" class="qr-box"><i class="bi bi-qr-code"></i></div>
-                  <div id="vertIdPrev" class="vert-id">EMPLOYEE-ID</div>
+                <div class="modal-body">
+                  <input type="hidden" name="id" id="edit-id">
+                  <div class="row mb-4">
+                    <div class="col-md-4 text-center">
+                      <img id="edit-imagePreview" src="/images/default-profile.png" 
+                           width="140" height="140" class="rounded-circle border border-3" 
+                           style="box-shadow: 0 4px 20px rgba(0,0,0,.15);" />
+                      <div class="mt-3">
+                        <small class="text-muted fw-semibold">Current Image</small>
+                      </div>
+                    </div>
+                    <div class="col-md-8">
+                      <label class="form-label"><i class="bi bi-camera me-1"></i>Update Image</label>
+                      <input type="file" class="form-control" name="imageFile" accept="image/*" id="edit-imageFile">
+                      <div class="form-text">Upload a new profile picture (optional)</div>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"><i class="bi bi-card-text me-1"></i>Employee ID</label>
+                      <input type="text" name="employeeId" id="edit-employeeId" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"><i class="bi bi-person me-1"></i>Complete Name</label>
+                      <input type="text" name="name" id="edit-name" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"><i class="bi bi-briefcase me-1"></i>Position</label>
+                      <input type="text" name="position" id="edit-position" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label"><i class="bi bi-building me-1"></i>Department</label>
+                      <input type="text" name="department" id="edit-department" class="form-control" required>
+                    </div>
+                  </div>
                 </div>
-              </div>
-
-              <div class="note">
-                <strong>Paalala:</strong> Dalhin ang pass na ito kung kinakailangan sa pagpasok/ paglabas ng campus.
-              </div>
-            </div>
-          </div>
-
-          <!-- Hidden full-size card for download/print -->
-          <div id="idPassPrint" class="id-pass">
-            <div class="id-head">
-              <img class="logo" src="/images/logo.png" alt="Logo" onerror="this.style.display='none'"/>
-              <div class="school">SISTERS OF MARY SCHOOL – GIRLSTOWN INC.</div>
-              <div class="addr">Poblacion, Talisay, Cebu</div>
-            </div>
-            <div class="id-body">
-              <div>
-                <div class="title">VISITING DAY PASS</div>
-                <div id="passNamePrint" class="student-name">STAFF NAME</div>
-                <div id="passSaintPrint" class="saint">&nbsp;</div>
-              </div>
-              <div class="qr-col">
-                <div id="qrBoxPrint" class="qr-box"><i class="bi bi-qr-code"></i></div>
-                <div id="vertIdPrint" class="vert-id">EMPLOYEE-ID</div>
-              </div>
-            </div>
-            <div class="note">
-              <strong>Paalala:</strong> Dalhin ang pass na ito kung kinakailangan sa pagpasok/ paglabas ng campus.
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-primary btn-custom">
+                    <i class="bi bi-check-lg me-2"></i>Update Staff
+                  </button>
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-2"></i>Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button id="btnDownload" type="button" class="btn btn-primary">
-            <i class="bi bi-download me-1"></i>Download PNG
-          </button>
-          <button id="btnPrint" type="button" class="btn btn-outline-secondary">
-            <i class="bi bi-printer me-1"></i>Print
-          </button>
+        <!-- QR Pass Modal -->
+        <div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-qr-code me-2"></i>Staff Visiting Day Pass</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+
+              <div class="modal-body qr-preview">
+                <!-- Scaled preview -->
+                <div id="previewWrap">
+                  <div id="idPassPreview" class="id-pass">
+                    <div class="id-head">
+                      <img class="logo" src="/images/logo.png" alt="Logo" onerror="this.style.display='none'"/>
+                      <div class="school">SISTERS OF MARY SCHOOL – BOYSTOWN, INC.</div>
+                      <div class="addr">Tungkop, Minglanilla, Cebu</div>
+                    </div>
+
+                    <div class="id-body">
+                      <div>
+                        <div class="title">VISITING DAY PASS</div>
+                        <div id="passNamePrev" class="student-name">STAFF NAME</div>
+                        <div id="passSaintPrev" class="saint">&nbsp;</div>
+                      </div>
+
+                      <div class="qr-col">
+                        <div id="qrBoxPrev" class="qr-box"><i class="bi bi-qr-code"></i></div>
+                        <div id="vertIdPrev" class="vert-id">EMPLOYEE-ID</div>
+                      </div>
+                    </div>
+
+                    <div class="note">
+                      <strong>Paalala:</strong> Dalhin ang pass na ito kung kinakailangan sa pagpasok/paglabas ng campus.
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hidden full-size card for download/print -->
+                <div id="idPassPrint" class="id-pass">
+                  <div class="id-head">
+                    <img class="logo" src="/images/logo.png" alt="Logo" onerror="this.style.display='none'"/>
+                    <div class="school">SISTERS OF MARY SCHOOL – BOYSTOWN INC.</div>
+                    <div class="addr">Tungkop, Minglanilla, Cebu</div>
+                  </div>
+                  <div class="id-body">
+                    <div>
+                      <div class="title">VISITING DAY PASS</div>
+                      <div id="passNamePrint" class="student-name">STAFF NAME</div>
+                      <div id="passSaintPrint" class="saint">&nbsp;</div>
+                    </div>
+                    <div class="qr-col">
+                      <div id="qrBoxPrint" class="qr-box"><i class="bi bi-qr-code"></i></div>
+                      <div id="vertIdPrint" class="vert-id">EMPLOYEE-ID</div>
+                    </div>
+                  </div>
+                  <div class="note">
+                    <strong>Paalala:</strong> Dalhin ang pass na ito kung kinakailangan sa pagpasok/paglabas ng campus.
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button id="btnDownload" type="button" class="btn btn-primary btn-custom">
+                  <i class="bi bi-download me-2"></i>Download PNG
+                </button>
+                <button id="btnPrint" type="button" class="btn btn-outline-secondary">
+                  <i class="bi bi-printer me-2"></i>Print Pass
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+      </main>
     </div>
   </div>
 
-  <!-- Bootstrap Bundle -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // DataTable init
+    // DataTable initialization with enhanced features
     $(function () {
       if (!$.fn.DataTable.isDataTable('#ntsTable')) {
         $('#ntsTable').DataTable({
           pageLength: 10,
-          lengthChange: false,
-          language: { search: "Filter:", paginate: { previous: "Previous", next: "Next" } }
+          lengthChange: true,
+          responsive: true,
+          language: { 
+            search: "",
+            searchPlaceholder: "Search staff members...",
+            lengthMenu: "Show _MENU_ staff per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ staff members",
+            paginate: { 
+              previous: "Previous", 
+              next: "Next" 
+            }
+          },
+          columnDefs: [
+            { orderable: false, targets: [0, 5] }, // Disable sorting on photo and actions
+            { width: "10%", targets: 0 }, // Photo column
+            { width: "15%", targets: 1 }, // Employee ID
+            { width: "20%", targets: 2 }, // Name
+            { width: "20%", targets: 3 }, // Position
+            { width: "20%", targets: 4 }, // Department
+            { width: "15%", targets: 5 }  // Actions
+          ]
         });
       }
     });
@@ -477,7 +1091,7 @@
       });
     }
 
-    // QR button: uses data-employeeid + data-name
+    // QR button click handler
     $(document).on('click', '.qr-btn', function () {
       currentQr.employeeId = $(this).data('employeeid') || '';
       currentQr.name       = $(this).data('name') || '';
@@ -488,20 +1102,25 @@
       document.getElementById('passNamePrint').textContent  = toUpper(currentQr.name);
       document.getElementById('vertIdPrint').textContent    = currentQr.employeeId || '';
 
-      // Build QRs
+      // Build QR codes
       qrPrev  = buildQR(document.getElementById('qrBoxPrev'),  currentQr.employeeId);
       qrPrint = buildQR(document.getElementById('qrBoxPrint'), currentQr.employeeId);
     });
 
-    // Download as PNG (hi-res using hidden full-size card)
+    // Download PNG functionality
     document.getElementById('btnDownload').addEventListener('click', async () => {
       const card = document.getElementById('idPassPrint');
-      const canvas = await html2canvas(card, { scale: 3, backgroundColor: '#ffffff' });
+      const canvas = await html2canvas(card, { 
+        scale: 3, 
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        allowTaint: false 
+      });
       canvas.toBlob(blob => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = (currentQr.employeeId || 'NTS_Pass') + '.png';
+        a.download = (currentQr.employeeId || 'Staff_Pass') + '.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -509,12 +1128,12 @@
       }, 'image/png');
     });
 
-    // Print (only the card area)
+    // Print functionality
     document.getElementById('btnPrint').addEventListener('click', () => {
       window.print();
     });
 
-    // Fill Edit modal
+    // Edit button click handler
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function () {
         document.getElementById('edit-id').value          = this.dataset.id || '';
@@ -524,6 +1143,66 @@
         document.getElementById('edit-department').value  = this.dataset.department || '';
         document.getElementById('edit-imagePreview').src  = this.dataset.imageurl || '/images/default-profile.png';
       });
+    });
+
+    // Loading overlay functions
+    function showLoading() {
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    // Hide loading on page load
+    window.addEventListener('load', hideLoading);
+
+    // Form validation
+    document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', function(e) {
+        const inputs = form.querySelectorAll('input[required]');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+          if (!input.value.trim()) {
+            isValid = false;
+            input.classList.add('is-invalid');
+          } else {
+            input.classList.remove('is-invalid');
+          }
+        });
+        
+        if (!isValid) {
+          e.preventDefault();
+          alert('Please fill in all required fields.');
+        }
+      });
+    });
+
+    // Image preview functionality
+    document.getElementById('edit-imageFile').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('edit-imagePreview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Add smooth animations to table rows
+    $(document).ready(function() {
+      $('#ntsTable tbody').on('mouseenter', 'tr', function() {
+        $(this).addClass('table-row-hover');
+      }).on('mouseleave', 'tr', function() {
+        $(this).removeClass('table-row-hover');
+      });
+    });
+
+    // Page level initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Non Teaching Staff Management page loaded');
     });
   </script>
 </body>

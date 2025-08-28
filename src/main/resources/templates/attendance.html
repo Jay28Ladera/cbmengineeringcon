@@ -2,61 +2,240 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
- 
-
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="_csrf" th:content="${_csrf.token}" />
-<meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Attendance - Sisters of Mary Schools</title>
 
-  <title>Attendance</title>
-
-  <!-- Bootstrap CSS -->
+  <!-- Bootstrap CSS & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <!-- SweetAlert2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-<!-- SweetAlert2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" th:href="@{/css/header.css}" />
-  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
-  <link rel="stylesheet" th:href="@{/css/home.css}" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
+
+    .app-container { display:flex; min-height:100vh; }
+    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
+    .content-area { flex:1; padding:2rem; background:#f8f9fa; }
+
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
+
+    .page-header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:15px; box-shadow:0 10px 30px rgba(102,126,234,.3); margin-bottom: 2rem; }
+
+    .attendance-card { 
+      border:none; 
+      border-radius:12px; 
+      box-shadow:0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08); 
+      background:#fff; 
+      border: 1px solid rgba(0,0,0,.05);
+      transition: box-shadow 0.3s ease;
+    }
+    .attendance-card:hover {
+      box-shadow:0 8px 35px rgba(0,0,0,.15), 0 4px 15px rgba(0,0,0,.1);
+    }
+
+    /* Clock Section */
+    .clock-section {
+      font-size: 0.9rem;
+    }
+
+    /* Search Section */
+    .form-control {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+      outline: none;
+    }
+
+    .input-group-text {
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+    }
+
+    /* Student Info Card */
+    .student-info-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .student-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+
+    .student-detail {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .student-detail strong {
+      font-weight: 700;
+      opacity: 0.9;
+    }
+
+    /* Attendance Logs */
+    .logs-container {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.05);
+    }
+
+    .logs-table {
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .logs-table thead th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 1rem 0.75rem;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .logs-table tbody td {
+      padding: 0.75rem;
+      vertical-align: middle;
+      text-align: center;
+      border-color: #f1f3f4;
+      font-size: 0.9rem;
+    }
+
+    .logs-table tbody tr:hover {
+      background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    .log-photo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #e9ecef;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border: none;
+      color: white;
+      padding: 1rem 3rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(40, 167, 69, 0.2);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(40, 167, 69, 0.3);
+      color: white;
+    }
+
+    /* Welcome Section */
+    h2 {
+      color: #495057;
+      font-weight: 600;
+    }
+
+    .text-primary {
+      color: #667eea !important;
+    }
+
+    .text-success {
+      color: #28a745 !important;
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left:0 !important; padding-top:70px; }
+      .content-area { padding:1rem; }
+      .student-photo { width: 150px; height: 150px; }
+      .clock-container { padding: 1rem; }
+      .search-container, .logs-container { padding: 1rem; }
+      .student-info-card { padding: 1.5rem; }
+      .logs-table thead th, .logs-table tbody td { padding: 0.5rem 0.25rem; font-size: 0.8rem; }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding:.75rem; }
+      .page-header .card-body { padding:1.5rem; }
+      .student-photo { width: 120px; height: 120px; }
+      .clock-value { font-size: 1rem; }
+      .search-input { font-size: 1rem; padding: 0.75rem 1rem; }
+    }
+  </style>
 </head>
-
-
 <body>
-  <!-- Header -->
-  <div th:replace="fragments/header :: header(${username})"></div>
+  <div class="app-container">
 
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='attendance',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
 
+    <!-- Main Content -->
+    <div class="main-content">
 
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
 
-  <div class="container-fluid">
-    <div class="row">
-      <!-- Sidebar -->
-      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
-
-      <!-- Main Content -->
-       
-      <div class="col-md-9 p-4">
-        <h1>Welcome! <span th:text="${username}">User</span> to School Attendance</h1>
+      <!-- Page Body -->
+      <main class="content-area">
         
-
-
-     
-
-        <!-- 🕒 Real-time Clock & Date -->
-        <div class="mb-4 d-flex justify-content-between align-items-center">
-          <div>
-            <span class="fw-bold">📅 Date:</span>
-            <span id="current-date"></span>
-          </div>
-          <div>
-            <span class="fw-bold">⏰ Time:</span>
-            <span id="current-time"></span>
+        <!-- Page Header with Welcome and Clock -->
+        <div class="page-header card mb-4">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h2 class="card-title mb-2"><i class="bi bi-clock-history me-2"></i>School Attendance System</h2>
+                <p class="mb-0">Welcome, <span th:text="${username}">admin</span>! Record student attendance by scanning ID numbers.</p>
+              </div>
+              <div class="col-md-6">
+                <div class="row text-center">
+                  <div class="col-6">
+                    <div class="text-white-50 mb-1"><i class="bi bi-calendar-date me-1"></i>Date</div>
+                    <div class="fw-bold" id="current-date">Loading...</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="text-white-50 mb-1"><i class="bi bi-clock me-1"></i>Time</div>
+                    <div class="fw-bold" id="current-time">Loading...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -64,61 +243,97 @@
         <input type="hidden" id="current-user" th:value="${username}" />
 
         <!-- Search Section -->
-        <div class="mb-4">
-          <label for="search-id" class="form-label">Search by ID Number</label>
-          <div class="input-group">
-            <input type="text" class="form-control" id="search-id" placeholder="e.g. TAL2022-005" />
-            <button class="btn btn-primary d-none" type="button">Search</button>
-
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <label for="search-id" class="form-label fw-semibold">
+              <i class="bi bi-search me-2"></i>Search by ID Number
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-qr-code-scan"></i>
+              </span>
+              <input type="text" class="form-control" id="search-id" placeholder="Scan or type ID number" autocomplete="off" />
+            </div>
+            <small class="form-text text-muted">Press Enter to record attendance</small>
           </div>
         </div>
 
-        <div class="row mb-4" id="student-info-row">
+        <div class="row" id="student-info-row">
           <!-- Student Info Card -->
-          <div class="col-md-5 mb-3" id="student-info-card">
-            <div class="card shadow-sm h-100 text-center">
-              <div class="card-body">
-                <img id="student-photo"
-                     src="/images/default-profile.png"
-                     alt="Student Photo"
-                     class="rounded mb-3"
-                     style="width: 400px; height: 400px; object-fit: cover;" />
-                <p><strong>LRN:</strong> <span id="lrn">-</span></p>
-                <p><strong>ID Number:</strong> <span id="id-number">-</span></p>
-                <p><strong>Name:</strong> <span id="name">-</span></p>
-                <p><strong>Campus:</strong> <span id="campus">-</span></p>
-                <p><strong>Family Saint:</strong> <span id="family-saint">-</span></p>
-                <p><strong>Batch Number:</strong> <span id="batch-number">-</span></p>
+          <div class="col-lg-5 mb-4" id="student-info-card" style="display: none;">
+            <div class="attendance-card">
+              <div class="card-header bg-white border-0 py-3">
+                <h5 class="card-title mb-0 text-center">
+                  <i class="bi bi-person-badge me-2 text-primary"></i>Student Information
+                </h5>
+              </div>
+              <div class="card-body p-0">
+                <div class="student-info-card">
+                  <img id="student-photo"
+                       src="/images/default-profile.png"
+                       alt="Student Photo"
+                       class="student-photo" />
+                  
+                  <div class="student-detail">
+                    <strong>LRN:</strong> <span id="lrn">-</span>
+                  </div>
+                  <div class="student-detail">
+                    <strong>ID Number:</strong> <span id="id-number">-</span>
+                  </div>
+                  <div class="student-detail">
+                    <strong>Name:</strong> <span id="name">-</span>
+                  </div>
+                  <div class="student-detail">
+                    <strong>Campus:</strong> <span id="campus">-</span>
+                  </div>
+                  <div class="student-detail">
+                    <strong>Family Saint:</strong> <span id="family-saint">-</span>
+                  </div>
+                  <div class="student-detail">
+                    <strong>Batch Number:</strong> <span id="batch-number">-</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Attendance Logs Card -->
-          <div class="col-md-7 mb-3">
-            <div class="card shadow-sm h-100">
-              <div class="card-body">
-                <h5 class="fw-bold mb-3">
-                  <i class="bi bi-journal-text me-2"></i>Attendance Logs
-                </h5>
-
-                <table class="table table-bordered table-striped">
-                  <thead>
-                    <tr>
-                      <th>Photo</th>
-                      <th>Name</th>
-                      <th>ID Number</th>
-                      <th>Date</th>
-                      <th>Time In</th>
-                      <th>Time Out</th>
-                                  
-                      <th>Recorded By</th>
-                    </tr>
-                  </thead>
-                  <tbody id="logs-table-body">
-                    <!-- Logs will be inserted here -->
-                  </tbody>
-                </table>
-                
+          <div class="col-lg-7 mb-4">
+            <div class="attendance-card">
+              <div class="card-header bg-white border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-journal-text me-2 text-primary"></i>Recent Attendance Logs
+                  </h5>
+                  <span class="badge bg-info">Live Updates</span>
+                </div>
+              </div>
+              <div class="card-body p-0">
+                <div class="logs-container">
+                  <div class="table-responsive">
+                    <table class="table logs-table mb-0">
+                      <thead>
+                        <tr>
+                          <th><i class="bi bi-image me-1"></i>Photo</th>
+                          <th><i class="bi bi-person me-1"></i>Name</th>
+                          <th><i class="bi bi-hash me-1"></i>ID Number</th>
+                          <th><i class="bi bi-calendar me-1"></i>Date</th>
+                          <th><i class="bi bi-clock me-1"></i>Time In</th>
+                          <th><i class="bi bi-clock-history me-1"></i>Time Out</th>
+                          <th><i class="bi bi-person-badge me-1"></i>Recorded By</th>
+                        </tr>
+                      </thead>
+                      <tbody id="logs-table-body">
+                        <tr>
+                          <td colspan="7" class="text-center text-muted py-4">
+                            <i class="bi bi-hourglass-split" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <br>Loading attendance logs...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -126,9 +341,12 @@
 
         <!-- Submit Button -->
         <div class="text-center">
-          <button class="btn btn-success px-5 d-none" onclick="submitAttendance()">Submit Attendance</button>
+          <button class="submit-btn d-none" onclick="submitAttendance()">
+            <i class="bi bi-check-circle me-2"></i>Submit Attendance
+          </button>
         </div>
-      </div>
+
+      </main>
     </div>
   </div>
 
@@ -139,7 +357,6 @@
   <script th:inline="javascript">
     const currentUser = /*[[${username}]]*/ "admin";
   </script>
-  
 
   <script>
     let currentStudent = null;
@@ -172,74 +389,83 @@
     }
 
     async function submitAttendance() {
-  if (!currentStudent) return alert("Search and select a student first.");
+      if (!currentStudent) return alert("Search and select a student first.");
 
-  const now = new Date();
-  const date = now.toISOString().split("T")[0];
-  const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
-  const account = currentUser;
+      const now = new Date();
+      const date = now.toISOString().split("T")[0];
+      const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
+      const account = currentUser;
 
-  const attendance = {
-    idNumber: currentStudent.idNumber,
-    lrn: currentStudent.lrn,
-    name: currentStudent.name,
-    campus: currentStudent.campus,
-    familySaint: currentStudent.familySaint,
-    batchNumber: currentStudent.batchNumber,
-    imageUrl: currentStudent.imageUrl,
-    date,
-    timeIn,
-    timeOut: null,
-    status: "present",
-    remarks: "",
-    account
-  };
+      const attendance = {
+        idNumber: currentStudent.idNumber,
+        lrn: currentStudent.lrn,
+        name: currentStudent.name,
+        campus: currentStudent.campus,
+        familySaint: currentStudent.familySaint,
+        batchNumber: currentStudent.batchNumber,
+        imageUrl: currentStudent.imageUrl,
+        date,
+        timeIn,
+        timeOut: null,
+        status: "present",
+        remarks: "",
+        account
+      };
 
-  try {
-    const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
-    const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+      try {
+        const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
 
-    const res = await fetch("/api/attendance/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        [header]: token
-      },
-      body: JSON.stringify(attendance)
-    });
+        const res = await fetch("/api/attendance/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            [header]: token
+          },
+          body: JSON.stringify(attendance)
+        });
 
-    if (res.ok) {
-  const message = await res.text(); // "Time In recorded." or "Time Out recorded."
+        if (res.ok) {
+          const message = await res.text();
 
-  // Show SweetAlert2 popup
-  Swal.fire({
-    title: message.includes("Time Out") 
-      ? '<span style="color: red;">Time Out</span>' 
-      : 'Attendance Recorded!',
-    html: `
-      <div style="font-size: 3rem; margin-top: 10px;">
-        <i class="bi bi-check-circle-fill ${message.includes("Time Out") ? 'text-danger' : 'text-success'}"></i>
-      </div>
-      <p style="font-size: 1.2rem; margin-top: 10px;">${message}</p>
-    `,
-    showConfirmButton: false,
-    timer: 2000,
-    timerProgressBar: true,
-    position: 'center',
-    backdrop: true,
-    didOpen: () => {
-      Swal.showLoading();
+          // Enhanced SweetAlert2 popup
+          Swal.fire({
+            title: message.includes("Time Out") 
+              ? '<span style="color: #dc3545;">Time Out Recorded</span>' 
+              : '<span style="color: #28a745;">Attendance Recorded!</span>',
+            html: `
+              <div style="font-size: 4rem; margin: 20px 0;">
+                <i class="bi bi-${message.includes("Time Out") ? 'clock-history text-danger' : 'check-circle-fill text-success'}"></i>
+              </div>
+              <p style="font-size: 1.2rem; font-weight: 600; color: #495057;">${message}</p>
+              <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                <small style="color: #6c757d;">Student: ${currentStudent.name}</small>
+              </div>
+            `,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            position: 'center',
+            backdrop: true,
+            background: '#ffffff',
+            customClass: {
+              popup: 'border-0 shadow-lg'
+            }
+          });
+
+          loadAttendanceLogs();
+        } else {
+          throw new Error();
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Failed to Submit',
+          text: 'Unable to record attendance. Please try again.',
+          background: '#ffffff'
+        });
+      }
     }
-  });
-      // ✅ Refresh the logs display
-      loadAttendanceLogs();
-    } else {
-      throw new Error();
-    }
-  } catch (error) {
-    alert("❌ Failed to submit attendance.");
-  }
-}
 
     function updateClock() {
       const now = new Date();
@@ -254,63 +480,77 @@
       document.getElementById('current-time').textContent = time;
     }
 
+    async function loadAttendanceLogs() {
+      try {
+        const res = await fetch("/api/attendance/logs");
+        if (!res.ok) throw new Error("Failed to load logs");
+
+        const logs = await res.json();
+        const tbody = document.getElementById("logs-table-body");
+        tbody.innerHTML = "";
+
+        const latestEightLogs = logs.slice(0, 8);
+
+        if (latestEightLogs.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
+                <br>No attendance records yet today.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        latestEightLogs.forEach(log => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>
+              <img src="${log.imageUrl || '/images/default-profile.png'}" 
+                   class="log-photo" 
+                   alt="Student" />
+            </td>
+            <td><strong>${log.name || '-'}</strong></td>
+            <td><code class="text-primary">${log.idNumber || '-'}</code></td>
+            <td>${log.date || '-'}</td>
+            <td><span class="badge bg-success">${log.timeIn || '-'}</span></td>
+            <td>${log.timeOut ? `<span class="badge bg-danger">${log.timeOut}</span>` : '<span class="badge bg-light text-dark">-</span>'}</td>
+            <td><small class="text-muted">${log.account || '-'}</small></td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error(err);
+        document.getElementById("logs-table-body").innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-danger py-4">
+              <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
+              <br>Error loading attendance logs.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // Initialize
     setInterval(updateClock, 1000);
     updateClock();
+    loadAttendanceLogs();
 
-    async function loadAttendanceLogs() {
-  try {
-    const res = await fetch("/api/attendance/logs");
-    if (!res.ok) throw new Error("Failed to load logs");
+    // Auto-submit on Enter key
+    document.getElementById("search-id").addEventListener("keydown", async function (event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
 
-    const logs = await res.json();
-    const tbody = document.getElementById("logs-table-body");
-    tbody.innerHTML = "";
+        await searchStudent();
+        await submitAttendance();
 
-    // ✅ Only take the first 5 logs
-    const latestEightLogs = logs.slice(0, 8);
-
-    latestEightLogs.forEach(log => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><img src="${log.imageUrl || '/images/default-profile.png'}" style="width: 60px; height: 60px; object-fit: cover;" class="rounded" /></td>
-        <td>${log.name || '-'}</td>
-        <td>${log.idNumber || '-'}</td>
-        <td>${log.date || '-'}</td>
-        <td>${log.timeIn || '-'}</td>
-        <td>${log.timeOut || '-'}</td>
-     
-      
-        <td>${log.account || '-'}</td>
-      `;
-      tbody.appendChild(row);
+        this.value = "";
+        this.focus();
+      }
     });
-  } catch (err) {
-    console.error(err);
-    alert("Error loading attendance logs.");
-  }
-}
-
-
-setInterval(updateClock, 1000);
-updateClock();
-loadAttendanceLogs(); // 👈 Add this line to fetch logs on load
-
-
-document.getElementById("search-id").addEventListener("keydown", async function (event) {
-  if (event.key === "Enter") {
-    event.preventDefault(); // Prevent default form submission behavior
-
-    await searchStudent();     // 🔍 Auto-search
-    await submitAttendance();  // 📝 Auto-submit
-
-    this.value = "";           // 🔄 Clear the field
-    this.focus();              // 🎯 Keep focus for next scan
-  }
-});
-
-
   </script>
 
-  
 </body>
 </html>

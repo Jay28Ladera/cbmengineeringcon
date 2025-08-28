@@ -1,520 +1,846 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Events</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events - Sisters of Mary Schools</title>
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-    <!-- SweetAlert2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <!-- Bootstrap CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" th:href="@{/css/header.css}">
-    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
-    <link rel="stylesheet" th:href="@{/css/home.css}">
-    <link rel="stylesheet" th:href="@{/css/events.css}">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
+
+    .app-container { display:flex; min-height:100vh; }
+    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
+    .content-area { flex:1; padding:2rem; background:#f8f9fa; }
+
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
+
+    .page-header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:15px; box-shadow:0 10px 30px rgba(102,126,234,.3); margin-bottom: 2rem; }
+
+    /* Filter Section */
+    .filter-section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.05);
+    }
+
+    .form-select {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+      outline: none;
+    }
+
+    /* Create Event Button */
+    .btn-create-event {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border: none;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+    }
+
+    .btn-create-event:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+      color: white;
+    }
+
+    /* Event Cards */
+    .event-card {
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08);
+      transition: all 0.3s ease;
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.05);
+      cursor: pointer;
+      height: 100%;
+    }
+
+    .event-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 35px rgba(0,0,0,.15), 0 4px 15px rgba(0,0,0,.1);
+    }
+
+    .event-header {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .event-date {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .audience-badge {
+      background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+      color: white;
+      margin-right: 0.25rem;
+      margin-bottom: 0.25rem;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+
+    /* Action Buttons */
+    .btn-edit {
+      background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .btn-edit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(255, 193, 7, 0.3);
+      color: white;
+    }
+
+    .btn-delete {
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      border: none;
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    .btn-delete:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(220, 53, 69, 0.3);
+      color: white;
+    }
+
+    /* Modal Styling */
+    .modal-content {
+      border-radius: 15px;
+      border: none;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.15);
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px 15px 0 0;
+      padding: 1.5rem 2rem;
+    }
+
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    /* Form Styling */
+    .form-label {
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 0.75rem;
+    }
+
+    .form-control {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+      outline: none;
+    }
+
+    /* Checkboxes */
+    .form-check-input:checked {
+      background-color: #667eea;
+      border-color: #667eea;
+    }
+
+    .form-check-input:focus {
+      border-color: #667eea;
+      outline: 0;
+      box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+    }
+
+    /* Attendance Modal Styling */
+    .student-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #e9ecef;
+    }
+
+    #scannerInput {
+      border: 3px solid #28a745;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    #scannerInput:focus {
+      border-color: #20c997;
+      box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+    }
+
+    /* Empty State */
+    .empty-state {
+      background: linear-gradient(135deg, rgba(23, 162, 184, 0.1) 0%, rgba(111, 66, 193, 0.1) 100%);
+      border: 2px dashed #17a2b8;
+      border-radius: 12px;
+      padding: 3rem;
+      text-align: center;
+    }
+
+    /* Button Styling */
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+      border: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left:0 !important; padding-top:70px; }
+      .content-area { padding:1rem; }
+      .filter-section { padding: 1rem; }
+      .event-card { margin-bottom: 1rem; }
+      .student-photo { width: 150px; height: 150px; }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding:.75rem; }
+      .page-header .card-body { padding:1.5rem; }
+      .filter-section { padding: 0.75rem; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Header Section -->
-    <div th:replace="fragments/header :: header(${username})"></div>
+  <div class="app-container">
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar Section -->
-            <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='events',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
 
-            <!-- Main Content Section -->
-            <div class="col-md-9 p-4">
-                <h1>Welcome to the Event Page</h1>
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <label for="schoolYear" id="schoolYearLabel" class="form-label me-2">School Year:</label>
-                        <select id="schoolYear" name="schoolYear" class="form-select d-inline w-auto" 
-                                onchange="this.form.submit()">
-                            <option value="">All Years</option>
-                            <option th:each="year : ${#numbers.sequence(2020, 2030)}" 
-                                    th:value="${year}" 
-                                    th:text="${year}"
-                                    th:selected="${param.schoolYear != null && param.schoolYear[0] == year.toString()}">
-                            </option>
-                        </select>
-                    </div>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#eventModal">
-                        <i class="bi bi-plus-circle"></i> Create Event
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
+
+      <!-- Page Body -->
+      <main class="content-area">
+        
+        <!-- Page Header -->
+        <div class="page-header card mb-4">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h2 class="card-title mb-3"><i class="bi bi-calendar-event me-2"></i>Events Management</h2>
+                <p class="mb-0">Create, manage, and track attendance for school events. Click on any event card to record student attendance.</p>
+              </div>
+              <div class="col-md-4 text-center">
+                <i class="bi bi-calendar-check" style="font-size:4rem; opacity:.3;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter and Create Section -->
+        <div class="filter-section">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <label for="schoolYear" class="form-label me-2">
+                <i class="bi bi-calendar-range me-2"></i>Filter by School Year:
+              </label>
+              <select id="schoolYear" name="schoolYear" class="form-select d-inline w-auto">
+                <option value="">All Years</option>
+                <option th:each="year : ${#numbers.sequence(2020, 2030)}" 
+                        th:value="${year}" 
+                        th:text="${year}"
+                        th:selected="${param.schoolYear != null && param.schoolYear[0] == year.toString()}">
+                </option>
+              </select>
+            </div>
+            <button class="btn-create-event" data-bs-toggle="modal" data-bs-target="#eventModal">
+              <i class="bi bi-plus-circle me-2"></i>Create Event
+            </button>
+          </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+          <!-- Event Card -->
+          <div th:each="event : ${events}" class="col">
+            <div class="card event-card clickable-card" 
+                 th:data-id="${event.id}"
+                 th:data-name="${event.name}">
+              <div class="card-body">
+                <div class="event-header">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title mb-0 fw-bold" th:text="${event.name}"></h5>
+                    <span class="event-date" th:text="${#temporals.format(event.dateTime, 'MMM dd, yyyy')}"></span>
+                  </div>
+                </div>
+                
+                <div class="row mb-3">
+                  <div class="col-6">
+                    <small class="text-muted">
+                      <i class="bi bi-person-video3 me-1"></i>Speaker:
+                    </small>
+                    <p class="mb-0 fw-semibold" th:text="${event.speaker}"></p>
+                  </div>
+                  <div class="col-6">
+                    <small class="text-muted">
+                      <i class="bi bi-clock me-1"></i>Time:
+                    </small>
+                    <p class="mb-0" th:text="${#temporals.format(event.dateTime, 'h:mm a')}"></p>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <small class="text-muted">
+                    <i class="bi bi-geo-alt me-1"></i>Venue:
+                  </small>
+                  <p class="mb-0" th:text="${event.venue}"></p>
+                </div>
+                
+                <div class="mb-3">
+                  <small class="text-muted">
+                    <i class="bi bi-people me-1"></i>Audience:
+                  </small>
+                  <div>
+                    <span th:if="${event.audience == 'All Levels'}" 
+                          class="badge audience-badge">All Levels</span>
+                    <span th:if="${event.audience == 'None'}" 
+                          class="badge audience-badge">Not specified</span>
+                    <th:block th:if="${event.audience != 'All Levels' and event.audience != 'None'}">
+                      <span th:each="grade : ${#strings.arraySplit(event.audience, ',')}" 
+                            class="badge audience-badge">
+                        Grade <span th:text="${grade.trim()}"></span>
+                      </span>
+                    </th:block>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card-footer bg-transparent border-top-0">
+                <div class="d-flex justify-content-end">
+                  <button class="btn btn-edit btn-sm me-2 edit-btn" 
+                          th:data-id="${event.id}"
+                          onclick="event.stopPropagation()">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                  </button>
+                  <form th:action="@{/events/delete/{id}(id=${event.id})}" method="post" class="d-inline">
+                    <input type="hidden" name="_method" value="delete"/>
+                    <button type="submit" class="btn btn-delete btn-sm" 
+                            onclick="event.stopPropagation(); return confirm('Are you sure you want to delete this event?')"
+                            onmouseover="event.stopPropagation()">
+                      <i class="bi bi-trash me-1"></i>Delete
                     </button>
+                  </form>
                 </div>
-                
-                <!-- Wrap the cards in a form -->
-                <form id="filterForm" th:action="@{/events}" method="get">
-                    <!-- The select element is already inside this form -->
-                    <input type="hidden" name="filter" value="true">
-                </form>
-                
-                <!-- Events Cards Grid -->
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    <!-- Event Card (repeats for each event) -->
-                    <div th:each="event : ${events}" class="col">
-                        <div class="card event-card h-100 clickable-card" 
-                            th:data-id="${event.id}"
-                            th:data-name="${event.name}">
-                            <div class="card-body">
-                                <div class="event-header d-flex justify-content-between">
-                                    <h5 class="card-title mb-0" th:text="${event.name}"></h5>
-                                    <span class="event-date" th:text="${#temporals.format(event.dateTime, 'MMM dd, yyyy')}"></span>
-                                </div>
-                                
-                                <div class="my-2">
-                                    <small class="text-muted">Speaker:</small>
-                                    <p class="mb-1 fw-bold" th:text="${event.speaker}"></p>
-                                </div>
-                                
-                                <div class="my-2">
-                                    <small class="text-muted">Time:</small>
-                                    <p class="mb-1" th:text="${#temporals.format(event.dateTime, 'h:mm a')}"></p>
-                                </div>
-                                
-                                <div class="my-2">
-                                    <small class="text-muted">Venue:</small>
-                                    <p class="mb-1" th:text="${event.venue}"></p>
-                                </div>
-                                
-                                <div class="my-3">
-                                    <small class="text-muted">Audience:</small>
-                                    <div>
-                                        <span th:if="${event.audience == 'All Levels'}" 
-                                              class="badge audience-badge">All Levels</span>
-                                        <span th:if="${event.audience == 'None'}" 
-                                              class="badge audience-badge">Not specified</span>
-                                        <th:block th:if="${event.audience != 'All Levels' and event.audience != 'None'}">
-                                            <span th:each="grade : ${#strings.arraySplit(event.audience, ',')}" 
-                                                  class="badge audience-badge">
-                                                Grade <span th:text="${grade.trim()}"></span>
-                                            </span>
-                                        </th:block>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card-footer bg-transparent border-top-0">
-                                <div class="d-flex justify-content-end">
-                                    <button class="btn btn-outline-warning btn-sm me-2 edit-btn" 
-                                            th:data-id="${event.id}">
-                                            <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                    <!-- Updated Delete Button -->
-                                    <form th:action="@{/events/delete/{id}(id=${event.id})}" method="post" class="d-inline">
-                                        <input type="hidden" name="_method" value="delete"/>
-                                        <button type="submit" class="btn btn-outline-danger btn-sm me-2" 
-                                                onclick="return confirm('Are you sure you want to delete this event?')">
-                                            <i class="bi bi-trash"></i> Delete
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Empty State -->
-                    <div th:if="${events.empty}" class="col-12">
-                        <div class="alert alert-info text-center">
-                            No events found. Click "Create Event" to get started!
-                        </div>
-                    </div>
-                </div>
+              </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Event Creation Modal -->
-    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Create Event</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="eventForm" th:action="@{/events/create}" method="post">
-                        <input type="hidden" id="eventId" name="id" value="">
-                        <div class="mb-3">
-                            <label for="eventName" class="form-label">Event Name</label>
-                            <input type="text" class="form-control" id="eventName" name="name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventSpeaker" class="form-label">Speaker</label>
-                            <input type="text" class="form-control" id="eventSpeaker" name="speaker" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventDateTime" class="form-label">Date & Time</label>
-                            <input type="datetime-local" class="form-control" id="eventDateTime" name="dateTime" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="eventVenue" class="form-label">Venue</label>
-                            <input type="text" class="form-control" id="eventVenue" name="venue" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Audience</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="allLevels" name="audience" value="all">
-                                <label class="form-check-label" for="allLevels">All Levels</label>
-                            </div>
-                            <div th:each="grade : ${#numbers.sequence(7, 12)}">
-                                <div class="form-check">
-                                    <input class="form-check-input grade-checkbox" type="checkbox" 
-                                           th:id="'grade' + ${grade}" name="audience" th:value="${grade}">
-                                    <label class="form-check-label" th:for="'grade' + ${grade}" 
-                                           th:text="'Grade ' + ${grade}"></label>
-                                </div>
-        
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
+          </div>
+          
+          <!-- Empty State -->
+          <div th:if="${events.empty}" class="col-12">
+            <div class="empty-state">
+              <i class="bi bi-calendar-x" style="font-size: 3rem; color: #17a2b8; margin-bottom: 1rem;"></i>
+              <h4>No Events Found</h4>
+              <p class="text-muted">No events found for the selected criteria. Click "Create Event" to get started!</p>
             </div>
+          </div>
         </div>
-    </div>
 
-    <!-- Attendance Modal -->
-    <div class="modal fade" id="attendanceModal" tabindex="-1" aria-labelledby="attendanceModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="attendanceModalLabel">Event Attendance</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </main>
+    </div>
+  </div>
+
+  <!-- Event Creation/Edit Modal -->
+  <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">
+            <i class="bi bi-calendar-plus me-2"></i>Create Event
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="eventForm" th:action="@{/events/create}" method="post">
+            <input type="hidden" id="eventId" name="id" value="">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="eventName" class="form-label">
+                  <i class="bi bi-calendar-event me-2"></i>Event Name
+                </label>
+                <input type="text" class="form-control" id="eventName" name="name" placeholder="Enter event name" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="eventSpeaker" class="form-label">
+                  <i class="bi bi-person-video3 me-2"></i>Speaker
+                </label>
+                <input type="text" class="form-control" id="eventSpeaker" name="speaker" placeholder="Enter speaker name" required>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="eventDateTime" class="form-label">
+                  <i class="bi bi-clock me-2"></i>Date & Time
+                </label>
+                <input type="datetime-local" class="form-control" id="eventDateTime" name="dateTime" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="eventVenue" class="form-label">
+                  <i class="bi bi-geo-alt me-2"></i>Venue
+                </label>
+                <input type="text" class="form-control" id="eventVenue" name="venue" placeholder="Enter venue" required>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label">
+                <i class="bi bi-people me-2"></i>Target Audience
+              </label>
+              <div class="row">
+                <div class="col-md-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="allLevels" name="audience" value="all">
+                    <label class="form-check-label fw-semibold" for="allLevels">All Levels</label>
+                  </div>
                 </div>
-                <div class="modal-body">
-                    <!-- Hidden scanner input that will capture the QR data -->
-                    <input type="text" id="scannerInput" class="form-control mb-3" placeholder="Scan QR Code or Enter ID" autofocus>
-                    
-                    <div class="row">
-                        <!-- Student Info Column -->
-                        <div class="col-md-5">
-                            <div class="card h-100">
-                                <div class="card-body text-center">
-                                    <img id="studentPhoto" src="/images/default-profile.png" 
-                                         alt="Student Photo" class="rounded mb-3 img-fluid" 
-                                         style="max-height: 300px; object-fit: cover;">
-                                    <h5 id="studentName" class="card-title">-</h5>
-                                    <div class="text-start">
-                                        <p><strong>LRN:</strong> <span id="studentLrn">-</span></p>
-                                        <p><strong>ID Number:</strong> <span id="studentIdNumber">-</span></p>
-                                        <p><strong>Campus:</strong> <span id="studentCampus">-</span></p>
-                                        <p><strong>Family Saint:</strong> <span id="studentFamilySaint">-</span></p>
-                                        <p><strong>Batch Number:</strong> <span id="studentBatchNumber">-</span></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Attendance Logs Column -->
-                        <div class="col-md-7">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <h5 class="card-title">Recent Attendance</h5>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Time In</th>
-                                                    <th>Name</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="attendanceLogs">
-                                                <!-- Attendance logs will be populated here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div class="col-md-9">
+                  <div class="row">
+                    <div th:each="grade : ${#numbers.sequence(7, 12)}" class="col-md-4 col-6">
+                      <div class="form-check">
+                        <input class="form-check-input grade-checkbox" type="checkbox" 
+                               th:id="'grade' + ${grade}" name="audience" th:value="${grade}">
+                        <label class="form-check-label" th:for="'grade' + ${grade}" 
+                               th:text="'Grade ' + ${grade}"></label>
+                      </div>
                     </div>
+                  </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button1" class="btn btn-secondary1" data-bs-dismiss="modal"></button>
-                    <button type="button1" id="confirmAttendanceBtn" class="btn btn-primary1" disabled></button>
-                </div>
+              </div>
             </div>
+            
+            <div class="modal-footer px-0">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <i class="bi bi-x-lg me-2"></i>Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Save Event
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
     </div>
+  </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- SweetAlert2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Handle "All Levels" checkbox behavior
-            const allLevelsCheckbox = document.getElementById('allLevels');
-            const gradeCheckboxes = document.querySelectorAll('input[name="audience"]:not(#allLevels)');
+  <!-- Attendance Modal -->
+  <div class="modal fade" id="attendanceModal" tabindex="-1" aria-labelledby="attendanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="attendanceModalLabel">
+            <i class="bi bi-qr-code-scan me-2"></i>Event Attendance
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Scanner Input -->
+          <div class="mb-4">
+            <label for="scannerInput" class="form-label">
+              <i class="bi bi-search me-2"></i>
+              <strong>Scan QR Code or Enter Student ID</strong>
+            </label>
+            <input type="text" id="scannerInput" class="form-control" 
+                   placeholder="Scan QR Code or type student ID number" autofocus>
+            <div class="form-text">
+              <i class="bi bi-info-circle me-1"></i>
+              Position the QR code in front of your camera or manually enter the student ID
+            </div>
+          </div>
+          
+          <div class="row">
+            <!-- Student Info Column -->
+            <div class="col-lg-5 mb-4">
+              <div class="card h-100">
+                <div class="card-header bg-light">
+                  <h6 class="card-title mb-0">
+                    <i class="bi bi-person-badge me-2"></i>Student Information
+                  </h6>
+                </div>
+                <div class="card-body text-center">
+                  <img id="studentPhoto" src="/images/default-profile.png" 
+                       alt="Student Photo" class="student-photo mb-3">
+                  <h5 id="studentName" class="card-title">-</h5>
+                  <div class="text-start">
+                    <p class="mb-2"><strong>LRN:</strong> <span id="studentLrn">-</span></p>
+                    <p class="mb-2"><strong>ID Number:</strong> <span id="studentIdNumber">-</span></p>
+                    <p class="mb-2"><strong>Campus:</strong> <span id="studentCampus">-</span></p>
+                    <p class="mb-2"><strong>Family Saint:</strong> <span id="studentFamilySaint">-</span></p>
+                    <p class="mb-0"><strong>Batch Number:</strong> <span id="studentBatchNumber">-</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
             
-            allLevelsCheckbox.addEventListener('change', function() {
-                gradeCheckboxes.forEach(checkbox => {
-                    checkbox.checked = false;
-                    checkbox.disabled = this.checked;
-                });
-            });
-            
-            // Disable "All Levels" if any grade is selected
-            gradeCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        allLevelsCheckbox.checked = false;
-                    }
-                });
-            });
-        });
-    </script>
+            <!-- Attendance Logs Column -->
+            <div class="col-lg-7">
+              <div class="card h-100">
+                <div class="card-header bg-light">
+                  <h6 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2"></i>Event Attendance Log
+                  </h6>
+                </div>
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                      <thead class="table-light">
+                        <tr>
+                          <th><i class="bi bi-calendar me-1"></i>Date</th>
+                          <th><i class="bi bi-clock me-1"></i>Time In</th>
+                          <th><i class="bi bi-person me-1"></i>Name</th>
+                        </tr>
+                      </thead>
+                      <tbody id="attendanceLogs">
+                        <tr>
+                          <td colspan="3" class="text-center text-muted py-4">
+                            <i class="bi bi-hourglass-split"></i>
+                            <br>Waiting for event attendance data...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="confirmAttendanceBtn" class="btn btn-primary" disabled>
+            <i class="bi bi-check-circle me-2"></i>Record Attendance
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get the school year select element
-            const schoolYearSelect = document.getElementById('schoolYear');
-            
-            // Submit the form when school year changes
-            if (schoolYearSelect) {
-                schoolYearSelect.addEventListener('change', function() {
-                    // Get the selected year
-                    const selectedYear = this.value;
-                    
-                    // Reload the page with the year filter
-                    if (selectedYear) {
-                        window.location.href = `/events?schoolYear=${selectedYear}`;
-                    } else {
-                        window.location.href = '/events';
-                    }
-                });
-            }
-        });
-    </script>
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-            const eventForm = document.getElementById('eventForm');
-            const modalTitle = document.getElementById('modalTitle');
-            
-            // Handle edit buttons
-            document.querySelectorAll('.edit-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const eventId = this.getAttribute('data-id');
-                    
-                    // Fetch event data
-                    fetch(`/events/edit/${eventId}`)
-                        .then(response => response.json())
-                        .then(event => {
-                            // Update modal title
-                            modalTitle.textContent = 'Edit Event';
-                            
-                            // Set form action for update
-                            eventForm.action = `/events/update/${eventId}`;
-                            
-                            // Fill form with event data
-                            document.getElementById('eventId').value = eventId;
-                            document.getElementById('eventName').value = event.name;
-                            document.getElementById('eventSpeaker').value = event.speaker;
-                            document.getElementById('eventDateTime').value = formatDateTimeForInput(event.dateTime);
-                            document.getElementById('eventVenue').value = event.venue;
-                            
-                            // Handle audience checkboxes
-                            resetAudienceCheckboxes();
-                            if (event.audience === 'All Levels') {
-                                document.getElementById('allLevels').checked = true;
-                                disableGradeCheckboxes();
-                            } else if (event.audience !== 'None') {
-                                event.audience.split(',').forEach(grade => {
-                                    const checkbox = document.querySelector(`.grade-checkbox[value="${grade.trim()}"]`);
-                                    if (checkbox) checkbox.checked = true;
-                                });
-                            }
-                            
-                            // Show modal
-                            eventModal.show();
-                        });
-                });
-            });
-            
-            // Handle create button
-            document.querySelector('[data-bs-target="#eventModal"]').addEventListener('click', function() {
-                // Update modal title
-                modalTitle.textContent = 'Create Event';
-                
-                // Reset form for create
-                eventForm.action = '/events/create';
-                eventForm.reset();
-                document.getElementById('eventId').value = '';
-                resetAudienceCheckboxes();
-            });
-            
-            // Helper functions
-            function formatDateTimeForInput(dateTimeString) {
-                const date = new Date(dateTimeString);
-                return date.toISOString().slice(0, 16);
-            }
-            
-            function resetAudienceCheckboxes() {
-                document.getElementById('allLevels').checked = false;
-                document.querySelectorAll('.grade-checkbox').forEach(cb => {
-                    cb.checked = false;
-                    cb.disabled = false;
-                });
-            }
-            
-            function disableGradeCheckboxes() {
-                document.querySelectorAll('.grade-checkbox').forEach(cb => {
-                    cb.checked = false;
-                    cb.disabled = true;
-                });
-            }
-            
-            // Handle "All Levels" checkbox behavior
-            document.getElementById('allLevels').addEventListener('change', function() {
-                if (this.checked) {
-                    disableGradeCheckboxes();
-                } else {
-                    document.querySelectorAll('.grade-checkbox').forEach(cb => {
-                        cb.disabled = false;
-                    });
-                }
-            });
-        });
-    </script>
-
-<script>
+  <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const attendanceModal = new bootstrap.Modal(document.getElementById('attendanceModal'));
-        let currentEventId = null;
-        let currentEventName = null;
-        let currentStudent = null;
-        
-        // Get CSRF token safely
-        function getCsrfToken() {
-            const meta = document.querySelector('meta[name="_csrf"]');
-            return meta ? meta.content : '';
-        }
-        
-        // Get CSRF header name safely
-        function getCsrfHeader() {
-            const meta = document.querySelector('meta[name="_csrf_header"]');
-            return meta ? meta.content : 'X-CSRF-TOKEN';
-        }
-        
-        // Get current user safely
-        function getCurrentUser() {
-            const input = document.getElementById('current-user');
-            return input ? input.value : 'unknown';
-        }
-    
-        // Handle card clicks to open attendance modal
-        document.querySelectorAll('.clickable-card').forEach(card => {
-    card.addEventListener('click', function(e) {
-        currentEventId = this.getAttribute('data-id');
-        currentEventName = this.getAttribute('data-name');
-        
-        document.getElementById('attendanceModalLabel').textContent = 
-            `Attendance for ${currentEventName}`;
-        
-        resetAttendanceForm();
-        fetchAttendanceLogs(currentEventId); // fetch recent attendees
-        attendanceModal.show();
-        setTimeout(() => document.getElementById('scannerInput').focus(), 100);
-    });
-});
-        
-        // Scanner input handler
-        document.getElementById('scannerInput').addEventListener('change', function() {
-            const scannedId = this.value.trim();
-            if (scannedId) {
-                fetchStudentData(scannedId);
-                this.value = '';
-            }
+      // School year filter
+      const schoolYearSelect = document.getElementById('schoolYear');
+      
+      if (schoolYearSelect) {
+        schoolYearSelect.addEventListener('change', function() {
+          const selectedYear = this.value;
+          
+          if (selectedYear) {
+            window.location.href = `/events?schoolYear=${selectedYear}`;
+          } else {
+            window.location.href = '/events';
+          }
         });
+      }
+
+      // Handle "All Levels" checkbox behavior
+      const allLevelsCheckbox = document.getElementById('allLevels');
+      const gradeCheckboxes = document.querySelectorAll('input[name="audience"]:not(#allLevels)');
+      
+      allLevelsCheckbox.addEventListener('change', function() {
+        gradeCheckboxes.forEach(checkbox => {
+          checkbox.checked = false;
+          checkbox.disabled = this.checked;
+        });
+      });
+      
+      // Disable "All Levels" if any grade is selected
+      gradeCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          if (this.checked) {
+            allLevelsCheckbox.checked = false;
+          }
+        });
+      });
+
+      // Event form handling
+      const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+      const eventForm = document.getElementById('eventForm');
+      const modalTitle = document.getElementById('modalTitle');
+      
+      // Handle edit buttons
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const eventId = this.getAttribute('data-id');
+          
+          // Fetch event data
+          fetch(`/events/edit/${eventId}`)
+            .then(response => response.json())
+            .then(event => {
+              // Update modal title
+              modalTitle.innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Event';
+              
+              // Set form action for update
+              eventForm.action = `/events/update/${eventId}`;
+              
+              // Fill form with event data
+              document.getElementById('eventId').value = eventId;
+              document.getElementById('eventName').value = event.name;
+              document.getElementById('eventSpeaker').value = event.speaker;
+              document.getElementById('eventDateTime').value = formatDateTimeForInput(event.dateTime);
+              document.getElementById('eventVenue').value = event.venue;
+              
+              // Handle audience checkboxes
+              resetAudienceCheckboxes();
+              if (event.audience === 'All Levels') {
+                document.getElementById('allLevels').checked = true;
+                disableGradeCheckboxes();
+              } else if (event.audience !== 'None') {
+                event.audience.split(',').forEach(grade => {
+                  const checkbox = document.querySelector(`.grade-checkbox[value="${grade.trim()}"]`);
+                  if (checkbox) checkbox.checked = true;
+                });
+              }
+              
+              // Show modal
+              eventModal.show();
+            });
+        });
+      });
+      
+      // Handle create button
+      document.querySelector('[data-bs-target="#eventModal"]').addEventListener('click', function() {
+        // Update modal title
+        modalTitle.innerHTML = '<i class="bi bi-calendar-plus me-2"></i>Create Event';
         
-        // Handle confirm attendance button
-        document.getElementById('confirmAttendanceBtn').addEventListener('click', submitAttendance);
-        
-        // Fetch student data
-        async function fetchStudentData(studentId) {
-    try {
-        studentId = studentId.trim().toUpperCase();
-        
-        const response = await fetch(`/api/attendance/student/${encodeURIComponent(studentId)}`);
-        
-        if (!response.ok) {
+        // Reset form for create
+        eventForm.action = '/events/create';
+        eventForm.reset();
+        document.getElementById('eventId').value = '';
+        resetAudienceCheckboxes();
+      });
+      
+      // Helper functions
+      function formatDateTimeForInput(dateTimeString) {
+        const date = new Date(dateTimeString);
+        return date.toISOString().slice(0, 16);
+      }
+      
+      function resetAudienceCheckboxes() {
+        document.getElementById('allLevels').checked = false;
+        document.querySelectorAll('.grade-checkbox').forEach(cb => {
+          cb.checked = false;
+          cb.disabled = false;
+        });
+      }
+      
+      function disableGradeCheckboxes() {
+        document.querySelectorAll('.grade-checkbox').forEach(cb => {
+          cb.checked = false;
+          cb.disabled = true;
+        });
+      }
+      
+      // Handle "All Levels" checkbox behavior in modal
+      document.getElementById('allLevels').addEventListener('change', function() {
+        if (this.checked) {
+          disableGradeCheckboxes();
+        } else {
+          document.querySelectorAll('.grade-checkbox').forEach(cb => {
+            cb.disabled = false;
+          });
+        }
+      });
+
+      // Attendance Modal Logic
+      const attendanceModal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+      let currentEventId = null;
+      let currentEventName = null;
+      let currentStudent = null;
+      
+      // Get CSRF token safely
+      function getCsrfToken() {
+        const meta = document.querySelector('meta[name="_csrf"]');
+        return meta ? meta.content : '';
+      }
+      
+      // Get CSRF header name safely
+      function getCsrfHeader() {
+        const meta = document.querySelector('meta[name="_csrf_header"]');
+        return meta ? meta.content : 'X-CSRF-TOKEN';
+      }
+      
+      // Get current user safely
+      function getCurrentUser() {
+        const input = document.getElementById('current-user');
+        return input ? input.value : 'unknown';
+      }
+
+      // Handle card clicks to open attendance modal
+      document.querySelectorAll('.clickable-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+          // Don't open attendance modal if clicking on action buttons
+          if (e.target.closest('.btn') || e.target.closest('form')) return;
+          
+          currentEventId = this.getAttribute('data-id');
+          currentEventName = this.getAttribute('data-name');
+          
+          document.getElementById('attendanceModalLabel').innerHTML = 
+            `<i class="bi bi-qr-code-scan me-2"></i>Attendance for ${currentEventName}`;
+          
+          resetAttendanceForm();
+          fetchAttendanceLogs(currentEventId);
+          attendanceModal.show();
+          setTimeout(() => document.getElementById('scannerInput').focus(), 100);
+        });
+      });
+      
+      // Scanner input handler
+      document.getElementById('scannerInput').addEventListener('change', function() {
+        const scannedId = this.value.trim();
+        if (scannedId) {
+          fetchStudentData(scannedId);
+          this.value = '';
+        }
+      });
+      
+      // Handle confirm attendance button
+      document.getElementById('confirmAttendanceBtn').addEventListener('click', submitAttendance);
+      
+      // Fetch student data
+      async function fetchStudentData(studentId) {
+        try {
+          studentId = studentId.trim().toUpperCase();
+          
+          const response = await fetch(`/api/attendance/student/${encodeURIComponent(studentId)}`);
+          
+          if (!response.ok) {
             const error = await response.json().catch(() => ({}));
             throw new Error(error.message || 'Student not found');
-        }
-        
-        currentStudent = await response.json();
-        updateStudentDisplay(currentStudent);
+          }
+          
+          currentStudent = await response.json();
+          updateStudentDisplay(currentStudent);
 
-        // 🛡️ Check if student already attended this event
-        const logsResponse = await fetch(`/api/event-attendance/logs/event/${encodeURIComponent(currentEventId)}`);
-        const logs = await logsResponse.json();
-        const alreadyAttended = logs.some(log => log.studentId === currentStudent.idNumber);
+          // Check if student already attended this event
+          const logsResponse = await fetch(`/api/event-attendance/logs/event/${encodeURIComponent(currentEventId)}`);
+          const logs = await logsResponse.json();
+          const alreadyAttended = logs.some(log => log.studentId === currentStudent.idNumber);
 
-        if (alreadyAttended) {
+          if (alreadyAttended) {
             Swal.fire({
-                icon: 'warning',
-                title: 'Already Attended',
-                text: 'This student has already attended this event!',
-                timer: 3000,
-                showConfirmButton: false
+              icon: 'warning',
+              title: 'Already Attended',
+              text: 'This student has already attended this event!',
+              timer: 3000,
+              showConfirmButton: false
             });
             resetStudentDisplay();
             document.getElementById('scannerInput').focus();
-        } else {
-            // ✅ Automatically submit attendance if not yet attended
+          } else {
+            // Automatically submit attendance if not yet attended
             await submitAttendance();
-        }
+          }
 
-    } catch (error) {
-        Swal.fire({
+        } catch (error) {
+          Swal.fire({
             icon: 'error',
             title: 'Error',
             text: error.message,
             footer: `ID: ${studentId}`
-        });
-        resetStudentDisplay();
-    } finally {
-        document.getElementById('scannerInput').focus();
-    }
-}
-
-
-        // Update student display
-        function updateStudentDisplay(student) {
-            document.getElementById('studentName').textContent = student.name || '-';
-            document.getElementById('studentLrn').textContent = student.lrn || '-';
-            document.getElementById('studentIdNumber').textContent = student.idNumber || '-';
-            document.getElementById('studentCampus').textContent = student.campus || '-';
-            document.getElementById('studentFamilySaint').textContent = student.familySaint || '-';
-            document.getElementById('studentBatchNumber').textContent = student.batchNumber || '-';
-            document.getElementById('studentPhoto').src = student.imageUrl || '/images/default-profile.png';
-            document.getElementById('confirmAttendanceBtn').disabled = false;
+          });
+          resetStudentDisplay();
+        } finally {
+          document.getElementById('scannerInput').focus();
         }
-        
-        // Submit attendance - FIXED CSRF ISSUE
-      // Submit attendance to event_attendance table
+      }
+
+      // Update student display
+      function updateStudentDisplay(student) {
+        document.getElementById('studentName').textContent = student.name || '-';
+        document.getElementById('studentLrn').textContent = student.lrn || '-';
+        document.getElementById('studentIdNumber').textContent = student.idNumber || '-';
+        document.getElementById('studentCampus').textContent = student.campus || '-';
+        document.getElementById('studentFamilySaint').textContent = student.familySaint || '-';
+        document.getElementById('studentBatchNumber').textContent = student.batchNumber || '-';
+        document.getElementById('studentPhoto').src = student.imageUrl || '/images/default-profile.png';
+        document.getElementById('confirmAttendanceBtn').disabled = false;
+      }
+      
+      // Submit attendance
       async function submitAttendance() {
-    if (!currentStudent || !currentEventId || !currentEventName) {
-        Swal.fire({
+        if (!currentStudent || !currentEventId || !currentEventName) {
+          Swal.fire({
             icon: 'error',
             title: 'Cannot Submit',
             text: 'No student selected or event not set'
-        });
-        return;
-    }
+          });
+          return;
+        }
 
-    try {
-        const attendanceData = {
+        try {
+          const attendanceData = {
             eventId: currentEventId,
             eventName: currentEventName,
             studentId: currentStudent.idNumber,
@@ -527,114 +853,111 @@
             date: new Date().toISOString().split('T')[0],
             timeIn: new Date().toLocaleTimeString('en-US', { hour12: false }),
             recordedBy: getCurrentUser()
-        };
+          };
 
-        const response = await fetch('/api/event-attendance/submit', {
+          const response = await fetch('/api/event-attendance/submit', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                [getCsrfHeader()]: getCsrfToken()
+              'Content-Type': 'application/json',
+              [getCsrfHeader()]: getCsrfToken()
             },
             body: JSON.stringify(attendanceData)
-        });
+          });
 
-        if (!response.ok) {
+          if (!response.ok) {
             const errorText = await response.text();
             throw new Error(errorText || 'Submission failed');
-        }
+          }
 
-        Swal.fire({
+          Swal.fire({
             icon: 'success',
             title: 'Success!',
             text: 'Attendance recorded successfully!',
             timer: 2000,
             showConfirmButton: false
-        });
+          });
 
-        // After successful attendance:
-        await fetchAttendanceLogs(currentEventId); // Refresh recent attendance
-        resetStudentDisplay();
-        document.getElementById('scannerInput').focus();
+          await fetchAttendanceLogs(currentEventId);
+          resetStudentDisplay();
+          document.getElementById('scannerInput').focus();
 
-    } catch (error) {
-        Swal.fire({
+        } catch (error) {
+          Swal.fire({
             icon: 'error',
             title: 'Submission Failed',
             text: error.message,
             footer: 'Please try again'
-        });
-        console.error('Submission error:', error);
-    }
-}
+          });
+          console.error('Submission error:', error);
+        }
+      }
 
+      // Fetch attendance logs
+      async function fetchAttendanceLogs(eventId) {
+        try {
+          const response = await fetch(`/api/event-attendance/logs/event/${encodeURIComponent(eventId)}`);
+          if (!response.ok) throw new Error('Failed to fetch event logs');
+          
+          const logs = await response.json();
+          const logsTable = document.getElementById('attendanceLogs');
+          logsTable.innerHTML = '';
 
-        
- // Fetch all students who attended this event
- async function fetchAttendanceLogs(eventId) {
-    try {
-        const response = await fetch(`/api/event-attendance/logs/event/${encodeURIComponent(eventId)}`);
-        if (!response.ok) throw new Error('Failed to fetch event logs');
-        
-        const logs = await response.json();
-        const logsTable = document.getElementById('attendanceLogs');
-        logsTable.innerHTML = '';
-
-        if (logs.length === 0) {
-            logsTable.innerHTML = '<tr><td colspan="3" class="text-center">No attendance records found</td></tr>';
-        } else {
-            // 🛡️ Filter duplicates based on studentId
+          if (logs.length === 0) {
+            logsTable.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4"><i class="bi bi-inbox"></i><br>No attendance records found</td></tr>';
+          } else {
+            // Filter duplicates based on studentId
             const uniqueStudents = {};
             const uniqueLogs = logs.filter(log => {
-                if (!uniqueStudents[log.studentId]) {
-                    uniqueStudents[log.studentId] = true;
-                    return true;
-                }
-                return false;
+              if (!uniqueStudents[log.studentId]) {
+                uniqueStudents[log.studentId] = true;
+                return true;
+              }
+              return false;
             });
 
             uniqueLogs.forEach(log => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${log.date || '-'}</td>
-                    <td>${log.timeIn || '-'}</td>
-                    <td>${log.name || '-'}</td>
-                `;
-                logsTable.appendChild(row);
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${log.date || '-'}</td>
+                <td><span class="badge bg-success">${log.timeIn || '-'}</span></td>
+                <td><strong>${log.name || '-'}</strong></td>
+              `;
+              logsTable.appendChild(row);
             });
+          }
+        } catch (error) {
+          console.error('Error loading event logs:', error);
+          document.getElementById('attendanceLogs').innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4"><i class="bi bi-exclamation-triangle"></i><br>Error loading logs</td></tr>';
         }
-    } catch (error) {
-        console.error('Error loading event logs:', error);
-    }
-}
-
-
-        
-        // Reset functions
-        function resetAttendanceForm() {
-            document.getElementById('scannerInput').value = '';
-            resetStudentDisplay();
-            document.getElementById('scannerInput').focus();
-        }
-        
-        function resetStudentDisplay() {
-            document.getElementById('studentName').textContent = '-';
-    document.getElementById('studentLrn').textContent = '-';
-    document.getElementById('studentIdNumber').textContent = '-';
-    document.getElementById('studentCampus').textContent = '-';
-    document.getElementById('studentFamilySaint').textContent = '-';
-    document.getElementById('studentBatchNumber').textContent = '-';
-    document.getElementById('studentPhoto').src = '/images/default-profile.png';
-    document.getElementById('confirmAttendanceBtn').disabled = true;
-    currentStudent = null;
-        }
-        
-        // Modal event handlers
-        document.getElementById('attendanceModal').addEventListener('shown.bs.modal', () => {
-            document.getElementById('scannerInput').focus();
-        });
-        
-        document.getElementById('attendanceModal').addEventListener('hidden.bs.modal', resetAttendanceForm);
+      }
+      
+      // Reset functions
+      function resetAttendanceForm() {
+        document.getElementById('scannerInput').value = '';
+        resetStudentDisplay();
+        document.getElementById('scannerInput').focus();
+      }
+      
+      function resetStudentDisplay() {
+        document.getElementById('studentName').textContent = '-';
+        document.getElementById('studentLrn').textContent = '-';
+        document.getElementById('studentIdNumber').textContent = '-';
+        document.getElementById('studentCampus').textContent = '-';
+        document.getElementById('studentFamilySaint').textContent = '-';
+        document.getElementById('studentBatchNumber').textContent = '-';
+        document.getElementById('studentPhoto').src = '/images/default-profile.png';
+        document.getElementById('confirmAttendanceBtn').disabled = true;
+        currentStudent = null;
+      }
+      
+      // Modal event handlers
+      document.getElementById('attendanceModal').addEventListener('shown.bs.modal', () => {
+        document.getElementById('scannerInput').focus();
+      });
+      
+      document.getElementById('attendanceModal').addEventListener('hidden.bs.modal', resetAttendanceForm);
     });
-    </script>
+  </script>
+
 </body>
 </html>

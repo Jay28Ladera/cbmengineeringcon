@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admission</title>
+  <title>List of Passers - Sisters of Mary Schools</title>
 
-  <!-- Bootstrap + Icons -->
+  <!-- Bootstrap CSS & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <link rel="stylesheet" th:href="@{/css/header.css}" />
-  <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
-  <link rel="stylesheet" href="/css/admission.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- DataTables CSS removed to prevent style conflicts -->
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
 
-  <!-- jQuery + DataTables -->
+  <!-- jQuery & DataTables Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
@@ -23,242 +22,883 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <style>
-    h2 { font-weight: bold; color: #0d6efd; }
-    .card { background-color: #fff; }
-    .dt-buttons .dt-button {
-      background-color: #0d6efd !important;
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      margin: 0;
+      color: #334155;
+      overflow-x: hidden;
+    }
+
+    .app-container { 
+      display: flex; 
+      min-height: 100vh; 
+    }
+    .main-content { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      margin-left: 280px; 
+      transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-x: hidden;
+    }
+    .content-area { 
+      flex: 1; 
+      padding: 2.5rem; 
+      background: transparent;
+      position: relative;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+    .content-area::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(65, 105, 225, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left: 75px; }
+
+    /* Clean Page Header - No Background Color */
+    .page-header { 
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+    }
+    .page-header .card-body {
+      padding: 2rem;
+    }
+    .page-header h2 {
+      color: #1e293b;
+      font-weight: 800;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .page-header p {
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+
+    /* Enhanced Cards */
+    .card { 
+      border: none; 
+      border-radius: 16px; 
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05); 
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+    .card:hover { 
+      transform: translateY(-6px) scale(1.002); 
+      box-shadow: 0 16px 48px rgba(0,0,0,.16), 0 6px 20px rgba(65, 105, 225, 0.1);
+    }
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    /* DataTable Container */
+    .dataTables_wrapper {
+      padding: 2rem;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
+      border: 1px solid #f1f5f9;
+    }
+
+    /* DataTable Filter & Controls */
+    .dataTables_length,
+    .dataTables_filter,
+    .dataTables_info,
+    .dataTables_paginate {
+      margin: 1rem 0;
+    }
+
+    .dataTables_filter input {
+      border-radius: 12px !important;
+      border: 2px solid #cbd5e1 !important;
+      padding: 0.75rem 1rem !important;
+      transition: all 0.3s ease !important;
+      background: #ffffff !important;
+      font-size: 0.95rem !important;
+      width: 300px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,.08) !important;
+    }
+
+    .dataTables_filter input::placeholder {
+      color: #475569 !important;
+      font-weight: 600 !important;
+      font-style: normal !important;
+      opacity: 1 !important;
+    }
+
+    .dataTables_filter input:focus {
+      border-color: #4169e1 !important;
+      outline: none !important;
+      box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1), 0 6px 20px rgba(65, 105, 225, 0.15) !important;
+      background: #fff !important;
+      transform: translateY(-1px) !important;
+    }
+
+    .dataTables_filter label {
+      font-weight: 600 !important;
+      color: #334155 !important;
+      margin-bottom: 0.5rem !important;
+    }
+
+    /* Table Container */
+    .table-scroll-container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
+      margin: 1rem 0;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #f1f5f9;
+    }
+
+    .table-responsive-custom {
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+      max-width: 100%;
+      position: relative;
+      box-sizing: border-box;
+      border-radius: 16px;
+    }
+
+    /* Beautiful Passers Table */
+    #passerTable {
+      border-collapse: separate;
+      border-spacing: 0;
+      background: #fff;
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 100%;
+      margin: 0;
+      table-layout: auto;
+      box-shadow: 0 6px 24px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+    }
+
+    /* Force custom header styling with higher specificity */
+    .dataTables_wrapper #passerTable thead th,
+    #passerTable thead th,
+    table#passerTable thead th {
+      background: #4169e1 !important;
       color: white !important;
       border: none !important;
-      border-radius: 4px;
-      padding: 6px 12px;
-      margin-right: 10px;
+      font-weight: 700 !important;
+      padding: 1.2rem 0.8rem !important;
+      text-align: center !important;
+      font-size: 0.8rem !important;
+      letter-spacing: 0.5px !important;
+      text-transform: uppercase !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 10 !important;
+      white-space: nowrap !important;
+      border-bottom: none !important;
+      border-top: none !important;
+      border-left: none !important;
+      border-right: none !important;
     }
-    .dt-button:hover { background-color: #0b5ed7 !important; }
-    .dataTables_filter input {
-      width: 300px !important;
-      margin-left: 10px;
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+
+    /* Override any DataTables sorting styles */
+    .dataTables_wrapper #passerTable thead th.sorting,
+    .dataTables_wrapper #passerTable thead th.sorting_asc,
+    .dataTables_wrapper #passerTable thead th.sorting_desc,
+    #passerTable thead th.sorting,
+    #passerTable thead th.sorting_asc,
+    #passerTable thead th.sorting_desc {
+      background: #4169e1 !important;
+      color: white !important;
     }
-    table.dataTable tbody tr.table-success { background-color: #d1e7dd !important; }
-    .table-striped > tbody > tr:nth-of-type(odd) { background-color: #f4f6f9; }
-    .table th, .table td { vertical-align: middle; text-align: center; }
-    .dataTables_wrapper .row:first-child {
+
+    /* Ensure sorting arrows are visible */
+    .dataTables_wrapper #passerTable thead th.sorting:after,
+    .dataTables_wrapper #passerTable thead th.sorting_asc:after,
+    .dataTables_wrapper #passerTable thead th.sorting_desc:after {
+      color: rgba(255,255,255,0.7) !important;
+    }
+
+    #passerTable tbody td {
+      padding: 0.9rem 0.8rem;
+      border-bottom: 2px solid #e2e8f0;
+      border-right: 1px solid #f1f5f9;
+      vertical-align: middle;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.85rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Allow limited wrapping only for name columns */
+    #passerTable tbody td:nth-child(2),
+    #passerTable tbody td:nth-child(3),
+    #passerTable tbody td:nth-child(4) {
+      white-space: normal;
+      word-wrap: break-word;
+      line-height: 1.2;
+      max-width: 120px;
+    }
+
+    #passerTable tbody td:last-child {
+      border-right: none;
+    }
+
+    #passerTable tbody tr {
+      transition: all 0.3s ease;
+      background: #fff;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    #passerTable tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    #passerTable tbody tr:hover {
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
+      transform: scale(1.005);
+      box-shadow: 0 6px 25px rgba(65,105,225,.12);
+      z-index: 10;
+      position: relative;
+    }
+
+    #passerTable tbody tr:hover td {
+      border-color: #cbd5e1;
+    }
+
+    /* Special styling for arrived students */
+    #passerTable tbody tr.table-success {
+      background: linear-gradient(135deg, #dcfce7 0%, #f0fff4 100%) !important;
+      border-left: 4px solid #22c55e;
+    }
+
+    #passerTable tbody tr.table-success:hover {
+      background: linear-gradient(135deg, #bbf7d0 0%, #e8f5e9 100%) !important;
+    }
+
+    /* Data Styling */
+    .student-id {
+      background: linear-gradient(135deg, #4169e1 0%, #6366f1 100%);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: inline-block;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(65,105,225,.3);
+    }
+
+    .student-name {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 0.9rem;
+    }
+
+    .family-saint {
+      color: #4169e1;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .code-number {
+      color: #4169e1;
+      font-weight: 700;
+      font-size: 0.8rem;
+      background: #eff6ff;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      display: inline-block;
+    }
+
+    /* Status Badges */
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 15px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .badge.bg-success {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+      box-shadow: 0 2px 8px rgba(34,197,94,.3);
+    }
+
+    .badge.bg-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+      box-shadow: 0 2px 8px rgba(239,68,68,.3);
+    }
+
+    /* Action Buttons */
+    .btn-print {
+      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+      border: none;
+      border-radius: 10px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 3px 10px rgba(65,105,225,.2);
+      color: white;
+    }
+
+    .btn-print:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(65,105,225,.4);
+      background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
+    }
+
+    /* DataTable Buttons */
+    .dt-button {
+      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%) !important;
+      border: none !important;
+      border-radius: 12px !important;
+      color: white !important;
+      font-weight: 600 !important;
+      padding: 0.75rem 1.5rem !important;
+      margin-right: 0.75rem !important;
+      margin-bottom: 0.75rem !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: 0 4px 15px rgba(65,105,225,.3) !important;
+      letter-spacing: 0.3px !important;
+    }
+
+    .dt-button:hover {
+      transform: translateY(-3px) scale(1.02) !important;
+      box-shadow: 0 8px 25px rgba(65,105,225,.4) !important;
+      background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%) !important;
+    }
+
+    /* DataTables Pagination Enhancement */
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      border-radius: 10px !important;
+      border: 2px solid #e2e8f0 !important;
+      padding: 8px 16px !important;
+      margin: 0 4px !important;
+      background: #fff !important;
+      color: #4169e1 !important;
+      transition: all 0.3s !important;
+      font-weight: 600 !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background: #4169e1 !important;
+      color: #fff !important;
+      border-color: #4169e1 !important;
+      box-shadow: 0 4px 15px rgba(65,105,225,.3) !important;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background: #4169e1 !important;
+      color: #fff !important;
+      transform: translateY(-2px) !important;
+      box-shadow: 0 4px 15px rgba(65,105,225,.3) !important;
+    }
+
+    .dataTables_wrapper .dataTables_info {
+      color: #64748b;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      padding: 0.5rem;
+      font-weight: 500;
+    }
+
+    /* ID Card Modal Styling */
+    .modal-content {
+      border: none;
+      border-radius: 20px;
+      box-shadow: 0 25px 80px rgba(0,0,0,.15);
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: #4169e1;
+      color: white;
+      border-bottom: none;
+      padding: 1.5rem 2rem;
+      font-weight: 700;
+    }
+
+    .modal-header .btn-close {
+      filter: invert(1);
+      opacity: 0.8;
+    }
+
+    .modal-footer {
+      padding: 1.5rem 2rem;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+    }
+
+    /* ID Card Preview */
+    #idCardPreview {
+      background-image: url('/images/templateid.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      width: 3.125in;
+      height: 5.375in;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      justify-content: center;
       align-items: center;
+      border: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,.15);
+      border-radius: 16px;
+      overflow: hidden;
     }
-    .dataTables_wrapper .row { margin-bottom: 10px; }
+
+    #idCardPreview img {
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,.2);
+      border: 3px solid #fff;
+    }
+
+    .id-field {
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 2px;
+    }
+
+    .id-label {
+      color: #64748b;
+      font-size: 0.7rem;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    /* Loading Animation */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      backdrop-filter: blur(5px);
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f1f5f9;
+      border-top: 5px solid #4169e1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Enhanced Visual Elements */
+    .fw-bold {
+      font-weight: 700;
+      color: #1e293b;
+      letter-spacing: -.01em;
+    }
+    
+    .text-muted {
+      color: #64748b !important;
+      font-weight: 500;
+    }
+
+    /* Better Icons */
+    .bi {
+      transition: all .2s ease;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .main-content { margin-left: 0 !important; padding-top: 70px; }
+      .content-area { padding: 1.5rem; }
+      .page-header .card-body { padding: 1.5rem; }
+      .dataTables_wrapper { padding: 1.5rem; }
+      
+      .dataTables_filter input {
+        width: 100% !important;
+      }
+      
+      #passerTable {
+        font-size: 0.75rem;
+        min-width: 1000px;
+      }
+      
+      .dt-button {
+        font-size: 0.8rem !important;
+        padding: 0.5rem 1rem !important;
+      }
+
+      .modal-dialog {
+        max-width: 90% !important;
+      }
+
+      #idCardPreview {
+        width: 100%;
+        height: auto;
+        min-height: 400px;
+      }
+
+      .page-header h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding: 1rem; }
+      .page-header .card-body { padding: 1rem; }
+      .dataTables_wrapper { padding: 1rem; }
+      
+      .page-header h2 {
+        font-size: 1.3rem;
+      }
+
+      #passerTable thead th,
+      #passerTable tbody td {
+        padding: 0.6rem 0.4rem;
+      }
+    }
+
+    /* Print Styles for ID Card */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+
+      #idCardPreview, #idCardPreview * {
+        visibility: visible !important;
+      }
+
+      #idCardPreview {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 9999 !important;
+        width: 3.125in !important;
+        height: 5.375in !important;
+        padding: 0 !important;
+        border: none !important;
+        background-image: url('/images/templateid.jpg') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+      .modal-footer,
+      .modal-backdrop {
+        display: none !important;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div th:replace="fragments/header :: header(${username})"></div>
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
 
-  <div class="container-fluid">
-    <div class="row">
-      <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='list-of-passers',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
 
-      <div class="col-md-9 p-4">
-        <h2 class="mb-4">List of Passers</h2>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
 
-        <div class="card shadow-sm border-0 rounded p-4">
-          <table id="passerTable" class="table table-bordered table-hover table-striped align-middle nowrap w-100">
-            <thead class="table-dark text-center">
-              <tr>
-                <th>ID Number</th>
-                <th>Last Name</th>
-                <th>First Name</th>
-                <th>Middle Name</th>
-                <th>Exam Place</th>
-                <th>Guardian Contact</th>
-                <th>Code Number</th>
-                <th>Family Saint</th>
-                <th>Status</th>
-                <th>Timestamp</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr th:each="student : ${passerList}"
-                  th:classappend="${student.status} == 'Arrived' ? 'table-success'">
-                <td th:text="${student.idNum}"></td>
-                <td th:text="${student.lastName}"></td>
-                <td th:text="${student.firstName}"></td>
-                <td th:text="${student.middleName}"></td>
-                <td th:text="${student.examPlace}"></td>
-                <td th:text="${student.guardianContact}"></td>
-                <td th:text="${student.codeNumber}"></td>
-                <td th:text="${student.familySaint}"></td>
-                <td>
-                  <span th:class="'badge ' + (${student.status} == 'Sent Home' ? 'bg-danger' : 'bg-success')" 
-                        th:text="${student.status}">
-                  </span>
-                </td>
-                <td th:text="${student.timestamp}"></td>
-                <td>
-                  <button class="btn btn-sm btn-primary"
-        th:attr="onclick=|printIdCard({
-          idNum: '${student.idNum}',
-          firstName: '${student.firstName}',
-          lastName: '${student.lastName}',
-          familySaint: '${student.familySaint}',
-          buildingName: '${student.buildingName}',
-          motherSister: '${student.motherSister}'
-        })|">
-  <i class="bi bi-printer"></i> Print ID
-</button>
+      <!-- Page Body -->
+      <main class="content-area">
+        <!-- Clean Page Header -->
+        <div class="page-header card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div class="flex-grow-1">
+                <h2><i class="bi bi-people-fill me-3"></i>List of Passers</h2>
+                <p class="mb-0">Comprehensive list of students who have passed the admission process. Track arrival status and print ID cards for enrolled students.</p>
+              </div>
+              <div class="text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                  <i class="bi bi-check-circle-fill me-2" style="font-size:3rem; color: #22c55e; opacity:.8;"></i>
+                  <div>
+                    <div class="fw-bold fs-4" style="color: #1e293b;" th:text="${#lists.size(passerList)}">0</div>
+                    <small class="text-muted fw-semibold">Total Passers</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          
+        <!-- Main Content Card -->
+        <div class="card">
+          <!-- Passers Table Container -->
+          <div class="table-responsive">
+            <table class="table" id="passerTable">
+              <thead>
+                <tr>
+                  <th><i class="bi bi-hash me-1"></i>ID Number</th>
+                  <th><i class="bi bi-person me-1"></i>Last Name</th>
+                  <th><i class="bi bi-person me-1"></i>First Name</th>
+                  <th><i class="bi bi-person me-1"></i>Middle Name</th>
+                  <th><i class="bi bi-geo-alt me-1"></i>Exam Place</th>
+                  <th><i class="bi bi-telephone me-1"></i>Guardian Contact</th>
+                  <th><i class="bi bi-123 me-1"></i>Code</th>
+                  <th><i class="bi bi-heart me-1"></i>Family Saint</th>
+                  <th><i class="bi bi-info-circle me-1"></i>Status</th>
+                  <th><i class="bi bi-clock me-1"></i>Timestamp</th>
+                  <th><i class="bi bi-printer me-1"></i>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="student : ${passerList}"
+                    th:classappend="${student.status == 'Arrived' ? 'table-success' : ''}">
+                  <td>
+                    <span class="student-id" th:text="${student.idNum}"></span>
+                  </td>
+                  <td>
+                    <div class="student-name" th:text="${student.lastName}"></div>
+                  </td>
+                  <td>
+                    <div class="student-name" th:text="${student.firstName}"></div>
+                  </td>
+                  <td th:text="${student.middleName}"></td>
+                  <td th:text="${student.examPlace}"></td>
+                  <td th:text="${student.guardianContact}"></td>
+                  <td>
+                    <span class="code-number" th:text="${student.codeNumber}"></span>
+                  </td>
+                  <td>
+                    <span class="family-saint" th:text="${student.familySaint}"></span>
+                  </td>
+                  <td>
+                    <span th:class="'badge ' + (${student.status == 'Sent Home'} ? 'bg-danger' : 'bg-success')" 
+                          th:text="${student.status}">
+                    </span>
+                  </td>
+                  <td th:text="${student.timestamp}"></td>
+                  <td>
+                    <button class="btn btn-sm btn-print"
+                            th:attr="onclick=|printIdCard({
+                              idNum: '${student.idNum}',
+                              firstName: '${student.firstName}',
+                              lastName: '${student.lastName}',
+                              familySaint: '${student.familySaint}',
+                              buildingName: '${student.buildingName}',
+                              motherSister: '${student.motherSister}'
+                            })|"
+                            title="Print ID Card">
+                      <i class="bi bi-printer me-1"></i>Print ID
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      </main>
+    </div>
+  </div>
+
+  <!-- ID Preview Modal -->
+  <div class="modal fade" id="idPreviewModal" tabindex="-1" aria-labelledby="idPreviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 4.125in">
+      <div id="idCardPreview" class="modal-content text-center p-2">
+        
+        <!-- Spacer above photo -->
+        <div style="height: 0.5in;"></div>
+
+        <!-- Photo -->
+        <img src="/images/1x1 template.jpg" alt="1x1 Photo"
+             class="rounded border"
+             style="width: 1in; height: 1in; object-fit: cover;" />
+        <small class="id-label">(1x1)</small>
+
+        <!-- Spacer below photo -->
+        <div style="height: 0.3in;"></div>
+
+        <div class="id-field" id="previewIdNum" style="font-size: 1rem; line-height: 1;"></div>
+        <small class="id-label">ID Number</small>
+        <div style="height: 0.05in;"></div>
+
+        <div class="id-field" id="previewFullName" style="font-size: 1rem; line-height: 1;"></div>
+        <small class="id-label">Complete Name</small>
+        <div style="height: 0.05in;"></div>
+
+        <div class="id-field text-uppercase" id="previewFamilySaint" style="font-size: 1rem; line-height: 1;"></div>
+        <small class="id-label">Family Saint</small>
+        <div style="height: 0.05in;"></div>
+
+        <div class="id-field" id="previewBuilding" style="font-size: 1rem; line-height: 1;"></div>
+        <small class="id-label">Building Name</small>
+        <div style="height: 0.05in;"></div>
+
+        <div class="id-field text-uppercase" id="previewMotherSister" style="font-size: 1rem; line-height: 1;"></div>
+        <small class="id-label">Mother Sister</small>
+        <div style="height: 0.05in;"></div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer justify-content-center mt-2">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-2"></i>Close
+          </button>
+          <button class="btn btn-primary" onclick="window.print()">
+            <i class="bi bi-printer me-2"></i>Print
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-<!-- Print Style -->
-<style>
-  @media print {
-    body * {
-      visibility: hidden !important;
-    }
-  
-    #idCardPreview, #idCardPreview * {
-      visibility: visible !important;
-    }
-  
-    #idCardPreview {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      z-index: 9999 !important;
-      width: 3.125in !important;
-      height: 5.375in !important;
-      padding: 0 !important;
-      border: none !important;
-      background-image: url('/images/templateid.jpg') !important;
-      background-size: cover !important;
-      background-position: center !important;
-      background-repeat: no-repeat !important;
-      box-shadow: none !important;
-      -webkit-print-color-adjust: exact !important; /* Chrome, Safari */
-      print-color-adjust: exact !important;         /* Firefox */
-      page-break-before: avoid !important;
-    page-break-after: avoid !important;
-    page-break-inside: avoid !important;
-  }
-  
-    .modal-footer,
-    .modal-backdrop {
-      display: none !important;
-    }
-  }
-  </style>
-  
-  
-  
-  <!-- ID Preview Modal -->
-<div class="modal fade" id="idPreviewModal" tabindex="-1" aria-labelledby="idPreviewModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" style="max-width: 4.125in">
-    <div id="idCardPreview" class="modal-content text-center p-2"
-         style="width: 3.125in; height: 5.375in;
-                background-image: url('/images/templateid.jpg');
-                background-size: cover;
-                background-position: center;
-                border: none;
-                box-shadow: none;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;">
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-      <!-- Photo -->
-       
-      <!-- Photo -->
-<!-- Spacer above photo to push it down -->
-<div style="height: 0.5in;"></div>
-
-<!-- Photo -->
-<img src="/images/1x1 template.jpg" alt="1x1 Photo"
-     class="rounded border"
-     style="width: 1in; height: 1in; object-fit: cover;" />
-<small class="text-muted">(1x1)</small>
-
-<!-- Spacer below photo -->
-<div style="height: 0.3in;"></div>
-
-<div class="fw-bold text-primary" id="previewIdNum" style="font-size: 1rem; line-height: 1;"></div>
-<small class="text-muted d-block" style="margin-bottom: 4px; line-height: 1;">ID Number</small>
-<div style="height: 0.05in;"></div>
-
-<div class="fw-bold" id="previewFullName" style="font-size: 1rem; line-height: 1;"></div>
-<small class="text-muted d-block" style="margin-bottom: 4px; line-height: 1;">Complete Name</small>
-<div style="height: 0.05in;"></div>
-
-<div class="text-uppercase fw-semibold" id="previewFamilySaint" style="font-size: 1rem; line-height: 1;"></div>
-<small class="text-muted d-block" style="margin-bottom: 4px; line-height: 1;">Family Saint</small>
-<div style="height: 0.05in;"></div>
-
-<div class="fw-semibold" id="previewBuilding" style="font-size: 1rem; line-height: 1;"></div>
-<small class="text-muted d-block" style="margin-bottom: 4px; line-height: 1;">Building Name</small>
-<div style="height: 0.05in;"></div>
-
-<div class="text-uppercase fw-semibold" id="previewMotherSister" style="font-size: 1rem; line-height: 1;"></div>
-<small class="text-muted d-block" style="line-height: 1;">Mother Sister</small>
-<div style="height: 0.05in;"></div>
-
-      <!-- Buttons -->
-      <div class="modal-footer justify-content-center mt-2">
-        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button class="btn btn-sm btn-primary" onclick="window.print()">Print</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  $(document).ready(function () {
-    $('#passerTable').DataTable({
-      dom:
-        "<'row mb-3'" +
-        "<'col-md-6 d-flex align-items-center'B>" +
-        "<'col-md-6 d-flex justify-content-end'f>" +
-        ">" +
-        "<'row'<'col-sm-12'tr>>" +
-        "<'row'<'col-sm-5'i><'col-sm-7'p>>",
-      buttons: ['excelHtml5', 'pdfHtml5'],
-      responsive: true,
-      pageLength: 10
+  <script>
+    // Initialize DataTable
+    $(document).ready(function () {
+      $('#passerTable').DataTable({
+        dom:
+          "<'row mb-3'" +
+          "<'col-md-6 d-flex align-items-center'B>" +
+          "<'col-md-6 d-flex justify-content-end'f>" +
+          ">" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+        buttons: [
+          {
+            extend: 'excelHtml5',
+            text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel',
+            title: 'List of Passers'
+          },
+          {
+            extend: 'pdfHtml5',
+            text: '<i class="bi bi-filetype-pdf me-1"></i>PDF',
+            title: 'List of Passers',
+            orientation: 'landscape',
+            pageSize: 'A4'
+          }
+        ],
+        scrollX: true,
+        responsive: false,
+        pageLength: 10,
+        lengthChange: true,
+        autoWidth: false,
+        language: { 
+          search: "",
+          searchPlaceholder: "Search passers...",
+          lengthMenu: "Show _MENU_ passers per page",
+          info: "Showing _START_ to _END_ of _TOTAL_ passers",
+          paginate: { 
+            previous: "Previous", 
+            next: "Next" 
+          }
+        },
+        columnDefs: [
+          { targets: [10], orderable: false }, // Actions column
+          { targets: [9], type: 'date' }
+        ]
+      });
     });
-  });
 
-  function printIdCard(student) {
-  document.getElementById('previewIdNum').innerText = student.idNum;
-  document.getElementById('previewFullName').innerText = `${student.lastName}, ${student.firstName}`;
-  document.getElementById('previewFamilySaint').innerText = student.familySaint;
-  document.getElementById('previewBuilding').innerText = student.buildingName;
-  document.getElementById('previewMotherSister').innerText = student.motherSister;
+    // Print ID Card function
+    function printIdCard(student) {
+      document.getElementById('previewIdNum').innerText = student.idNum;
+      document.getElementById('previewFullName').innerText = `${student.lastName}, ${student.firstName}`;
+      document.getElementById('previewFamilySaint').innerText = student.familySaint;
+      document.getElementById('previewBuilding').innerText = student.buildingName;
+      document.getElementById('previewMotherSister').innerText = student.motherSister;
 
-  const modalEl = document.getElementById('idPreviewModal');
-  const modal = new bootstrap.Modal(modalEl);
-  modal.show();
+      const modalEl = document.getElementById('idPreviewModal');
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
 
-  // Delay to ensure DOM is fully rendered
-  setTimeout(() => {
-    window.print();
-  }, 500);
-}
+      // Delay to ensure DOM is fully rendered
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
 
+    // Loading overlay functions
+    function showLoading() {
+      document.getElementById('loadingOverlay').style.display = 'flex';
+    }
 
-</script>
+    function hideLoading() {
+      document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    // Hide loading on page load
+    window.addEventListener('load', hideLoading);
+
+    // Page level initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('List of Passers page loaded');
+    });
+  </script>
 
 </body>
 </html>

@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,6 +25,8 @@ import com.opencsv.CSVReader;
 import java.util.List;
 
 import java.io.Reader;
+
+import java.util.Locale;
 
 
 
@@ -106,48 +110,116 @@ public String showStudentPage(Model model) {
         return "redirect:/student-info";
     }
   
+@PostMapping("/upload-csv")
+public String uploadCSV(@RequestParam("file") MultipartFile file) {
+    int imported = 0;
+    int rowNum = 0;
 
-    @PostMapping("/upload-csv")
-    public String uploadCSV(@RequestParam("file") MultipartFile file) {
-        try (Reader reader = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.ISO_8859_1))) {
-    
-            CSVReader csvReader = new CSVReader(reader);
-            List<String[]> records = csvReader.readAll();
-            records.remove(0); // remove header
-    
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy");
-    
-            for (String[] record : records) {
-                Student student = new Student();
-                student.setAddress(record[1]);
-                student.setBirthday(LocalDate.parse(record[2], formatter)); // may fail here
-                student.setCampus(record[3]);
-                student.setElementarySchool(record[4]);
-                student.setIdNumber(record[5]);
-                student.setLrn(record[6]);
-                student.setName(record[7]);
-                student.setPlaceOfBirth(record[8]);
-                student.setVia(record[9]);
-                student.setFamilySaint(record[10]);
-                student.setBatchNumber(record[11]);
-                student.setImageUrl(record[12]);
-    
-                studentRepository.save(student);
-            }
-    
-        } catch (Exception e) {
-            System.out.println("❌ Error during CSV upload:");
-            e.printStackTrace(); // ✅ This will show the actual cause in your console/logs
-            return "redirect:/error"; // or redirect to a page you’ve defined
+    try (Reader reader = new BufferedReader(
+            new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+
+        CSVReader csvReader = new CSVReader(reader);
+        List<String[]> records = csvReader.readAll();
+        if (records.isEmpty()) {
+            System.err.println("CSV is empty.");
+            return "redirect:/student-info?error=empty";
         }
-    
-        return "redirect:/students"; // or wherever your view is
+
+        // Expect header:
+        // id,address,birthday,campus,elementary_school,id_number,lrn,name,place_of_birth,via,family_saint,batch_number,image_url
+        records.remove(0); // remove header
+        rowNum = 1;
+
+        for (String[] record : records) {
+            rowNum++;
+            try {
+                if (record == null || record.length < 13) {
+                    throw new IllegalArgumentException("Row has fewer than 13 columns");
+                }
+
+                Student student = new Student();
+                // 0 = id (ignored for insert)
+                student.setAddress(s(record[1]));
+                student.setBirthday(parseBirthday(s(record[2]))); // ← robust date parser below
+                student.setCampus(s(record[3]));
+                student.setElementarySchool(s(record[4]));
+                student.setIdNumber(s(record[5]));
+                student.setLrn(s(record[6]));
+                student.setName(s(record[7]));
+                student.setPlaceOfBirth(s(record[8]));
+                student.setVia(s(record[9]));
+                student.setFamilySaint(s(record[10]));
+                student.setBatchNumber(s(record[11]));
+                student.setImageUrl(nz(record[12]));
+
+                // minimal validations
+                if (!student.getLrn().matches("\\d{12}")) {
+                    throw new IllegalArgumentException("lrn must be exactly 12 digits");
+                }
+                if (student.getName().isBlank()) {
+                    throw new IllegalArgumentException("name is required");
+                }
+
+                studentRepository.save(student);
+                imported++;
+
+            } catch (Exception rowEx) {
+                // Log and continue with next row
+                System.err.println("Row " + rowNum + " skipped: " + rowEx.getMessage());
+            }
+        }
+
+    } catch (Exception e) {
+        System.out.println("❌ Error during CSV upload:");
+        e.printStackTrace();
+        return "redirect:/student-info?error=upload";
     }
-    @GetMapping("/students")
-public String studentsPage(Model model) {
-    model.addAttribute("students", studentRepository.findAll());
-    return "studentmanager"; // or whatever template you're using
+
+    return "redirect:/student-info?success=1&message=Imported+" + imported + "+students";
+}
+
+// -------- helpers --------
+private static String s(String v) { return v == null ? "" : v.trim(); }
+private static String nz(String v) { String t = s(v); return t.isEmpty() ? null : t; }
+
+/** Accepts: yyyy-MM-dd, M/d/yyyy, d/M/yyyy, MMMM d, uuuu, MMM d, uuuu, d-MMM-uuuu, d-MMM-yy, and Excel serials. */
+private static LocalDate parseBirthday(String raw) {
+    if (raw == null || raw.isBlank()) throw new IllegalArgumentException("birthday is blank");
+    String val = raw.trim();
+
+    // Excel serial (days since 1899-12-30)
+    if (val.matches("\\d{1,5}")) {
+        int serial = Integer.parseInt(val);
+        return LocalDate.of(1899, 12, 30).plusDays(serial);
+    }
+
+    // Normalize separators to help parsing
+    String norm = val.replace('.', '/').replace('-', '/').replace("  ", " ");
+
+    // Try ISO first
+    try { return LocalDate.parse(val, DateTimeFormatter.ISO_LOCAL_DATE); } catch (Exception ignore) {}
+
+    // Common numeric formats
+    for (String p : new String[] { "M/d/uuuu", "d/M/uuuu", "MM/dd/uuuu", "dd/MM/uuuu", "M-d-uuuu", "d-M-uuuu" }) {
+        try { return LocalDate.parse(norm, DateTimeFormatter.ofPattern(p, Locale.ENGLISH)); } catch (Exception ignore) {}
+    }
+
+    // Long / short month names
+    for (String p : new String[] { "MMMM d, uuuu", "MMM d, uuuu", "d MMM uuuu", "d-MMM-uuuu", "dd-MMM-uuuu" }) {
+        try { return LocalDate.parse(val, DateTimeFormatter.ofPattern(p, Locale.ENGLISH)); } catch (Exception ignore) {}
+    }
+
+    // Two-digit year like "17-Jul-10" → assume 2000-based (=> 2010)
+    try {
+        DateTimeFormatter yyFmt = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendPattern("d-MMM-")
+                .appendValueReduced(ChronoField.YEAR, 2, 2, 2000) // base 2000
+                .toFormatter(Locale.ENGLISH);
+        return LocalDate.parse(val.replace('/', '-'), yyFmt);
+    } catch (Exception ignore) {}
+
+    throw new IllegalArgumentException("Invalid birthday '" + raw + "'. Use yyyy-MM-dd, M/d/yyyy, or d-MMM-yy (e.g., 2010-07-17, 7/17/2010, 17-Jul-10).");
 }
 
     

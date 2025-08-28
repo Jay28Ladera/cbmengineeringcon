@@ -1,250 +1,427 @@
-<!-- Sidebar Fragment: fragments/sidebar.html -->
-<div
-  th:fragment="sidebar(role)"
-  class="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
-  style="width: 250px; height: 100vh"
->
-  <a
-    href="#"
-    class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none"
-  >
-    <span class="fs-4">Dashboard</span>
-  </a>
-  <hr />
+<!-- fragments/sidebar.html -->
+<div th:fragment="sidebar(role, activePage,
+                          studentInfoExpanded, asmsiExpanded, admissionExpanded,
+                          attendanceExpanded, eventsExpanded, familyDayExpanded)"
+     id="sidebar"
+     class="d-flex flex-column flex-shrink-0 bg-dark text-white sidebar sidebar-expanded">
 
-  <ul class="nav nav-pills flex-column mb-auto">
-    <!-- Home -->
-    <li class="nav-item">
-      <a th:href="@{/home}" class="nav-link text-white">
-        <i class="bi bi-house-door"></i> Home
-      </a>
-    </li>
-
-    <!-- Student Information Collapse -->
-    <li>
-      <a
-        class="nav-link text-white d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
-        href="#studentSettings"
-        role="button"
-        th:attr="aria-expanded=${studentInfoExpanded}"
-        onclick="toggleIcon(this)"
-      >
-        <span><i class="bi bi-person-lines-fill"></i> Student Information</span>
-        <i class="bi bi-chevron-down toggle-arrow"></i>
-      </a>
-
-      <div
-        class="collapse ps-3"
-        id="studentSettings"
-        th:classappend="${studentInfoExpanded} ? 'show'"
-      >
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a th:href="@{/student-info}" class="nav-link text-white">Student Information</a>
-          </li>
-          <li class="nav-item">
-            <a th:href="@{/via-settings}" class="nav-link text-white">VIA Settings</a>
-          </li>
-        </ul>
-      </div>
-    </li>
-
-    <!-- NTS Profile -->
-    <!-- NTS Profile -->
-<li class="nav-item">
-  <a th:href="@{/ntsmanager}" class="nav-link text-white">
-    <i class="bi bi-person-badge"></i> NTS Profile
-  </a>
-</li>
-
-
-    <!-- Faculty Profile -->
-  <li class="nav-item">
-  <a th:href="@{/facultymanager}" class="nav-link text-white">
-    <i class="bi bi-people-fill"></i> Faculty Profile
-  </a>
-</li>
-
-    <!-- ASMSI Management (with submenu) -->
-   <li>
-  <a
-    class="nav-link text-white d-flex justify-content-between align-items-center"
-    data-bs-toggle="collapse"
-    href="#asmsiMgmt"
-    role="button"
-    th:attr="aria-expanded=${asmsiExpanded}"
-    onclick="toggleIcon(this)"
-  >
-    <span><i class="bi bi-building-gear"></i> ASMSI Management</span>
-    <i class="bi bi-chevron-down toggle-arrow"></i>
-  </a>
-
-  <div class="collapse ps-3" id="asmsiMgmt" th:classappend="${asmsiExpanded} ? 'show'">
-    <ul class="nav flex-column">
-      <!-- Masterlist -> asmsimanager.html -->
-      <li class="nav-item">
-        <a th:href="@{/asmsimanager}" class="nav-link text-white">Masterlist</a>
-      </li>
-      <!-- Alumni Statistics (keep your existing route) -->
-    <li class="nav-item">
-  <a th:href="@{/asmsistatistics}" class="nav-link text-white">Alumni Statistics</a>
-</li>
-    </ul>
+  <!-- Header with Toggle -->
+  <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
+    <a href="/home" class="text-white text-decoration-none d-flex align-items-center">
+      <i class="bi bi-speedometer2 me-2 text-primary"></i>
+      <span class="fw-semibold sidebar-text">Dashboard</span>
+    </a>
+    <button id="sidebarToggle" class="btn btn-sm btn-outline-light rounded-pill" type="button" title="Toggle sidebar">
+      <i class="bi bi-list"></i>
+    </button>
   </div>
-</li>
-    <!-- Admission Collapse -->
-    <li>
-      <a
-        class="nav-link text-white d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
-        href="#admissionSettings"
-        role="button"
-        th:attr="aria-expanded=${admissionExpanded}"
-        onclick="toggleIcon(this)"
-      >
-        <span><i class="bi bi-person-lines-fill"></i> Admission</span>
-        <i class="bi bi-chevron-down toggle-arrow"></i>
-      </a>
 
-      <div
-        class="collapse ps-3"
-        id="admissionSettings"
-        th:classappend="${admissionExpanded} ? 'show'"
-      >
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            <a th:href="@{/studentpasser}" class="nav-link text-white">Student Passer</a>
-          </li>
-          <li class="nav-item">
-            <a th:href="@{/admission}" class="nav-link text-white">Admission Form</a>
-          </li>
-          <li class="nav-item">
-            <a th:href="@{/upload-database}" class="nav-link text-white">Upload Database</a>
-          </li>
-          <li class="nav-item">
-            <a
-              th:href="@{/admission-settings/view}"
-              class="nav-link text-white"
-              th:classappend="${activePage == 'family-saint-settings'} ? 'active fw-bold text-primary'"
-            >Admission Settings</a>
-          </li>
-          <li class="nav-item">
-            <a th:href="@{/admissionreports}" class="nav-link text-white">Reports</a>
-          </li>
-          <li class="nav-item">
-            <a th:href="@{/senthome}" class="nav-link text-white">Send home</a>
-          </li>
-        </ul>
-      </div>
+  <!-- Nav -->
+  <ul class="nav nav-pills flex-column mb-auto px-2 pt-3">
+
+    <!-- Home -->
+    <li class="nav-item mb-1">
+      <a th:href="@{/home}"
+         class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
+         th:classappend="${activePage} == 'home' ? 'active bg-primary'">
+        <i class="bi bi-house-door"></i><span class="sidebar-text">Home</span>
+      </a>
     </li>
 
-    <!-- Attendance Collapse -->
-    <li>
-      <a
-        class="nav-link text-white d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
-        href="#attendanceSettings"
-        role="button"
-        th:attr="aria-expanded=${attendanceExpanded}"
-        onclick="toggleIcon(this)"
-      >
-        <span><i class="bi bi-person-lines-fill"></i> Attendance</span>
-        <i class="bi bi-chevron-down toggle-arrow"></i>
+    <!-- Student Information -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse"
+         data-bs-target="#studentSettings"
+         role="button"
+         aria-controls="studentSettings">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-person-lines-fill"></i><span class="sidebar-text">Student Information</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
       </a>
-
-      <div
-        class="collapse ps-3"
-        id="attendanceSettings"
-        th:classappend="${attendanceExpanded} ? 'show'"
-      >
+      <div id="studentSettings" class="collapse ps-4 mt-1" th:classappend="${studentInfoExpanded} ? ' show'">
         <ul class="nav flex-column">
-          <li>
-            <a th:href="@{/attendance}" class="nav-link text-white">
-              <i class="bi bi-calendar-check"></i> Attendance Portal
+          <li class="nav-item mb-1">
+            <a th:href="@{/student-info}" class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'student-info' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Student Information
             </a>
           </li>
-          <li class="nav-item">
-            <a th:href="@{/attendancereport}" class="nav-link text-white">Attendance Reports</a>
+          <li class="nav-item mb-1">
+            <a th:href="@{/via-settings}" class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'via-settings' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>VIA Settings
+            </a>
           </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- NTS Profile -->
+    <li class="nav-item mb-1">
+      <a th:href="@{/ntsmanager}" class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
+         th:classappend="${activePage} == 'ntsmanager' ? 'active bg-primary'">
+        <i class="bi bi-person-badge"></i><span class="sidebar-text">NTS Profile</span>
+      </a>
+    </li>
+
+    <!-- Faculty Profile -->
+    <li class="nav-item mb-1">
+      <a th:href="@{/facultymanager}" class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
+         th:classappend="${activePage} == 'facultymanager' ? 'active bg-primary'">
+        <i class="bi bi-people-fill"></i><span class="sidebar-text">Faculty Profile</span>
+      </a>
+    </li>
+
+    <!-- ASMSI Management -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse" data-bs-target="#asmsiMgmt" role="button" aria-controls="asmsiMgmt">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-building-gear"></i><span class="sidebar-text">ASMSI Management</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="asmsiMgmt" class="collapse ps-4 mt-1" th:classappend="${asmsiExpanded} ? ' show'">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-1">
+            <a th:href="@{/asmsimanager}" class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'asmsimanager' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Masterlist
+            </a>
+          </li>
+          <li class="nav-item mb-1">
+            <a th:href="@{/asmsistatistics}" class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'asmsistatistics' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Alumni Statistics
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Admission -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse" data-bs-target="#admissionSettings" role="button" aria-controls="admissionSettings">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-person-plus"></i><span class="sidebar-text">Admission</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="admissionSettings" class="collapse ps-4 mt-1" th:classappend="${admissionExpanded} ? ' show'">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-1"><a th:href="@{/studentpasser}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'studentpasser' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Student Passer</a></li>
+          <li class="nav-item mb-1"><a th:href="@{/admission}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'admission' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Admission Form</a></li>
+          <li class="nav-item mb-1"><a th:href="@{/upload-database}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'upload-database' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Upload Database</a></li>
+          <li class="nav-item mb-1"><a th:href="@{/admission-settings/view}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'admission-settings' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Admission Settings</a></li>
+          <li class="nav-item mb-1"><a th:href="@{/admissionreports}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'admissionreports' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Reports</a></li>
+          <li class="nav-item mb-1"><a th:href="@{/senthome}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'senthome' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Send Home</a></li>
+        </ul>
+      </div>
+    </li>
+
+    <!-- Attendance -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse" data-bs-target="#attendanceSettings" role="button" aria-controls="attendanceSettings">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-check"></i><span class="sidebar-text">Attendance</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="attendanceSettings" class="collapse ps-4 mt-1" th:classappend="${attendanceExpanded} ? ' show'">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-1"><a th:href="@{/attendance}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'attendance' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Attendance Portal</a></li>
+          <li class="nav-item mb-1"><a th:href="@{/attendancereport}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'attendancereport' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Attendance Reports</a></li>
         </ul>
       </div>
     </li>
 
     <!-- Events -->
-    <li>
-      <a
-        class="nav-link text-white d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
-        href="#eventsAttendanceLog"
-        role="button"
-        th:attr="aria-expanded=${eventsExpanded}"
-        onclick="toggleIcon(this)"
-      >
-        <span><i class="bi bi-calendar-event"></i> Events</span>
-        <i class="bi bi-chevron-down toggle-arrow"></i>
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse" data-bs-target="#eventsAttendanceLog" role="button" aria-controls="eventsAttendanceLog">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-event"></i><span class="sidebar-text">Events</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
       </a>
-
-      <div
-        class="collapse ps-3"
-        id="eventsAttendanceLog"
-        th:classappend="${eventsExpanded} ? 'show'"
-      >
+      <div id="eventsAttendanceLog" class="collapse ps-4 mt-1" th:classappend="${eventsExpanded} ? ' show'">
         <ul class="nav flex-column">
-          <li class="nav-item">
-            <a th:href="@{/events}" class="nav-link text-white">Event List</a>
-          </li>
+          <li class="nav-item mb-1"><a th:href="@{/events}" class="nav-link text-white-50 rounded-2 py-2"
+              th:classappend="${activePage} == 'events' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Event List</a></li>
         </ul>
       </div>
     </li>
 
-    <!-- Family Day Collapse -->
-    <li>
-      <a
-        class="nav-link text-white d-flex justify-content-between align-items-center"
-        data-bs-toggle="collapse"
-        href="#familyDaySettings"
-        role="button"
-        th:attr="aria-expanded=${familyDayExpanded}"
-        onclick="toggleIcon(this)"
-      >
-        <span><i class="bi bi-people"></i> Family Day</span>
-        <i class="bi bi-chevron-down toggle-arrow"></i>
-      </a>
 
-      <div
-        class="collapse ps-4"
-        id="familyDaySettings"
-        th:classappend="${familyDayExpanded} ? 'show'"
-      >
-        <ul class="nav flex-column">
-          <li>
-            <a th:href="@{/visitingday}" class="nav-link text-white">
-              <i class="bi bi-calendar-check"></i> Visiting Day Portal
-            </a>
-          </li>
-          <li class="nav-item">
-            <a th:href="@{/visitingdayreport}" class="nav-link text-white">Visiting Day Report</a>
-          </li>
-        </ul>
-      </div>
-    </li>
+<!-- Family Day -->
+<li class="mb-1">
+  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+     data-bs-toggle="collapse" data-bs-target="#familyDaySettings" role="button" aria-controls="familyDaySettings">
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-people"></i><span class="sidebar-text">Family Day</span>
+    </span>
+    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+  </a>
+  <div id="familyDaySettings" class="collapse ps-4 mt-1" th:classappend="${familyDayExpanded} ? ' show'">
+    <ul class="nav flex-column">
+      <li class="nav-item mb-1">
+        <a th:href="@{/visitingday}" 
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'visitingday' ? 'active bg-primary text-white'">
+          <i class="bi bi-calendar-check me-1"></i>Visiting Day Portal
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a th:href="@{/visitingdayreport}" 
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'visitingdayreport' ? 'active bg-primary text-white'">
+          <i class="bi bi-graph-up-arrow me-1"></i>Visiting Day Report
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a th:href="@{/display}" 
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'display' ? 'active bg-primary text-white'">
+          <i class="bi bi-display me-1"></i>Display
+        </a>
+      </li>
+    </ul>
+  </div>
+</li>
+
 
     <!-- Admin Only -->
-    <li th:if="${role == 'admin'}">
-      <a th:href="@{/users}" class="nav-link text-white">
-        <i class="bi bi-person-lines-fill"></i> Users
+    <li class="nav-item mb-1" th:if="${role == 'admin'}">
+      <a th:href="@{/users}" class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
+         th:classappend="${activePage} == 'users' ? 'active bg-primary'">
+        <i class="bi bi-shield-check"></i><span class="sidebar-text">Users</span>
       </a>
     </li>
   </ul>
-</div>
 
-<!-- Collapse toggle handler -->
-<script>
-  function toggleIcon(el) {
-    const icon = el.querySelector(".toggle-arrow");
-    const isExpanded = el.getAttribute("aria-expanded") === "true";
-    icon.classList.toggle("bi-chevron-down", !isExpanded);
-    icon.classList.toggle("bi-chevron-up", isExpanded);
-  }
-</script>
+  <!-- Footer -->
+  <div class="mt-auto p-3 text-center border-top border-secondary border-opacity-25">
+    <small class="text-secondary sidebar-text"><i class="bi bi-heart-fill text-danger me-1"></i>&copy; Jay M Ladera</small>
+  </div>
+
+  <!-- Sidebar Script (collapse + chevrons + desktop/mobile + tooltips) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebar = document.getElementById('sidebar');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      if (!sidebar || !toggleBtn) return;
+
+      // Mobile helpers
+      let isMobile = window.innerWidth <= 768;
+
+      const mobileMenuBtn = document.createElement('button');
+      mobileMenuBtn.className = 'mobile-menu-btn btn';
+      mobileMenuBtn.innerHTML = '<i class="bi bi-list"></i>';
+      mobileMenuBtn.setAttribute('aria-label', 'Toggle mobile menu');
+      document.body.appendChild(mobileMenuBtn);
+
+      const overlay = document.createElement('div');
+      overlay.className = 'sidebar-overlay';
+      document.body.appendChild(overlay);
+
+      function checkMobile() {
+        const prev = isMobile;
+        isMobile = window.innerWidth <= 768;
+        if (isMobile !== prev) {
+          if (isMobile) {
+            sidebar.classList.remove('sidebar-collapsed');
+            sidebar.classList.add('sidebar-mobile-hidden');
+            overlay.classList.remove('show');
+          } else {
+            sidebar.classList.remove('sidebar-mobile-hidden');
+            overlay.classList.remove('show');
+            const wasCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+            if (wasCollapsed) sidebar.classList.add('sidebar-collapsed');
+          }
+          updateTooltips();
+        }
+      }
+      checkMobile();
+
+      // Restore desktop collapsed state
+      if (!isMobile && localStorage.getItem('sidebar-collapsed') === 'true') {
+        sidebar.classList.add('sidebar-collapsed');
+      } else if (isMobile) {
+        sidebar.classList.add('sidebar-mobile-hidden');
+      }
+
+      // Tooltips for collapsed desktop
+      function enableTooltips() {
+        if (isMobile) return;
+        document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+          if (!link.getAttribute('title')) {
+            const textEl = link.querySelector('.sidebar-text');
+            if (textEl) link.setAttribute('title', textEl.textContent.trim());
+          }
+          if (!link._bsTooltip) link._bsTooltip = new bootstrap.Tooltip(link, { trigger:'hover', placement:'right', delay:{show:500, hide:100} });
+        });
+      }
+      function disableTooltips() {
+        document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+          if (link._bsTooltip) { link._bsTooltip.dispose(); link._bsTooltip = null; }
+          link.removeAttribute('title');
+        });
+      }
+      function updateTooltips() {
+        if (isMobile) { disableTooltips(); return; }
+        if (sidebar.classList.contains('sidebar-collapsed')) enableTooltips(); else disableTooltips();
+      }
+      updateTooltips();
+
+      // Desktop toggle
+      toggleBtn.addEventListener('click', () => {
+        if (isMobile) {
+          sidebar.classList.add('sidebar-mobile-hidden');
+          overlay.classList.remove('show');
+          document.body.style.overflow = '';
+        } else {
+          const isCollapsing = !sidebar.classList.contains('sidebar-collapsed');
+          if (isCollapsing) {
+            document.querySelectorAll('#sidebar .collapse.show').forEach(el => bootstrap.Collapse.getOrCreateInstance(el).hide());
+          }
+          sidebar.classList.toggle('sidebar-collapsed');
+          localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('sidebar-collapsed'));
+          setTimeout(updateTooltips, 300);
+        }
+      });
+
+      // Mobile menu button
+      mobileMenuBtn.addEventListener('click', () => {
+        if (sidebar.classList.contains('sidebar-mobile-hidden')) {
+          sidebar.classList.remove('sidebar-mobile-hidden'); sidebar.classList.add('show');
+          overlay.classList.add('show'); document.body.style.overflow = 'hidden';
+        } else {
+          sidebar.classList.add('sidebar-mobile-hidden'); sidebar.classList.remove('show');
+          overlay.classList.remove('show'); document.body.style.overflow = '';
+        }
+      });
+      overlay.addEventListener('click', () => {
+        sidebar.classList.add('sidebar-mobile-hidden'); sidebar.classList.remove('show');
+        overlay.classList.remove('show'); document.body.style.overflow = '';
+      });
+
+      // Close on link click (mobile)
+      document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+        link.addEventListener('click', function () {
+          if (this.getAttribute('data-bs-toggle') === 'collapse') return;
+          if (isMobile) {
+            setTimeout(() => {
+              sidebar.classList.add('sidebar-mobile-hidden'); sidebar.classList.remove('show');
+              overlay.classList.remove('show'); document.body.style.overflow = '';
+            }, 150);
+          }
+        });
+      });
+
+      // Window resize
+      let resizeTimer;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => { checkMobile(); updateTooltips(); }, 250);
+      });
+
+      // Esc key to close (mobile)
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && isMobile && !sidebar.classList.contains('sidebar-mobile-hidden')) {
+          sidebar.classList.add('sidebar-mobile-hidden'); sidebar.classList.remove('show');
+          overlay.classList.remove('show'); document.body.style.overflow = '';
+        }
+      });
+
+      /* -------- Collapse chevrons: keep icons in sync with Bootstrap state -------- */
+      function setArrow(trigger, expanded) {
+        const icon = trigger.querySelector('.toggle-arrow');
+        if (!icon) return;
+        trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        icon.classList.toggle('bi-chevron-up', expanded);
+        icon.classList.toggle('bi-chevron-down', !expanded);
+      }
+
+      document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(trigger => {
+        const targetSelector = trigger.getAttribute('data-bs-target');
+        const target = document.querySelector(targetSelector);
+        if (!target) return;
+
+        // Initial state
+        setArrow(trigger, target.classList.contains('show'));
+
+        target.addEventListener('show.bs.collapse', () => setArrow(trigger, true));
+        target.addEventListener('hide.bs.collapse', () => setArrow(trigger, false));
+      });
+      /* --------------------------------------------------------------------------- */
+    });
+  </script>
+
+  <style>
+    .sidebar{ width:280px; height:100vh; position:fixed; top:0; left:0;
+      overflow-y:auto; overflow-x:hidden; background:linear-gradient(180deg,#2c3e50 0%,#34495e 100%) !important;
+      box-shadow:2px 0 15px rgba(0,0,0,.1); transition:all .3s cubic-bezier(.4,0,.2,1); z-index:1030; transform:translateX(0); }
+    .sidebar::-webkit-scrollbar{ width:6px; } .sidebar::-webkit-scrollbar-track{ background:transparent; }
+    .sidebar::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.2); border-radius:3px; }
+    .sidebar::-webkit-scrollbar-thumb:hover{ background:rgba(255,255,255,.3); }
+
+    .sidebar-collapsed{ width:75px !important; }
+    .sidebar-collapsed .sidebar-text{ opacity:0; transform:translateX(-20px); display:none !important; }
+    .sidebar-collapsed .nav-link{ justify-content:center !important; padding-left:.75rem !important; padding-right:.75rem !important; }
+    .sidebar-collapsed .collapse.show{ display:none !important; }
+    .sidebar-collapsed .toggle-arrow{ display:none !important; }
+
+    .sidebar-mobile-hidden{ transform:translateX(-100%) !important; }
+
+    .sidebar-overlay{ position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.5); z-index:1025; opacity:0; visibility:hidden; transition:all .3s ease; }
+    .sidebar-overlay.show{ opacity:1; visibility:visible; }
+
+    .nav-link{ border-radius:10px !important; margin:2px 0; padding:12px 16px !important;
+      transition:all .2s ease; border:none; position:relative; overflow:hidden; }
+    .nav-link:hover{ background:rgba(255,255,255,.1) !important; transform:translateX(3px); }
+    .nav-link.active{ background:linear-gradient(135deg,#3498db,#2980b9) !important; color:#fff !important;
+      box-shadow:0 4px 15px rgba(52,152,219,.3); }
+    .nav-link i{ width:20px; text-align:center; font-size:1.1rem; }
+
+    .collapse .nav-link{ padding:8px 16px !important; margin:1px 0; font-size:.9rem; }
+    .collapse .nav-link:hover{ background:rgba(255,255,255,.08) !important; padding-left:20px !important; }
+
+    #sidebarToggle{ transition:all .2s; border:1px solid rgba(255,255,255,.3) !important; }
+    #sidebarToggle:hover{ background:rgba(255,255,255,.1) !important; border-color:rgba(255,255,255,.5) !important; transform:scale(1.05); }
+
+    .mobile-menu-btn{ display:none; position:fixed; top:15px; left:15px; z-index:1035;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); border:none; border-radius:8px; padding:10px;
+      color:#fff; font-size:1.2rem; box-shadow:0 2px 10px rgba(0,0,0,.2); }
+
+    .toggle-arrow{ transition:transform .3s ease; font-size:.8rem; }
+
+    .nav-link.active::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#fff; border-radius:0 2px 2px 0; }
+
+    @media (max-width: 768px){
+      .sidebar{ width:280px !important; transform:translateX(-100%); }
+      .sidebar.show{ transform:translateX(0); }
+      .sidebar-collapsed{ width:280px !important; }
+      .sidebar-collapsed .sidebar-text{ display:block !important; opacity:1 !important; transform:none !important; }
+      .sidebar-collapsed .nav-link{ justify-content:flex-start !important; padding:12px 16px !important; }
+      .sidebar-collapsed .toggle-arrow{ display:inline !important; }
+      .mobile-menu-btn{ display:block; }
+    }
+    @media (max-width: 576px){
+      .sidebar{ width:100% !important; }
+      .mobile-menu-btn{ top:10px; left:10px; padding:8px; font-size:1.1rem; }
+    }
+  </style>
+</div>

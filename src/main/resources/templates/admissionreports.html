@@ -1,110 +1,276 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="_csrf" th:content="${_csrf.token}" />
-    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-    <title>Reports</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Reports - Sisters of Mary Schools</title>
 
-    <!-- Bootstrap CSS -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"
-    />
+  <!-- Bootstrap CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- SweetAlert2 CSS -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
-      rel="stylesheet"
-    />
-    <!-- SweetAlert2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" th:href="@{/css/header.css}" />
-    <link rel="stylesheet" th:href="@{/css/sidebar.css}" />
-    <link rel="stylesheet" th:href="@{/css/home.css}" />
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- DataTables JS -->
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
-    <!-- DataTables CSS -->
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css"
-    />
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    .app-container { display:flex; min-height:100vh; }
+    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
+    .content-area { flex:1; padding:2rem; background:#f8f9fa; }
 
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    /* When sidebar is collapsed (desktop) */
+    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
 
-    <!-- Buttons extension -->
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    .page-header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:15px; box-shadow:0 10px 30px rgba(102,126,234,.3); margin-bottom: 2rem; }
 
-    <!-- Inline CSS for Tabs -->
-    <style>
-      .nav-tabs {
-        border-bottom: none;
-        background-color: #f4f5f7;
-        padding: 10px 15px;
-        border-radius: 5px;
-      }
+    .reports-card { border:none; border-radius:12px; box-shadow:0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08); transition:transform .2s, box-shadow .2s; background:#fff; border: 1px solid rgba(0,0,0,.05); }
+    .reports-card:hover { transform:translateY(-2px); box-shadow:0 8px 35px rgba(0,0,0,.15), 0 4px 15px rgba(0,0,0,.1); }
 
-      .nav-tabs .nav-link {
-        border: none;
-        border-radius: 5px 5px 0 0;
-        padding: 10px 20px;
-        font-weight: 500;
-        color: #333;
-        background-color: #e9e9e9;
-        margin-right: 5px;
-        transition: background-color 0.3s;
-      }
+    /* Enhanced Tabs Styling */
+    .nav-tabs {
+      border-bottom: none;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 15px 20px;
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
 
-      .nav-tabs .nav-link:hover {
-        background-color: #d6d6d6;
-      }
+    .nav-tabs .nav-link {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-weight: 600;
+      color: #6c757d;
+      background: rgba(255,255,255,0.8);
+      margin-right: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
 
-      .nav-tabs .nav-link.active {
-        background-color: #1400c5;
-        color: white;
-        font-weight: bold;
-      }
+    .nav-tabs .nav-link:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #667eea;
+      transform: translateY(-1px);
+    }
 
-      .tab-content {
-        background-color: #f8f9fa;
-        border-radius: 0 5px 5px 5px;
-        padding: 20px;
-        border-top: none;
-      }
-    </style>
-  </head>
+    .nav-tabs .nav-link.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
 
-  <body>
-    <!-- Header -->
-    <div th:replace="fragments/header :: header(${username})"></div>
+    .tab-content {
+      background-color: #ffffff;
+      border-radius: 0 0 12px 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 25px rgba(0,0,0,.12), 0 2px 10px rgba(0,0,0,.08);
+      border: 1px solid rgba(0,0,0,.05);
+    }
 
-    <div class="container-fluid">
-      <div class="row">
-        <!-- Sidebar -->
-        <div th:replace="fragments/sidebar :: sidebar(role=${role})"></div>
+    /* Stats Cards */
+    .stats-alert {
+      border: none;
+      border-radius: 10px;
+      padding: 1.5rem;
+      font-weight: 600;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
+    }
+    .stats-alert:hover {
+      transform: translateY(-2px);
+    }
 
-        <!-- Main Content -->
-        <div class="col-md-9 p-4">
+    .alert-primary {
+      background: linear-gradient(135deg, #0d6efd 0%, #0056b3 100%);
+      color: white;
+      border-left: 4px solid #004085;
+    }
+
+    .alert-success {
+      background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+      color: white;
+      border-left: 4px solid #0f5132;
+    }
+
+    .alert-danger {
+      background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+      color: white;
+      border-left: 4px solid #842029;
+    }
+
+    /* DataTables Styling */
+    .dataTables_wrapper {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+      border: 2px solid #e9ecef;
+      border-radius: 6px;
+      padding: 0.5rem;
+    }
+
+    .table {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    }
+
+    .table thead th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-weight: 600;
+      border: none;
+      padding: 1rem;
+    }
+
+    .table tbody td {
+      padding: 1rem;
+      border-color: #f1f3f4;
+      vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+      background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    /* Saint Grid Styling */
+    .saint-grid-item {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      overflow: hidden;
+    }
+
+    .saint-grid-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+    }
+
+    .saint-grid-item h6 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0.75rem;
+      font-weight: 700;
+    }
+
+    .saint-grid-item .table {
+      margin-bottom: 0;
+      box-shadow: none;
+    }
+
+    .saint-grid-item .table thead th {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      color: #495057;
+      font-size: 0.75rem;
+      padding: 0.5rem;
+    }
+
+    .saint-grid-item .table tbody td {
+      font-size: 0.8rem;
+      padding: 0.5rem;
+    }
+
+    /* Export buttons styling */
+    .dt-buttons {
+      margin-bottom: 1rem;
+    }
+
+    .dt-button {
+      background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+      border: none !important;
+      color: white !important;
+      padding: 0.5rem 1rem !important;
+      border-radius: 6px !important;
+      margin-right: 0.5rem !important;
+      transition: all 0.2s ease !important;
+    }
+
+    .dt-button:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2) !important;
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left:0 !important; padding-top:70px; }
+      .content-area { padding:1rem; }
+      .nav-tabs { padding: 10px 15px; }
+      .nav-tabs .nav-link { padding: 10px 16px; margin-bottom: 5px; }
+      .tab-content { padding: 1rem; }
+      .saint-grid-item { margin-bottom: 1rem; }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding:.75rem; }
+      .page-header .card-body { padding:1.5rem; }
+      .nav-tabs .nav-link { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='reports',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
+
+      <!-- Page Body -->
+      <main class="content-area">
+        
+        <!-- Page Header -->
+        <div class="page-header card mb-4">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-8">
+                <h2 class="card-title mb-3"><i class="bi bi-graph-up me-2"></i>Reports & Analytics</h2>
+                <p class="mb-0">Comprehensive reporting dashboard for admission statistics, family saint data, and testing center analytics.</p>
+              </div>
+              <div class="col-md-4 text-center">
+                <i class="bi bi-bar-chart" style="font-size:4rem; opacity:.3;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Card -->
+        <div class="reports-card">
           <!-- Tab Navigation -->
-          <ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+          <ul class="nav nav-tabs" id="reportTabs" role="tablist">
             <li class="nav-item" role="presentation">
               <button
                 class="nav-link active"
@@ -116,7 +282,7 @@
                 aria-controls="admission"
                 aria-selected="true"
               >
-                ADMISSION STATISTICS
+                <i class="bi bi-graph-up-arrow me-2"></i>ADMISSION STATISTICS
               </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -130,7 +296,7 @@
                 aria-controls="saint"
                 aria-selected="false"
               >
-                FAMILY SAINT
+                <i class="bi bi-people me-2"></i>FAMILY SAINT
               </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -144,62 +310,76 @@
                 aria-controls="testing"
                 aria-selected="false"
               >
-                REPORT BY TESTING CENTERS
+                <i class="bi bi-geo-alt me-2"></i>TESTING CENTERS
               </button>
             </li>
           </ul>
 
           <!-- Tab Content -->
           <div class="tab-content" id="reportTabsContent">
-            <div
-              class="tab-pane fade show active"
-              id="admission"
-              role="tabpanel"
-              aria-labelledby="admission-tab"
-            >
-            <div class="row mb-3" id="mainStats">
-              <div class="col-md-4">
-                <div class="alert alert-primary">
-                  Total Students:
-                  <strong id="totalStudents">Loading...</strong>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="alert alert-success">
-                  Total Arrived:
-                  <strong id="totalArrived">Loading...</strong>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="alert alert-danger">
-                  Total Sent Home:
-                  <strong id="totalSentHome">Loading...</strong>
-                </div>
-              </div>
-            </div>
             
-              <h5>Family Saint Statistics</h5>
-              <table id="familySaintStats" class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Family Saint</th>
-                    <th>Total Students</th>
-                    <th>Used Code Numbers</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-                <!-- Required for JS to append rows -->
-              </table>
+            <!-- Admission Statistics Tab -->
+            <div class="tab-pane fade show active" id="admission" role="tabpanel" aria-labelledby="admission-tab">
+              
+              <!-- Main Statistics Cards -->
+              <div class="row mb-4" id="mainStats">
+                <div class="col-md-4 mb-3">
+                  <div class="alert alert-primary stats-alert">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-people-fill" style="font-size: 2rem; opacity: 0.8; margin-right: 1rem;"></i>
+                      <div>
+                        <div>Total Students:</div>
+                        <strong id="totalStudents" style="font-size: 1.5rem;">Loading...</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="alert alert-success stats-alert">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-check-circle-fill" style="font-size: 2rem; opacity: 0.8; margin-right: 1rem;"></i>
+                      <div>
+                        <div>Total Arrived:</div>
+                        <strong id="totalArrived" style="font-size: 1.5rem;">Loading...</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                  <div class="alert alert-danger stats-alert">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-x-circle-fill" style="font-size: 2rem; opacity: 0.8; margin-right: 1rem;"></i>
+                      <div>
+                        <div>Total Sent Home:</div>
+                        <strong id="totalSentHome" style="font-size: 1.5rem;">Loading...</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Family Saint Statistics Table -->
+              <div class="mb-4">
+                <h5 class="mb-3"><i class="bi bi-table me-2 text-primary"></i>Family Saint Statistics</h5>
+                <div class="table-responsive">
+                  <table id="familySaintStats" class="table table-striped">
+                    <thead>
+                      <tr>
+                        <th><i class="bi bi-star me-2"></i>Family Saint</th>
+                        <th><i class="bi bi-people me-2"></i>Total Students</th>
+                        <th><i class="bi bi-hash me-2"></i>Used Code Numbers</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="saint"
-              role="tabpanel"
-              aria-labelledby="saint-tab"
-            >
-              <!-- Export buttons (visible) -->
 
-              <!-- ✅ Hidden Export Table placed inside the correct tab -->
+            <!-- Family Saint Tab -->
+            <div class="tab-pane fade" id="saint" role="tabpanel" aria-labelledby="saint-tab">
+              
+              <!-- Hidden Export Table -->
               <table id="exportFamilySaint" class="d-none">
                 <thead>
                   <tr>
@@ -212,359 +392,245 @@
                 <tbody></tbody>
               </table>
 
-              <!-- Actual grid container -->
-              <div
-                id="saintGridContainer"
-                class="row"
-                style="row-gap: 20px"
-              ></div>
+              <!-- Saint Grid Container -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0"><i class="bi bi-grid me-2 text-primary"></i>Family Saint Details</h5>
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="exportCopy">
+                      <i class="bi bi-clipboard me-1"></i>Copy
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success" id="exportCSV">
+                      <i class="bi bi-filetype-csv me-1"></i>CSV
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning" id="exportExcel">
+                      <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" id="exportPDF">
+                      <i class="bi bi-filetype-pdf me-1"></i>PDF
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info" id="exportPrint">
+                      <i class="bi bi-printer me-1"></i>Print
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div id="saintGridContainer" class="row" style="row-gap: 20px"></div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="testing"
-              role="tabpanel"
-              aria-labelledby="testing-tab"
-            >
-              <h5>Exam Place Statistics</h5>
-              <table class="table table-bordered" id="examPlaceTable">
-                <thead>
-                  <tr>
-                    <th>Exam Place</th>
-                    <th>Total Students</th>
-                    <th>Arrived</th>
-                    <th>Sent Home</th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Bootstrap Bundle JS (includes Popper) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        fetch("/reports/exam-place")
-          .then((response) => response.json())
-          .then((data) => {
-            const tableBody = document.querySelector("#examPlaceTable tbody");
-            tableBody.innerHTML = "";
-
-            data.forEach((row) => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-  <td>${row.examPlace}</td>
-  <td>${row.total}</td>
-  <td>${row.arrived}</td>
-  <td>${row.sentHome}</td> 
-`;
-
-              tableBody.appendChild(tr);
-            });
-
-            // Initialize DataTables
-            $("#examPlaceTable").DataTable({
-              dom: "Bfrtip",
-              pageLength: 12, // 👈 this controls pagination
-              deferRender: true,
-              buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
-          })
-          .catch((error) => {
-            console.error("Error loading exam place stats:", error);
-          });
-      });
-    </script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Fetch Overall Stats (only once)
-        fetch("/reports/overall-stats")
-  .then((res) => res.json())
-  .then((data) => {
-    console.log("Overall stats:", data);
-    document.getElementById("totalStudents").textContent = data.total ?? 0;
-    document.getElementById("totalArrived").textContent = data.arrived ?? 0;
-    document.getElementById("totalSentHome").textContent = data.sentHome ?? 0;
-  })
-  .catch(() => {
-    document.getElementById("totalStudents").textContent = "0";
-    document.getElementById("totalArrived").textContent = "0";
-    document.getElementById("totalSentHome").textContent = "0";
-  });
-
-
-        // Fetch Family Saint Stats
-        fetch("/reports/family-saint-stats")
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("Family Saint Stats:", data);
-            const tableBody = document.querySelector("#familySaintStats tbody");
-            tableBody.innerHTML = "";
-            data.forEach((row) => {
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-  <td>${row.familySaint}</td>
-  <td>${row.totalStudents}</td>
-  <td>${row.usedCodeNumbers.join(", ")}</td>
-`;
-
-              tableBody.appendChild(tr);
-            });
-          });
-      });
-    </script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        fetch("/reports/family-saint-grid")
-          .then((res) => res.json())
-          .then((data) => {
-            const gridContainer = document.getElementById("saintGridContainer");
-            const exportTableBody = document.querySelector(
-              "#exportFamilySaint tbody"
-            );
-
-            gridContainer.innerHTML = "";
-            exportTableBody.innerHTML = "";
-
-            for (const saint in data) {
-              const rows = data[saint];
-
-              // Visible grid
-              const col = document.createElement("div");
-              col.className = "col-md-2 mb-4";
-              col.innerHTML = (
-                <div class="table-responsive shadow-sm border rounded p-2">
-                  <h6 class="text-center bg-primary text-white py-1">
-                    ${saint}
-                  </h6>
-                  <table class="table table-bordered table-sm text-center">
+            <!-- Testing Centers Tab -->
+            <div class="tab-pane fade" id="testing" role="tabpanel" aria-labelledby="testing-tab">
+              <div class="mb-4">
+                <h5 class="mb-3"><i class="bi bi-geo-alt me-2 text-primary"></i>Exam Place Statistics</h5>
+                <div class="table-responsive">
+                  <table class="table table-striped" id="examPlaceTable">
                     <thead>
                       <tr>
-                        <th>CN</th>
-                        <th>Complete Name</th>
-                        <th>Province</th>
+                        <th><i class="bi bi-geo-alt me-2"></i>Exam Place</th>
+                        <th><i class="bi bi-people me-2"></i>Total Students</th>
+                        <th><i class="bi bi-check-circle me-2"></i>Arrived</th>
+                        <th><i class="bi bi-x-circle me-2"></i>Sent Home</th>
+                      </tr>
+                    </thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Exam Place Statistics Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/reports/exam-place")
+        .then((response) => response.json())
+        .then((data) => {
+          const tableBody = document.querySelector("#examPlaceTable tbody");
+          tableBody.innerHTML = "";
+
+          data.forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${row.examPlace}</td>
+              <td><span class="badge bg-primary">${row.total}</span></td>
+              <td><span class="badge bg-success">${row.arrived}</span></td>
+              <td><span class="badge bg-danger">${row.sentHome}</span></td>
+            `;
+            tableBody.appendChild(tr);
+          });
+
+          // Initialize DataTables
+          $("#examPlaceTable").DataTable({
+            dom: "Bfrtip",
+            pageLength: 12,
+            deferRender: true,
+            buttons: ["copy", "csv", "excel", "pdf", "print"],
+            language: {
+              search: "Search exam places:",
+              lengthMenu: "Show _MENU_ places per page",
+              info: "Showing _START_ to _END_ of _TOTAL_ exam places"
+            }
+          });
+        })
+        .catch((error) => {
+          console.error("Error loading exam place stats:", error);
+        });
+    });
+  </script>
+
+  <!-- Overall Statistics Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/reports/overall-stats")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Overall stats:", data);
+          document.getElementById("totalStudents").textContent = data.total ?? 0;
+          document.getElementById("totalArrived").textContent = data.arrived ?? 0;
+          document.getElementById("totalSentHome").textContent = data.sentHome ?? 0;
+        })
+        .catch(() => {
+          document.getElementById("totalStudents").textContent = "0";
+          document.getElementById("totalArrived").textContent = "0";
+          document.getElementById("totalSentHome").textContent = "0";
+        });
+
+      // Fetch Family Saint Stats
+      fetch("/reports/family-saint-stats")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Family Saint Stats:", data);
+          const tableBody = document.querySelector("#familySaintStats tbody");
+          tableBody.innerHTML = "";
+          
+          data.forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><strong>${row.familySaint}</strong></td>
+              <td><span class="badge bg-primary fs-6">${row.totalStudents}</span></td>
+              <td><small class="text-muted">${row.usedCodeNumbers.join(", ")}</small></td>
+            `;
+            tableBody.appendChild(tr);
+          });
+
+          // Initialize DataTables for Family Saint Stats
+          $("#familySaintStats").DataTable({
+            dom: "Bfrtip",
+            pageLength: 10,
+            buttons: ["copy", "csv", "excel", "pdf", "print"],
+            language: {
+              search: "Search saints:",
+              lengthMenu: "Show _MENU_ saints per page"
+            }
+          });
+        });
+    });
+  </script>
+
+  <!-- Family Saint Grid Script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      fetch("/reports/family-saint-stats-grid")
+        .then((res) => res.json())
+        .then((data) => {
+          const container = document.getElementById("saintGridContainer");
+          const exportTableBody = document.querySelector("#exportFamilySaint tbody");
+          container.innerHTML = "";
+          exportTableBody.innerHTML = "";
+
+          const saintNames = Object.keys(data);
+          const columnsPerRow = 5;
+
+          // Break saints into rows of 5
+          for (let i = 0; i < saintNames.length; i += columnsPerRow) {
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "row mb-4";
+
+            const subset = saintNames.slice(i, i + columnsPerRow);
+
+            subset.forEach((saint) => {
+              const rows = data[saint];
+              const col = document.createElement("div");
+              col.className = "col-md-2 me-2";
+
+              const table = `
+                <div class="saint-grid-item">
+                  <h6 class="text-center text-white">${saint}</h6>
+                  <table class="table table-sm text-center">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="font-size: 0.7rem;">CN</th>
+                        <th style="font-size: 0.7rem;">Name</th>
+                        <th style="font-size: 0.7rem;">Province</th>
                       </tr>
                     </thead>
                     <tbody>
-                      $
-                      {rows
-                        .map((r) => (
-                          <tr>
-                            <td>${r.codeNumber}</td>
-                            <td>${r.studentName}</td>
-                            <td>${r.province}</td>
-                          </tr>
-                        ))
-                        .join("")}
+                      ${rows.map(r => `
+                        <tr>
+                          <td><strong>${r.codeNumber}</strong></td>
+                          <td>${r.studentName}</td>
+                          <td><span class="badge bg-light text-dark" style="font-size: 0.7rem;">${r.province}</span></td>
+                        </tr>
+                      `).join("")}
                     </tbody>
                   </table>
                 </div>
-              );
-              gridContainer.appendChild(col);
+              `;
 
-              // Hidden export table
+              col.innerHTML = table;
+              rowDiv.appendChild(col);
+
+              // Build export data
               rows.forEach((r) => {
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
-  <td>${row.examPlace}</td>
-  <td>${row.total}</td>
-  <td>${row.arrived}</td>
-`;
-
+                  <td>${saint}</td>
+                  <td>${r.codeNumber}</td>
+                  <td>${r.studentName}</td>
+                  <td>${r.province}</td>
+                `;
                 exportTableBody.appendChild(tr);
               });
-            }
-
-            // Initialize DataTable on the hidden export table
-            const exportTable = $("#exportFamilySaint").DataTable({
-              dom: "Bfrtip",
-              paging: false,
-              searching: false,
-              ordering: false,
-              info: false,
-              buttons: ["copy", "csv", "excel", "pdf", "print"],
             });
 
-            // Link export buttons to the hidden table
-            document.getElementById("exportCopy").onclick = () =>
-              exportTable.button(".buttons-copy").trigger();
-            document.getElementById("exportCSV").onclick = () =>
-              exportTable.button(".buttons-csv").trigger();
-            document.getElementById("exportExcel").onclick = () =>
-              exportTable.button(".buttons-excel").trigger();
-            document.getElementById("exportPDF").onclick = () =>
-              exportTable.button(".buttons-pdf").trigger();
-            document.getElementById("exportPrint").onclick = () =>
-              exportTable.button(".buttons-print").trigger();
+            container.appendChild(rowDiv);
+          }
+
+          // Initialize export functionality
+          const exportTable = $("#exportFamilySaint").DataTable({
+            dom: "Bfrtip",
+            paging: false,
+            searching: false,
+            ordering: false,
+            info: false,
+            buttons: ["copy", "csv", "excel", "pdf", "print"],
           });
-      });
-    </script>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        fetch("/reports/family-saint-grid")
-          .then((res) => res.json())
-          .then((data) => {
-            const container = document.getElementById(
-              "familySaintGridsWrapper"
-            );
-            container.innerHTML = "";
+          // Link export buttons
+          document.getElementById("exportCopy").onclick = () =>
+            exportTable.button(".buttons-copy").trigger();
+          document.getElementById("exportCSV").onclick = () =>
+            exportTable.button(".buttons-csv").trigger();
+          document.getElementById("exportExcel").onclick = () =>
+            exportTable.button(".buttons-excel").trigger();
+          document.getElementById("exportPDF").onclick = () =>
+            exportTable.button(".buttons-pdf").trigger();
+          document.getElementById("exportPrint").onclick = () =>
+            exportTable.button(".buttons-print").trigger();
+        })
+        .catch((err) => console.error("Error loading family saint grid:", err));
+    });
+  </script>
 
-            for (const saint in data) {
-              const entries = data[saint];
-
-              const tableHtml = (
-                <div class="col-md-2 mb-4">
-                  <div class="table-responsive shadow-sm border rounded p-2">
-                    <h6 class="text-center bg-primary text-white py-1">
-                      ${saint}
-                    </h6>
-                    <table class="table table-bordered table-sm text-center family-saint-table">
-                      <thead class="d-none">
-                        <tr>
-                          <th>CN</th>
-                          <th>Name</th>
-                          <th>Province</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        $
-                        {entries
-                          .map((row) => (
-                            <tr>
-                              <td>${row.codeNumber}</td>
-                              <td>${row.studentName}</td>
-                              <td>${row.province}</td>
-                            </tr>
-                          ))
-                          .join("")}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-              container.insertAdjacentHTML("beforeend", tableHtml);
-            }
-
-            // Apply DataTables to all rendered tables after slight delay
-            setTimeout(() => {
-              $(".family-saint-table").DataTable({
-                paging: false,
-                searching: false,
-                ordering: false,
-                info: false,
-                dom: "Bfrtip",
-                buttons: ["copy", "csv", "excel", "pdf", "print"],
-              });
-            }, 0);
-          })
-          .catch((err) =>
-            console.error("Error loading family saint grid:", err)
-          );
-      });
-    </script>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        fetch("/reports/family-saint-stats-grid")
-          .then((res) => res.json())
-          .then((data) => {
-            const container = document.getElementById("saintGridContainer");
-            const exportTableBody = document.querySelector(
-              "#exportFamilySaint tbody"
-            );
-            container.innerHTML = "";
-            exportTableBody.innerHTML = "";
-
-            const saintNames = Object.keys(data);
-            const columnsPerRow = 5;
-
-            // Break saints into rows of 5
-            for (let i = 0; i < saintNames.length; i += columnsPerRow) {
-              const rowDiv = document.createElement("div");
-              rowDiv.className = "row mb-4";
-
-              const subset = saintNames.slice(i, i + columnsPerRow);
-
-              subset.forEach((saint) => {
-                const rows = data[saint];
-                const col = document.createElement("div");
-                col.className = "col-md-2 me-2";
-
-                const table = `
-              <div class="table-responsive shadow-sm border rounded p-2">
-                <h6 class="text-center bg-primary text-white py-1">${saint}</h6>
-                <table class="table table-bordered table-sm text-center">
-                  <thead class="table-light">
-                    <tr><th>CN</th><th>Complete Name</th><th>Province</th></tr>
-                  </thead>
-                  <tbody>
-                    ${rows
-                      .map(
-                        (r) => `
-                      <tr>
-                        <td>${r.codeNumber}</td>
-                        <td>${r.studentName}</td>
-                        <td>${r.province}</td>
-                      </tr>
-                    `
-                      )
-                      .join("")}
-                  </tbody>
-                </table>
-              </div>
-            `;
-
-                col.innerHTML = table;
-                rowDiv.appendChild(col);
-
-                // Also build export row
-                rows.forEach((r) => {
-                  const tr = document.createElement("tr");
-                  tr.innerHTML = `
-                <td>${saint}</td>
-                <td>${r.codeNumber}</td>
-                <td>${r.studentName}</td>
-                <td>${r.province}</td>
-              `;
-                  exportTableBody.appendChild(tr);
-                });
-              });
-
-              container.appendChild(rowDiv);
-            }
-
-            // Init export buttons
-            const exportTable = $("#exportFamilySaint").DataTable({
-              dom: "Bfrtip",
-              paging: false,
-              searching: false,
-              ordering: false,
-              info: false,
-              buttons: ["copy", "csv", "excel", "pdf", "print"],
-            });
-
-            document.getElementById("exportCopy").onclick = () =>
-              exportTable.button(".buttons-copy").trigger();
-            document.getElementById("exportCSV").onclick = () =>
-              exportTable.button(".buttons-csv").trigger();
-            document.getElementById("exportExcel").onclick = () =>
-              exportTable.button(".buttons-excel").trigger();
-            document.getElementById("exportPDF").onclick = () =>
-              exportTable.button(".buttons-pdf").trigger();
-            document.getElementById("exportPrint").onclick = () =>
-              exportTable.button(".buttons-print").trigger();
-          })
-          .catch((err) =>
-            console.error("Error loading family saint grid:", err)
-          );
-      });
-    </script>
-  </body>
+</body>
 </html>
