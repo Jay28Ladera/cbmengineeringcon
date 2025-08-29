@@ -58,35 +58,261 @@
     /* ==== Batch grid (cards side-by-side) ==== */
     .batches-grid{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 28px;
       align-items:start;
     }
 
-    .batch-card{border:1px solid #e2e8f0;border-radius:14px;background:#fff}
-    .batch-card .card-header{
-      background:#eef2ff;border-bottom:1px solid #e2e8f0;
-      border-top-left-radius:14px;border-top-right-radius:14px;
-      display:flex;align-items:center;justify-content:space-between;
-      padding:.75rem 1rem;
+    .batch-card{
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      background:#fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
     }
-    .batch-title{font-weight:800;color:#4169e1;margin:0}
-    .badge-soft{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;font-weight:700}
+    
+    .batch-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .batch-card .card-header{
+      background: linear-gradient(135deg, #b8c9ff 0%, #e0e7ff 100%);
+      border-bottom:1px solid #e2e8f0;
+      border-top-left-radius:16px;
+      border-top-right-radius:16px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:1.5rem 1.5rem;
+      margin-top: 50px;
+    }
+    
+    .batch-title{
+      font-weight:900;
+      color:#4169e1;
+      margin:0;
+      font-size: 2rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    
+    .badge-soft{
+      background:#4169e1;
+      color:#fff;
+      border:none;
+      font-weight:700;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.8rem;
+    }
 
-    .table-wrap{border-top:1px solid #e2e8f0;border-bottom-left-radius:14px;border-bottom-right-radius:14px}
-    .table thead th{background:#4169e1;color:#fff}
-    .table-sm td,.table-sm th{padding:.6rem .75rem}
-    .col-photo{width:60px}
-    .log-img{width:40px;height:40px;object-fit:cover;border-radius:10px}
+    .table-wrap{
+      border-top:1px solid #e2e8f0;
+      border-bottom-left-radius:16px;
+      border-bottom-right-radius:16px;
+      overflow: hidden;
+    }
+    
+    .table thead th{
+      background:#4169e1;
+      color:#fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 1rem 0.75rem;
+      border: none;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Enhanced table styling with much bigger text */
+    .table-sm td, .table-sm th{
+      padding: 1.2rem 1rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-color: #f1f5f9;
+    }
+    
+    /* Regular rows */
+    .table tbody tr {
+      transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover {
+      background: #f8fafc;
+      transform: scale(1.02);
+    }
+    
+    /* FEATURED FIRST ROW - Clean blue highlighting */
+    .table tbody tr.featured-row {
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%) !important;
+      border: 3px solid #3b82f6 !important;
+      transform: scale(1.02);
+      box-shadow: 
+        0 4px 25px rgba(59, 130, 246, 0.3),
+        0 2px 10px rgba(59, 130, 246, 0.2);
+      position: relative;
+      z-index: 10;
+      animation: blueGlow 3s ease-in-out infinite alternate;
+    }
+    
+    @keyframes blueGlow {
+      0% { 
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%) !important;
+        box-shadow: 
+          0 4px 25px rgba(59, 130, 246, 0.3),
+          0 2px 10px rgba(59, 130, 246, 0.2);
+      }
+      100% { 
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%) !important;
+        box-shadow: 
+          0 6px 30px rgba(59, 130, 246, 0.4),
+          0 3px 15px rgba(59, 130, 246, 0.3);
+      }
+    }
+    
+    .table tbody tr.featured-row:hover {
+      animation-play-state: paused;
+      transform: scale(1.03) !important;
+      box-shadow: 
+        0 8px 35px rgba(59, 130, 246, 0.4),
+        0 4px 20px rgba(59, 130, 246, 0.3) !important;
+    }
+    
+    .table tbody tr.featured-row td {
+      padding: 1.8rem 1.2rem !important;
+      font-size: 1.6rem !important;
+      font-weight: 800 !important;
+      color: #1e40af !important;
+      border-color: #3b82f6 !important;
+      line-height: 1.3 !important;
+    }
+    
+    /* Featured row image bigger with clean blue styling */
+    .table tbody tr.featured-row .log-img {
+      width: 75px !important;
+      height: 75px !important;
+      border: 4px solid #3b82f6 !important;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3) !important;
+    }
+    
+    .table tbody tr.featured-row td:first-child {
+      position: relative;
+    }
+    
+    /* Regular rows enhanced styling with bigger text */
+    .col-photo{width:90px}
+    .log-img{
+      width:60px;
+      height:60px;
+      object-fit:cover;
+      border-radius:15px;
+      border: 3px solid #e2e8f0;
+      transition: all 0.3s ease;
+    }
+    
+    .table tbody tr:hover .log-img {
+      border-color: #4169e1;
+      transform: scale(1.1);
+    }
+
+    /* Enhanced name styling - bigger blue text */
+    .table tbody td:nth-child(2) {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 1.3rem !important;
+    }
+    
+    /* Time column bigger text */
+    .table tbody td:nth-child(3) {
+      font-size: 1.2rem !important;
+      font-weight: 600;
+      color: #4169e1;
+    }
+    
+    .table tbody tr.featured-row td:nth-child(2) {
+      font-weight: 800 !important;
+      font-size: 1.9rem !important;
+      color: #1e40af !important;
+    }
+    
+    .table tbody tr.featured-row td:nth-child(3) {
+      font-size: 1.4rem !important;
+      font-weight: 700 !important;
+      color: #1d4ed8 !important;
+    }
 
     /* Hide Time In on very narrow screens; keep Name primary */
     @media (max-width: 576px){
       .col-time { display:none; }
+      .batches-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 992px){
       .main-content{margin-left:0!important}
       .content-area{padding:1rem}
+      
+      .table-sm td, .table-sm th{
+        padding: 1rem 0.75rem;
+        font-size: 1rem;
+      }
+      
+      .table tbody tr.featured-row td {
+        padding: 1.4rem 1rem !important;
+        font-size: 1.4rem !important;
+      }
+      
+      .table tbody tr.featured-row .log-img {
+        width: 65px !important;
+        height: 65px !important;
+      }
+      
+      .log-img {
+        width: 50px !important;
+        height: 50px !important;
+      }
+      
+      .table tbody td:nth-child(2) {
+        font-size: 1.1rem !important;
+      }
+      
+      .table tbody tr.featured-row td:nth-child(2) {
+        font-size: 1.6rem !important;
+      }
+    }
+    
+    @media (max-width: 576px){
+      .col-time { display:none; }
+      .batches-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .table-sm td, .table-sm th{
+        padding: 0.8rem 0.5rem;
+        font-size: 0.9rem;
+      }
+      
+      .table tbody tr.featured-row td {
+        padding: 1.2rem 0.8rem !important;
+        font-size: 1.2rem !important;
+      }
+      
+      .table tbody tr.featured-row .log-img {
+        width: 55px !important;
+        height: 55px !important;
+      }
+      
+      .log-img {
+        width: 45px !important;
+        height: 45px !important;
+      }
+      
+      .table tbody td:nth-child(2) {
+        font-size: 1rem !important;
+      }
+      
+      .table tbody tr.featured-row td:nth-child(2) {
+        font-size: 1.4rem !important;
+      }
     }
   </style>
 </head>
@@ -169,15 +395,18 @@
     container.innerHTML = batchNames.map(batch=>{
       const rows = grouped[batch] || [];
       const show = Math.min(rows.length, 10); // cap 10 per card
-      const countTxt = `${rows.length} record${rows.length===1?'':'s'}${rows.length>10?` • showing 10`:''}`;
+      const countTxt = `${rows.length} visitor${rows.length===1?'':'s'}${rows.length>10?` • showing top 10`:''}`;
 
-      const body = rows.slice(0, show).map(r=>`
-        <tr>
-          <td class="text-center">${imgTag(r.imageUrl)}</td>
-          <td>${r.name ?? '-'}</td>
-          <td class="col-time">${r.timeIn ?? r.time ?? '-'}</td>
-        </tr>
-      `).join('');
+      const body = rows.slice(0, show).map((r, index) => {
+        const featuredClass = index === 0 && rows.length > 0 ? 'featured-row' : '';
+        return `
+          <tr class="${featuredClass}">
+            <td class="text-center">${imgTag(r.imageUrl)}</td>
+            <td>${r.name ?? '-'}</td>
+            <td class="col-time">${r.timeIn ?? r.time ?? '-'}</td>
+          </tr>
+        `;
+      }).join('');
 
       return `
         <div class="card batch-card">
@@ -190,12 +419,12 @@
               <thead>
                 <tr>
                   <th class="col-photo text-center">Photo</th>
-                  <th>Name</th>
+                  <th>Student Name</th>
                   <th class="col-time">Time In</th>
                 </tr>
               </thead>
               <tbody>
-                ${body || `<tr><td colspan="3" class="text-center text-muted">No data</td></tr>`}
+                ${body || `<tr><td colspan="3" class="text-center text-muted">No visitors yet</td></tr>`}
               </tbody>
             </table>
           </div>
@@ -269,7 +498,6 @@
   // start
   loop();
 </script>
-
 
 </body>
 </html>
