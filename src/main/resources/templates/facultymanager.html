@@ -405,156 +405,247 @@
     }
 
     /* QR Pass Styling */
-    .id-pass {
-      width: min(760px, 100%);
-      background: #fff;
-      color: #000;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 24px 28px;
-      box-sizing: border-box;
-      font-family: "Inter", Arial, Helvetica, sans-serif;
-      position: relative;
-      box-shadow: 0 8px 30px rgba(0,0,0,.1);
-    }
+   /* Updated QR Pass Styling */
+.id-pass {
+  width: min(760px, 100%);
+  background: #fff;
+  color: #000;
+  border: 3px solid #4169e1;
+  border-radius: 16px;
+  padding: 24px 28px;
+  box-sizing: border-box;
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0,0,0,.1);
+}
 
-    .id-head {
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      text-align: center;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid #4169e1;
-      margin-bottom: 1rem;
-    }
+.id-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #4169e1;
+  margin-bottom: 1rem;
+}
 
-    .id-head .logo { 
-      width: 64px; 
-      height: 64px; 
-      object-fit: contain; 
-      display: block; 
-      margin: 0 auto 8px; 
-      border-radius: 8px;
-    }
+.id-head .logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 8px;
+  border-radius: 8px;
+}
 
-    .id-head .school { 
-      font-weight: 800; 
-      font-size: 20px; 
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
-      color: #1e293b;
-      margin-bottom: 4px;
-    }
+.id-head .school {
+  font-weight: 800;
+  font-size: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
 
-    .id-head .addr { 
-      font-size: 14px; 
-      font-style: italic; 
-      color: #64748b; 
-    }
+.id-head .addr {
+  font-size: 14px;
+  font-style: italic;
+  color: #64748b;
+}
 
-    .id-body {
-      display: grid;
-      grid-template-columns: 1fr 220px;
-      column-gap: 28px;
-      align-items: start;
-      position: relative;
-    }
+.id-body {
+  display: grid;
+  grid-template-columns: 1fr 250px;
+  column-gap: 28px;
+  align-items: start;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
 
-    .title { 
-      font-weight: 900; 
-      font-size: 32px; 
-      line-height: 1.1; 
-      margin: 8px 0 16px; 
-      letter-spacing: 0.3px;
-      color: #4169e1;
-    }
+.title {
+  font-weight: 900;
+  font-size: 32px;
+  line-height: 1.1;
+  margin: 8px 0 16px;
+  letter-spacing: 0.3px;
+  color: #4169e1;
+}
 
-    .student-name { 
-      font-weight: 800; 
-      font-size: 22px; 
-      margin-top: 4px; 
-      letter-spacing: 0.4px; 
-      text-transform: uppercase;
-      color: #1e293b;
-    }
+.student-name-pass {
+  font-weight: 800;
+  font-size: 22px;
+  margin-top: 4px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #1e293b;
+  line-height: 1.2;
+}
 
-    .saint { 
-      font-weight: 800; 
-      font-size: 18px; 
-      margin-top: 16px; 
-      letter-spacing: 0.3px;
-      color: #64748b;
-    }
+.saint {
+  font-weight: 800;
+  font-size: 18px;
+  margin-top: 16px;
+  letter-spacing: 0.3px;
+  color: #64748b;
+}
 
-    .qr-col { 
-      display: flex; 
-      justify-content: flex-end; 
-      margin-top: 24px; 
-    }
+.qr-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
 
-    .qr-box {
-      width: 210px; 
-      height: 210px;
-      border: 4px solid #4169e1; 
-      border-radius: 12px; 
-      background: #fff;
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      color: #cbd5e1; 
-      font-size: 32px;
-      box-shadow: 0 4px 20px rgba(65,105,225,.2);
-    }
+.qr-box {
+  width: 220px;
+  height: 220px;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5e1;
+  font-size: 32px;
+  box-shadow: 0 4px 20px rgba(65,105,225,.1);
+}
 
-    .vert-id {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%) rotate(-90deg);
-      transform-origin: right top;
-      font-size: 18px;
-      letter-spacing: 0.8px;
-      color: #4169e1;
-      white-space: nowrap;
-      font-weight: 700;
-    }
+.vert-id {
+  font-size: 16px;
+  letter-spacing: 1.2px;
+  color: #4169e1;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 8px;
+}
 
-    .note { 
-      margin-top: 20px; 
-      font-size: 13px; 
-      font-style: italic; 
-      color: #475569; 
-      line-height: 1.4;
-      padding: 1rem;
-      background: #f8fafc;
-      border-radius: 8px;
-      border-left: 4px solid #4169e1;
-    }
+/* Print Styles */
+@media print {
+  @page { 
+    size: A4; 
+    margin: 15mm; 
+  }
+  
+  /* Hide everything first */
+  * {
+    visibility: hidden !important;
+  }
+  
+  /* Only show the print pass */
+  #idPassPrint,
+  #idPassPrint * {
+    visibility: visible !important;
+  }
+  
+  /* Style the print pass */
+  #idPassPrint {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 180mm !important;
+    margin: 0 auto !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 2px solid #000 !important;
+    z-index: 9999 !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Fix vertical ID - make it horizontal for print */
+  #idPassPrint .vert-id {
+    position: static !important;
+    transform: none !important;
+    margin-top: 8px !important;
+    text-align: center !important;
+  }
+  
+  /* Hide page background and body styling */
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Ensure clean print layout */
+  #idPassPrint .id-body {
+    grid-template-columns: 1fr 250px !important;
+    page-break-inside: avoid !important;
+  }
+  
+  #idPassPrint .qr-box {
+    page-break-inside: avoid !important;
+  }
+}
 
-    .note .u { 
-      text-decoration: underline; 
-    }
+.note {
+  margin-top: 20px;
+  font-size: 13px;
+  font-style: italic;
+  color: #475569;
+  line-height: 1.4;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #4169e1;
+}
 
-    #idPassPrint { 
-      position: fixed; 
-      left: -99999px; 
-      top: -99999px; 
-    }
+.note .u {
+  text-decoration: underline;
+}
 
-    .qr-preview { 
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 1.5rem;
-    }
+#idPassPrint {
+  position: fixed;
+  left: -99999px;
+  top: -99999px;
+}
 
-    #previewWrap { 
-      display: flex; 
-      justify-content: center; 
-      overflow: auto; 
-      padding: 1rem; 
-    }
+.qr-preview {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.5rem;
+}
 
+#previewWrap {
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  padding: 1rem;
+}
+
+/* Mobile responsiveness for the pass */
+@media (max-width: 768px) {
+  .id-pass {
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .id-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    text-align: center;
+  }
+  
+  .qr-col {
+    margin-top: 10px;
+  }
+  
+  .qr-box {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .title {
+    font-size: 28px;
+  }
+  
+  .student-name-pass {
+    font-size: 18px;
+  }
+}
     /* DataTables Pagination Enhancement */
     .dataTables_wrapper .dataTables_paginate .paginate_button {
       border-radius: 10px !important;
@@ -701,30 +792,7 @@
       }
     }
 
-    /* Print Styles */
-    @media print {
-      @page { size: auto; margin: 10mm; }
-      html, body { background: #fff !important; }
-      body * { visibility: hidden !important; }
-      #idPassPrint, #idPassPrint * { visibility: visible !important; }
-      #idPassPrint {
-        position: fixed !important;
-        left: 50% !important;
-        top: 18mm !important;
-        transform: translateX(-50%) !important;
-        width: 170mm !important;
-        margin: 0 !important;
-        background: #fff !important;
-        box-shadow: none !important;
-        border: 2px solid #000 !important;
-        z-index: 9999 !important;
-      }
-      #idPassPrint .vert-id {
-        top: 50% !important;
-        right: 8px !important;
-        transform: translateY(-50%) rotate(-90deg) !important;
-      }
-    }
+   
   </style>
 </head>
 
