@@ -55,12 +55,13 @@
 
     .time-date-display{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem 1.25rem}
 
-    /* ==== Batch grid (cards side-by-side) ==== */
+    /* ==== Batch grid (cards side-by-side) - FIXED FOR 5 COLUMNS ==== */
     .batches-grid{
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-      gap: 28px;
+      grid-template-columns: repeat(5, 1fr); /* Exactly 5 equal columns */
+      gap: 16px; /* Reduced gap to fit 5 columns comfortably */
       align-items:start;
+      width: 100%; /* Ensure full width usage */
     }
 
     .batch-card{
@@ -69,6 +70,7 @@
       background:#fff;
       box-shadow: 0 4px 20px rgba(0,0,0,0.08);
       transition: transform 0.2s ease;
+      min-width: 0; /* Allow cards to shrink below their content width */
     }
     
     .batch-card:hover {
@@ -82,7 +84,7 @@
       border-top-left-radius:16px;
       border-top-right-radius:16px;
       display:flex;align-items:center;justify-content:space-between;
-      padding:1.5rem 1.5rem;
+      padding:1.2rem 1rem; /* Reduced padding for tighter fit */
       margin-top: 50px;
     }
     
@@ -90,9 +92,12 @@
       font-weight:900;
       color:#4169e1;
       margin:0;
-      font-size: 2rem;
+      font-size: 1.6rem; /* Slightly smaller for better fit */
       letter-spacing: 0.5px;
       text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     .badge-soft{
@@ -100,8 +105,9 @@
       color:#fff;
       border:none;
       font-weight:700;
-      font-size: 0.85rem;
-      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem; /* Smaller badge text */
+      padding: 0.3rem 0.6rem;
+      white-space: nowrap;
     }
 
     .table-wrap{
@@ -115,17 +121,17 @@
       background:#4169e1;
       color:#fff;
       font-weight: 700;
-      font-size: 0.9rem;
-      padding: 1rem 0.75rem;
+      font-size: 0.8rem; /* Smaller header text */
+      padding: 0.8rem 0.5rem; /* Reduced padding */
       border: none;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
-    /* Enhanced table styling with much bigger text */
+    /* Enhanced table styling with responsive text */
     .table-sm td, .table-sm th{
-      padding: 1.2rem 1rem;
-      font-size: 1.1rem;
+      padding: 1rem 0.8rem; /* Reduced padding */
+      font-size: 1rem; /* Slightly smaller base font */
       font-weight: 600;
       border-color: #f1f5f9;
     }
@@ -137,14 +143,14 @@
     
     .table tbody tr:hover {
       background: #f8fafc;
-      transform: scale(1.02);
+      transform: scale(1.01); /* Reduced scale for tighter space */
     }
     
     /* FEATURED FIRST ROW - Clean blue highlighting */
     .table tbody tr.featured-row {
       background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%) !important;
       border: 3px solid #3b82f6 !important;
-      transform: scale(1.02);
+      transform: scale(1.01);
       box-shadow: 
         0 4px 25px rgba(59, 130, 246, 0.3),
         0 2px 10px rgba(59, 130, 246, 0.2);
@@ -170,25 +176,25 @@
     
     .table tbody tr.featured-row:hover {
       animation-play-state: paused;
-      transform: scale(1.03) !important;
+      transform: scale(1.02) !important;
       box-shadow: 
         0 8px 35px rgba(59, 130, 246, 0.4),
         0 4px 20px rgba(59, 130, 246, 0.3) !important;
     }
     
     .table tbody tr.featured-row td {
-      padding: 1.8rem 1.2rem !important;
-      font-size: 1.6rem !important;
+      padding: 1.4rem 1rem !important; /* Reduced padding */
+      font-size: 1.3rem !important; /* Smaller featured text */
       font-weight: 800 !important;
       color: #1e40af !important;
       border-color: #3b82f6 !important;
       line-height: 1.3 !important;
     }
     
-    /* Featured row image bigger with clean blue styling */
+    /* Featured row image with adjusted size */
     .table tbody tr.featured-row .log-img {
-      width: 75px !important;
-      height: 75px !important;
+      width: 60px !important; /* Smaller image */
+      height: 60px !important;
       border: 4px solid #3b82f6 !important;
       box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3) !important;
     }
@@ -197,11 +203,11 @@
       position: relative;
     }
     
-    /* Regular rows enhanced styling with bigger text */
-    .col-photo{width:90px}
+    /* Regular rows enhanced styling */
+    .col-photo{width:80px} /* Slightly smaller photo column */
     .log-img{
-      width:60px;
-      height:60px;
+      width:50px; /* Smaller regular images */
+      height:50px;
       object-fit:cover;
       border-radius:15px;
       border: 3px solid #e2e8f0;
@@ -213,43 +219,68 @@
       transform: scale(1.1);
     }
 
-    /* Enhanced name styling - bigger blue text */
+    /* Enhanced name styling with responsive text */
     .table tbody td:nth-child(2) {
       font-weight: 700;
       color: #1e293b;
-      font-size: 1.3rem !important;
+      font-size: 1.1rem !important; /* Responsive text size */
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
-    /* Time column bigger text */
+    /* Time column responsive text */
     .table tbody td:nth-child(3) {
-      font-size: 1.2rem !important;
+      font-size: 1rem !important;
       font-weight: 600;
       color: #4169e1;
+      white-space: nowrap;
     }
     
     .table tbody tr.featured-row td:nth-child(2) {
       font-weight: 800 !important;
-      font-size: 1.9rem !important;
+      font-size: 1.5rem !important; /* Adjusted featured name size */
       color: #1e40af !important;
     }
     
     .table tbody tr.featured-row td:nth-child(3) {
-      font-size: 1.4rem !important;
+      font-size: 1.2rem !important;
       font-weight: 700 !important;
       color: #1d4ed8 !important;
     }
 
-    /* Hide Time In on very narrow screens; keep Name primary */
-    @media (max-width: 576px){
-      .col-time { display:none; }
+    /* Responsive breakpoints for fewer columns on smaller screens */
+    @media (max-width: 1400px) {
       .batches-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(4, 1fr); /* 4 columns on smaller desktops */
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .batches-grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 columns on tablets */
+        gap: 24px;
+      }
+      
+      .batch-title {
+        font-size: 1.8rem;
+      }
+      
+      .table-sm td, .table-sm th{
+        padding: 1.2rem 1rem;
+        font-size: 1.1rem;
       }
     }
 
     @media (max-width: 992px){
       .main-content{margin-left:0!important}
       .content-area{padding:1rem}
+      
+      .batches-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns on small tablets */
+        gap: 28px;
+      }
       
       .table-sm td, .table-sm th{
         padding: 1rem 0.75rem;
@@ -283,7 +314,7 @@
     @media (max-width: 576px){
       .col-time { display:none; }
       .batches-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* 1 column on mobile */
       }
       
       .table-sm td, .table-sm th{
