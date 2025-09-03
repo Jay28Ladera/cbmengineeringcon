@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Point of Sale (Cash Only)</title>
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --primary-gradient:linear-gradient(135deg,#4169e1 0%,#4169e1 100%);
+      --background-main:#f8fafc; --background-card:#fff;
+      --text-primary:#1a202c; --text-secondary:#4a5568; --text-muted:#718096;
+      --border-light:#e2e8f0;
+      --shadow-medium:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+    }
+    body{font-family:'Inter',sans-serif;background:var(--background-main);color:var(--text-primary);margin:0;line-height:1.6}
+    .app-container{display:flex;min-height:100vh}
+    .main{flex:1;margin-left:280px;transition:margin-left .3s}
+    #sidebar.sidebar-collapsed~.main{margin-left:75px}
+    .wrap{padding:28px}
+
+    .table-responsive{border-radius:16px;overflow:hidden;box-shadow:var(--shadow-medium);background:#fff}
+    .table{margin-bottom:0}
+    .table thead th{background:var(--primary-gradient);color:#fff;border:none;padding:20px 16px;font-weight:600;font-size:.95rem;letter-spacing:.025em;text-transform:uppercase}
+    .table tbody td{border-top:1px solid var(--border-light);padding:20px 16px;font-weight:500;vertical-align:middle}
+    .table tbody tr:nth-child(even){background:#f8fafc}
+
+    .summary{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);border:2px solid var(--border-light);border-radius:20px;padding:28px;box-shadow:var(--shadow-medium);position:sticky;top:20px}
+    .summary .form-label{color:var(--text-secondary);font-weight:600;font-size:.9rem;text-transform:uppercase;letter-spacing:.025em;margin-bottom:8px}
+    .summary input{border:2px solid var(--border-light);border-radius:12px;padding:14px 16px;font-size:1.1rem;font-weight:500}
+    @media (max-width:768px){.main{margin-left:0!important;padding-top:70px}.wrap{padding:16px}.summary{margin-top:20px;position:static}}
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='pos',
+       studentInfoExpanded=${studentInfoExpanded},
+       asmsiExpanded=${asmsiExpanded},
+       admissionExpanded=${admissionExpanded},
+       attendanceExpanded=${attendanceExpanded},
+       eventsExpanded=${eventsExpanded},
+       familyDayExpanded=${familyDayExpanded},
+       merchandiseExpanded=${merchandiseExpanded})"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Header -->
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <div class="wrap container-fluid">
+      <div class="row g-4">
+        <!-- Left: TABLE (kept) -->
+        <div class="col-lg-8">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="cartTable">
+              <thead>
+                <tr>
+                  <th><i class="bi bi-hash me-1"></i>ITEM #</th>
+                  <th><i class="bi bi-tag me-1"></i>PRODUCT NAME</th>
+                  <th class="text-end"><i class="bi bi-currency-dollar me-1"></i>PRICE</th>
+                  <th class="text-center" style="width:180px"><i class="bi bi-123 me-1"></i>QUANTITY</th>
+                  <th class="text-end"><i class="bi bi-calculator me-1"></i>SUBTOTAL</th>
+                  <th class="text-center" style="width:80px"><i class="bi bi-trash me-1"></i>REMOVE</th>
+                </tr>
+              </thead>
+              <tbody id="cartBody">
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-cart-x fs-1 d-block mb-3"></i>
+                    <h5 class="mb-1">Your cart is empty</h5>
+                    <p class="mb-0">Scan or enter an item number to get started</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: SUMMARY (kept) -->
+        <div class="col-lg-4">
+          <div class="summary">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span><i class="bi bi-basket me-2"></i>Total Items</span>
+              <strong id="sumItems" class="fs-5">0</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span><i class="bi bi-receipt me-2"></i>Grand Total</span>
+              <strong id="sumTotal" class="fs-4 text-primary">₱0.00</strong>
+            </div>
+            <hr>
+            <div class="mb-3">
+              <label class="form-label"><i class="bi bi-cash me-2"></i>Cash Received</label>
+              <input id="cashInput" type="number" min="0" step="0.01"
+                     class="form-control form-control-lg" placeholder="Enter cash amount" disabled>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <span><i class="bi bi-arrow-left-right me-2"></i>Change</span>
+              <strong id="sumChange" class="fs-4 text-success">₱0.00</strong>
+            </div>
+            <div class="d-grid gap-3">
+              <button class="btn btn-primary btn-lg" disabled>
+                <i class="bi bi-cart"></i> Cart is Empty
+              </button>
+              <button class="btn btn-outline-secondary btn-lg" disabled>
+                <i class="bi bi-arrow-clockwise me-2"></i>Clear Cart
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- /Right -->
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // ==== LIVE LISTENER from POS ====
+  const peso = (x)=>'₱'+Number(x||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const LIVE = ('BroadcastChannel' in window) ? new BroadcastChannel('pos-live') : null;
+
+  function renderLive(data){
+    if(!data) return;
+
+    // Update totals
+    document.getElementById('sumItems').textContent = data.totals.items || 0;
+    document.getElementById('sumTotal').textContent = peso(data.totals.total || 0);
+    document.getElementById('sumChange').textContent = peso(data.totals.change || 0);
+
+    // Rebuild table body
+    const body = document.getElementById('cartBody');
+    body.innerHTML = '';
+    const items = data.items || [];
+
+    if(items.length === 0){
+      body.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center py-5 text-muted">
+            <i class="bi bi-cart-x fs-1 d-block mb-3"></i>
+            <h5 class="mb-1">Your cart is empty</h5>
+            <p class="mb-0">Scan or enter an item number to get started</p>
+          </td>
+        </tr>`;
+      return;
+    }
+
+    for(const row of items){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${row.code}</strong></td>
+        <td>${row.name ?? ''}</td>
+        <td class="text-end"><strong>${peso(row.price)}</strong></td>
+        <td class="text-center">${row.qty}</td>
+        <td class="text-end"><strong class="text-primary">${peso(row.sub)}</strong></td>
+        <td class="text-center"><i class="bi bi-dash-circle text-muted"></i></td>`;
+      body.appendChild(tr);
+    }
+  }
+
+  if (LIVE) {
+    LIVE.onmessage = (ev) => {
+      if (ev?.data?.type === 'cart') {
+        renderLive(ev.data.payload);
+      }
+    };
+    // Ask the POS for the current cart snapshot immediately on load
+    LIVE.postMessage({ type: 'syncRequest' });
+  }
+</script>
+
+</body>
+</html>

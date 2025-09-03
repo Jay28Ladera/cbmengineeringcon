@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Merchandise Sales Report</title>
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+  <!-- Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --primary-gradient:linear-gradient(135deg,#4169e1 0%,#4169e1 100%);
+      --background-main:#f8fafc; --background-card:#fff;
+      --text-primary:#1a202c; --text-secondary:#4a5568; --text-muted:#718096;
+      --border-light:#e2e8f0;
+      --shadow-soft:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+      --shadow-medium:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+      --shadow-large:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04)
+    }
+    body{font-family:'Inter',sans-serif;background:var(--background-main);color:var(--text-primary)}
+    .app-container{display:flex;min-height:100vh}
+    .main{flex:1;margin-left:280px}
+    @media (max-width:768px){.main{margin-left:0}}
+
+    .wrap{padding:28px}
+
+    .cardfx{background:#fff;border:none;border-radius:20px;box-shadow:var(--shadow-large);padding:24px;position:relative}
+    .cardfx::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary-gradient)}
+    h3{font-weight:800}
+    .text-muted{color:var(--text-muted);font-weight:500}
+
+    .kpi .label{color:var(--text-secondary);font-weight:600;font-size:.9rem;text-transform:uppercase;letter-spacing:.02em}
+    .kpi .value{font-weight:800;font-size:1.6rem}
+
+    .table-responsive{border-radius:16px;overflow:hidden;box-shadow:var(--shadow-medium);background:#fff}
+    .table thead th{background:var(--primary-gradient);color:#fff;border:none;padding:14px 12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+    .table tbody td{border-top:1px solid var(--border-light);padding:12px 12px;vertical-align:middle}
+    .table tbody tr:nth-child(even){background:#f8fafc}
+
+    .btn-primary,.btn-outline-primary{border-radius:12px}
+    .btn-primary{background:var(--primary-gradient);border:none;box-shadow:var(--shadow-soft)}
+    .btn-outline-primary{border:2px solid var(--border-light);background:#fff;color:#4169e1}
+    .filter-form .form-control{border:2px solid var(--border-light);border-radius:12px}
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(
+       role=${role},
+       activePage='merchreport',
+       studentInfoExpanded=${studentInfoExpanded},
+       asmsiExpanded=${asmsiExpanded},
+       admissionExpanded=${admissionExpanded},
+       attendanceExpanded=${attendanceExpanded},
+       eventsExpanded=${eventsExpanded},
+       familyDayExpanded=${familyDayExpanded},
+       merchandiseExpanded=${merchandiseExpanded})"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <div th:replace="fragments/header :: header(username=${username})"></div>
+
+    <div class="wrap container-fluid">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h3 class="mb-0">Merchandise Sales Report</h3>
+          <small class="text-muted">Summary &amp; Sales Table</small>
+        </div>
+        <div class="d-flex gap-2">
+          <a class="btn btn-outline-primary" th:href="@{/pos}">
+            <i class="bi bi-cash-register me-1"></i>POS
+          </a>
+          <a class="btn btn-outline-primary" th:href="@{/merch-report/export-all}">
+            <i class="bi bi-download me-1"></i>Export All (CSV)
+          </a>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <form class="cardfx filter-form mb-3" method="get" th:action="@{/merch-report}">
+        <div class="row g-3 align-items-end">
+          <div class="col-sm-4">
+            <label class="form-label">Start Date</label>
+            <input type="date" class="form-control" name="start" th:value="${start}">
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label">End Date</label>
+            <input type="date" class="form-control" name="end" th:value="${end}">
+          </div>
+          <div class="col-sm-4 d-flex gap-2">
+            <button class="btn btn-primary flex-grow-1">
+              <i class="bi bi-filter me-1"></i>Apply
+            </button>
+            <a class="btn btn-outline-primary"
+               th:classappend="${start == null or end == null} ? ' disabled'"
+               th:href="@{/merch-report/export-range(start=${start}, end=${end})}">
+              <i class="bi bi-download me-1"></i>Export Range
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <!-- KPIs -->
+      <div class="row g-3 kpi mb-3">
+        <div class="col-md-4">
+          <div class="cardfx">
+            <div class="label mb-1">Total Sales</div>
+            <div class="value" th:text="${'₱' + #numbers.formatDecimal(totalSales,1,'COMMA',2,'POINT')}">₱0.00</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="cardfx">
+            <div class="label mb-1">Transactions</div>
+            <div class="value" th:text="${transactions}">0</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="cardfx">
+            <div class="label mb-1">Items Sold</div>
+            <div class="value" th:text="${itemsSold}">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- One Sales Table -->
+      <div class="cardfx">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="mb-0" th:text="${isRange} ? 'Sales in Selected Range' : 'All Transactions'">All Transactions</h6>
+          <div class="text-muted small">
+            <span th:if="${isRange}" th:text="${#lists.size(tableRows)} + ' row(s)'">0 row(s)</span>
+            <span th:if="${!isRange and salesPage != null}">
+              Rows this page: <span th:text="${tableRows.size()}">0</span>
+              &nbsp;•&nbsp; Total rows: <span th:text="${salesPage.totalElements}">0</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>Receipt No.</th>
+              <th>Date/Time</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Cash</th>
+              <th class="text-end">Change</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${tableRows}">
+              <td th:text="${s.id}">1</td>
+              <td th:text="${s.receiptNo}">POS-XXXX</td>
+              <td th:text="${#temporals.format(s.createdAt,'yyyy-MM-dd HH:mm')}">2025-09-03 12:53</td>
+              <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(s.total,1,'COMMA',2,'POINT')}">₱0.00</td>
+              <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(s.cash,1,'COMMA',2,'POINT')}">₱0.00</td>
+              <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(s.changeDue,1,'COMMA',2,'POINT')}">₱0.00</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(tableRows)}">
+              <td colspan="6" class="text-center text-muted py-4">No sales found.</td>
+            </tr>
+            </tbody>
+
+            <!-- Footer (only when not filtering by range) -->
+            <tfoot th:if="${!isRange}">
+            <tr>
+              <th colspan="3" class="text-end">Grand Total (All):</th>
+              <th class="text-end" th:text="${'₱' + #numbers.formatDecimal(grandTotal,1,'COMMA',2,'POINT')}">₱0.00</th>
+              <th></th><th></th>
+            </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Pager: only in non-range mode -->
+        <nav class="d-flex justify-content-between align-items-center mt-3"
+             th:if="${!isRange and salesPage != null and salesPage.totalPages > 1}">
+          <ul class="pagination mb-0">
+            <li class="page-item" th:classappend="${salesPage.first}? 'disabled'">
+              <a class="page-link" th:href="@{/merch-report(page=${salesPage.number - 1}, size=${size})}">Previous</a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(0, salesPage.totalPages - 1)}"
+                th:classappend="${i == salesPage.number}? 'active'">
+              <a class="page-link" th:text="${i + 1}"
+                 th:href="@{/merch-report(page=${i}, size=${size})}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${salesPage.last}? 'disabled'">
+              <a class="page-link" th:href="@{/merch-report(page=${salesPage.number + 1}, size=${size})}">Next</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

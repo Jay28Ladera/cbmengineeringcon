@@ -201,6 +201,48 @@
   </div>
 </li>
 
+   <!-- Merchandise -->
+<li class="mb-1">
+  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+     data-bs-toggle="collapse" data-bs-target="#merchandiseMenu" role="button" aria-controls="merchandiseMenu">
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-bag"></i><span class="sidebar-text">Merchandise</span>
+    </span>
+    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+  </a>
+  <div id="merchandiseMenu" class="collapse ps-4 mt-1" th:classappend="${merchandiseExpanded} ? ' show'">
+    <ul class="nav flex-column">
+      <li class="nav-item mb-1">
+        <a th:href="@{/pos}" class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'pos' ? 'active bg-primary text-white'">
+          <i class="bi bi-cash-register me-1"></i>POS
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a th:href="@{/inventory}" class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'inventory' ? 'active bg-primary text-white'">
+          <i class="bi bi-box-seam me-1"></i>Item Inventory
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a th:href="@{/merch-report}" class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'merchreport' ? 'active bg-primary text-white'">
+          <i class="bi bi-clipboard-data me-1"></i>Report
+        </a>
+      </li>
+      <!-- ✅ New Customer Display -->
+      <li class="nav-item mb-1">
+        <a th:href="@{/customers}" class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'customers' ? 'active bg-primary text-white'">
+          <i class="bi bi-people me-1"></i>Customers
+        </a>
+      </li>
+    </ul>
+  </div>
+</li>
+
+
+
 
     <!-- Admin Only -->
     <li class="nav-item mb-1" th:if="${role == 'admin'}">
