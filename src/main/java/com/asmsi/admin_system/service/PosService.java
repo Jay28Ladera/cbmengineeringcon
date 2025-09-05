@@ -27,10 +27,11 @@ public class PosService {
     }
 
     @Transactional
-    public Long checkout(List<CartLine> lines, BigDecimal cash) {
+    public Long checkout(List<CartLine> lines, BigDecimal cash, String cashierName) {
         if (lines == null || lines.isEmpty()) throw new IllegalArgumentException("Cart is empty.");
 
         Sale sale = new Sale();
+        sale.setCashierName(cashierName == null ? "" : cashierName.trim());
         BigDecimal total = BigDecimal.ZERO;
 
         // Build items & compute total using DB price, decrement stocks

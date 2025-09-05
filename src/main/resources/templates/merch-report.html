@@ -44,7 +44,13 @@
     .btn-primary,.btn-outline-primary{border-radius:12px}
     .btn-primary{background:var(--primary-gradient);border:none;box-shadow:var(--shadow-soft)}
     .btn-outline-primary{border:2px solid var(--border-light);background:#fff;color:#4169e1}
-    .filter-form .form-control{border:2px solid var(--border-light);border-radius:12px}
+    .filter-form .form-control, .filter-form .form-select{border:2px solid var(--border-light);border-radius:12px}
+    
+    /* Product column styling */
+    .product-item{line-height:1.3;margin-bottom:2px}
+    .product-item:last-child{margin-bottom:0}
+    .show-more-btn{transition:all 0.2s ease}
+    .show-more-btn:hover{transform:translateX(2px)}
   </style>
 </head>
 <body>
@@ -78,29 +84,44 @@
           <a class="btn btn-outline-primary" th:href="@{/merch-report/export-all}">
             <i class="bi bi-download me-1"></i>Export All (CSV)
           </a>
+          <a class="btn btn-outline-primary"
+             th:href="@{/merch-report/export-filtered(start=${start}, end=${end}, cashier=${cashier})}">
+            <i class="bi bi-download me-1"></i>Export Current View
+          </a>
         </div>
       </div>
 
       <!-- Filters -->
       <form class="cardfx filter-form mb-3" method="get" th:action="@{/merch-report}">
         <div class="row g-3 align-items-end">
-          <div class="col-sm-4">
+          <div class="col-md-3 col-sm-6">
             <label class="form-label">Start Date</label>
             <input type="date" class="form-control" name="start" th:value="${start}">
           </div>
-          <div class="col-sm-4">
+          <div class="col-md-3 col-sm-6">
             <label class="form-label">End Date</label>
             <input type="date" class="form-control" name="end" th:value="${end}">
           </div>
-          <div class="col-sm-4 d-flex gap-2">
-            <button class="btn btn-primary flex-grow-1">
-              <i class="bi bi-filter me-1"></i>Apply
+          <div class="col-md-3 col-sm-6">
+            <label class="form-label">Cashier</label>
+            <select class="form-select" name="cashier" 
+                    th:if="${cashierOptions != null and !#lists.isEmpty(cashierOptions)}">
+              <option value="" th:selected="${cashier == null or cashier == ''}">All cashiers</option>
+              <option th:each="c : ${cashierOptions}"
+                      th:value="${c}"
+                      th:selected="${cashier != null and cashier == c}"
+                      th:text="${c != null and !#strings.isEmpty(c) ? c : '(unknown)'}">
+                cashier
+              </option>
+            </select>
+            <input class="form-control" name="cashier" placeholder="Type cashier name"
+                   th:if="${cashierOptions == null or #lists.isEmpty(cashierOptions)}"
+                   th:value="${cashier}">
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="bi bi-filter me-1"></i>Apply Filters
             </button>
-            <a class="btn btn-outline-primary"
-               th:classappend="${start == null or end == null} ? ' disabled'"
-               th:href="@{/merch-report/export-range(start=${start}, end=${end})}">
-              <i class="bi bi-download me-1"></i>Export Range
-            </a>
           </div>
         </div>
       </form>
@@ -127,15 +148,20 @@
         </div>
       </div>
 
-      <!-- One Sales Table -->
+      <!-- Sales Table -->
       <div class="cardfx">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="mb-0" th:text="${isRange} ? 'Sales in Selected Range' : 'All Transactions'">All Transactions</h6>
+          <h6 class="mb-0">
+            <span th:if="${isRange}">Sales in Selected Range</span>
+            <span th:if="${!isRange and (cashier != null and cashier != '')}">All Transactions for Cashier: </span>
+            <span th:if="${!isRange and (cashier != null and cashier != '')}" th:text="${cashier}" class="text-primary"></span>
+            <span th:if="${!isRange and (cashier == null or cashier == '')}">All Transactions</span>
+          </h6>
           <div class="text-muted small">
-            <span th:if="${isRange}" th:text="${#lists.size(tableRows)} + ' row(s)'">0 row(s)</span>
+            <span th:if="${isRange}" th:text="${#lists.size(tableRows)} + ' row(s) in range'">0 row(s)</span>
             <span th:if="${!isRange and salesPage != null}">
-              Rows this page: <span th:text="${tableRows.size()}">0</span>
-              &nbsp;•&nbsp; Total rows: <span th:text="${salesPage.totalElements}">0</span>
+              Showing: <span th:text="${salesPage.size * salesPage.number + 1}">1</span>-<span th:text="${salesPage.size * salesPage.number + tableRows.size()}">10</span>
+              of <span th:text="${salesPage.totalElements}">0</span> total
             </span>
           </div>
         </div>
@@ -147,6 +173,8 @@
               <th>ID</th>
               <th>Receipt No.</th>
               <th>Date/Time</th>
+              <th>Cashier</th>
+              <th style="min-width: 200px;">Products</th>
               <th class="text-end">Total</th>
               <th class="text-end">Cash</th>
               <th class="text-end">Change</th>
@@ -157,19 +185,40 @@
               <td th:text="${s.id}">1</td>
               <td th:text="${s.receiptNo}">POS-XXXX</td>
               <td th:text="${#temporals.format(s.createdAt,'yyyy-MM-dd HH:mm')}">2025-09-03 12:53</td>
+              <td th:text="${s.cashierName != null and !#strings.isEmpty(s.cashierName) ? s.cashierName : '(unknown)'}">(unknown)</td>
+              <td>
+                <div class="small" th:if="${s.items != null and !#lists.isEmpty(s.items)}">
+                  <div th:each="item, iterStat : ${s.items}" 
+                       th:class="${iterStat.index > 2} ? 'd-none overflow-items' : ''">
+                    <span class="fw-medium" th:text="${item.item.name}">Product Name</span>
+                    <span class="text-muted">×</span><span th:text="${item.quantity}">1</span>
+                    <br th:unless="${iterStat.last}">
+                  </div>
+                  <div th:if="${#lists.size(s.items) > 3}" class="mt-1">
+                    <button class="btn btn-link btn-sm p-0 text-primary show-more-btn" 
+                            onclick="toggleItems(this)" 
+                            style="font-size: 0.75rem; text-decoration: none;">
+                      <span th:text="'+ ' + (${#lists.size(s.items)} - 3) + ' more items'">+ 2 more items</span>
+                    </button>
+                  </div>
+                </div>
+                <span th:if="${s.items == null or #lists.isEmpty(s.items)}" class="text-muted small">No items</span>
+              </td>
               <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(s.total,1,'COMMA',2,'POINT')}">₱0.00</td>
               <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(s.cash,1,'COMMA',2,'POINT')}">₱0.00</td>
               <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(s.changeDue,1,'COMMA',2,'POINT')}">₱0.00</td>
             </tr>
             <tr th:if="${#lists.isEmpty(tableRows)}">
-              <td colspan="6" class="text-center text-muted py-4">No sales found.</td>
+              <td colspan="8" class="text-center text-muted py-4">
+                <i class="bi bi-inbox me-2"></i>No sales found with the current filters.
+              </td>
             </tr>
             </tbody>
 
-            <!-- Footer (only when not filtering by range) -->
-            <tfoot th:if="${!isRange}">
+            <!-- Footer (only when not filtering by range and no cashier filter) -->
+            <tfoot th:if="${!isRange and (cashier == null or cashier == '')}">
             <tr>
-              <th colspan="3" class="text-end">Grand Total (All):</th>
+              <th colspan="5" class="text-end">Grand Total (All Time):</th>
               <th class="text-end" th:text="${'₱' + #numbers.formatDecimal(grandTotal,1,'COMMA',2,'POINT')}">₱0.00</th>
               <th></th><th></th>
             </tr>
@@ -177,20 +226,52 @@
           </table>
         </div>
 
-        <!-- Pager: only in non-range mode -->
+        <!-- Pagination: only in non-range mode -->
         <nav class="d-flex justify-content-between align-items-center mt-3"
              th:if="${!isRange and salesPage != null and salesPage.totalPages > 1}">
+          <div class="text-muted small">
+            Page <span th:text="${salesPage.number + 1}">1</span> of <span th:text="${salesPage.totalPages}">1</span>
+          </div>
           <ul class="pagination mb-0">
-            <li class="page-item" th:classappend="${salesPage.first}? 'disabled'">
-              <a class="page-link" th:href="@{/merch-report(page=${salesPage.number - 1}, size=${size})}">Previous</a>
+            <li class="page-item" th:classappend="${salesPage.first} ? 'disabled'">
+              <a class="page-link"
+                 th:href="@{/merch-report(page=${salesPage.number - 1}, size=${size}, start=${start}, end=${end}, cashier=${cashier})}">
+                <i class="bi bi-chevron-left"></i> Previous
+              </a>
             </li>
-            <li class="page-item" th:each="i : ${#numbers.sequence(0, salesPage.totalPages - 1)}"
-                th:classappend="${i == salesPage.number}? 'active'">
-              <a class="page-link" th:text="${i + 1}"
-                 th:href="@{/merch-report(page=${i}, size=${size})}">1</a>
+            
+            <!-- Show first page if we're not near the beginning -->
+            <li class="page-item" th:if="${salesPage.number > 2}">
+              <a class="page-link" th:href="@{/merch-report(page=0, size=${size}, start=${start}, end=${end}, cashier=${cashier})}">1</a>
             </li>
-            <li class="page-item" th:classappend="${salesPage.last}? 'disabled'">
-              <a class="page-link" th:href="@{/merch-report(page=${salesPage.number + 1}, size=${size})}">Next</a>
+            <li class="page-item disabled" th:if="${salesPage.number > 3}">
+              <span class="page-link">...</span>
+            </li>
+            
+            <!-- Show pages around current page -->
+            <th:block th:with="startPage=${T(java.lang.Math).max(0, salesPage.number - 2)}, 
+                              endPage=${T(java.lang.Math).min(salesPage.totalPages - 1, salesPage.number + 2)}">
+              <li class="page-item" th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                  th:classappend="${i == salesPage.number} ? 'active'">
+                <a class="page-link" th:text="${i + 1}"
+                   th:href="@{/merch-report(page=${i}, size=${size}, start=${start}, end=${end}, cashier=${cashier})}">1</a>
+              </li>
+            </th:block>
+            
+            <!-- Show last page if we're not near the end -->
+            <li class="page-item disabled" th:if="${salesPage.number < salesPage.totalPages - 4}">
+              <span class="page-link">...</span>
+            </li>
+            <li class="page-item" th:if="${salesPage.number < salesPage.totalPages - 3}">
+              <a class="page-link" th:text="${salesPage.totalPages}"
+                 th:href="@{/merch-report(page=${salesPage.totalPages - 1}, size=${size}, start=${start}, end=${end}, cashier=${cashier})}">Last</a>
+            </li>
+            
+            <li class="page-item" th:classappend="${salesPage.last} ? 'disabled'">
+              <a class="page-link"
+                 th:href="@{/merch-report(page=${salesPage.number + 1}, size=${size}, start=${start}, end=${end}, cashier=${cashier})}">
+                Next <i class="bi bi-chevron-right"></i>
+              </a>
             </li>
           </ul>
         </nav>
@@ -200,5 +281,29 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function toggleItems(button) {
+  const row = button.closest('tr');
+  const hiddenItems = row.querySelectorAll('.overflow-items');
+  const isShowing = button.textContent.includes('Hide');
+  
+  hiddenItems.forEach(item => {
+    if (isShowing) {
+      item.classList.add('d-none');
+    } else {
+      item.classList.remove('d-none');
+    }
+  });
+  
+  // Update button text
+  if (isShowing) {
+    const hiddenCount = hiddenItems.length;
+    button.innerHTML = `<span>+ ${hiddenCount} more items</span>`;
+  } else {
+    button.innerHTML = `<span>Hide items</span>`;
+  }
+}
+</script>
 </body>
 </html>

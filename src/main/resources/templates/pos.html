@@ -207,21 +207,27 @@
 
       <div class="modal-body" id="receiptContent" style="font-size:13px">
         <div class="text-center mb-2">
-          <div style="font-weight:800">SISTERS OF MARY SCHOOLS</div>
+          <div style="font-weight:800">SISTERS OF MARY SCHOOL-BOYSTOWN, INC.</div>
           <div class="text-muted">Merchandise POS</div>
           <div class="text-muted" th:text="${#temporals.format(recentSale.createdAt,'yyyy-MM-dd HH:mm')}">--</div>
         </div>
 
         <div class="d-flex justify-content-between">
-          <div>
-            <div><strong>Receipt #</strong></div>
-            <div class="text-muted" th:text="${recentSale.receiptNo}">POS-YYYYMMDD-000001</div>
-          </div>
-          <div class="text-end">
-            <div><strong>Sale ID</strong></div>
-            <div class="text-muted" th:text="${recentSale.id}">1</div>
-          </div>
-        </div>
+  <div>
+    <div><strong>Receipt #</strong></div>
+    <div class="text-muted" th:text="${recentSale.receiptNo}">POS-YYYYMMDD-000001</div>
+  </div>
+  <div class="text-end">
+    <div><strong>Sale ID</strong></div>
+    <div class="text-muted" th:text="${recentSale.id}">1</div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between mt-1">
+  <div><strong>Cashier</strong></div>
+  <div class="text-muted" th:text="${recentSale.cashierName}">--</div>
+</div>
+
 
         <hr class="my-2">
 

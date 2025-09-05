@@ -14,8 +14,9 @@ public class Sale {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
- 
-
+    /** e.g. "jmladera" or whatever Authentication.getName() returns */
+    @Column(name = "cashier_name", length = 120)
+    private String cashierName;
 
     /** e.g. POS-20250903-000123 */
     @Column(name = "receipt_no", length = 64, unique = true)
@@ -58,6 +59,9 @@ public class Sale {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getCashierName() { return cashierName; }
+    public void setCashierName(String cashierName) { this.cashierName = cashierName; }
 
     public String getReceiptNo() { return receiptNo; }
     public void setReceiptNo(String receiptNo) { this.receiptNo = receiptNo; }
