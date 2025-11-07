@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Point of Sale (Cash Only)</title>
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"/>
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+  :root{
+    --primary-gradient:linear-gradient(135deg,#4169e1 0%,#4169e1 100%);
+    --success-gradient:linear-gradient(135deg,#4169e1 0%,#4169e1 100%);
+    --background-main:#f8fafc; --background-card:#fff;
+    --text-primary:#1a202c; --text-secondary:#4a5568; --text-muted:#718096;
+    --border-light:#e2e8f0;
+    --shadow-soft:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+    --shadow-medium:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+    --shadow-large:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04)
+  }
+  body{font-family:'Inter',sans-serif;background:var(--background-main);color:var(--text-primary);margin:0;line-height:1.6}
+  .app-container{display:flex;min-height:100vh}
+  .main{flex:1;margin-left:280px;transition:margin-left .3s}
+  #sidebar.sidebar-collapsed~.main{margin-left:75px}
+  .wrap{padding:28px}
+  .pos-card{background:var(--background-card);border:none;border-radius:20px;box-shadow:var(--shadow-large);padding:32px;position:relative;overflow:hidden;animation:fadeInUp .6s ease-out}
+  .pos-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary-gradient)}
+  .pos-header{margin-bottom:24px}
+  .pos-header input{background:#fff;border:2px solid var(--border-light);border-radius:12px;font-size:1.1rem;padding:16px 20px;transition:.3s;box-shadow:var(--shadow-soft)}
+  .pos-header input:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1),var(--shadow-medium);outline:none}
+  .btn-primary{background:var(--primary-gradient);border:none;border-radius:12px;padding:16px 24px;font-weight:600;font-size:1.1rem;box-shadow:var(--shadow-soft);transition:.3s}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-medium);filter:brightness(1.05)}
+  .btn-success{background:var(--success-gradient);border:none;border-radius:12px;font-weight:600;box-shadow:var(--shadow-soft);transition:.3s}
+  .btn-success:hover{transform:translateY(-2px);box-shadow:var(--shadow-medium);filter:brightness(1.05)}
+  .table-responsive{border-radius:16px;overflow:hidden;box-shadow:var(--shadow-medium);background:#fff}
+  .table{margin-bottom:0}
+  .table thead th{background:var(--primary-gradient);color:#fff;border:none;padding:20px 16px;font-weight:600;font-size:.95rem;letter-spacing:.025em;text-transform:uppercase}
+  .table tbody td{border-top:1px solid var(--border-light);padding:20px 16px;font-weight:500;vertical-align:middle}
+  .table tbody tr{background:#fff;transition:.2s}
+  .table tbody tr:nth-child(even){background:#f8fafc}
+  .table tbody tr:hover{background:#f1f5f9;transform:translateX(4px);box-shadow:4px 0 8px rgba(102,126,234,.1)}
+  .summary{background:linear-gradient(135deg,#f8fafc 0%,#e2e8f0 100%);border:2px solid var(--border-light);border-radius:20px;padding:28px;box-shadow:var(--shadow-medium);position:sticky;top:20px}
+  .summary .form-label{color:var(--text-secondary);font-weight:600;font-size:.9rem;text-transform:uppercase;letter-spacing:.025em;margin-bottom:8px}
+  .summary input{border:2px solid var(--border-light);border-radius:12px;padding:14px 16px;font-size:1.1rem;font-weight:500;transition:.3s}
+  .summary input:focus{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.1);outline:none}
+  .summary hr{border:0;height:2px;background:linear-gradient(90deg,transparent 0%,var(--border-light) 50%,transparent 100%);margin:20px 0}
+  .btn-outline-light {
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  font-weight: 500;   /* fixed typo: "fontfont-weight" */
+  padding: 12px 20px;
+  transition: .3s;
+  box-shadow: var(--shadow-soft);
+  color: #667eea;     /* 👈 font/text color */
+}
+
+  .btn-outline-light:hover{border-color:#667eea;color:#667eea;background:#f8fafc;transform:translateY(-2px);box-shadow:var(--shadow-medium)}
+  .btn-outline-secondary{border:2px solid #e2e8f0;color:var(--text-muted);background:#fff;border-radius:12px;font-weight:500;transition:.3s}
+  .btn-outline-secondary:hover{border-color:#cbd5e1;color:var(--text-secondary);background:#f8fafc}
+  .input-group .btn{border-radius:0;font-weight:600}
+  .input-group .btn:first-child{border-top-left-radius:8px;border-bottom-left-radius:8px}
+  .input-group .btn:last-child{border-top-right-radius:8px;border-bottom-right-radius:8px}
+  .input-group .form-control{text-align:center;font-weight:600;border-radius:0}
+  .alert{border-radius:16px;border:none;padding:20px;font-weight:500;box-shadow:var(--shadow-soft)}
+  .alert-success{background:linear-gradient(135deg,#c6f6d5 0%,#9ae6b4 100%);color:#22543d}
+  .alert-danger{background:linear-gradient(135deg,#fed7d7 0%,#feb2b2 100%);color:#742a2a}
+  h3{font-weight:700;font-size:1.8rem;margin-bottom:4px}
+  .text-muted{color:var(--text-muted);font-weight:500}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  @media (max-width:768px){.main{margin-left:0!important;padding-top:70px}.wrap{padding:16px}.pos-card{padding:20px}.summary{margin-top:20px;position:static}}
+  .table-responsive::-webkit-scrollbar{height:8px}
+  .table-responsive::-webkit-scrollbar-track{background:#f1f1f1;border-radius:4px}
+  .table-responsive::-webkit-scrollbar-thumb{background:var(--primary-gradient);border-radius:4px}
+  .table-responsive::-webkit-scrollbar-thumb:hover{filter:brightness(.9)}
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='pos',
+       studentInfoExpanded=${studentInfoExpanded},
+       asmsiExpanded=${asmsiExpanded},
+       admissionExpanded=${admissionExpanded},
+       attendanceExpanded=${attendanceExpanded},
+       eventsExpanded=${eventsExpanded},
+       familyDayExpanded=${familyDayExpanded},
+       merchandiseExpanded=${merchandiseExpanded})"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <div class="wrap container-fluid">
+      <!-- Alerts -->
+      <div th:if="${saleId != null}" class="alert alert-success d-flex align-items-center" role="alert">
+        <i class="bi bi-check2-circle me-3 fs-5"></i>
+        <div>
+          <strong>Sale completed successfully!</strong><br>
+          Receipt ID: <span class="fw-bold" th:text="${saleId}">0</span>
+          <span th:if="${recentSale != null}">
+            &nbsp;&middot;&nbsp; Receipt #:
+            <span class="fw-bold" th:text="${recentSale.receiptNo}">POS-YYYYMMDD-000001</span>
+          </span>
+        </div>
+      </div>
+      <div th:if="${error != null}" class="alert alert-danger d-flex align-items-center" role="alert">
+        <i class="bi bi-x-octagon me-3 fs-5"></i>
+        <div><strong>Error occurred:</strong><br><span th:text="${error}">Error</span></div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="mb-0">Point of Sale</h3>
+          <small class="text-muted">Cash payments only • Scan or type Item # to add products</small>
+        </div>
+        <a class="btn btn-outline-light" href="/inventory">
+          <i class="bi bi-box-seam me-2"></i>Manage Inventory
+        </a>
+      </div>
+
+      <div class="pos-card">
+        <!-- Scan/Add -->
+        <div class="pos-header d-flex align-items-center gap-3 mb-4">
+          <input id="scanInput" class="form-control form-control-lg flex-grow-1"
+                 placeholder="Scan barcode or enter Item # then press Enter">
+          <button class="btn btn-primary btn-lg" onclick="addByInput()">
+            <i class="bi bi-plus-circle me-2"></i>Add Item
+          </button>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0" id="cartTable">
+                <thead>
+                  <tr>
+                    <th><i class="bi bi-hash me-1"></i>Item #</th>
+                    <th><i class="bi bi-tag me-1"></i>Product Name</th>
+                    <th class="text-end"><i class="bi bi-currency-dollar me-1"></i>Price</th>
+                    <th class="text-center" style="width:180px"><i class="bi bi-123 me-1"></i>Quantity</th>
+                    <th class="text-end"><i class="bi bi-calculator me-1"></i>Subtotal</th>
+                    <th class="text-center" style="width:80px"><i class="bi bi-trash me-1"></i>Remove</th>
+                  </tr>
+                </thead>
+                <tbody id="cartBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="summary">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span><i class="bi bi-basket me-2"></i>Total Items</span>
+                <strong id="sumItems" class="fs-5">0</strong>
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span><i class="bi bi-receipt me-2"></i>Grand Total</span>
+                <strong id="sumTotal" class="fs-4 text-primary">₱0.00</strong>
+              </div>
+              <hr>
+              <div class="mb-3">
+                <label class="form-label"><i class="bi bi-cash me-2"></i>Cash Received</label>
+                <input id="cashInput" type="number" min="0" step="0.01"
+                       class="form-control form-control-lg" placeholder="Enter cash amount"
+                       oninput="recalcChange()">
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <span><i class="bi bi-arrow-left-right me-2"></i>Change</span>
+                <strong id="sumChange" class="fs-4 text-success">₱0.00</strong>
+              </div>
+              <div class="d-grid gap-3">
+                <form id="checkoutForm" method="post" action="/pos/checkout">
+                  <input type="hidden" name="payload" id="payload">
+                  <input type="hidden" name="cash" id="payloadCash">
+                  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                  <button type="button" class="btn btn-success btn-lg w-100" onclick="checkout()">
+                    <i class="bi bi-credit-card me-2"></i>Complete Sale
+                  </button>
+                </form>
+                <button class="btn btn-outline-secondary btn-lg" onclick="clearCart()">
+                  <i class="bi bi-arrow-clockwise me-2"></i>Clear Cart
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /pos-card -->
+    </div>
+  </div>
+</div>
+
+<!-- Receipt Modal (renders when recentSale exists) -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true" th:if="${recentSale != null}">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 420px">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title">
+          <i class="bi bi-receipt me-2"></i>
+          Receipt <span th:text="${recentSale.receiptNo}">POS-XXXX</span>
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body" id="receiptContent" style="font-size:13px">
+        <div class="text-center mb-2">
+          <div style="font-weight:800">SISTERS OF MARY SCHOOL-BOYSTOWN, INC.</div>
+          <div class="text-muted">Merchandise POS</div>
+          <div class="text-muted" th:text="${#temporals.format(recentSale.createdAt,'yyyy-MM-dd HH:mm')}">--</div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+  <div>
+    <div><strong>Receipt #</strong></div>
+    <div class="text-muted" th:text="${recentSale.receiptNo}">POS-YYYYMMDD-000001</div>
+  </div>
+  <div class="text-end">
+    <div><strong>Sale ID</strong></div>
+    <div class="text-muted" th:text="${recentSale.id}">1</div>
+  </div>
+</div>
+
+<div class="d-flex justify-content-between mt-1">
+  <div><strong>Cashier</strong></div>
+  <div class="text-muted" th:text="${recentSale.cashierName}">--</div>
+</div>
+
+
+        <hr class="my-2">
+
+        <table class="table table-sm mb-2">
+          <thead>
+            <tr>
+              <th style="width:45%">Item</th>
+              <th class="text-center" style="width:15%">Qty</th>
+              <th class="text-end" style="width:20%">Price</th>
+              <th class="text-end" style="width:20%">Sub</th>
+            </tr>
+          </thead>
+
+          <!-- GROUPED RECEIPT BODY -->
+          <tbody id="receiptBody">
+            <!-- raw rows (possibly duplicate items) from server; will be grouped by JS -->
+            <tr th:each="si : ${recentSale.items}"
+                th:attr="data-code=${si.item.itemNumber},
+                         data-name=${si.item.name},
+                         data-qty=${si.quantity},
+                         data-price=${si.priceAtSale},
+                         data-sub=${si.subTotal}">
+              <td>
+                <div th:text="${si.item.itemNumber}">SKU-001</div>
+                <div class="text-muted small" th:text="${si.item.name}">Item name</div>
+              </td>
+              <td class="text-center" th:text="${si.quantity}">1</td>
+              <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(si.priceAtSale,1,'COMMA',2,'POINT')}">₱0.00</td>
+              <td class="text-end" th:text="${'₱' + #numbers.formatDecimal(si.subTotal,1,'COMMA',2,'POINT')}">₱0.00</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <hr class="my-2">
+
+        <div class="d-flex justify-content-between">
+          <div>Total</div>
+          <div class="fw-bold" th:text="${'₱' + #numbers.formatDecimal(recentSale.total,1,'COMMA',2,'POINT')}">₱0.00</div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div>Cash</div>
+          <div th:text="${'₱' + #numbers.formatDecimal(recentSale.cash,1,'COMMA',2,'POINT')}">₱0.00</div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div>Change</div>
+          <div th:text="${'₱' + #numbers.formatDecimal(recentSale.changeDue,1,'COMMA',2,'POINT')}">₱0.00</div>
+        </div>
+
+        <div class="text-center mt-2 small text-muted">
+          Thank you for your purchase!
+        </div>
+      </div>
+
+      <div class="modal-footer py-2">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" onclick="printReceiptModal()">
+          <i class="bi bi-printer me-1"></i> Print
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+  // Preloaded items from server (for quick lookup)
+  const ALL_ITEMS = /*[[${items}]]*/ [];
+  const itemsByCode = {};
+  (ALL_ITEMS || []).forEach(i => { itemsByCode[i.itemNumber] = i; });
+
+  const cart = {}; // code -> {item, qty}
+  const peso = (x)=>'₱'+Number(x||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  function addItem(code){
+    const it = itemsByCode[code];
+    if(!it){ showAlert('Item not found: '+code,'warning'); return; }
+    if(cart[code]){
+      if(cart[code].qty+1>(it.stocks??0)){ showAlert('Insufficient stocks for this item.','warning'); return; }
+      cart[code].qty+=1;
+    }else{
+      if((it.stocks??0)<1){ showAlert('This item is currently out of stock.','warning'); return; }
+      cart[code]={item:it,qty:1};
+    }
+    renderCart();
+    const input=document.getElementById('scanInput'); input.style.borderColor='#22c55e'; setTimeout(()=>{input.style.borderColor=''},1e3);
+  }
+  function addByInput(){ const el=document.getElementById('scanInput'); const code=(el.value||'').trim(); if(!code){el.focus();return;} addItem(code); el.value=''; el.focus(); }
+  function showAlert(msg,type){ const d=document.createElement('div'); d.className=`alert alert-${type==='warning'?'danger':'success'} alert-dismissible fade show`; d.innerHTML=`<i class="bi bi-${type==='warning'?'exclamation-triangle':'check-circle'} me-2"></i>${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`; const c=document.querySelector('.wrap'); c.insertBefore(d,c.firstChild); setTimeout(()=>{d?.remove()},3e3); }
+  document.getElementById('scanInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addByInput(); }});
+
+  function renderCart(){
+    const body=document.getElementById('cartBody'); body.innerHTML=''; let total=0,items=0;
+    if(Object.keys(cart).length===0){
+      const tr=document.createElement('tr'); tr.innerHTML=`<td colspan="6" class="text-center py-5 text-muted"><i class="bi bi-cart-x fs-1 d-block mb-3"></i><h5>Your cart is empty</h5><p>Scan or enter an item number to get started</p></td>`; body.appendChild(tr);
+    }else{
+      Object.values(cart).forEach(row=>{
+        const it=row.item, qty=row.qty, price=Number(it.price||0), sub=price*qty; total+=sub; items+=qty;
+        const tr=document.createElement('tr'); tr.innerHTML=`
+          <td><strong>${it.itemNumber}</strong></td>
+          <td>${it.name}</td>
+          <td class="text-end"><strong>${peso(price)}</strong></td>
+          <td class="text-center">
+            <div class="input-group input-group-sm" style="max-width:160px;margin:0 auto">
+              <button class="btn btn-outline-light" type="button" onclick="decQty('${it.itemNumber}')"><i class="bi bi-dash"></i></button>
+              <input class="form-control text-center fw-bold" type="number" min="1" step="1" value="${qty}" onchange="setQty('${it.itemNumber}', this.value)">
+              <button class="btn btn-outline-light" type="button" onclick="incQty('${it.itemNumber}')"><i class="bi bi-plus"></i></button>
+            </div>
+          </td>
+          <td class="text-end"><strong class="text-primary">${peso(sub)}</strong></td>
+          <td class="text-center"><button class="btn btn-sm btn-outline-danger" onclick="removeItem('${it.itemNumber}')" title="Remove item"><i class="bi bi-x-lg"></i></button></td>`; body.appendChild(tr);
+      });}
+    document.getElementById('sumItems').textContent=items;
+    document.getElementById('sumTotal').textContent=peso(total);
+    recalcChange();
+  }
+  function incQty(code){ if(!cart[code])return; const it=cart[code].item; if(cart[code].qty+1>(it.stocks??0)){ showAlert('Insufficient stocks for this item.','warning'); return;} cart[code].qty+=1; renderCart(); }
+  function decQty(code){ if(!cart[code])return; cart[code].qty-=1; if(cart[code].qty<=0) delete cart[code]; renderCart(); }
+  function setQty(code,val){ val=Math.max(1,parseInt(val||1,10)); const it=cart[code]?.item; if(!it)return; if(val>(it.stocks??0)){ showAlert('Insufficient stocks for this quantity.','warning'); return;} cart[code].qty=val; renderCart(); }
+  function removeItem(code){ delete cart[code]; renderCart(); showAlert('Item removed from cart.','info'); }
+  function clearCart(){ if(confirm('Clear all items from the cart?')){ for(const k in cart) delete cart[k]; renderCart(); showAlert('Cart has been cleared.','info'); } }
+  function parseCurrency(s){ return Number((s||'').replace(/[₱,]/g,'')||0); }
+  function recalcChange(){ const total=parseCurrency(document.getElementById('sumTotal').textContent); const cash=Number(document.getElementById('cashInput').value||0); const change=Math.max(0,cash-total); document.getElementById('sumChange').textContent=peso(change); const btn=document.querySelector('button[onclick="checkout()"]'); if(Object.keys(cart).length===0){ btn.disabled=true; btn.innerHTML='<i class="bi bi-cart-x me-2"></i>Cart is Empty'; } else if(cash<total){ btn.disabled=total>0; btn.innerHTML='<i class="bi bi-credit-card me-2"></i>Insufficient Cash'; } else { btn.disabled=false; btn.innerHTML='<i class="bi bi-credit-card me-2"></i>Complete Sale'; } }
+  function checkout(){
+    const items=Object.values(cart).map(r=>({itemNumber:r.item.itemNumber,qty:r.qty}));
+    if(items.length===0){ showAlert('Please add items to cart before checkout.','warning'); return; }
+    const total=parseCurrency(document.getElementById('sumTotal').textContent);
+    const cash=Number(document.getElementById('cashInput').value||0);
+    if(cash<total){ showAlert('Cash amount is insufficient.','warning'); document.getElementById('cashInput').focus(); return; }
+    const btn=document.querySelector('button[onclick="checkout()"]'); btn.innerHTML='<i class="bi bi-hourglass-split me-2"></i>Processing...'; btn.disabled=true;
+    document.getElementById('payload').value=JSON.stringify({items});
+    document.getElementById('payloadCash').value=cash.toFixed(2);
+    setTimeout(()=>document.getElementById('checkoutForm').submit(),400);
+  }
+/* ==== LIVE CUSTOMER DISPLAY (append-only) ============================== */
+/* Sends instant cart updates to /customers (same browser profile/window group) */
+(() => {
+  if (!('BroadcastChannel' in window)) return;
+
+  const LIVE = new BroadcastChannel('pos-live');
+
+  // Build the lightweight state we show on the customer screen
+  function collectCartState() {
+    const items = Object.values(cart).map(r => {
+      const price = Number(r.item.price || 0);
+      return {
+        code: r.item.itemNumber,
+        name: r.item.name,
+        qty: r.qty,
+        price: price,
+        sub: price * r.qty
+      };
+    });
+
+    const total = items.reduce((a, b) => a + b.sub, 0);
+    const itemCount = items.reduce((a, b) => a + b.qty, 0);
+    const cash = Number(document.getElementById('cashInput')?.value || 0);
+    const change = Math.max(0, cash - total);
+
+    return { items, totals: { items: itemCount, total, cash, change } };
+  }
+
+  function broadcastCartState() {
+    LIVE.postMessage({ type: 'cart', payload: collectCartState() });
+  }
+
+  // Reply when the customer display asks for a fresh snapshot
+  LIVE.onmessage = (ev) => {
+    if (ev?.data?.type === 'syncRequest') broadcastCartState();
+  };
+
+  // --- Monkey-patch recalcChange to broadcast after every UI recompute ---
+  const __orig_recalcChange = window.recalcChange;
+  window.recalcChange = function () {
+    __orig_recalcChange.apply(this, arguments);
+    try { broadcastCartState(); } catch { /* ignore */ }
+  };
+
+  // Initial push once the page is ready (cart starts empty)
+  document.addEventListener('DOMContentLoaded', () => setTimeout(broadcastCartState, 0));
+})();
+
+  /* ===== Receipt: collapse duplicate items in modal ===== */
+  function normalizeReceiptRows(){
+    const tbody=document.getElementById('receiptBody');
+    if(!tbody) return;
+    const rows=Array.from(tbody.querySelectorAll('tr')); if(rows.length===0) return;
+
+    const groups=new Map();
+    rows.forEach(tr=>{
+      const code=tr.getAttribute('data-code')||'';
+      const name=tr.getAttribute('data-name')||'';
+      const qty =Number(tr.getAttribute('data-qty')||0);
+      const price=Number(tr.getAttribute('data-price')||0); // unit
+      const sub =Number(tr.getAttribute('data-sub')||0);
+      if(!groups.has(code)) groups.set(code,{code,name,qty,price,sub});
+      else{ const g=groups.get(code); g.qty+=qty; g.sub+=sub; }
+    });
+
+    tbody.innerHTML='';
+    for(const g of groups.values()){
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><div>${g.code}</div><div class="text-muted small">${g.name}</div></td>
+        <td class="text-center">${g.qty}</td>
+        <td class="text-end">${peso(g.price)}</td>
+        <td class="text-end">${peso(g.sub)}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+// --- PRINT: larger receipt placed near upper-left of LETTER (short bond) ---
+// --- Regular printer (Letter) — bigger receipt, positioned upper-left ---
+function printReceiptModal() {
+  // Tweak these to taste
+  const RECEIPT_W_MM  = 50;   // width of the receipt block (≈ 4.3 in)
+  const OFFSET_LEFT_MM= 75;    // left margin from page edge
+  const OFFSET_TOP_MM = 10;    // top margin from page edge
+  const BASE_FONT_PX  = 10;  // overall text size
+
+  const src = document.getElementById('receiptContent');
+  if (!src) return;
+
+  const html = src.innerHTML; // keep the server-rendered rows/values
+
+  const w = window.open('', 'PRINT', 'width=900,height=700');
+  w.document.write(`
+    <html>
+      <head>
+        <meta charset="utf-8"/>
+        <title>Receipt</title>
+        <style>
+          /* Short bond = US Letter. We'll control exact placement. */
+          @page { size: Letter; margin: 0; }
+          html, body { height: 100%; }
+          body { margin: 0; background: #fff; }
+
+          /* A canvas the size of the page. */
+          #print-canvas {
+            position: relative;
+            width: 215.9mm;   /* Letter width */
+            height: 279.4mm;  /* Letter height */
+          }
+
+          /* The receipt block—bigger and placed near top-left. */
+          #receipt {
+            position: absolute;
+            top: ${OFFSET_TOP_MM}mm;
+            left: ${OFFSET_LEFT_MM}mm;
+            width: ${RECEIPT_W_MM}mm;
+            font-family: Inter, Arial, "Helvetica Neue", Helvetica, sans-serif;
+            font-size: ${BASE_FONT_PX}px;
+            line-height: 1.25;
+            color: #000;
+          }
+
+          /* Tighter, clean table styling (no Bootstrap dependency). */
+          table { width: 100%; border-collapse: collapse; }
+          thead th {
+            border-top: 1px solid #000;
+            border-bottom: 1px solid #000;
+            padding: 6px 4px;
+            font-weight: 700;
+            text-align: left;
+          }
+          tbody td {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 6px 4px;
+            vertical-align: top;
+          }
+
+          table { width: 100%; border-collapse: collapse; }
+thead th {
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  padding: 4px 2px;
+  font-weight: 700;
+  font-size: 10px;   /* smaller header font */
+}
+tbody td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 3px 2px;
+  font-size: 9px;    /* smaller body text */
+}
+td.text-end {
+  font-size: 9px;    /* specifically shrink Price + Subtotal */
+  font-weight: 500;
+}
+.text-center { text-align: center; font-size: 9px; }
+.text-end    { text-align: right; }
+.fw-bold     { font-weight: 700; }
+
+          .text-center { text-align: center; }
+          .text-end    { text-align: right; }
+          .small       { font-size: ${BASE_FONT_PX - 1}px; }
+          .fw-bold     { font-weight: 700; }
+          hr { border: 0; border-top: 1px solid #999; margin: 8px 0; }
+
+          /* Ensure colors/borders print consistently */
+          @media print {
+            body, #print-canvas, #receipt { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        <div id="print-canvas">
+          <div id="receipt">
+            ${html}
+          </div>
+        </div>
+      </body>
+    </html>
+  `);
+  w.document.close();
+  w.focus();
+  w.print();
+  w.close();
+}
+
+
+
+ document.addEventListener('DOMContentLoaded', function () {
+  renderCart();
+  document.getElementById('scanInput').focus();
+
+  var SALE_ID = /*[[${saleId}]]*/ null;
+  if (SALE_ID !== null) {
+    var el = document.getElementById('receiptModal');
+    if (el) {
+      const m = new bootstrap.Modal(el);
+      m.show();
+      // AUTO-PRINT when the modal is visible
+      el.addEventListener('shown.bs.modal', () => setTimeout(printReceiptModal, 150));
+    }
+  }
+});
+
+/*]]>*/
+</script>
+</body>
+</html>
