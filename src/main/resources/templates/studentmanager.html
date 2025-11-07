@@ -867,6 +867,66 @@
   overflow: auto;
   padding: 1rem;
 }
+/* Progress Loader */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg,#ffffff 0%,#f1f5f9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loader-card {
+  width: min(520px, 90vw);
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0,0,0,.12);
+  padding: 28px;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: #1e293b;
+  font-size: 1.05rem;
+  margin-bottom: 14px;
+}
+.logo-row .bi { color:#4169e1; font-size: 1.4rem; }
+
+.progress-wrap {
+  width: 100%;
+  height: 14px;
+  background: #eef2f7;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg,#4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+  transition: width .25s ease;
+}
+.progress-text {
+  text-align:center;
+  margin-top:10px;
+  color:#475569;
+  font-weight: 700;
+  letter-spacing:.2px;
+}
+
+.loading-overlay.fade-out {
+  animation: fadeOut .45s ease forwards;
+}
+@keyframes fadeOut {
+  to { opacity:0; visibility:hidden; }
+}
+
 
 
   </style>
@@ -874,9 +934,22 @@
 
 <body>
   <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
+ <!-- Loading Overlay with Progress -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loader-card">
+    <div class="logo-row">
+      <i class="bi bi-mortarboard-fill"></i>
+      <span>Student Information Manager</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="loadBar"></div>
+    </div>
+    <div class="progress-text">
+      Loading data… <span id="loadPct">0%</span>
+    </div>
   </div>
+</div>
+
 
   <div class="app-container">
     <!-- Sidebar -->
@@ -943,7 +1016,7 @@
                   <th><i class="bi bi-gear me-1"></i>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              
                 <tr th:each="student : ${students}">
                   <td>
                     <img th:src="${student.imageUrl != null ? student.imageUrl : '/images/default-profile.png'}" 
@@ -1009,7 +1082,7 @@
                     </div>
                   </td>
                 </tr>
-              </tbody>
+           
             </table>
           </div>
         </div>
@@ -1267,6 +1340,100 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+  // ---------- Progressive Loader ----------
+  const overlay = document.getElementById('loadingOverlay');
+  const bar     = document.getElementById('loadBar');
+  const pctEl   = document.getElementById('loadPct');
+
+  let prog = 0;
+  let target = 0;
+  let rafId = null;
+  let finished = false;
+
+  function setProgress(val) {
+    target = Math.max(target, Math.min(100, val|0));
+    animateBar();
+  }
+  function animateBar() {
+    cancelAnimationFrame(rafId);
+    const step = () => {
+      // ease towards target
+      prog += Math.max(0.4, (target - prog) * 0.12);
+      if (prog >= target - 0.2) prog = target;
+      bar.style.width = prog + '%';
+      pctEl.textContent = Math.round(prog) + '%';
+      if (prog < target) { rafId = requestAnimationFrame(step); }
+    };
+    rafId = requestAnimationFrame(step);
+  }
+  function showLoader() {
+    overlay.style.display = 'flex';
+    setProgress(5);
+  }
+  function hideLoader() {
+    if (finished) return;
+    finished = true;
+    setProgress(100);
+    setTimeout(() => overlay.classList.add('fade-out'), 260);
+    setTimeout(() => overlay.style.display = 'none', 800);
+  }
+
+  // Start visible immediately
+  showLoader();
+
+  // ---------- Increment as the page gets ready ----------
+  // 1) DOM interactive -> 30%
+  document.addEventListener('readystatechange', () => {
+    if (document.readyState === 'interactive') setProgress(30);
+    if (document.readyState === 'complete') setProgress(60);
+  });
+
+  // 2) Fonts loaded -> +10%
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => setProgress(70));
+  }
+
+  // 3) DataTables init -> 90%
+  //    If you re-init DT elsewhere, keep this hook
+  $(function () {
+    const table = $('#studentTable')
+      .on('init.dt', function () { setProgress(90); })
+      .DataTable(); // your existing options already present
+  });
+
+  // 4) Count visible images (e.g., student avatars), push to ~98% as they load
+  window.addEventListener('load', () => {
+    const imgs = Array.from(document.images || []);
+    if (imgs.length === 0) {
+      setProgress(98);
+      // small delay to ensure last microtasks done, then hide
+      return setTimeout(hideLoader, 150);
+    }
+    let done = 0;
+    const bump = () => {
+      done++;
+      // reserve last 2% for final hide
+      const pct = 70 + Math.min(28, Math.round((done / imgs.length) * 28));
+      setProgress(pct);
+      if (done >= imgs.length) setTimeout(hideLoader, 150);
+    };
+    imgs.forEach(img => {
+      if (img.complete) return bump();
+      img.addEventListener('load', bump, { once:true });
+      img.addEventListener('error', bump, { once:true });
+    });
+  });
+
+  // ---------- Hook CSV upload to show loader ----------
+  function showLoading() { showLoader(); setProgress(15); }
+  function hideLoading() { /* handled by page reload */ }
+
+  // If you perform AJAX loads later, you can do:
+  // $(document).ajaxStart(() => { showLoader(); setProgress(25); });
+  // $(document).ajaxStop(() => { setProgress(100); setTimeout(hideLoader, 200); });
+</script>
+
 
   <script>
     // ===== DATATABLE INITIALIZATION =====
