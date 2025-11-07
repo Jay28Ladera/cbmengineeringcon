@@ -131,18 +131,38 @@
     <!-- Attendance -->
     <li class="mb-1">
       <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-         data-bs-toggle="collapse" data-bs-target="#attendanceSettings" role="button" aria-controls="attendanceSettings">
+         data-bs-toggle="collapse"
+         data-bs-target="#attendanceSettings"
+         role="button"
+         aria-controls="attendanceSettings"
+         th:aria-expanded="${attendanceExpanded} ? true : false">
         <span class="d-flex align-items-center gap-2">
-          <i class="bi bi-calendar-check"></i><span class="sidebar-text">Attendance</span>
+          <i class="bi bi-calendar-check"></i>
+          <span class="sidebar-text">Attendance</span>
         </span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"
+           th:classappend="${attendanceExpanded} ? ' rotated'"></i>
       </a>
-      <div id="attendanceSettings" class="collapse ps-4 mt-1" th:classappend="${attendanceExpanded} ? ' show'">
+
+      <div id="attendanceSettings"
+           class="collapse ps-4 mt-1"
+           th:classappend="${attendanceExpanded} ? ' show'">
         <ul class="nav flex-column">
-          <li class="nav-item mb-1"><a th:href="@{/attendance}" class="nav-link text-white-50 rounded-2 py-2"
-              th:classappend="${activePage} == 'attendance' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Attendance Portal</a></li>
-          <li class="nav-item mb-1"><a th:href="@{/attendancereport}" class="nav-link text-white-50 rounded-2 py-2"
-              th:classappend="${activePage} == 'attendancereport' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Attendance Reports</a></li>
+          <li class="nav-item mb-1">
+            <a th:href="@{/attendance}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'attendance' ? ' active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Attendance Portal
+            </a>
+          </li>
+
+          <li class="nav-item mb-1">
+            <a th:href="@{/attendance-report}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'attendance-report' ? ' active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Attendance Reports
+            </a>
+          </li>
         </ul>
       </div>
     </li>
@@ -164,85 +184,41 @@
       </div>
     </li>
 
-
-<!-- Family Day -->
-<li class="mb-1">
-  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-     data-bs-toggle="collapse" data-bs-target="#familyDaySettings" role="button" aria-controls="familyDaySettings">
-    <span class="d-flex align-items-center gap-2">
-      <i class="bi bi-people"></i><span class="sidebar-text">Family Day</span>
-    </span>
-    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-  </a>
-  <div id="familyDaySettings" class="collapse ps-4 mt-1" th:classappend="${familyDayExpanded} ? ' show'">
-    <ul class="nav flex-column">
-      <li class="nav-item mb-1">
-        <a th:href="@{/visitingday}" 
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'visitingday' ? 'active bg-primary text-white'">
-          <i class="bi bi-calendar-check me-1"></i>Visiting Day Portal
-        </a>
-      </li>
-      <li class="nav-item mb-1">
-        <a th:href="@{/visitingdayreport}" 
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'visitingdayreport' ? 'active bg-primary text-white'">
-          <i class="bi bi-graph-up-arrow me-1"></i>Visiting Day Report
-        </a>
-      </li>
-      <li class="nav-item mb-1">
-        <a th:href="@{/display}" 
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'display' ? 'active bg-primary text-white'">
-          <i class="bi bi-display me-1"></i>Display
-        </a>
-      </li>
-    </ul>
-  </div>
-</li>
-
-   <!-- Merchandise -->
-<li class="mb-1">
-  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-     data-bs-toggle="collapse" data-bs-target="#merchandiseMenu" role="button" aria-controls="merchandiseMenu">
-    <span class="d-flex align-items-center gap-2">
-      <i class="bi bi-bag"></i><span class="sidebar-text">Merchandise</span>
-    </span>
-    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-  </a>
-  <div id="merchandiseMenu" class="collapse ps-4 mt-1" th:classappend="${merchandiseExpanded} ? ' show'">
-    <ul class="nav flex-column">
-      <li class="nav-item mb-1">
-        <a th:href="@{/pos}" class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'pos' ? 'active bg-primary text-white'">
-          <i class="bi bi-cash-register me-1"></i>POS
-        </a>
-      </li>
-      <li class="nav-item mb-1">
-        <a th:href="@{/inventory}" class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'inventory' ? 'active bg-primary text-white'">
-          <i class="bi bi-box-seam me-1"></i>Item Inventory
-        </a>
-      </li>
-      <li class="nav-item mb-1">
-        <a th:href="@{/merch-report}" class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'merchreport' ? 'active bg-primary text-white'">
-          <i class="bi bi-clipboard-data me-1"></i>Report
-        </a>
-      </li>
-      <!-- ✅ New Customer Display -->
-      <li class="nav-item mb-1">
-        <a th:href="@{/customers}" class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'customers' ? 'active bg-primary text-white'">
-          <i class="bi bi-people me-1"></i>Customers
-        </a>
-      </li>
-    </ul>
-  </div>
-</li>
-
-
-
+    <!-- Family Day -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse" data-bs-target="#familyDaySettings" role="button" aria-controls="familyDaySettings">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-people"></i><span class="sidebar-text">Family Day</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="familyDaySettings" class="collapse ps-4 mt-1" th:classappend="${familyDayExpanded} ? ' show'">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-1">
+            <a th:href="@{/visitingday}" 
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'visitingday' ? 'active bg-primary text-white'">
+              <i class="bi bi-calendar-check me-1"></i>Visiting Day Portal
+            </a>
+          </li>
+          <li class="nav-item mb-1">
+            <a th:href="@{/visitingdayreport}" 
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'visitingdayreport' ? 'active bg-primary text-white'">
+              <i class="bi bi-graph-up-arrow me-1"></i>Visiting Day Report
+            </a>
+          </li>
+          <li class="nav-item mb-1">
+            <a th:href="@{/display}" 
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'display' ? 'active bg-primary text-white'">
+              <i class="bi bi-display me-1"></i>Display
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
 
     <!-- Admin Only -->
     <li class="nav-item mb-1" th:if="${role == 'admin'}">
@@ -258,8 +234,8 @@
     <small class="text-secondary sidebar-text"><i class="bi bi-heart-fill text-danger me-1"></i>&copy;2025 Jay M Ladera, Troy Ricafort, and Team</small>
   </div>
 
-  <!-- Sidebar Script (collapse + chevrons + desktop/mobile + tooltips) -->
-  <script>
+  <!-- Sidebar Script -->
+  <script th:inline="none">
     document.addEventListener('DOMContentLoaded', function () {
       const sidebar = document.getElementById('sidebar');
       const toggleBtn = document.getElementById('sidebarToggle');
@@ -292,7 +268,6 @@
             const wasCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
             if (wasCollapsed) sidebar.classList.add('sidebar-collapsed');
           }
-          updateTooltips();
         }
       }
       checkMobile();
@@ -303,29 +278,6 @@
       } else if (isMobile) {
         sidebar.classList.add('sidebar-mobile-hidden');
       }
-
-      // Tooltips for collapsed desktop
-      function enableTooltips() {
-        if (isMobile) return;
-        document.querySelectorAll('#sidebar .nav-link').forEach(link => {
-          if (!link.getAttribute('title')) {
-            const textEl = link.querySelector('.sidebar-text');
-            if (textEl) link.setAttribute('title', textEl.textContent.trim());
-          }
-          if (!link._bsTooltip) link._bsTooltip = new bootstrap.Tooltip(link, { trigger:'hover', placement:'right', delay:{show:500, hide:100} });
-        });
-      }
-      function disableTooltips() {
-        document.querySelectorAll('#sidebar .nav-link').forEach(link => {
-          if (link._bsTooltip) { link._bsTooltip.dispose(); link._bsTooltip = null; }
-          link.removeAttribute('title');
-        });
-      }
-      function updateTooltips() {
-        if (isMobile) { disableTooltips(); return; }
-        if (sidebar.classList.contains('sidebar-collapsed')) enableTooltips(); else disableTooltips();
-      }
-      updateTooltips();
 
       // Desktop toggle
       toggleBtn.addEventListener('click', () => {
@@ -340,7 +292,6 @@
           }
           sidebar.classList.toggle('sidebar-collapsed');
           localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('sidebar-collapsed'));
-          setTimeout(updateTooltips, 300);
         }
       });
 
@@ -372,22 +323,7 @@
         });
       });
 
-      // Window resize
-      let resizeTimer;
-      window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => { checkMobile(); updateTooltips(); }, 250);
-      });
-
-      // Esc key to close (mobile)
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && isMobile && !sidebar.classList.contains('sidebar-mobile-hidden')) {
-          sidebar.classList.add('sidebar-mobile-hidden'); sidebar.classList.remove('show');
-          overlay.classList.remove('show'); document.body.style.overflow = '';
-        }
-      });
-
-      /* -------- Collapse chevrons: keep icons in sync with Bootstrap state -------- */
+      /* Collapse chevrons sync */
       function setArrow(trigger, expanded) {
         const icon = trigger.querySelector('.toggle-arrow');
         if (!icon) return;
@@ -395,19 +331,14 @@
         icon.classList.toggle('bi-chevron-up', expanded);
         icon.classList.toggle('bi-chevron-down', !expanded);
       }
-
       document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(trigger => {
         const targetSelector = trigger.getAttribute('data-bs-target');
         const target = document.querySelector(targetSelector);
         if (!target) return;
-
-        // Initial state
         setArrow(trigger, target.classList.contains('show'));
-
         target.addEventListener('show.bs.collapse', () => setArrow(trigger, true));
         target.addEventListener('hide.bs.collapse', () => setArrow(trigger, false));
       });
-      /* --------------------------------------------------------------------------- */
     });
   </script>
 
@@ -448,7 +379,8 @@
       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); border:none; border-radius:8px; padding:10px;
       color:#fff; font-size:1.2rem; box-shadow:0 2px 10px rgba(0,0,0,.2); }
 
-    .toggle-arrow{ transition:transform .3s ease; font-size:.8rem; }
+    .toggle-arrow{ transition: transform .2s ease; font-size:.8rem; }
+    .toggle-arrow.rotated { transform: rotate(180deg); }
 
     .nav-link.active::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#fff; border-radius:0 2px 2px 0; }
 

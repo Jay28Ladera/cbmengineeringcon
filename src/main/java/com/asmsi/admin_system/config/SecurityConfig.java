@@ -36,7 +36,7 @@ public class SecurityConfig {
                 ))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/login", "/signup", "/request-account",
+                                "/", "/login", "/signup", "/request-account","/attendance-report",
                                 "/forget-password", "/forgot-password", "/reset-password",
                                 "/css/**", "/js/**", "/images/**", "/upload-csv", "/home",
                                 "/api/attendance/**", // Include all attendance API endpoints

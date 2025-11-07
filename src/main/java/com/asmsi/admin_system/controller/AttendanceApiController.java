@@ -33,8 +33,14 @@ public class AttendanceApiController {
         this.studentRepository = studentRepository;
     }
 
-    // ---------- APIs (JSON) ----------
+    // --- NEW: dropdown data ---
+    @GetMapping("/accounts")
+    @ResponseBody
+    public List<String> accounts() {
+        return attendanceLogRepository.findDistinctAccounts();
+    }
 
+    // ---------- existing endpoints (unchanged) ----------
     @PostMapping("/submit")
     @ResponseBody
     public ResponseEntity<String> submitAttendance(@RequestBody AttendanceLog log) {
@@ -44,7 +50,6 @@ public class AttendanceApiController {
         Optional<AttendanceLog> latestLogOpt =
                 attendanceLogRepository.findTopByIdNumberAndDateOrderByTimeInDesc(idNumber, today);
 
-        // If there is an existing log today with no timeout -> record timeout
         if (latestLogOpt.isPresent() && latestLogOpt.get().getTimeOut() == null) {
             AttendanceLog latestLog = latestLogOpt.get();
             latestLog.setTimeOut(LocalTime.now());
@@ -52,7 +57,6 @@ public class AttendanceApiController {
             return ResponseEntity.ok("Time Out recorded.");
         }
 
-        // Else: time-in
         if (log.getDate() == null) log.setDate(LocalDate.now());
         if (log.getTimeIn() == null) log.setTimeIn(LocalTime.now());
 
@@ -83,44 +87,18 @@ public class AttendanceApiController {
         return ResponseEntity.ok(logs);
     }
 
-    // Masterlist for the right-side table (name + idNumber)
-    // Final path: /api/attendance/students
-    @GetMapping("/students")
-    @ResponseBody
-    public List<Map<String, String>> studentsMasterlist(
-            @RequestParam(name = "query", required = false) String q,
-            @RequestParam(name = "limit", defaultValue = "100") int limit
-    ) {
-        int lim = Math.max(1, Math.min(limit, 200)); // clamp 1..200
-
-        return studentRepository.searchTop(q, PageRequest.of(0, lim))
-                .stream()
-                .map(s -> Map.of(
-                        "name",     s.getName() == null ? "" : s.getName(),
-                        "idNumber", s.getIdNumber() == null ? "" : s.getIdNumber()
-                ))
-                .toList();
-    }
-
-    // ---------- (Optional) view endpoint ----------
-    // If you want to serve the attendance page from this controller,
-    // its URL will be /api/attendance/page. If you prefer plain /attendance,
-    // move this method into a separate @Controller without the class-level prefix.
     @GetMapping("/page")
     public String attendancePage(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
             String username = auth.getName();
-            String role = auth.getAuthorities().stream()
-                    .findFirst()
-                    .map(Object::toString)
-                    .orElse("ROLE_USER");
+            String role = auth.getAuthorities().stream().findFirst().map(Object::toString).orElse("ROLE_USER");
             model.addAttribute("username", username);
             model.addAttribute("role", role);
         } else {
             model.addAttribute("username", "Guest");
             model.addAttribute("role", "Unknown");
         }
-        return "attendance"; // templates/attendance.html
+        return "attendance";
     }
 }
