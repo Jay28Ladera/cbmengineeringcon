@@ -1,3 +1,4 @@
+// src/main/java/com/asmsi/admin_system/entity/AttendanceLog.java
 package com.asmsi.admin_system.entity;
 
 import jakarta.persistence.*;
@@ -12,24 +13,42 @@ public class AttendanceLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "id_number")
     private String idNumber;
+
     private String lrn;
     private String name;
     private String campus;
+
+    @Column(name = "family_saint")
     private String familySaint;
+
+    @Column(name = "batch_number")
     private String batchNumber;
+
+    @Column(name = "image_url")
     private String imageUrl;
 
     private LocalDate date;
+
+    @Column(name = "time_in")
     private LocalTime timeIn;
+
+    @Column(name = "time_out")
     private LocalTime timeOut;
 
     private String status;
     private String remarks;
+
+    // “Recorded by” — your table has BOTH `account` and `recorded_by`.
+    // We’ll map both; the filter will prefer whichever is present.
     private String account;
 
-    // Getters and Setters (You can generate this in your IDE or use Lombok)
-    // Example:
+    @Column(name = "recorded_by")
+    private String recordedBy;
+
+    // getters/setters …
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -71,4 +90,7 @@ public class AttendanceLog {
 
     public String getAccount() { return account; }
     public void setAccount(String account) { this.account = account; }
+
+    public String getRecordedBy() { return recordedBy; }
+    public void setRecordedBy(String recordedBy) { this.recordedBy = recordedBy; }
 }
