@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Vacation Day Scheduling - Sisters of Mary Schools</title>
+
+  <!-- Bootstrap CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s ease;
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .content-area > .wrap {
+      max-width: 3000px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 8px 22px rgba(102,126,234,.22);
+      margin-bottom: 2rem;
+    }
+
+    .attendance-card {
+      border: 1px solid #e8eaef;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 6px 16px rgba(0,0,0,.06);
+    }
+
+    .attendance-card .card-header {
+      border-bottom: 1px solid #eef0f4;
+    }
+
+    .form-control,
+    .form-select {
+      border: 1.4px solid #e9ecef;
+      border-radius: 8px;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color:#667eea;
+      box-shadow:0 0 0 .15rem rgba(102,126,234,.18);
+    }
+
+    .scheduler-table thead th,
+    .scheduled-table thead th {
+      background: #eef1f8;
+      color:#394867;
+      border:none;
+      font-weight:600;
+      padding: .65rem .5rem;
+      text-align:center;
+      font-size: 0.80rem;
+      white-space: nowrap;
+    }
+
+    .scheduler-table tbody td,
+    .scheduled-table tbody td {
+      padding: .45rem .35rem;
+      text-align: center;
+      border-color: #f1f3f5;
+      vertical-align: middle;
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+      }
+      .content-area {
+        padding: 1rem;
+      }
+      .scheduler-table thead th,
+      .scheduler-table tbody td,
+      .scheduled-table thead th,
+      .scheduled-table tbody td {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='vacation-schedule',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
+
+      <!-- Page Body -->
+      <main class="content-area">
+        <div class="wrap">
+
+          <!-- Page Header -->
+          <div class="page-header card mb-4">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <h2 class="card-title mb-2">
+                    <i class="bi bi-calendar-range me-2"></i>Vacation Day Scheduling
+                  </h2>
+                  <p class="mb-0">
+                    Welcome, <span th:text="${username}">admin</span>! Set schedules per VIA based on attendance.
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <div class="text-white-50 mb-1"><i class="bi bi-calendar-date me-1"></i>Date</div>
+                      <div class="fw-bold" id="current-date">Loading...</div>
+                    </div>
+                    <div class="col-6">
+                      <div class="text-white-50 mb-1"><i class="bi bi-clock me-1"></i>Time</div>
+                      <div class="fw-bold" id="current-time">Loading...</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" id="current-user" th:value="${username}" />
+
+          <!-- TOP: LISTING TABLE OF SET SCHEDULES -->
+          <div class="row mb-4">
+            <div class="col-lg-12">
+              <div class="attendance-card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2 text-primary"></i>Scheduled Vacation Batches
+                  </h5>
+                  <span class="badge bg-light text-dark">All VIA you have already set</span>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-sm scheduled-table mb-0">
+                    <thead>
+                      <tr>
+                        <th>VIA</th>
+                        <th>Total Students</th>
+                        <th>Logged In</th>
+                        <th>Est. Date &amp; Time</th>
+                        <th>Venue</th>
+                        <th>Vehicle</th>
+                        <th>Status</th>
+                        <th>Message</th>
+                      </tr>
+                    </thead>
+                    <tbody id="scheduled-table-body">
+                      <tr>
+                        <td colspan="8" class="text-muted py-3">
+                          <i class="bi bi-info-circle me-1"></i>No schedules set yet.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTTOM: ORIGINAL SCHEDULER TABLE WITH SET BUTTONS -->
+          <div class="row">
+            <div class="col-lg-12 mb-4">
+              <div class="attendance-card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Vacation Day Scheduler by VIA
+                  </h5>
+                  <span class="badge bg-light text-dark">Live from attendance + student list</span>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-sm scheduler-table mb-0">
+                    <thead>
+                      <tr>
+                        <th>VIA</th>
+                        <th>Total Students</th>
+                        <th>Logged In</th>
+                        <th>Est. Date &amp; Time</th>
+                        <th>Venue</th>
+                        <th>Vehicle</th>
+                        <th>Status</th>
+                        <th>Message</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="summary-table-body">
+                      <tr>
+                        <td colspan="9" class="text-muted py-3">
+                          <i class="bi bi-hourglass-split me-1"></i> Loading...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- JS Logic -->
+  <script th:inline="javascript">
+    const currentUser = /*[[${username}]]*/ "admin";
+  </script>
+  <script>
+    // --- Option lists for dropdowns in both tables ---
+    const VENUE_OPTIONS = [
+      "",
+      "Gymnasium 1",
+      "Gymnasium 2",
+      "Front Building 1",
+      "Front Building 2",
+      "Front Building 3",
+      "Front Holland House",
+      "Front PSWA"
+    ];
+
+    const VEHICLE_OPTIONS = [
+      "",
+      "BIG BUS",
+      "SMALL BUS",
+      "NHR",
+      "VAN",
+      "COMMUTE"
+    ];
+
+    const STATUS_OPTIONS = [
+      "On Time",
+      "Delayed",
+      "Completed",
+      "Cancelled"
+    ];
+
+    const MESSAGE_OPTIONS = [
+      "",
+      "Students please prepare.",
+      "Get your baon in the kitchen.",
+      "Get your snacks.",
+      "Final call."
+    ];
+
+    function buildOptions(options, selectedValue, placeholderText) {
+      let html = "";
+      if (placeholderText !== undefined) {
+        html += `<option value="">${placeholderText}</option>`;
+      }
+      options.forEach(opt => {
+        if (opt === "") return;
+        const selected = opt === selectedValue ? "selected" : "";
+        html += `<option value="${opt}" ${selected}>${opt}</option>`;
+      });
+      return html;
+    }
+
+    // store all "SET" schedules here
+    let scheduledBatches = [];
+
+    // CSRF helper
+    function getCsrf() {
+      const token  = document.querySelector('meta[name="_csrf"]')?.getAttribute("content");
+      const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content");
+      return { token, header };
+    }
+
+    // Clock
+    function updateClock() {
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', {
+        weekday:'long',
+        year:'numeric',
+        month:'long',
+        day:'numeric'
+      });
+      const time = now.toLocaleTimeString('en-US');
+      document.getElementById('current-date').textContent = date;
+      document.getElementById('current-time').textContent = time;
+    }
+
+    // Load existing schedules from DB for top table
+    async function loadScheduledFromDb() {
+      try {
+        const res = await fetch("/api/vacation-schedule");
+        if (!res.ok) {
+          console.warn("Failed to load vacation schedules");
+          return;
+        }
+        const data = await res.json(); // List<VacationSchedule>
+
+        scheduledBatches.length = 0;
+        data.forEach(s => scheduledBatches.push(s));
+
+        renderScheduledTable();
+      } catch (e) {
+        console.error("Error loading scheduled batches", e);
+      }
+    }
+
+    // Total students per VIA (from Student table)
+    async function fetchViaTotals() {
+      try {
+        const res = await fetch("/api/students/via-totals");
+        if (!res.ok) return {};
+        return await res.json(); // { "CEBU": 120, "ILOILO": 80, ... }
+      } catch (e) {
+        console.error("Error loading via totals", e);
+        return {};
+      }
+    }
+
+    // Load vacation attendance logs (for bottom table)
+    async function loadAttendanceLogs() {
+      try {
+        const res = await fetch("/api/vacationattendance/logs");
+        if (!res.ok) throw new Error("Failed to load logs");
+
+        const logs = await res.json();
+        await buildViaSummary(logs); // Build scheduler rows
+      } catch (err) {
+        console.error(err);
+        const tbody = document.getElementById("summary-table-body");
+        if (tbody) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" class="text-center text-danger py-3">
+                <i class="bi bi-exclamation-triangle" style="font-size: 1.3rem;"></i><br>
+                Error loading data.
+              </td>
+            </tr>`;
+        }
+      }
+    }
+
+    // 🔹 Build scheduler table (all VIAs: from student list + logs)
+    async function buildViaSummary(logs) {
+      const tbody = document.getElementById("summary-table-body");
+      if (!tbody) return;
+
+      const viaTotals = await fetchViaTotals();   // e.g. { "ILOILO": 71, "CEBU": 488, "CALBAYOG": 100 }
+
+      const allVias = new Set();
+
+      // from students table
+      Object.keys(viaTotals || {}).forEach(v => {
+        if (v && v.trim()) {
+          allVias.add(v.trim());
+        }
+      });
+
+      // from logs
+      (logs || []).forEach(log => {
+        const via = (log.via || "N/A").toString().trim() || "N/A";
+        allVias.add(via);
+      });
+
+      if (allVias.size === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center text-muted py-3">
+              <i class="bi bi-info-circle me-1"></i>No VIA found in students or logs.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      // prepare groups for each VIA
+      const byVia = new Map();
+      allVias.forEach(via => {
+        byVia.set(via, {
+          students: new Set(),     // logged-in students
+          lastDeparture: null
+        });
+      });
+
+      (logs || []).forEach(log => {
+        const via = (log.via || "N/A").toString().trim() || "N/A";
+        const group = byVia.get(via);
+        if (!group) return;
+
+        if (log.idNumber) {
+          group.students.add(log.idNumber);
+        }
+
+        if (log.timeOut) {
+          if (!group.lastDeparture || log.timeOut > group.lastDeparture) {
+            group.lastDeparture = log.timeOut;
+          }
+        }
+      });
+
+      tbody.innerHTML = "";
+      const isoNow = new Date().toISOString().slice(0, 16); // yyyy-MM-ddTHH:mm
+      const sortedVias = Array.from(allVias).sort();
+
+      sortedVias.forEach((via, index) => {
+        const group = byVia.get(via);
+        const loggedInCount = group ? group.students.size : 0;
+        const totalStudents = viaTotals[via] || 0;
+
+        const safeVia = via.replace(/'/g, "\\'");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${via}</td>
+          <td><span class="badge bg-secondary">${totalStudents}</span></td>
+          <td><span class="badge bg-primary">${loggedInCount}</span></td>
+
+          <td style="min-width: 180px;">
+            <input
+              type="datetime-local"
+              class="form-control form-control-sm"
+              id="schedule-datetime-${index}"
+              value="${isoNow}"
+            />
+          </td>
+
+          <td>
+            <select class="form-select form-select-sm" id="venue-${index}">
+              <option value="">Select</option>
+              <option>Gymnasium 1</option>
+              <option>Gymnasium 2</option>
+              <option>Front Building 1</option>
+              <option>Front Building 2</option>
+              <option>Front Building 3</option>
+              <option>Front Holland House</option>
+              <option>Front PSWA</option>
+            </select>
+          </td>
+
+          <td>
+            <select class="form-select form-select-sm" id="vehicle-${index}">
+              <option value="">Select</option>
+              <option>BIG BUS</option>
+              <option>SMALL BUS</option>
+              <option>NHR</option>
+              <option>VAN</option>
+              <option>COMMUTE</option>
+            </select>
+          </td>
+
+          <td>
+            <select class="form-select form-select-sm" id="status-${index}">
+              <option>On Time</option>
+              <option>Delayed</option>
+              <option>Completed</option>
+              <option>Cancelled</option>
+            </select>
+          </td>
+
+          <td>
+            <select class="form-select form-select-sm" id="message-${index}">
+              <option value="">None</option>
+              <option>Students please prepare.</option>
+              <option>Get your baon in the kitchen.</option>
+              <option>Get your snacks.</option>
+              <option>Final call.</option>
+            </select>
+          </td>
+
+          <td>
+            <button
+              type="button"
+              class="btn btn-sm btn-primary"
+              onclick="setSchedule('${safeVia}', ${totalStudents}, ${loggedInCount}, ${index})">
+              Set
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // When SET is clicked for a VIA row
+    async function setSchedule(via, totalStudents, loggedInCount, index) {
+      const dtInput       = document.getElementById(`schedule-datetime-${index}`);
+      const venueSelect   = document.getElementById(`venue-${index}`);
+      const vehicleSelect = document.getElementById(`vehicle-${index}`);
+      const statusSelect  = document.getElementById(`status-${index}`);
+      const messageSelect = document.getElementById(`message-${index}`);
+
+      const schedule = {
+        via: via,
+        totalStudents: totalStudents,
+        loggedIn: loggedInCount,
+        estDateTime: dtInput?.value || null,
+        venue:   venueSelect?.value || "",
+        vehicle: vehicleSelect?.value || "",
+        status:  statusSelect?.value || "On Time",
+        message: messageSelect?.value || ""
+      };
+
+      const { token, header } = getCsrf();
+      try {
+        const res = await fetch("/api/vacation-schedule", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && header ? { [header]: token } : {})
+          },
+          body: JSON.stringify(schedule)
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to save schedule");
+        }
+
+        const saved = await res.json();
+
+        const existingIdx = scheduledBatches.findIndex(s => s.via === saved.via);
+        if (existingIdx >= 0) {
+          scheduledBatches[existingIdx] = saved;
+        } else {
+          scheduledBatches.push(saved);
+        }
+
+        renderScheduledTable();
+
+        Swal.fire({
+          icon: "success",
+          title: "Vacation scheduled",
+          text: `VIA ${via} has been added/updated in the schedule list.`,
+          timer: 900,
+          showConfirmButton: false
+        });
+      } catch (e) {
+        console.error(e);
+        Swal.fire({
+          icon: "error",
+          title: "Save failed",
+          text: "Could not save schedule. Please try again."
+        });
+      }
+    }
+
+    // Update a field when dropdown changes in the top table
+    async function updateScheduledField(index, field, value) {
+      if (!scheduledBatches[index]) return;
+      scheduledBatches[index][field] = value;
+
+      const s = scheduledBatches[index];
+      const { token, header } = getCsrf();
+
+      try {
+        await fetch("/api/vacation-schedule", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && header ? { [header]: token } : {})
+          },
+          body: JSON.stringify({
+            via: s.via,
+            totalStudents: s.totalStudents,
+            loggedIn: s.loggedIn,
+            estDateTime: s.estDateTime,
+            venue: s.venue,
+            vehicle: s.vehicle,
+            status: s.status,
+            message: s.message
+          })
+        });
+      } catch (e) {
+        console.error("Failed to auto-save schedule", e);
+      }
+    }
+
+    // Render the listing table on top (with editable dropdowns)
+    function renderScheduledTable() {
+      const tbody = document.getElementById("scheduled-table-body");
+      if (!tbody) return;
+
+      if (scheduledBatches.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-muted py-3">
+              <i class="bi bi-info-circle me-1"></i>No schedules set yet.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = "";
+      scheduledBatches.forEach((s, idx) => {
+        let dateText = "-";
+        const rawDate = s.estDateTime || s.datetime; // support both names
+        if (rawDate) {
+          const d = new Date(rawDate);
+          if (!isNaN(d.getTime())) {
+            dateText = d.toLocaleString("en-US", {
+              dateStyle: "medium",
+              timeStyle: "short"
+            });
+          }
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.via}</td>
+          <td><span class="badge bg-secondary">${s.totalStudents ?? 0}</span></td>
+          <td><span class="badge bg-primary">${s.loggedIn ?? 0}</span></td>
+          <td>${dateText}</td>
+
+          <td>
+            <select
+              class="form-select form-select-sm"
+              onchange="updateScheduledField(${idx}, 'venue', this.value)">
+              ${buildOptions(VENUE_OPTIONS, s.venue || "", "Select")}
+            </select>
+          </td>
+
+          <td>
+            <select
+              class="form-select form-select-sm"
+              onchange="updateScheduledField(${idx}, 'vehicle', this.value)">
+              ${buildOptions(VEHICLE_OPTIONS, s.vehicle || "", "Select")}
+            </select>
+          </td>
+
+          <td>
+            <select
+              class="form-select form-select-sm"
+              onchange="updateScheduledField(${idx}, 'status', this.value)">
+              ${buildOptions(STATUS_OPTIONS, s.status || "On Time")}
+            </select>
+          </td>
+
+          <td>
+            <select
+              class="form-select form-select-sm"
+              onchange="updateScheduledField(${idx}, 'message', this.value)">
+              ${buildOptions(MESSAGE_OPTIONS, s.message || "", "None")}
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Init
+    setInterval(updateClock, 1000);
+    updateClock();
+    loadAttendanceLogs();    // bottom table
+    loadScheduledFromDb();   // top table
+  </script>
+
+</body>
+</html>

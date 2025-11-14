@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="_csrf" th:content="${_csrf.token}" />
   <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-  <title>Attendance - Sisters of Mary Schools</title>
+  <title>Vacation Attendance - Sisters of Mary Schools</title>
 
   <!-- Bootstrap CSS & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
@@ -23,41 +23,104 @@
     .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
     #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
 
-    /* Wider, centered working area (keeps your original structure) */
     .content-area { flex:1; padding:2rem; }
-    .content-area > .wrap { max-width:1280px; margin:0 auto; }
+   .content-area > .wrap { 
+    max-width:3000px;   /* or 100% */
+    margin:0 auto; 
+}
 
-    .page-header { background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:15px; box-shadow:0 8px 22px rgba(102,126,234,.22); margin-bottom: 2rem; }
 
-    /* Cards: tone down shadows, professional borders */
-    .attendance-card { border:1px solid #e8eaef; border-radius:12px; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.06); }
+    .page-header {
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:#fff;
+      border:none;
+      border-radius:15px;
+      box-shadow:0 8px 22px rgba(102,126,234,.22);
+      margin-bottom: 2rem;
+    }
+
+    .attendance-card {
+      border:1px solid #e8eaef;
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 6px 16px rgba(0,0,0,.06);
+    }
     .attendance-card .card-header { border-bottom:1px solid #eef0f4; }
 
-    /* Inputs consistent with your original style */
-    .form-control { border: 1.6px solid #e9ecef; border-radius: 10px; padding: 0.7rem 1rem; }
-    .form-control:focus { border-color:#667eea; box-shadow:0 0 0 .2rem rgba(102,126,234,.15); }
+    .form-control {
+      border: 1.6px solid #e9ecef;
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+    }
+    .form-control:focus {
+      border-color:#667eea;
+      box-shadow:0 0 0 .2rem rgba(102,126,234,.15);
+    }
 
-    /* Student Info (ALWAYS visible) */
     .student-info-card {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white; border-radius: 15px; padding: 1.5rem; text-align: center;
+      color: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      text-align: center;
       box-shadow: 0 8px 20px rgba(102,126,234,.20);
     }
     .student-photo {
-      width: 220px; height: 220px; border-radius: 50%; object-fit: cover;
-      border: 7px solid rgba(255,255,255,.35); margin-bottom: 1.25rem;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 7px solid rgba(255,255,255,.35);
+      margin-bottom: 1.25rem;
     }
-    .student-detail { background: rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18);
-      border-radius: 8px; padding: .6rem .85rem; margin-bottom: .55rem; text-align:left; }
+    .student-detail {
+      background: rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+      border-radius: 8px;
+      padding: .6rem .85rem;
+      margin-bottom: .55rem;
+      text-align:left;
+    }
 
-    /* Logs table: cleaner header */
     .logs-table thead th {
-      background: #eef1f8; color:#394867; border:none; font-weight:600; padding: .85rem .65rem; text-align:center;
+      background: #eef1f8;
+      color:#394867;
+      border:none;
+      font-weight:600;
+      padding: .85rem .65rem;
+      text-align:center;
     }
-    .logs-table tbody td { padding: .7rem; text-align: center; border-color: #f1f3f5; }
-    .log-photo { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border:2px solid #eef1f6; }
+    .logs-table tbody td {
+      padding: .7rem;
+      text-align: center;
+      border-color: #f1f3f5;
+    }
+    .log-photo {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border:2px solid #eef1f6;
+    }
 
-    /* Sticky student panel on desktop so it “always stays there” while scrolling */
+    /* Summary table on the right of logs */
+    .summary-card {
+      border: 1px solid #e8eaef;
+      border-radius: 12px;
+      background: #f8f9ff;
+      padding: 0.85rem 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,.04);
+    }
+    .summary-card table thead th {
+      background: transparent;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .summary-card table tbody td {
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
     @media (min-width: 992px) {
       #student-info-card { position: sticky; top: 24px; }
     }
@@ -74,7 +137,7 @@
   <div class="app-container">
 
     <!-- Sidebar -->
-    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='attendance',
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='vacation-attendance',
                                                  studentInfoExpanded=${studentInfoExpanded},
                                                  asmsiExpanded=${asmsiExpanded},
                                                  admissionExpanded=${admissionExpanded},
@@ -90,7 +153,7 @@
 
       <!-- Page Body -->
       <main class="content-area">
-        <div class="wrap"><!-- width limiter -->
+        <div class="wrap">
 
           <!-- Page Header -->
           <div class="page-header card mb-4">
@@ -134,83 +197,119 @@
           </div>
 
           <div class="row" id="student-info-row">
-            <!-- Student Info Card (ALWAYS visible) -->
-            <div class="col-lg-5 mb-4" id="student-info-card">
-              <div class="attendance-card">
-                <div class="card-header bg-white border-0 py-3">
-                  <h5 class="card-title mb-0 text-center">
-                    <i class="bi bi-person-badge me-2 text-primary"></i>Student Information
-                  </h5>
-                </div>
-                <div class="card-body p-0">
-                  <div class="student-info-card">
-                    <img id="student-photo" src="/images/default-profile.png" alt="Student Photo" class="student-photo" />
-                    <div class="student-detail"><strong>LRN:</strong> <span id="lrn">-</span></div>
-                    <div class="student-detail"><strong>ID Number:</strong> <span id="id-number">-</span></div>
-                    <div class="student-detail"><strong>Name:</strong> <span id="name">-</span></div>
-                    <!-- NEW: Campus -->
-                    <div class="student-detail"><strong>Campus:</strong> <span id="campus">-</span></div>
-                    <!-- NEW: VIA -->
-                    <div class="student-detail"><strong>VIA:</strong> <span id="via">-</span></div>
-                    <div class="student-detail"><strong>Family Saint:</strong> <span id="family-saint">-</span></div>
-                    <div class="student-detail mb-0"><strong>Batch Number:</strong> <span id="batch-number">-</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Attendance Logs Card -->
-            <div class="col-lg-7 mb-4">
-              <div class="attendance-card">
-                <div class="card-header bg-white border-0 py-3">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">
-                      <i class="bi bi-journal-text me-2 text-primary"></i>Recent Attendance Logs
-                    </h5>
-                    <span class="badge bg-secondary">Live Updates</span>
-                  </div>
-                </div>
-                <div class="card-body p-0">
-                  <div class="logs-container p-3">
-                    <div class="table-responsive">
-                      <table class="table logs-table mb-0">
-                        <thead>
-                            <tr>
-    <th><i class="bi bi-image me-1"></i>Photo</th>
-    <th><i class="bi bi-person me-1"></i>Name</th>
-    <!-- NEW: VIA column -->
-    <th><i class="bi bi-award me-1"></i>VIA</th>
-    <th><i class="bi bi-hash me-1"></i># ID Number</th>
-    <th><i class="bi bi-calendar me-1"></i>Date</th>
-    <th><i class="bi bi-clock me-1"></i>Time In</th>
-    <th><i class="bi bi-clock-history me-1"></i>Time Out</th>
-    <th><i class="bi bi-person-badge me-1"></i>Recorded By</th>
-  </tr>
-                        </thead>
-                       <tbody id="logs-table-body">
-  <tr>
-    <td colspan="8" class="text-center text-muted py-4">
-      <i class="bi bi-hourglass-split" style="font-size: 2rem; opacity: .5;"></i><br>
-      Loading attendance logs...
-    </td>
-  </tr>
-</tbody>
-                      </table>
-                    </div>
-                  </div> <!-- /logs-container -->
-                </div>
-              </div>
-            </div>
+  <!-- LEFT: Student Info -->
+  <div class="col-lg-4 mb-4">
+    <div class="attendance-card">
+      <div class="card-header bg-white border-0 py-3">
+        <h5 class="card-title mb-0 text-center">
+          <i class="bi bi-person-badge me-2 text-primary"></i>Student Information
+        </h5>
+      </div>
+      <div class="card-body p-0">
+        <div class="student-info-card">
+          <img id="student-photo" src="/images/default-profile.png" class="student-photo" />
+
+          <div class="student-detail"><strong>LRN:</strong> <span id="lrn">-</span></div>
+          <div class="student-detail"><strong>ID Number:</strong> <span id="id-number">-</span></div>
+          <div class="student-detail"><strong>Name:</strong> <span id="name">-</span></div>
+          
+          <div class="student-detail"><strong>VIA:</strong> <span id="via">-</span></div>
+          <div class="student-detail"><strong>Family Saint:</strong> <span id="family-saint">-</span></div>
+          <div class="student-detail"><strong>Batch Number:</strong> <span id="batch-number">-</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE: Logs Card -->
+  <div class="col-lg-5 mb-4">
+    <div class="attendance-card">
+      <div class="card-header bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">
+            <i class="bi bi-journal-text me-2 text-primary"></i>Recent Attendance Logs
+          </h5>
+          <span class="badge bg-secondary">Live Updates</span>
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        <div class="logs-container p-3">
+
+          <!-- TABLE ONLY -->
+          <div class="table-responsive">
+            <table class="table logs-table mb-0">
+              <thead>
+                <tr>
+                  <th>Photo</th>
+                  <th>Name</th>
+                  <th>VIA</th>
+                  <th># ID Number</th>
+                  <th>Date</th>
+                  <th>Time In</th>
+                  <th>Time Out</th>
+                  <th>Recorded By</th>
+                </tr>
+              </thead>
+              <tbody id="logs-table-body">
+                <tr>
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="bi bi-hourglass-split" style="font-size: 2rem; opacity: .5;"></i><br>
+                    Loading attendance logs...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <!-- Submit button kept for accessibility; still triggered by Enter -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: Summary Card OUTSIDE logs container -->
+  <div class="col-lg-3 mb-4">
+    <div class="attendance-card p-3">
+
+      <h5 class="card-title mb-3">
+        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Summary by VIA
+      </h5>
+
+     <table class="table table-sm text-center">
+    <thead>
+        <tr>
+            <th>VIA</th>
+            <th>No. Students</th>
+            <th>Logged In</th>
+            <th>Departure</th>
+        </tr>
+    </thead>
+    <tbody id="summary-table-body">
+        <tr>
+            <td colspan="4" class="text-muted py-3">
+                <i class="bi bi-hourglass-split me-1"></i> Loading...
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+
+    </div>
+  </div>
+
+</div>
+
+
+          <!-- Hidden submit button (Enter key still used) -->
           <div class="text-center">
             <button class="btn btn-success px-4 py-2 d-none" onclick="submitAttendance()">
               <i class="bi bi-check-circle me-2"></i>Submit Attendance
             </button>
           </div>
 
-        </div><!-- /.wrap -->
+        </div>
       </main>
     </div>
   </div>
@@ -220,159 +319,233 @@
 
   <!-- JS Logic -->
   <script th:inline="javascript"> const currentUser = /*[[${username}]]*/ "admin"; </script>
-  <script>
-    let currentStudent = null;
+<script>
+  let currentStudent = null;
 
-    async function searchStudent() {
-      const id = document.getElementById("search-id").value.trim();
-      if (!id) return;
-      try {
-        const res = await fetch(`/api/attendance/student/${id}`);
-        if (!res.ok) throw new Error("Student not found.");
-        const student = await res.json();
-        currentStudent = student;
-
-        document.getElementById("lrn").innerText = student.lrn || "-";
-        document.getElementById("id-number").innerText = student.idNumber || "-";
-        document.getElementById("name").innerText = student.name || "-";
-        document.getElementById("campus").innerText = student.campus || "-";
-        document.getElementById("via").innerText = student.via || "-";
-        document.getElementById("family-saint").innerText = student.familySaint || "-";
-        document.getElementById("batch-number").innerText = student.batchNumber || "-";
-        document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
-      } catch (err) {
-        Swal.fire({icon:'error', title:'Not Found', text:'Student record was not found.'});
-        currentStudent = null;
-        document.getElementById("lrn").innerText = "-";
-        document.getElementById("id-number").innerText = "-";
-        document.getElementById("name").innerText = "-";
-        document.getElementById("campus").innerText = "-";
-        document.getElementById("via").innerText = "-";
-        document.getElementById("family-saint").innerText = "-";
-        document.getElementById("batch-number").innerText = "-";
-        document.getElementById("student-photo").src = "/images/default-profile.png";
-      }
+  // 🔹 Get total number of students per VIA from Student table
+  async function fetchViaTotals() {
+    try {
+      const res = await fetch("/api/students/via-totals");
+      if (!res.ok) return {};
+      return await res.json(); // { "VIA1": 120, "VIA2": 85, ... }
+    } catch (e) {
+      console.error("Error loading via totals", e);
+      return {};
     }
+  }
 
-    async function submitAttendance() {
-      if (!currentStudent) return;
+  async function searchStudent() {
+    const id = document.getElementById("search-id").value.trim();
+    if (!id) return;
+    try {
+      const res = await fetch(`/api/vacationattendance/student/${id}`);
+      if (!res.ok) throw new Error("Student not found.");
+      const student = await res.json();
+      currentStudent = student;
 
-      // instant feedback popup
-      Swal.fire({
-        title: "WELCOME",
-        icon: "success",
-        timer: 500, // 0.5 second
-        showConfirmButton: false
-      });
-
-      const now = new Date();
-      const date = now.toISOString().split("T")[0];
-      const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
-      const account = (document.getElementById("current-user")?.value) || currentUser;
-
-      const attendance = {
-        idNumber: currentStudent.idNumber,
-        lrn: currentStudent.lrn,
-        name: currentStudent.name,
-        campus: currentStudent.campus,
-        via: currentStudent.via,          // ✅ NEW: VIA included in payload
-        familySaint: currentStudent.familySaint,
-        batchNumber: currentStudent.batchNumber,
-        imageUrl: currentStudent.imageUrl,
-        date,
-        timeIn,
-        timeOut: null,
-        status: "present",
-        remarks: "",
-        account
-      };
-
-      // Send asynchronously (no UI blocking)
-      try {
-        const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
-        const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
-
-        fetch("/api/attendance/submit", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            [header]: token
-          },
-          body: JSON.stringify(attendance)
-        }).then(() => loadAttendanceLogs())  // refresh logs quietly
-          .catch(() => console.warn("Attendance post delayed or failed silently"));
-      } catch (e) {
-        console.error(e);
-      }
+      document.getElementById("lrn").innerText = student.lrn || "-";
+      document.getElementById("id-number").innerText = student.idNumber || "-";
+      document.getElementById("name").innerText = student.name || "-";
+      document.getElementById("via").innerText = student.via || "-";
+      document.getElementById("family-saint").innerText = student.familySaint || "-";
+      document.getElementById("batch-number").innerText = student.batchNumber || "-";
+      document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
+    } catch (err) {
+      Swal.fire({icon:'error', title:'Not Found', text:'Student record was not found.'});
+      currentStudent = null;
+      document.getElementById("lrn").innerText = "-";
+      document.getElementById("id-number").innerText = "-";
+      document.getElementById("name").innerText = "-";
+      document.getElementById("via").innerText = "-";
+      document.getElementById("family-saint").innerText = "-";
+      document.getElementById("batch-number").innerText = "-";
+      document.getElementById("student-photo").src = "/images/default-profile.png";
     }
+  }
 
-    function updateClock() {
-      const now = new Date();
-      const date = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
-      const time = now.toLocaleTimeString('en-US');
-      document.getElementById('current-date').textContent = date;
-      document.getElementById('current-time').textContent = time;
+  async function submitAttendance() {
+    if (!currentStudent) return;
+
+    Swal.fire({
+      title: "WELCOME",
+      icon: "success",
+      timer: 500,
+      showConfirmButton: false
+    });
+
+    const now = new Date();
+    const date = now.toISOString().split("T")[0];
+    const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
+    const account = (document.getElementById("current-user")?.value) || currentUser;
+
+    const attendance = {
+      idNumber: currentStudent.idNumber,
+      lrn: currentStudent.lrn,
+      name: currentStudent.name,
+      via: currentStudent.via,
+      familySaint: currentStudent.familySaint,
+      batchNumber: currentStudent.batchNumber,
+      imageUrl: currentStudent.imageUrl,
+      date,
+      timeIn,
+      timeOut: null,
+      status: "present",
+      remarks: "",
+      account
+    };
+
+    try {
+      const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
+      const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
+
+      fetch("/api/vacationattendance/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [header]: token
+        },
+        body: JSON.stringify(attendance)
+      }).then(() => loadAttendanceLogs())
+        .catch(() => console.warn("Attendance post delayed or failed silently"));
+    } catch (e) {
+      console.error(e);
     }
+  }
 
-    async function loadAttendanceLogs() {
-      try {
-        const res = await fetch("/api/attendance/logs");
-        if (!res.ok) throw new Error("Failed to load logs");
-        const logs = await res.json();
-        const tbody = document.getElementById("logs-table-body");
-        tbody.innerHTML = "";
-        const latest = logs.slice(0, 6);
+  function updateClock() {
+    const now = new Date();
+    const date = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const time = now.toLocaleTimeString('en-US');
+    document.getElementById('current-date').textContent = date;
+    document.getElementById('current-time').textContent = time;
+  }
 
-        if (latest.length === 0) {
-          tbody.innerHTML = `
-             <tr>
-    <td colspan="8" class="text-center text-danger py-4">
-      <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i><br>Error loading attendance logs.
-    </td>
-  </tr>`;
-          return;
-        }
+  // 🔹 Load logs + build summary
+  async function loadAttendanceLogs() {
+    try {
+      const res = await fetch("/api/vacationattendance/logs");
+      if (!res.ok) throw new Error("Failed to load logs");
 
-        latest.forEach(log => {
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-photo" alt="Student" /></td>
-    <td><strong>${log.name || '-'}</strong></td>
-    <!-- NEW: VIA cell -->
-    <td>${log.via ? `<span class="badge bg-info text-dark">${log.via}</span>` : '-'}</td>
-    <td><code class="text-primary">${log.idNumber || '-'}</code></td>
-    <td>${log.date || '-'}</td>
-    <td><span class="badge bg-success">${log.timeIn || '-'}</span></td>
-    <td>${log.timeOut ? `<span class="badge bg-danger">${log.timeOut}</span>` : '<span class="badge bg-light text-dark">-</span>'}</td>
-    <td><small class="text-muted">${log.account || '-'}</small></td>`;
-  tbody.appendChild(row);
-});
+      const logs = await res.json();
 
-      } catch {
-        document.getElementById("logs-table-body").innerHTML = `
+      // 👉 update the right-side summary using ALL logs
+      await buildViaSummary(logs);
+
+      const tbody = document.getElementById("logs-table-body");
+      tbody.innerHTML = "";
+      const latest = logs.slice(0, 4);
+
+      if (latest.length === 0) {
+        tbody.innerHTML = `
           <tr>
-            <td colspan="7" class="text-center text-danger py-4">
-              <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i><br>Error loading attendance logs.
+            <td colspan="8" class="text-center text-muted py-4">
+              <i class="bi bi-inbox" style="font-size: 2rem; opacity: .5;"></i><br>
+              No attendance records yet today.
             </td>
           </tr>`;
+        return;
       }
+
+      latest.forEach(log => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-photo" alt="Student" /></td>
+          <td><strong>${log.name || '-'}</strong></td>
+          <td>${log.via ? `<span class="badge bg-info text-dark">${log.via}</span>` : '-'}</td>
+          <td><code class="text-primary">${log.idNumber || '-'}</code></td>
+          <td>${log.date || '-'}</td>
+          <td><span class="badge bg-success">${log.timeIn || '-'}</span></td>
+          <td>${log.timeOut ? `<span class="badge bg-danger">${log.timeOut}</span>` : '<span class="badge bg-light text-dark">-</span>'}</td>
+          <td><small class="text-muted">${log.account || '-'}</small></td>`;
+        tbody.appendChild(row);
+      });
+    } catch {
+      document.getElementById("logs-table-body").innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center text-danger py-4">
+            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i><br>Error loading attendance logs.
+          </td>
+        </tr>`;
+    }
+  }
+
+  // 🔹 Build right-side summary table (4 columns: VIA, No. Students, Logged In, Departure)
+  async function buildViaSummary(logs) {
+    const tbody = document.getElementById("summary-table-body");
+    if (!tbody) return;
+
+    // Get total students per VIA from Student table
+    const viaTotals = await fetchViaTotals(); // { "VIA 1": 120, ... }
+
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="4" class="text-center text-muted py-3">
+            No data yet for today.
+          </td>
+        </tr>`;
+      return;
     }
 
-    // Initialize
-    setInterval(updateClock, 1000);
-    updateClock();
-    loadAttendanceLogs();
+    const byVia = new Map();
 
-    // Enter = search + submit
-    document.getElementById("search-id").addEventListener("keydown", async function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        await searchStudent();
-        await submitAttendance();
-        this.value = "";
-        this.focus();
+    logs.forEach(log => {
+      const via = (log.via || "N/A").toString().trim() || "N/A";
+
+      let group = byVia.get(via);
+      if (!group) {
+        group = {
+          students: new Set(),   // unique IDs (logged in)
+          lastDeparture: null
+        };
+        byVia.set(via, group);
+      }
+
+      if (log.idNumber) {
+        group.students.add(log.idNumber);
+      }
+
+      if (log.timeOut) {
+        if (!group.lastDeparture || log.timeOut > group.lastDeparture) {
+          group.lastDeparture = log.timeOut;
+        }
       }
     });
-  </script>
+
+    tbody.innerHTML = "";
+    byVia.forEach((group, via) => {
+      const totalStudents = viaTotals[via] || 0;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${via}</td>
+        <td><span class="badge bg-secondary">${totalStudents}</span></td>
+        <td><span class="badge bg-primary">${group.students.size}</span></td>
+        <td>${
+          group.lastDeparture
+            ? `<span class="badge bg-danger">${group.lastDeparture}</span>`
+            : "-"
+        }</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Initialize
+  setInterval(updateClock, 1000);
+  updateClock();
+  loadAttendanceLogs();
+
+  document.getElementById("search-id").addEventListener("keydown", async function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      await searchStudent();
+      await submitAttendance();
+      this.value = "";
+      this.focus();
+    }
+  });
+</script>
+
 </body>
 </html>

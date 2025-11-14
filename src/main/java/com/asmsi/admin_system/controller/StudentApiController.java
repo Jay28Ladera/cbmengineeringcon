@@ -18,6 +18,7 @@ public class StudentApiController {
     @Autowired
     private StudentRepository studentRepository;
 
+    // ✅ DataTables endpoint (existing)
     @GetMapping("/students")
     public Map<String, Object> getPaginatedStudents(
             @RequestParam("draw") int draw,
@@ -35,5 +36,11 @@ public class StudentApiController {
         response.put("data", studentPage.getContent());
 
         return response;
+    }
+
+    // ✅ NEW: totals per VIA (for your summary table)
+    @GetMapping("/students/via-totals")
+    public Map<String, Long> getViaTotals() {
+        return studentRepository.countStudentsByVia();
     }
 }
