@@ -184,6 +184,120 @@
       </div>
     </li>
 
+    <!-- Inventory -->
+    <li class="nav-item mb-1">
+      <a th:href="@{/inventory}"
+         class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
+         th:classappend="${activePage} == 'inventory' ? 'active bg-primary'">
+        <i class="bi bi-box-seam"></i><span class="sidebar-text">Inventory</span>
+      </a>
+    </li>
+
+    <!-- POS / Merchandise -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse"
+         data-bs-target="#posSettings"
+         role="button"
+         aria-controls="posSettings">
+        <span class="d-flex align-items-center gap-2">
+          <!-- changed to 'bi-cart' so it exists in older Bootstrap Icons -->
+          <i class="bi bi-cart"></i>
+          <span class="sidebar-text">POS / Merchandise</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+
+      <div id="posSettings"
+           class="collapse ps-4 mt-1"
+           th:classappend="${#arrays.contains({'pos-terminal','pos-inventory','merch-report','pos-logs','pos-display'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-1">
+            <a th:href="@{/pos}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'pos-terminal' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>POS Terminal
+            </a>
+          </li>
+
+          <li class="nav-item mb-1">
+            <a th:href="@{/inventory}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'pos-inventory' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Merch Inventory
+            </a>
+          </li>
+
+          <li class="nav-item mb-1">
+            <a th:href="@{/merch-report}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'merch-report' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Sales Report
+            </a>
+          </li>
+
+          <li class="nav-item mb-1">
+            <a th:href="@{/customers}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'pos-logs' ? 'active bg-primary text-white'">
+              <i class="bi bi-dot me-1"></i>Customer Display
+            </a>
+          </li>
+
+          
+        </ul>
+      </div>
+    </li>
+
+    <!-- Vacation Day -->
+    <li class="mb-1">
+      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+         data-bs-toggle="collapse"
+         data-bs-target="#vacationDaySettings"
+         role="button"
+         aria-controls="vacationDaySettings">
+        <span class="d-flex align-items-center gap-2">
+          <i class="bi bi-sun"></i><span class="sidebar-text">Vacation Day</span>
+        </span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="vacationDaySettings"
+           class="collapse ps-4 mt-1"
+           th:classappend="${#arrays.contains({'vacation-attendance','vacation-report','vacation-schedule','vacation-display'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li class="nav-item mb-1">
+  <a th:href="@{/vacationportal}"
+     class="nav-link text-white-50 rounded-2 py-2"
+     th:classappend="${activePage} == 'vacation-attendance' ? 'active bg-primary text-white'">
+    <i class="bi bi-calendar-check me-1"></i>Vacation Day Attendance
+  </a>
+</li>
+
+          <li class="nav-item mb-1">
+            <a th:href="@{/vacationday/report}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'vacation-report' ? 'active bg-primary text-white'">
+              <i class="bi bi-graph-up-arrow me-1"></i>Vacation Day Report
+            </a>
+          </li>
+          <li class="nav-item mb-1">
+            <a th:href="@{/vacationday/schedule}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'vacation-schedule' ? 'active bg-primary text-white'">
+              <i class="bi bi-calendar-range me-1"></i>Vacation Day Schedule
+            </a>
+          </li>
+          <li class="nav-item mb-1">
+            <a th:href="@{/vacationday/display-trips}"
+               class="nav-link text-white-50 rounded-2 py-2"
+               th:classappend="${activePage} == 'vacation-display' ? 'active bg-primary text-white'">
+              <i class="bi bi-display me-1"></i>Vacation Day Display of Trips
+            </a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
     <!-- Family Day -->
     <li class="mb-1">
       <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
