@@ -17,18 +17,38 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+    }
 
-    .app-container { display:flex; min-height:100vh; }
-    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
-    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
 
-    .content-area { flex:1; padding:2rem; }
-   .content-area > .wrap { 
-    max-width:3000px;   /* or 100% */
-    margin:0 auto; 
-}
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s ease;
+    }
 
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .content-area > .wrap {
+      max-width: 3000px;
+      margin: 0 auto;
+    }
 
     .page-header {
       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
@@ -45,41 +65,22 @@
       background:#fff;
       box-shadow:0 6px 16px rgba(0,0,0,.06);
     }
-    .attendance-card .card-header { border-bottom:1px solid #eef0f4; }
 
-    .form-control {
+    .attendance-card .card-header {
+      border-bottom:1px solid #eef0f4;
+    }
+
+    .form-control,
+    .form-select {
       border: 1.6px solid #e9ecef;
       border-radius: 10px;
-      padding: 0.7rem 1rem;
-    }
-    .form-control:focus {
-      border-color:#667eea;
-      box-shadow:0 0 0 .2rem rgba(102,126,234,.15);
+      padding: 0.55rem 0.9rem;
     }
 
-    .student-info-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border-radius: 15px;
-      padding: 1.5rem;
-      text-align: center;
-      box-shadow: 0 8px 20px rgba(102,126,234,.20);
-    }
-    .student-photo {
-      width: 220px;
-      height: 220px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 7px solid rgba(255,255,255,.35);
-      margin-bottom: 1.25rem;
-    }
-    .student-detail {
-      background: rgba(255,255,255,.14);
-      border:1px solid rgba(255,255,255,.18);
-      border-radius: 8px;
-      padding: .6rem .85rem;
-      margin-bottom: .55rem;
-      text-align:left;
+    .form-control:focus,
+    .form-select:focus {
+      border-color:#667eea;
+      box-shadow:0 0 0 .2rem rgba(102,126,234,.15);
     }
 
     .logs-table thead th {
@@ -87,14 +88,18 @@
       color:#394867;
       border:none;
       font-weight:600;
-      padding: .85rem .65rem;
+      padding: .7rem .55rem;
       text-align:center;
+      font-size: 0.86rem;
     }
+
     .logs-table tbody td {
-      padding: .7rem;
+      padding: .65rem;
       text-align: center;
       border-color: #f1f3f5;
+      font-size: 0.86rem;
     }
+
     .log-photo {
       width: 50px;
       height: 50px;
@@ -103,7 +108,6 @@
       border:2px solid #eef1f6;
     }
 
-    /* Summary table on the right of logs */
     .summary-card {
       border: 1px solid #e8eaef;
       border-radius: 12px;
@@ -111,439 +115,717 @@
       padding: 0.85rem 0.9rem;
       box-shadow: 0 4px 12px rgba(0,0,0,.04);
     }
+
     .summary-card table thead th {
       background: transparent;
       font-size: 0.8rem;
       text-align: center;
     }
+
     .summary-card table tbody td {
       font-size: 0.85rem;
       text-align: center;
     }
 
-    @media (min-width: 992px) {
-      #student-info-card { position: sticky; top: 24px; }
+    .overall-pill {
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      background: #f8f9ff;
+      border: 1px solid #e5e7f2;
+    }
+
+    .overall-pill .label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #6c757d;
+    }
+
+    .overall-pill .value {
+      font-size: 1.8rem;
+      font-weight: 700;
     }
 
     @media (max-width: 768px) {
-      .main-content { margin-left:0 !important; padding-top:70px; }
+      .main-content {
+        margin-left:0 !important;
+        padding-top:70px;
+      }
       .content-area { padding:1rem; }
-      .student-photo { width: 190px; height: 190px; }
-      .logs-table thead th, .logs-table tbody td { padding: .55rem .35rem; font-size:.92rem; }
+      .logs-table thead th,
+      .logs-table tbody td {
+        padding: .55rem .35rem;
+        font-size:.85rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="app-container">
+<div class="app-container">
 
-    <!-- Sidebar -->
-    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='vacation-attendance',
-                                                 studentInfoExpanded=${studentInfoExpanded},
-                                                 asmsiExpanded=${asmsiExpanded},
-                                                 admissionExpanded=${admissionExpanded},
-                                                 attendanceExpanded=${attendanceExpanded},
-                                                 eventsExpanded=${eventsExpanded},
-                                                 familyDayExpanded=${familyDayExpanded})"></div>
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='vacation-report',
+                                               studentInfoExpanded=${studentInfoExpanded},
+                                               asmsiExpanded=${asmsiExpanded},
+                                               admissionExpanded=${admissionExpanded},
+                                               attendanceExpanded=${attendanceExpanded},
+                                               eventsExpanded=${eventsExpanded},
+                                               familyDayExpanded=${familyDayExpanded})"></div>
 
-    <!-- Main Content -->
-    <div class="main-content">
+  <!-- Main Content -->
+  <div class="main-content">
 
-      <!-- Header -->
-      <div th:replace="fragments/header :: header(${username})"></div>
+    <!-- Header -->
+    <div th:replace="fragments/header :: header(${username})"></div>
 
-      <!-- Page Body -->
-      <main class="content-area">
-        <div class="wrap">
+    <!-- Page Body -->
+    <main class="content-area">
+      <div class="wrap">
 
-          <!-- Page Header -->
-          <div class="page-header card mb-4">
-            <div class="card-body">
-              <div class="row align-items-center">
-                <div class="col-md-6">
-                  <h2 class="card-title mb-2"><i class="bi bi-clock-history me-2"></i>Vacation Attendance</h2>
-                  <p class="mb-0">Welcome, <span th:text="${username}">admin</span>! Record student attendance by scanning ID numbers.</p>
-                </div>
-                <div class="col-md-6">
-                  <div class="row text-center">
-                    <div class="col-6">
-                      <div class="text-white-50 mb-1"><i class="bi bi-calendar-date me-1"></i>Date</div>
-                      <div class="fw-bold" id="current-date">Loading...</div>
-                    </div>
-                    <div class="col-6">
-                      <div class="text-white-50 mb-1"><i class="bi bi-clock me-1"></i>Time</div>
-                      <div class="fw-bold" id="current-time">Loading...</div>
-                    </div>
+        <!-- Page Header -->
+        <div class="page-header card mb-4">
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <h2 class="card-title mb-2">
+                  <i class="bi bi-clock-history me-2"></i>Vacation Day Report
+                </h2>
+                <p class="mb-0">
+                  Welcome, <span th:text="${username}">admin</span>! Review vacation day attendance and statistics.
+                </p>
+              </div>
+              <div class="col-md-6">
+                <div class="row text-center">
+                  <div class="col-6">
+                    <div class="text-white-50 mb-1"><i class="bi bi-calendar-date me-1"></i>Date</div>
+                    <div class="fw-bold" id="current-date">Loading...</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="text-white-50 mb-1"><i class="bi bi-clock me-1"></i>Time</div>
+                    <div class="fw-bold" id="current-time">Loading...</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Hidden current user -->
-          <input type="hidden" id="current-user" th:value="${username}" />
+        <!-- Hidden current user -->
+        <input type="hidden" id="current-user" th:value="${username}" />
 
-          <!-- Search -->
-          <div class="row mb-4">
-            <div class="col-md-6">
-              <label for="search-id" class="form-label fw-semibold">
-                <i class="bi bi-search me-2"></i>Search by ID Number
-              </label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-qr-code-scan"></i></span>
-                <input type="text" class="form-control" id="search-id" placeholder="Scan or type ID number" autocomplete="off" />
-              </div>
-              <small class="form-text text-muted">Press Enter to record attendance</small>
+        <!-- FILTERS ROW -->
+        <div class="attendance-card p-3 mb-4">
+          <h5 class="card-title mb-3">
+            <i class="bi bi-funnel me-2 text-primary"></i>Filters
+          </h5>
+          <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+              <label for="filter-from" class="form-label">From Date</label>
+              <input type="date" class="form-control" id="filter-from">
+            </div>
+            <div class="col-md-3">
+              <label for="filter-to" class="form-label">To Date</label>
+              <input type="date" class="form-control" id="filter-to">
+            </div>
+            <div class="col-md-2">
+              <label for="filter-family" class="form-label">Family Saint</label>
+              <select class="form-select" id="filter-family">
+                <option value="">All</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="filter-via" class="form-label">VIA</label>
+              <select class="form-select" id="filter-via">
+                <option value="">All</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label for="filter-batch" class="form-label">Batch</label>
+              <select class="form-select" id="filter-batch">
+                <option value="">All</option>
+              </select>
             </div>
           </div>
-
-          <div class="row" id="student-info-row">
-
-  <!-- LEFT: Student Info -->
-  <div class="col-lg-4 mb-4">
-    <div class="attendance-card">
-      <div class="card-header bg-white border-0 py-3">
-        <h5 class="card-title mb-0 text-center">
-          <i class="bi bi-person-badge me-2 text-primary"></i>Student Information
-        </h5>
-      </div>
-      <div class="card-body p-0">
-        <div class="student-info-card">
-          <img id="student-photo" src="/images/default-profile.png" class="student-photo" />
-
-          <div class="student-detail"><strong>LRN:</strong> <span id="lrn">-</span></div>
-          <div class="student-detail"><strong>ID Number:</strong> <span id="id-number">-</span></div>
-          <div class="student-detail"><strong>Name:</strong> <span id="name">-</span></div>
-          
-          <div class="student-detail"><strong>VIA:</strong> <span id="via">-</span></div>
-          <div class="student-detail"><strong>Family Saint:</strong> <span id="family-saint">-</span></div>
-          <div class="student-detail"><strong>Batch Number:</strong> <span id="batch-number">-</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MIDDLE: Logs Card -->
-  <div class="col-lg-5 mb-4">
-    <div class="attendance-card">
-      <div class="card-header bg-white border-0 py-3">
-        <div class="d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">
-            <i class="bi bi-journal-text me-2 text-primary"></i>Recent Attendance Logs
-          </h5>
-          <span class="badge bg-secondary">Live Updates</span>
-        </div>
-      </div>
-
-      <div class="card-body p-0">
-        <div class="logs-container p-3">
-
-          <!-- TABLE ONLY -->
-          <div class="table-responsive">
-            <table class="table logs-table mb-0">
-              <thead>
-                <tr>
-                  <th>Photo</th>
-                  <th>Name</th>
-                  <th>VIA</th>
-                  <th># ID Number</th>
-                  <th>Date</th>
-                  <th>Time In</th>
-                  <th>Time Out</th>
-                  <th>Recorded By</th>
-                </tr>
-              </thead>
-              <tbody id="logs-table-body">
-                <tr>
-                  <td colspan="8" class="text-center text-muted py-4">
-                    <i class="bi bi-hourglass-split" style="font-size: 2rem; opacity: .5;"></i><br>
-                    Loading attendance logs...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- RIGHT: Summary Card OUTSIDE logs container -->
-  <div class="col-lg-3 mb-4">
-    <div class="attendance-card p-3">
-
-      <h5 class="card-title mb-3">
-        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Summary by VIA
-      </h5>
-
-     <table class="table table-sm text-center">
-    <thead>
-        <tr>
-            <th>VIA</th>
-            <th>No. Students</th>
-            <th>Logged In</th>
-            <th>Departure</th>
-        </tr>
-    </thead>
-    <tbody id="summary-table-body">
-        <tr>
-            <td colspan="4" class="text-muted py-3">
-                <i class="bi bi-hourglass-split me-1"></i> Loading...
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-
-    </div>
-  </div>
-
-</div>
-
-
-          <!-- Hidden submit button (Enter key still used) -->
-          <div class="text-center">
-            <button class="btn btn-success px-4 py-2 d-none" onclick="submitAttendance()">
-              <i class="bi bi-check-circle me-2"></i>Submit Attendance
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+              <i class="bi bi-funnel me-1"></i>Apply Filters
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
+              <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
             </button>
           </div>
-
         </div>
-      </main>
-    </div>
+
+        <!-- REPORT TABS -->
+        <div class="attendance-card p-3">
+          <!-- Tabs -->
+          <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active"
+                      id="overall-tab"
+                      data-bs-toggle="tab"
+                      data-bs-target="#overallTab"
+                      type="button" role="tab"
+                      aria-controls="overallTab"
+                      aria-selected="true">
+                Overall Summary
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link"
+                      id="stats-tab"
+                      data-bs-toggle="tab"
+                      data-bs-target="#statsTab"
+                      type="button" role="tab"
+                      aria-controls="statsTab"
+                      aria-selected="false">
+                Statistics
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content pt-3" id="reportTabsContent">
+
+            <!-- TAB 1: OVERALL SUMMARY -->
+            <div class="tab-pane fade show active" id="overallTab" role="tabpanel" aria-labelledby="overall-tab">
+
+              <!-- Counters -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <div class="overall-pill">
+                    <div class="label">Total Students</div>
+                    <div class="value text-primary" id="overall-total">0</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="overall-pill">
+                    <div class="label">Logged In</div>
+                    <div class="value text-success" id="overall-logged">0</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="overall-pill">
+                    <div class="label">Did Not Log In</div>
+                    <div class="value text-danger" id="overall-not-logged">0</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tools row: search + export buttons -->
+              <div class="row mb-3 align-items-center">
+                <div class="col-md-5">
+                  <label for="student-search" class="form-label mb-1">Search student (name or ID)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="student-search" class="form-control"
+                           placeholder="Type name or ID to filter"
+                           autocomplete="off">
+                  </div>
+                </div>
+                <div class="col-md-7 text-md-end mt-3 mt-md-0">
+                  <button class="btn btn-outline-secondary btn-sm me-2" onclick="exportCsv()">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Export CSV
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                    <i class="bi bi-printer me-1"></i>Print
+                  </button>
+                </div>
+              </div>
+
+              <!-- Logs table -->
+              <div class="table-responsive">
+                <table class="table logs-table mb-0">
+                  <thead>
+                  <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>VIA</th>
+                    <th># ID Number</th>
+                    <th>Date</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
+                    <th>Recorded By</th>
+                  </tr>
+                  </thead>
+                  <tbody id="logs-table-body">
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-4">
+                      <i class="bi bi-hourglass-split" style="font-size: 2rem; opacity: .5;"></i><br>
+                      Loading attendance logs...
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- TAB 2: STATISTICS -->
+            <div class="tab-pane fade" id="statsTab" role="tabpanel" aria-labelledby="stats-tab">
+              <div class="row g-3">
+
+                <!-- Summary by VIA -->
+                <div class="col-12">
+                  <div class="summary-card">
+                    <h6 class="fw-semibold mb-2">
+                      <i class="bi bi-geo-alt-fill text-primary me-1"></i>Summary by VIA
+                    </h6>
+                    <div class="table-responsive">
+                      <table class="table table-sm text-center mb-0">
+                        <thead>
+                        <tr>
+                          <th>VIA</th>
+                          <th>No. Students</th>
+                          <th>Logged In</th>
+                        </tr>
+                        </thead>
+                        <tbody id="summary-via-body">
+                        <tr>
+                          <td colspan="3" class="text-muted py-3">
+                            <i class="bi bi-hourglass-split me-1"></i> Loading...
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Summary by Family Saint -->
+                <div class="col-12">
+                  <div class="summary-card">
+                    <h6 class="fw-semibold mb-2">
+                      <i class="bi bi-people-fill text-primary me-1"></i>Summary by Family Saint
+                    </h6>
+                    <div class="table-responsive">
+                      <table class="table table-sm text-center mb-0">
+                        <thead>
+                        <tr>
+                          <th>Family Saint</th>
+                          <th>No. Students</th>
+                          <th>Logged In</th>
+                        </tr>
+                        </thead>
+                        <tbody id="summary-family-body">
+                        <tr>
+                          <td colspan="3" class="text-muted py-3">
+                            <i class="bi bi-hourglass-split me-1"></i> Loading...
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Summary by Batch Number -->
+                <div class="col-12">
+                  <div class="summary-card">
+                    <h6 class="fw-semibold mb-2">
+                      <i class="bi bi-collection-play-fill text-primary me-1"></i>Summary by Batch Number
+                    </h6>
+                    <div class="table-responsive">
+                      <table class="table table-sm text-center mb-0">
+                        <thead>
+                        <tr>
+                          <th>Batch Number</th>
+                          <th>No. Students</th>
+                          <th>Logged In</th>
+                        </tr>
+                        </thead>
+                        <tbody id="summary-batch-body">
+                        <tr>
+                          <td colspan="3" class="text-muted py-3">
+                            <i class="bi bi-hourglass-split me-1"></i> Loading...
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+          </div><!-- /tab-content -->
+        </div><!-- /attendance-card -->
+
+      </div>
+    </main>
   </div>
+</div>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- JS Logic -->
-  <script th:inline="javascript"> const currentUser = /*[[${username}]]*/ "admin"; </script>
+<!-- JS Logic -->
+<script th:inline="javascript">
+  const currentUser = /*[[${username}]]*/ "admin";
+</script>
+
 <script>
-  let currentStudent = null;
+  let allLogs = [];
+  let currentFilteredLogs = [];
+  let globalViaTotals = {};
+  let globalTotalStudents = 0; // 🔹 fixed total students (does not change with filters)
 
-  // 🔹 Get total number of students per VIA from Student table
   async function fetchViaTotals() {
     try {
       const res = await fetch("/api/students/via-totals");
       if (!res.ok) return {};
-      return await res.json(); // { "VIA1": 120, "VIA2": 85, ... }
+      return await res.json();
     } catch (e) {
       console.error("Error loading via totals", e);
       return {};
     }
   }
 
-  async function searchStudent() {
-    const id = document.getElementById("search-id").value.trim();
-    if (!id) return;
-    try {
-      const res = await fetch(`/api/vacationattendance/student/${id}`);
-      if (!res.ok) throw new Error("Student not found.");
-      const student = await res.json();
-      currentStudent = student;
-
-      document.getElementById("lrn").innerText = student.lrn || "-";
-      document.getElementById("id-number").innerText = student.idNumber || "-";
-      document.getElementById("name").innerText = student.name || "-";
-      document.getElementById("via").innerText = student.via || "-";
-      document.getElementById("family-saint").innerText = student.familySaint || "-";
-      document.getElementById("batch-number").innerText = student.batchNumber || "-";
-      document.getElementById("student-photo").src = student.imageUrl || "/images/default-profile.png";
-    } catch (err) {
-      Swal.fire({icon:'error', title:'Not Found', text:'Student record was not found.'});
-      currentStudent = null;
-      document.getElementById("lrn").innerText = "-";
-      document.getElementById("id-number").innerText = "-";
-      document.getElementById("name").innerText = "-";
-      document.getElementById("via").innerText = "-";
-      document.getElementById("family-saint").innerText = "-";
-      document.getElementById("batch-number").innerText = "-";
-      document.getElementById("student-photo").src = "/images/default-profile.png";
-    }
-  }
-
-  async function submitAttendance() {
-    if (!currentStudent) return;
-
-    Swal.fire({
-      title: "WELCOME",
-      icon: "success",
-      timer: 500,
-      showConfirmButton: false
-    });
-
-    const now = new Date();
-    const date = now.toISOString().split("T")[0];
-    const timeIn = now.toLocaleTimeString('en-US', { hour12: false });
-    const account = (document.getElementById("current-user")?.value) || currentUser;
-
-    const attendance = {
-      idNumber: currentStudent.idNumber,
-      lrn: currentStudent.lrn,
-      name: currentStudent.name,
-      via: currentStudent.via,
-      familySaint: currentStudent.familySaint,
-      batchNumber: currentStudent.batchNumber,
-      imageUrl: currentStudent.imageUrl,
-      date,
-      timeIn,
-      timeOut: null,
-      status: "present",
-      remarks: "",
-      account
-    };
-
-    try {
-      const token = document.querySelector('meta[name="_csrf"]').getAttribute("content");
-      const header = document.querySelector('meta[name="_csrf_header"]').getAttribute("content");
-
-      fetch("/api/vacationattendance/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          [header]: token
-        },
-        body: JSON.stringify(attendance)
-      }).then(() => loadAttendanceLogs())
-        .catch(() => console.warn("Attendance post delayed or failed silently"));
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
   function updateClock() {
     const now = new Date();
-    const date = now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    const date = now.toLocaleDateString('en-US', {
+      weekday:'long', year:'numeric', month:'long', day:'numeric'
+    });
     const time = now.toLocaleTimeString('en-US');
     document.getElementById('current-date').textContent = date;
     document.getElementById('current-time').textContent = time;
   }
 
-  // 🔹 Load logs + build summary
-  async function loadAttendanceLogs() {
-    try {
-      const res = await fetch("/api/vacationattendance/logs");
-      if (!res.ok) throw new Error("Failed to load logs");
+  // ===== OVERALL SUMMARY =====
+  function buildOverallSummaryForLogs(logs) {
+    const totalStudents = globalTotalStudents || 0; // always global
 
-      const logs = await res.json();
+    const uniqueLogged = new Set();
+    (logs || []).forEach(l => {
+      if (l.idNumber) uniqueLogged.add(l.idNumber);
+    });
 
-      // 👉 update the right-side summary using ALL logs
-      await buildViaSummary(logs);
+    const loggedIn = uniqueLogged.size;
+    const notLogged = Math.max(totalStudents - loggedIn, 0);
 
-      const tbody = document.getElementById("logs-table-body");
-      tbody.innerHTML = "";
-      const latest = logs.slice(0, 4);
-
-      if (latest.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="8" class="text-center text-muted py-4">
-              <i class="bi bi-inbox" style="font-size: 2rem; opacity: .5;"></i><br>
-              No attendance records yet today.
-            </td>
-          </tr>`;
-        return;
-      }
-
-      latest.forEach(log => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-photo" alt="Student" /></td>
-          <td><strong>${log.name || '-'}</strong></td>
-          <td>${log.via ? `<span class="badge bg-info text-dark">${log.via}</span>` : '-'}</td>
-          <td><code class="text-primary">${log.idNumber || '-'}</code></td>
-          <td>${log.date || '-'}</td>
-          <td><span class="badge bg-success">${log.timeIn || '-'}</span></td>
-          <td>${log.timeOut ? `<span class="badge bg-danger">${log.timeOut}</span>` : '<span class="badge bg-light text-dark">-</span>'}</td>
-          <td><small class="text-muted">${log.account || '-'}</small></td>`;
-        tbody.appendChild(row);
-      });
-    } catch {
-      document.getElementById("logs-table-body").innerHTML = `
-        <tr>
-          <td colspan="8" class="text-center text-danger py-4">
-            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i><br>Error loading attendance logs.
-          </td>
-        </tr>`;
-    }
+    document.getElementById("overall-total").textContent = totalStudents;
+    document.getElementById("overall-logged").textContent = loggedIn;
+    document.getElementById("overall-not-logged").textContent = notLogged;
   }
 
-  // 🔹 Build right-side summary table (4 columns: VIA, No. Students, Logged In, Departure)
-  async function buildViaSummary(logs) {
-    const tbody = document.getElementById("summary-table-body");
-    if (!tbody) return;
+  // ===== DROPDOWNS =====
+  function populateFilterDropdowns(logs) {
+    const viaSet = new Set();
+    const familySet = new Set();
+    const batchSet = new Set();
 
-    // Get total students per VIA from Student table
-    const viaTotals = await fetchViaTotals(); // { "VIA 1": 120, ... }
+    (logs || []).forEach(l => {
+      if (l.via) viaSet.add(l.via.trim());
+      if (l.familySaint) familySet.add(l.familySaint.trim());
+      if (l.batchNumber) batchSet.add(String(l.batchNumber).trim());
+    });
+
+    const fillSelect = (id, set) => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const selected = sel.value || "";
+      sel.innerHTML = '<option value="">All</option>';
+      Array.from(set).sort().forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        if (v === selected) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    };
+
+    fillSelect("filter-via", viaSet);
+    fillSelect("filter-family", familySet);
+    fillSelect("filter-batch", batchSet);
+  }
+
+  // ===== FILTER + SEARCH =====
+  function applyFilters() {
+    if (!allLogs || !allLogs.length) {
+      currentFilteredLogs = [];
+      renderLogsTable([]);
+      buildStatistics([]);
+      buildOverallSummaryForLogs([]);
+      return;
+    }
+
+    const fromVal = document.getElementById("filter-from").value;
+    const toVal = document.getElementById("filter-to").value;
+    const familyVal = document.getElementById("filter-family").value;
+    const viaVal = document.getElementById("filter-via").value;
+    const batchVal = document.getElementById("filter-batch").value;
+    const studentSearch = document.getElementById("student-search").value.trim().toLowerCase();
+
+    currentFilteredLogs = allLogs.filter(log => {
+      // date range
+      if (fromVal || toVal) {
+        const d = log.date || "";
+        if (!d) return false;
+        if (fromVal && d < fromVal) return false;
+        if (toVal && d > toVal) return false;
+      }
+
+      if (familyVal && (log.familySaint || "").trim() !== familyVal) return false;
+      if (viaVal && (log.via || "").trim() !== viaVal) return false;
+      if (batchVal && (String(log.batchNumber || "").trim() !== batchVal)) return false;
+
+      if (studentSearch) {
+        const name = (log.name || "").toLowerCase();
+        const idn = (log.idNumber || "").toLowerCase();
+        if (!name.includes(studentSearch) && !idn.includes(studentSearch)) return false;
+      }
+
+      return true;
+    });
+
+    renderLogsTable(currentFilteredLogs);
+    buildStatistics(currentFilteredLogs);
+    buildOverallSummaryForLogs(currentFilteredLogs);
+  }
+
+  function resetFilters() {
+    document.getElementById("filter-from").value = "";
+    document.getElementById("filter-to").value = "";
+    document.getElementById("filter-family").value = "";
+    document.getElementById("filter-via").value = "";
+    document.getElementById("filter-batch").value = "";
+    document.getElementById("student-search").value = "";
+    applyFilters();
+  }
+
+  // ===== LOGS TABLE =====
+  function renderLogsTable(logs) {
+    const tbody = document.getElementById("logs-table-body");
+    if (!tbody) return;
 
     if (!logs || logs.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" class="text-center text-muted py-3">
-            No data yet for today.
+          <td colspan="8" class="text-center text-muted py-4">
+            <i class="bi bi-inbox" style="font-size: 2rem; opacity: .5;"></i><br>
+            No attendance records for current filters.
+          </td>
+        </tr>`;
+    return;
+    }
+
+    tbody.innerHTML = "";
+    logs.forEach(log => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-photo" alt="Student" /></td>
+        <td><strong>${log.name || '-'}</strong></td>
+        <td>${log.via ? `<span class="badge bg-info text-dark">${log.via}</span>` : '-'}</td>
+        <td><code class="text-primary">${log.idNumber || '-'}</code></td>
+        <td>${log.date || '-'}</td>
+        <td><span class="badge bg-success">${log.timeIn || '-'}</span></td>
+        <td>${log.timeOut ? `<span class="badge bg-danger">${log.timeOut}</span>` : '<span class="badge bg-light text-dark">-</span>'}</td>
+        <td><small class="text-muted">${log.account || '-'}</small></td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  // ===== GROUPED STATS =====
+  function buildGroupedSummary(logs, fieldName, tbodyId, totalsMap) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center text-muted py-3">
+            No data for current filters.
           </td>
         </tr>`;
       return;
     }
 
-    const byVia = new Map();
-
+    const groups = new Map();
     logs.forEach(log => {
-      const via = (log.via || "N/A").toString().trim() || "N/A";
-
-      let group = byVia.get(via);
+      const key = (log[fieldName] || "N/A").toString().trim() || "N/A";
+      let group = groups.get(key);
       if (!group) {
-        group = {
-          students: new Set(),   // unique IDs (logged in)
-          lastDeparture: null
-        };
-        byVia.set(via, group);
+        group = { students: new Set() };
+        groups.set(key, group);
       }
-
-      if (log.idNumber) {
-        group.students.add(log.idNumber);
-      }
-
-      if (log.timeOut) {
-        if (!group.lastDeparture || log.timeOut > group.lastDeparture) {
-          group.lastDeparture = log.timeOut;
-        }
-      }
+      if (log.idNumber) group.students.add(log.idNumber);
     });
 
     tbody.innerHTML = "";
-    byVia.forEach((group, via) => {
-      const totalStudents = viaTotals[via] || 0;
+    Array.from(groups.entries())
+      .sort(([a],[b]) => a.localeCompare(b))
+      .forEach(([key, group]) => {
+        let totalStudents = group.students.size;
+        if (totalsMap && totalsMap[key] != null) {
+          totalStudents = totalsMap[key];
+        }
+        const loggedIn = group.students.size;
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${via}</td>
-        <td><span class="badge bg-secondary">${totalStudents}</span></td>
-        <td><span class="badge bg-primary">${group.students.size}</span></td>
-        <td>${
-          group.lastDeparture
-            ? `<span class="badge bg-danger">${group.lastDeparture}</span>`
-            : "-"
-        }</td>
-      `;
-      tbody.appendChild(tr);
-    });
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${key}</td>
+          <td><span class="badge bg-secondary">${totalStudents}</span></td>
+          <td><span class="badge bg-primary">${loggedIn}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
   }
 
-  // Initialize
+  async function buildStatistics(logs) {
+    buildGroupedSummary(logs, "via", "summary-via-body", globalViaTotals);
+    buildGroupedSummary(logs, "familySaint", "summary-family-body", null);
+    buildGroupedSummary(logs, "batchNumber", "summary-batch-body", null);
+  }
+
+  // ===== LOAD LOGS (default = today only) =====
+  async function loadAttendanceLogs() {
+    try {
+      const res = await fetch("/api/vacationattendance/logs");
+      if (!res.ok) throw new Error("Failed to load logs");
+      allLogs = await res.json();
+
+      globalViaTotals = await fetchViaTotals();
+
+      // compute global total students once (sum of all viaTotals)
+      globalTotalStudents = Object.values(globalViaTotals || {})
+        .reduce((sum, v) => sum + Number(v || 0), 0);
+
+      // show that global total immediately
+      document.getElementById("overall-total").textContent = globalTotalStudents;
+
+      populateFilterDropdowns(allLogs);
+
+      // default filter: today only
+      const today = new Date().toISOString().slice(0,10);
+      document.getElementById("filter-from").value = today;
+      document.getElementById("filter-to").value = today;
+
+      applyFilters();
+    } catch (e) {
+      console.error(e);
+      document.getElementById("logs-table-body").innerHTML = `
+        <tr>
+          <td colspan="8" class="text-center text-danger py-4">
+            <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i><br>
+            Error loading attendance logs.
+          </td>
+        </tr>`;
+    }
+  }
+
+  // ===== EXPORT CSV =====
+ // ===== EXPORT CSV (with statistics) =====
+function exportCsv() {
+  const logs = (currentFilteredLogs && currentFilteredLogs.length)
+    ? currentFilteredLogs
+    : allLogs;
+
+  if (!logs || !logs.length) {
+    alert("No data to export.");
+    return;
+  }
+
+  const lines = [];
+
+  // ---------- Overall summary ----------
+  const totalStudents = globalTotalStudents || 0;
+  const uniqueLoggedSet = new Set();
+  logs.forEach(l => {
+    if (l.idNumber) uniqueLoggedSet.add(l.idNumber);
+  });
+  const loggedIn = uniqueLoggedSet.size;
+  const notLogged = Math.max(totalStudents - loggedIn, 0);
+
+  lines.push("Overall Summary");
+  lines.push(`Total Students,${totalStudents}`);
+  lines.push(`Logged In,${loggedIn}`);
+  lines.push(`Did Not Log In,${notLogged}`);
+  lines.push("");
+
+  // helper to build grouped summaries
+  const addGroupedSection = (title, fieldName, headerLabel, totalsMap) => {
+    const groups = new Map();
+
+    logs.forEach(log => {
+      const key = (log[fieldName] || "N/A").toString().trim() || "N/A";
+      let g = groups.get(key);
+      if (!g) {
+        g = { students: new Set() };
+        groups.set(key, g);
+      }
+      if (log.idNumber) g.students.add(log.idNumber);
+    });
+
+    lines.push(title);
+    lines.push(`${headerLabel},Total Students,Logged In`);
+
+    Array.from(groups.entries())
+      .sort(([a],[b]) => a.localeCompare(b))
+      .forEach(([key, g]) => {
+        let total = g.students.size;
+        if (totalsMap && totalsMap[key] != null) {
+          total = totalsMap[key];
+        }
+        const logged = g.students.size;
+        lines.push(
+          `${escapeCsv(key)},${total},${logged}`
+        );
+      });
+
+    lines.push("");
+  };
+
+  // ---------- Summary sections ----------
+  addGroupedSection("Summary by VIA", "via", "VIA", globalViaTotals);
+  addGroupedSection("Summary by Family Saint", "familySaint", "Family Saint", null);
+  addGroupedSection("Summary by Batch Number", "batchNumber", "Batch Number", null);
+
+  // ---------- Detailed records ----------
+  lines.push("Detailed Records");
+  lines.push("Name,VIA,ID Number,Date,Time In,Time Out,Recorded By");
+
+  logs.forEach(l => {
+    const vals = [
+      l.name || "",
+      l.via || "",
+      l.idNumber || "",
+      l.date || "",
+      l.timeIn || "",
+      l.timeOut || "",
+      l.account || ""
+    ];
+    lines.push(vals.map(escapeCsv).join(","));
+  });
+
+  const csv = lines.join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "vacation-day-report.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// helper for CSV escaping
+function escapeCsv(value) {
+  const str = String(value ?? "");
+  if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+  // ===== INIT =====
   setInterval(updateClock, 1000);
   updateClock();
   loadAttendanceLogs();
 
-  document.getElementById("search-id").addEventListener("keydown", async function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      await searchStudent();
-      await submitAttendance();
-      this.value = "";
-      this.focus();
-    }
+  document.getElementById("student-search").addEventListener("input", () => {
+    applyFilters();
   });
 </script>
 
