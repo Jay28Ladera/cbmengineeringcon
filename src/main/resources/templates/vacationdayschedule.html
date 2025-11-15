@@ -172,7 +172,7 @@
 
           <input type="hidden" id="current-user" th:value="${username}" />
 
-          <!-- TOP: LISTING TABLE OF SET SCHEDULES -->
+          <!-- TOP: LISTING TABLE OF SET SCHEDULES (TODAY ONLY) -->
           <div class="row mb-4">
             <div class="col-lg-12">
               <div class="attendance-card p-3">
@@ -180,7 +180,7 @@
                   <h5 class="card-title mb-0">
                     <i class="bi bi-list-check me-2 text-primary"></i>Scheduled Vacation Batches
                   </h5>
-                  <span class="badge bg-light text-dark">All VIA you have already set</span>
+                  <span class="badge bg-light text-dark">Showing trips scheduled for today</span>
                 </div>
 
                 <div class="table-responsive">
@@ -256,6 +256,40 @@
     </div>
   </div>
 
+  <!-- Shared datalists for type-ahead dropdowns -->
+  <datalist id="venue-options">
+    <option value="Gymnasium 1"></option>
+    <option value="Gymnasium 2"></option>
+    <option value="Front Building 1"></option>
+    <option value="Front Building 2"></option>
+    <option value="Front Building 3"></option>
+    <option value="Front Holland House"></option>
+    <option value="Front PSWA"></option>
+  </datalist>
+
+  <datalist id="vehicle-options">
+    <option value="BIG BUS"></option>
+    <option value="SMALL BUS"></option>
+    <option value="NHR"></option>
+    <option value="VAN"></option>
+    <option value="COMMUTE"></option>
+  </datalist>
+
+  <datalist id="status-options">
+    <option value="On Time"></option>
+    <option value="Delayed"></option>
+    <option value="Completed"></option>
+    <option value="Cancelled"></option>
+  </datalist>
+
+  <datalist id="message-options">
+    <option value="None"></option>
+    <option value="Students please prepare."></option>
+    <option value="Get your baon in the kitchen."></option>
+    <option value="Get your snacks."></option>
+    <option value="Final call."></option>
+  </datalist>
+
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -264,55 +298,6 @@
     const currentUser = /*[[${username}]]*/ "admin";
   </script>
   <script>
-    // --- Option lists for dropdowns in both tables ---
-    const VENUE_OPTIONS = [
-      "",
-      "Gymnasium 1",
-      "Gymnasium 2",
-      "Front Building 1",
-      "Front Building 2",
-      "Front Building 3",
-      "Front Holland House",
-      "Front PSWA"
-    ];
-
-    const VEHICLE_OPTIONS = [
-      "",
-      "BIG BUS",
-      "SMALL BUS",
-      "NHR",
-      "VAN",
-      "COMMUTE"
-    ];
-
-    const STATUS_OPTIONS = [
-      "On Time",
-      "Delayed",
-      "Completed",
-      "Cancelled"
-    ];
-
-    const MESSAGE_OPTIONS = [
-      "",
-      "Students please prepare.",
-      "Get your baon in the kitchen.",
-      "Get your snacks.",
-      "Final call."
-    ];
-
-    function buildOptions(options, selectedValue, placeholderText) {
-      let html = "";
-      if (placeholderText !== undefined) {
-        html += `<option value="">${placeholderText}</option>`;
-      }
-      options.forEach(opt => {
-        if (opt === "") return;
-        const selected = opt === selectedValue ? "selected" : "";
-        html += `<option value="${opt}" ${selected}>${opt}</option>`;
-      });
-      return html;
-    }
-
     // store all "SET" schedules here
     let scheduledBatches = [];
 
@@ -335,6 +320,14 @@
       const time = now.toLocaleTimeString('en-US');
       document.getElementById('current-date').textContent = date;
       document.getElementById('current-time').textContent = time;
+    }
+
+    // helper to format local date part as YYYY-MM-DD
+    function toLocalDateStringYMD(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2,'0');
+      const d = String(dateObj.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
     }
 
     // Load existing schedules from DB for top table
@@ -475,46 +468,45 @@
           </td>
 
           <td>
-            <select class="form-select form-select-sm" id="venue-${index}">
-              <option value="">Select</option>
-              <option>Gymnasium 1</option>
-              <option>Gymnasium 2</option>
-              <option>Front Building 1</option>
-              <option>Front Building 2</option>
-              <option>Front Building 3</option>
-              <option>Front Holland House</option>
-              <option>Front PSWA</option>
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              id="venue-${index}"
+              list="venue-options"
+              placeholder="Select or type"
+            />
           </td>
 
           <td>
-            <select class="form-select form-select-sm" id="vehicle-${index}">
-              <option value="">Select</option>
-              <option>BIG BUS</option>
-              <option>SMALL BUS</option>
-              <option>NHR</option>
-              <option>VAN</option>
-              <option>COMMUTE</option>
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              id="vehicle-${index}"
+              list="vehicle-options"
+              placeholder="Select or type"
+            />
           </td>
 
           <td>
-            <select class="form-select form-select-sm" id="status-${index}">
-              <option>On Time</option>
-              <option>Delayed</option>
-              <option>Completed</option>
-              <option>Cancelled</option>
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              id="status-${index}"
+              list="status-options"
+              value="On Time"
+              placeholder="Select or type"
+            />
           </td>
 
           <td>
-            <select class="form-select form-select-sm" id="message-${index}">
-              <option value="">None</option>
-              <option>Students please prepare.</option>
-              <option>Get your baon in the kitchen.</option>
-              <option>Get your snacks.</option>
-              <option>Final call.</option>
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              id="message-${index}"
+              list="message-options"
+              value="None"
+              placeholder="Select or type"
+            />
           </td>
 
           <td>
@@ -533,20 +525,25 @@
     // When SET is clicked for a VIA row
     async function setSchedule(via, totalStudents, loggedInCount, index) {
       const dtInput       = document.getElementById(`schedule-datetime-${index}`);
-      const venueSelect   = document.getElementById(`venue-${index}`);
-      const vehicleSelect = document.getElementById(`vehicle-${index}`);
-      const statusSelect  = document.getElementById(`status-${index}`);
-      const messageSelect = document.getElementById(`message-${index}`);
+      const venueInput    = document.getElementById(`venue-${index}`);
+      const vehicleInput  = document.getElementById(`vehicle-${index}`);
+      const statusInput   = document.getElementById(`status-${index}`);
+      const messageInput  = document.getElementById(`message-${index}`);
+
+      let messageVal = (messageInput?.value || "").trim();
+      if (messageVal.toLowerCase() === "none") {
+        messageVal = "";
+      }
 
       const schedule = {
         via: via,
         totalStudents: totalStudents,
         loggedIn: loggedInCount,
         estDateTime: dtInput?.value || null,
-        venue:   venueSelect?.value || "",
-        vehicle: vehicleSelect?.value || "",
-        status:  statusSelect?.value || "On Time",
-        message: messageSelect?.value || ""
+        venue:   venueInput?.value || "",
+        vehicle: vehicleInput?.value || "",
+        status:  statusInput?.value || "On Time",
+        message: messageVal
       };
 
       const { token, header } = getCsrf();
@@ -592,10 +589,19 @@
       }
     }
 
-    // Update a field when dropdown changes in the top table
+    // Update a field when input changes in the top table
     async function updateScheduledField(index, field, value) {
       if (!scheduledBatches[index]) return;
-      scheduledBatches[index][field] = value;
+
+      let newValue = value;
+      if (field === 'message') {
+        newValue = (newValue || "").trim();
+        if (newValue.toLowerCase() === "none") {
+          newValue = "";
+        }
+      }
+
+      scheduledBatches[index][field] = newValue;
 
       const s = scheduledBatches[index];
       const { token, header } = getCsrf();
@@ -623,7 +629,7 @@
       }
     }
 
-    // Render the listing table on top (with editable dropdowns)
+    // Render the listing table on top (with editable type-ahead fields)
     function renderScheduledTable() {
       const tbody = document.getElementById("scheduled-table-body");
       if (!tbody) return;
@@ -638,9 +644,14 @@
         return;
       }
 
+      const today = toLocalDateStringYMD(new Date());
       tbody.innerHTML = "";
+      let displayed = 0;
+
       scheduledBatches.forEach((s, idx) => {
         let dateText = "-";
+        let includeToday = false;
+
         const rawDate = s.estDateTime || s.datetime; // support both names
         if (rawDate) {
           const d = new Date(rawDate);
@@ -649,8 +660,18 @@
               dateStyle: "medium",
               timeStyle: "short"
             });
+            const rowDate = toLocalDateStringYMD(d);
+            if (rowDate === today) {
+              includeToday = true;
+            }
           }
         }
+
+        // Only show schedules whose date is today
+        if (!includeToday) {
+          return;
+        }
+        displayed++;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -660,39 +681,63 @@
           <td>${dateText}</td>
 
           <td>
-            <select
-              class="form-select form-select-sm"
-              onchange="updateScheduledField(${idx}, 'venue', this.value)">
-              ${buildOptions(VENUE_OPTIONS, s.venue || "", "Select")}
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="venue-options"
+              value="${s.venue ? s.venue.replace(/"/g,'&quot;') : ''}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'venue', this.value)"
+              onblur="updateScheduledField(${idx}, 'venue', this.value)"
+            />
           </td>
 
           <td>
-            <select
-              class="form-select form-select-sm"
-              onchange="updateScheduledField(${idx}, 'vehicle', this.value)">
-              ${buildOptions(VEHICLE_OPTIONS, s.vehicle || "", "Select")}
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="vehicle-options"
+              value="${s.vehicle ? s.vehicle.replace(/"/g,'&quot;') : ''}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'vehicle', this.value)"
+              onblur="updateScheduledField(${idx}, 'vehicle', this.value)"
+            />
           </td>
 
           <td>
-            <select
-              class="form-select form-select-sm"
-              onchange="updateScheduledField(${idx}, 'status', this.value)">
-              ${buildOptions(STATUS_OPTIONS, s.status || "On Time")}
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="status-options"
+              value="${(s.status || 'On Time').replace(/"/g,'&quot;')}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'status', this.value)"
+              onblur="updateScheduledField(${idx}, 'status', this.value)"
+            />
           </td>
 
           <td>
-            <select
-              class="form-select form-select-sm"
-              onchange="updateScheduledField(${idx}, 'message', this.value)">
-              ${buildOptions(MESSAGE_OPTIONS, s.message || "", "None")}
-            </select>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="message-options"
+              value="${(s.message || '').replace(/"/g,'&quot;') || 'None'}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'message', this.value)"
+              onblur="updateScheduledField(${idx}, 'message', this.value)"
+            />
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      if (displayed === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-muted py-3">
+              <i class="bi bi-info-circle me-1"></i>No schedules for today.</td>
+          </tr>`;
+      }
     }
 
     // Init

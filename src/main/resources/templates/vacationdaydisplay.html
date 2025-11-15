@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+  <title>Vacation Day Display of Trips - Sisters of Mary Schools</title>
+
+  <!-- Bootstrap CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 (optional; kept in case you use it elsewhere) -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s ease;
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .content-area > .wrap {
+      max-width: 3000px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color: #fff;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 8px 22px rgba(102,126,234,.22);
+      margin-bottom: 2rem;
+    }
+
+    .attendance-card {
+      border: 1px solid #e8eaef;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 6px 16px rgba(0,0,0,.06);
+    }
+
+    .attendance-card .card-header {
+      border-bottom: 1px solid #eef0f4;
+    }
+
+    .scheduled-table thead th {
+      background: #eef1f8;
+      color:#394867;
+      border:none;
+      font-weight:600;
+      padding: .65rem .5rem;
+      text-align:center;
+      font-size: 0.80rem;
+      white-space: nowrap;
+    }
+
+    .scheduled-table tbody td {
+      padding: .45rem .35rem;
+      text-align: center;
+      border-color: #f1f3f5;
+      vertical-align: middle;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+      }
+      .content-area {
+        padding: 1rem;
+      }
+      .scheduled-table thead th,
+      .scheduled-table tbody td {
+        font-size: 0.75rem;
+      }
+    }
+
+    /* =========================
+       Announcement Popup Styles
+       ========================= */
+
+    /* Fullscreen overlay */
+    #announcementPopup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Popup card */
+    #announcementPopup .popup-box {
+      background: #ffffff;
+      padding: 28px 32px 24px;
+      width: 520px;
+      max-width: 100%;
+      border-radius: 18px;
+      text-align: center;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+      position: relative;
+      animation: popupIn 0.28s ease-out;
+    }
+
+    /* Icon + title row */
+    .popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+
+    .popup-icon-pill {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff5f6d, #ffc371);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    .popup-title {
+      font-size: 1.35rem;
+      letter-spacing: 0.04em;
+      font-weight: 700;
+      color: #1864ab;
+    }
+
+    /* VIA label */
+    #popupVia {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 6px;
+      color: #212529;
+    }
+
+    /* Main message – highlighted */
+    #popupMessage {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      font-size: 2rem;
+      line-height: 1.4;
+      font-weight: 500;
+      color: #232a31;
+    }
+
+    /* Countdown bar */
+    #countdownBar {
+      width: 100%;
+      background: #e9ecef;
+      height: 6px;
+      border-radius: 999px;
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    #countdownInner {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #0d6efd, #4dabf7);
+      transition: width 0.1s linear;
+    }
+
+    /* Sub note below bar */
+    .popup-subnote {
+      font-size: 0.8rem;
+      color: #868e96;
+      margin-top: 4px;
+    }
+
+    /* Button */
+    #announcementPopup .btn-primary {
+      margin-top: 18px;
+      padding: 8px 28px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    /* Small “X” in the corner */
+    .popup-close-x {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      border: none;
+      background: transparent;
+      color: #adb5bd;
+      font-size: 1.1rem;
+    }
+    .popup-close-x:hover {
+      color: #495057;
+    }
+
+    /* Pop-in animation */
+    @keyframes popupIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- Sidebar -->
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='vacation-display',
+                                                 studentInfoExpanded=${studentInfoExpanded},
+                                                 asmsiExpanded=${asmsiExpanded},
+                                                 admissionExpanded=${admissionExpanded},
+                                                 attendanceExpanded=${attendanceExpanded},
+                                                 eventsExpanded=${eventsExpanded},
+                                                 familyDayExpanded=${familyDayExpanded})"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Header -->
+      <div th:replace="fragments/header :: header(${username})"></div>
+
+      <!-- Page Body -->
+      <main class="content-area">
+        <div class="wrap">
+
+          <!-- Page Header -->
+          <div class="page-header card mb-4">
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <h2 class="card-title mb-2">
+                    <i class="bi bi-display me-2"></i>Vacation Day Departures
+                  </h2>
+                  <p class="mb-0">
+                    Live display of all scheduled VIA batches for Vacation Day.
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <div class="row text-center">
+                    <div class="col-6">
+                      <div class="text-white-50 mb-1"><i class="bi bi-calendar-date me-1"></i>Date</div>
+                      <div class="fw-bold" id="current-date">Loading...</div>
+                    </div>
+                    <div class="col-6">
+                      <div class="text-white-50 mb-1"><i class="bi bi-clock me-1"></i>Time</div>
+                      <div class="fw-bold" id="current-time">Loading...</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scheduled Vacation Batches (DISPLAY ONLY) -->
+          <div class="row mb-4">
+            <div class="col-lg-12">
+              <div class="attendance-card p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2 text-primary"></i>Scheduled Vacation Batches
+                  </h5>
+                  <span class="badge bg-light text-dark">Showing trips scheduled for today</span>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table table-sm scheduled-table mb-0">
+                    <thead>
+                      <tr>
+                        <th>VIA</th>
+                        <th>Total Students</th>
+                        <th>Logged In</th>
+                        <th>Est. Date &amp; Time</th>
+                        <th>Venue</th>
+                        <th>Vehicle</th>
+                        <th>Status</th>
+                        <th>Message</th>
+                      </tr>
+                    </thead>
+                    <tbody id="scheduled-table-body">
+                      <tr>
+                        <td colspan="8" class="text-muted py-3">
+                          <i class="bi bi-hourglass-split me-1"></i>Loading schedules...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 🔔 Dingdong sound -->
+  <audio id="notifSound" src="/sounds/dingdong.mp3" preload="auto"></audio>
+
+  <!-- 📢 Announcement Popup -->
+  <div id="announcementPopup">
+    <div class="popup-box">
+      <!-- X button -->
+      <button type="button" class="popup-close-x" onclick="closeAnnouncement()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <div class="popup-header">
+        <div class="popup-icon-pill">
+          <i class="bi bi-megaphone-fill"></i>
+        </div>
+        <div class="popup-title">ANNOUNCEMENT</div>
+      </div>
+
+      <h4 id="popupVia"></h4>
+      <p id="popupMessage"></p>
+
+      <div id="countdownBar">
+        <div id="countdownInner"></div>
+      </div>
+      <div class="popup-subnote">
+        This notice will automatically close in 30 seconds.
+      </div>
+
+      <button onclick="closeAnnouncement()" class="btn btn-primary">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- JS Logic -->
+  <script th:inline="javascript">
+    const currentUser = /*[[${username}]]*/ "admin";
+  </script>
+
+  <script>
+    // Clock for header
+    function updateClock() {
+      const now = new Date();
+      const date = now.toLocaleDateString('en-US', {
+        weekday:'long',
+        year:'numeric',
+        month:'long',
+        day:'numeric'
+      });
+      const time = now.toLocaleTimeString('en-US');
+      document.getElementById('current-date').textContent = date;
+      document.getElementById('current-time').textContent = time;
+    }
+
+    // Helper: format local date as YYYY-MM-DD
+    function toLocalDateStringYMD(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // ===== Popup helpers with 30s auto-close + loader =====
+    let popupTimer = null;
+    let countdownInterval = null;
+    const POPUP_DURATION_MS = 30000; // 30 seconds
+
+    function showAnnouncement(via, message) {
+      document.getElementById("popupVia").innerText = "VIA: " + via;
+      document.getElementById("popupMessage").innerText = message;
+
+      const popup = document.getElementById("announcementPopup");
+      popup.style.display = "flex";
+
+      // Play ringtone
+      const audio = document.getElementById("notifSound");
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          // autoplay might be blocked until first user interaction
+        });
+      }
+
+      // Reset previous timers
+      if (popupTimer) {
+        clearTimeout(popupTimer);
+        popupTimer = null;
+      }
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+
+      // Loader bar
+      const innerBar = document.getElementById("countdownInner");
+      let remaining = POPUP_DURATION_MS;
+
+      if (innerBar) {
+        innerBar.style.width = "100%";
+        countdownInterval = setInterval(() => {
+          remaining -= 100;
+          if (remaining <= 0) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+            return;
+          }
+          const pct = (remaining / POPUP_DURATION_MS) * 100;
+          innerBar.style.width = pct + "%";
+        }, 100);
+      }
+
+      // Auto-close popup after 30s
+      popupTimer = setTimeout(() => {
+        closeAnnouncement();
+      }, POPUP_DURATION_MS);
+    }
+
+    function closeAnnouncement() {
+      const popup = document.getElementById("announcementPopup");
+      if (popup) {
+        popup.style.display = "none";
+      }
+
+      if (popupTimer) {
+        clearTimeout(popupTimer);
+        popupTimer = null;
+      }
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+
+      const innerBar = document.getElementById("countdownInner");
+      if (innerBar) {
+        innerBar.style.width = "100%";
+      }
+    }
+
+    // ===== Change detection + table rendering =====
+    let lastSchedulesMap = new Map();
+    let initialLoaded = false;
+
+    // Fetch schedules from the same endpoint used by the scheduler
+    async function loadScheduledFromDb() {
+      const tbody = document.getElementById("scheduled-table-body");
+      try {
+        const res = await fetch("/api/vacation-schedule");
+        if (!res.ok) {
+          throw new Error("Failed to load vacation schedules");
+        }
+        const data = await res.json(); // List<VacationSchedule>
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-muted py-3">
+                <i class="bi bi-info-circle me-1"></i>No schedules set yet.
+              </td>
+            </tr>`;
+          lastSchedulesMap.clear();
+          initialLoaded = true;
+          return;
+        }
+
+        const today = toLocalDateStringYMD(new Date());
+        let hasToday = false;
+
+        tbody.innerHTML = "";
+
+        data.forEach(s => {
+          let dateText = "-";
+          let isToday = false;
+
+          const rawDate = s.estDateTime || s.datetime;
+          if (rawDate) {
+            const d = new Date(rawDate);
+            if (!isNaN(d.getTime())) {
+              dateText = d.toLocaleString("en-US", {
+                dateStyle: "medium",
+                timeStyle: "short"
+              });
+              const rowDate = toLocalDateStringYMD(d);
+              isToday = (rowDate === today);
+            }
+          }
+
+          // Render row only if schedule is for today
+          if (isToday) {
+            hasToday = true;
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><strong>${s.via || "-"}</strong></td>
+              <td><span class="badge bg-secondary">${s.totalStudents ?? 0}</span></td>
+              <td><span class="badge bg-primary">${s.loggedIn ?? 0}</span></td>
+              <td>${dateText}</td>
+              <td>${s.venue   && s.venue.trim()   !== "" ? s.venue   : "-"}</td>
+              <td>${s.vehicle && s.vehicle.trim() !== "" ? s.vehicle : "-"}</td>
+              <td>
+                <span class="badge ${
+                  s.status === "Cancelled" ? "bg-danger" :
+                  s.status === "Delayed"   ? "bg-warning text-dark" :
+                  s.status === "Completed" ? "bg-success" :
+                                              "bg-info text-dark"
+                }">
+                  ${s.status || "On Time"}
+                </span>
+              </td>
+              <td>${s.message && s.message.trim() !== "" ? s.message : "-"}</td>
+            `;
+            tbody.appendChild(tr);
+          }
+
+          // ---- Change detection for popup (today only) ----
+          const key = s.via || "";
+          const snapshot = JSON.stringify({
+            estDateTime: s.estDateTime || s.datetime || null,
+            venue: s.venue || "",
+            vehicle: s.vehicle || "",
+            status: s.status || "",
+            message: s.message || ""
+          });
+
+          const oldSnapshot = lastSchedulesMap.get(key);
+          if (isToday && initialLoaded && oldSnapshot && oldSnapshot !== snapshot) {
+            if (s.message && s.message.trim() !== "" && s.message !== "None") {
+              showAnnouncement(s.via, s.message);
+            }
+          }
+          lastSchedulesMap.set(key, snapshot);
+        });
+
+        if (!hasToday) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-muted py-3">
+                <i class="bi bi-info-circle me-1"></i>No schedules for today.</td>
+            </tr>`;
+        }
+
+        if (!initialLoaded) {
+          initialLoaded = true;
+        }
+
+      } catch (e) {
+        console.error("Error loading scheduled batches", e);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center text-danger py-3">
+              <i class="bi bi-exclamation-triangle" style="font-size: 1.3rem;"></i><br>
+              Error loading schedules.
+            </td>
+          </tr>`;
+      }
+    }
+
+    // Init
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Initial load + auto-refresh every 10 seconds so it’s "live"
+    loadScheduledFromDb();
+    setInterval(loadScheduledFromDb, 10000);
+  </script>
+
+</body>
+</html>
