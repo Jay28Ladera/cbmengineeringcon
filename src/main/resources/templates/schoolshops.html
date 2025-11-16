@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Shops & Classrooms - Sisters of Mary Schools</title>
+
+  <!-- CSRF (optional, if Spring Security enabled) -->
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #334155;
+      margin: 0;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 2.5rem;
+      position: relative;
+    }
+
+    .content-area > .wrap {
+      max-width: 3000px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, .06);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+    }
+
+    .page-header .card-body {
+      padding: 2rem;
+    }
+
+    .page-header h2 {
+      color: #1e293b;
+      font-weight: 800;
+      font-size: 1.75rem;
+      margin-bottom: .5rem;
+    }
+
+    .btn-custom {
+      border-radius: 12px;
+      font-weight: 600;
+      padding: .75rem 1.5rem;
+      transition: .3s;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
+      border: none;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-3px) scale(1.02);
+    }
+
+    .btn-primary.btn-custom {
+      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+    }
+
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, .06),
+        0 4px 16px rgba(65, 105, 225, .04);
+      background: #fff;
+    }
+
+    /* SHOP CARDS */
+    .shop-card {
+      overflow: hidden;
+      border-radius: 18px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .shop-card-img-wrapper {
+      position: relative;
+      overflow: hidden;
+      max-height: 180px;
+    }
+
+    .shop-card-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      transition: transform .4s ease;
+      background: #e5e7eb;
+    }
+
+    .shop-card:hover .shop-card-img {
+      transform: scale(1.05);
+    }
+
+    .shop-category-badge {
+      position: absolute;
+      left: 1rem;
+      bottom: 1rem;
+      padding: .35rem .75rem;
+      border-radius: 999px;
+      font-size: .75rem;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e5e7eb;
+      backdrop-filter: blur(6px);
+    }
+
+    .shop-card .card-body {
+      padding: 1.25rem 1.5rem 1rem;
+    }
+
+    .shop-card-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #111827;
+    }
+
+    .shop-meta {
+      font-size: .85rem;
+      color: #6b7280;
+    }
+
+    .shop-meta i {
+      color: #4169e1;
+    }
+
+    .shop-card .card-footer {
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: .75rem 1.5rem;
+    }
+
+    /* SEARCH + FILTERS */
+    .filters-card .form-control,
+    .filters-card .form-select {
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      font-size: .9rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+      }
+      .content-area {
+        padding: 1.5rem;
+      }
+      .page-header .card-body {
+        padding: 1.25rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-container">
+
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(
+           role=${role},
+           activePage='inventory-shops',
+           studentInfoExpanded=${studentInfoExpanded},
+           asmsiExpanded=${asmsiExpanded},
+           admissionExpanded=${admissionExpanded},
+           attendanceExpanded=${attendanceExpanded},
+           eventsExpanded=${eventsExpanded},
+           familyDayExpanded=${familyDayExpanded})">
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Header -->
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <!-- Page Body -->
+    <main class="content-area">
+      <div class="wrap">
+
+        <!-- Page Header -->
+        <div class="page-header card mb-4">
+          <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <h2>
+                <i class="bi bi-shop-window me-3"></i>School Shops & Classrooms
+              </h2>
+              <p class="mb-0 text-muted">
+                Visual directory of shops and specialized classrooms, with teachers and teacher aides.
+              </p>
+            </div>
+
+            <div class="d-flex flex-wrap gap-3">
+              <button class="btn btn-primary btn-custom" data-bs-toggle="modal" data-bs-target="#shopModal">
+                <i class="bi bi-plus-lg me-2"></i>Add Shop / Classroom
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH + FILTERS CARD -->
+        <div class="card mb-3 filters-card">
+          <div class="card-body">
+            <div class="row g-3">
+              <!-- SEARCH -->
+              <div class="col-12 col-lg-6">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-search me-1"></i>Search
+                </label>
+                <input type="text"
+                       id="shopSearch"
+                       class="form-control"
+                       placeholder="Search by shop name, teacher, or teacher aide..." />
+              </div>
+
+              <!-- CATEGORY FILTER -->
+              <div class="col-12 col-sm-6 col-lg-3">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-funnel me-1"></i>Shop Category
+                </label>
+                <select id="categoryFilter" class="form-select">
+                  <option value="">All Categories</option>
+                  <option value="ICT">ICT</option>
+                  <option value="Home Economics">Home Economics</option>
+                  <option value="Industrial Arts Strand">Industrial Arts Strand</option>
+                  <option value="Agri-Fishery Arts Strand">Agri-Fishery Arts Strand</option>
+                   <option value="Agri-Fishery Arts Strand">Offices</option>
+                </select>
+              </div>
+
+              <!-- RESET -->
+              <div class="col-12 col-sm-6 col-lg-3 d-flex align-items-end">
+                <button id="resetFiltersBtn" type="button"
+                        class="btn btn-outline-secondary w-100">
+                  <i class="bi bi-arrow-counterclockwise me-1"></i>Reset filters
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHOPS GRID -->
+        <div class="row g-4" id="shopsContainer">
+          <!-- shops is List<Shop> -->
+          <div class="col-12 col-sm-6 col-md-4 col-xl-3 shop-col"
+               th:each="shop : ${shops}">
+            <div class="card shop-card h-100"
+                 th:attr="data-name=${shop.name},
+                          data-teacher=${shop.teacher},
+                          data-category=${shop.category},
+                          data-teacheraide=${shop.teacherAide}">
+              <div class="shop-card-img-wrapper">
+                <img th:src="${shop.imageUrl} ?: @{/images/default-shop.png}"
+                     alt="Shop Picture"
+                     class="shop-card-img" />
+                <span class="shop-category-badge"
+                      th:text="${shop.category}">ICT</span>
+              </div>
+
+              <div class="card-body">
+                <h5 class="shop-card-title mb-1" th:text="${shop.name}">ICT Laboratory 1</h5>
+                <p class="shop-meta mb-1">
+                  <i class="bi bi-person-badge me-1"></i>
+                  Teacher:
+                  <span th:text="${shop.teacher}">Sr. Example</span>
+                </p>
+                <p class="shop-meta mb-0" th:if="${shop.teacherAide}">
+                  <i class="bi bi-people me-1"></i>
+                  Teacher Aide:
+                  <span th:text="${shop.teacherAide}">Assistant Name</span>
+                </p>
+              </div>
+
+              <div class="card-footer d-flex justify-content-between align-items-center">
+                <button type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#shopModal"
+                        th:attr="
+                          data-id=${shop.id},
+                          data-name=${shop.name},
+                          data-teacher=${shop.teacher},
+                          data-category=${shop.category},
+                          data-teacheraide=${shop.teacherAide},
+                          data-imageurl=${shop.imageUrl}">
+                  <i class="bi bi-pencil me-1"></i>Edit
+                </button>
+
+                <form th:action="@{'/schoolshops/delete/' + ${shop.id}}"
+                      method="post"
+                      class="d-inline"
+                      onsubmit="return confirm('Delete this shop/classroom?');">
+                  <input type="hidden"
+                         th:name="${_csrf.parameterName}"
+                         th:value="${_csrf.token}" />
+                  <button type="submit" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <!-- If no shops -->
+          <div class="col-12" th:if="${#lists.isEmpty(shops)}">
+            <div class="alert alert-light border border-dashed text-center py-4">
+              <i class="bi bi-info-circle me-2"></i>
+              No shops/classrooms registered yet. Click <strong>"Add Shop / Classroom"</strong> to create one.
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal: Add/Edit Shop -->
+        <div class="modal fade" id="shopModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered">
+            <form class="modal-content" th:action="@{/schoolshops/save}" method="post">
+              <input type="hidden"
+                     th:name="${_csrf.parameterName}"
+                     th:value="${_csrf.token}" />
+              <div class="modal-header" style="background:#4169e1;color:#fff">
+                <h5 class="modal-title">Shop / Classroom</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body" style="background:#f8fafc">
+                <input type="hidden" name="id" id="m-id" />
+
+                <!-- Picture + URL -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-4 text-center">
+                    <label class="form-label fw-semibold">Picture</label>
+                    <div class="mb-2">
+                      <img id="m-imagePreview"
+                           src="/images/default-shop.png"
+                           alt="Shop Preview"
+                           class="img-fluid rounded-3 border"
+                           style="max-height:140px;object-fit:cover;" />
+                    </div>
+                    <small class="text-muted d-block">
+                      Optional but recommended for easy recognition.
+                    </small>
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label fw-semibold">Image URL</label>
+                    <input type="url"
+                           class="form-control"
+                           name="imageUrl"
+                           id="m-imageUrl"
+                           placeholder="https://..." />
+                    <div class="form-text">
+                      Paste a valid image link (Cloudinary, S3, static file, etc.).
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Core info -->
+                <div class="row g-3 mb-3">
+                  <div class="col-md-7">
+                    <label class="form-label">Shop / Classroom Name *</label>
+                    <input type="text"
+                           class="form-control"
+                           name="name"
+                           id="m-name"
+                           required />
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label">Category *</label>
+                    <select class="form-select"
+                            name="category"
+                            id="m-category"
+                            required>
+                      <option value="">Select category</option>
+                      <option value="ICT">ICT Strand</option>
+                      <option value="Home Economics">Home Economics Strand</option>
+                      <option value="Industrial Arts Strand">Industrial Arts Strand</option>
+                      <option value="Agri-Fishery Arts Strand">Agri-Fishery Arts Strand</option>
+                      <option value="Agri-Fishery Arts Strand">Offices</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Teacher *</label>
+                    <input type="text"
+                           class="form-control"
+                           name="teacher"
+                           id="m-teacher"
+                           required />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Teacher Aide (optional)</label>
+                    <input type="text"
+                           class="form-control"
+                           name="teacherAide"
+                           id="m-teacherAide" />
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                  Cancel
+                </button>
+                <button type="submit"
+                        class="btn btn-primary">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Modal: Items for a Shop -->
+        <div class="modal fade" id="shopItemsModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+              <div class="modal-header" style="background:#0f172a;color:#fff">
+                <h5 class="modal-title">
+                  Items in <span id="itemsModalShopName" class="fw-bold"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body" style="background:#f8fafc">
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Item Code</th>
+                        <th>Item Name</th>
+                        <th>Description</th>
+                        <th class="text-end">Qty</th>
+                        <th>Condition</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="shopItemsBody">
+                      <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                          Select a shop to view its items.
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  $(function () {
+    const $cards = $('#shopsContainer .shop-card');
+
+    function applyFilters() {
+      const search = $('#shopSearch').val().toLowerCase().trim();
+      const category = $('#categoryFilter').val();
+
+      $cards.each(function () {
+        const card = $(this);
+        const name = (card.data('name') || '').toString().toLowerCase();
+        const teacher = (card.data('teacher') || '').toString().toLowerCase();
+        const aide = (card.data('teacheraide') || '').toString().toLowerCase();
+        const cat = (card.data('category') || '').toString();
+
+        let visible = true;
+
+        if (search) {
+          const combined = name + ' ' + teacher + ' ' + aide;
+          if (!combined.includes(search)) {
+            visible = false;
+          }
+        }
+
+        if (category) {
+          if (cat !== category) {
+            visible = false;
+          }
+        }
+
+        card.closest('.shop-col').toggle(visible);
+      });
+    }
+
+    $('#shopSearch').on('keyup change', applyFilters);
+    $('#categoryFilter').on('change', applyFilters);
+
+    $('#resetFiltersBtn').on('click', function () {
+      $('#shopSearch').val('');
+      $('#categoryFilter').val('');
+      applyFilters();
+    });
+
+    // Image preview live update
+    const imageUrlInput = document.getElementById('m-imageUrl');
+    const imagePreview = document.getElementById('m-imagePreview');
+    if (imageUrlInput && imagePreview) {
+      imageUrlInput.addEventListener('input', function () {
+        const url = this.value.trim();
+        imagePreview.src = url || '/images/default-shop.png';
+      });
+    }
+
+    // Modal populate for Add/Edit
+    const modal = document.getElementById('shopModal');
+    modal.addEventListener('show.bs.modal', function (e) {
+      const btn = e.relatedTarget;
+      const q = modal.querySelector.bind(modal);
+
+      if (btn && btn.hasAttribute('data-id')) {
+        // Edit mode
+        q('.modal-title').textContent = 'Edit Shop / Classroom';
+
+        q('#m-id').value = btn.getAttribute('data-id') || '';
+        q('#m-name').value = btn.getAttribute('data-name') || '';
+        q('#m-teacher').value = btn.getAttribute('data-teacher') || '';
+        q('#m-teacherAide').value = btn.getAttribute('data-teacheraide') || '';
+        q('#m-category').value = btn.getAttribute('data-category') || '';
+
+        const imgUrl = btn.getAttribute('data-imageurl') || '/images/default-shop.png';
+        q('#m-imageUrl').value = imgUrl;
+        q('#m-imagePreview').src = imgUrl;
+      } else {
+        // Add mode
+        q('.modal-title').textContent = 'Add Shop / Classroom';
+
+        q('#m-id').value = '';
+        q('#m-name').value = '';
+        q('#m-teacher').value = '';
+        q('#m-teacherAide').value = '';
+        q('#m-category').value = '';
+        q('#m-imageUrl').value = '';
+        q('#m-imagePreview').src = '/images/default-shop.png';
+      }
+    });
+
+        // ---------- CLICK CARD: go to /schoolitems?shop=... ----------
+    $('#shopsContainer').on('click', '.shop-card', function (e) {
+      // Don’t trigger when clicking Edit/Delete buttons
+      if ($(e.target).closest('button, form').length > 0) {
+        return;
+      }
+
+      const shopName = $(this).data('name');
+      if (!shopName) return;
+
+      window.location.href = '/schoolitems?shop=' + encodeURIComponent(shopName);
+    });
+
+  });
+</script>
+
+</body>
+</html>

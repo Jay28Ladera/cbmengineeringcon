@@ -43,6 +43,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         return result;
     }
 
+
+    
     
      
 }

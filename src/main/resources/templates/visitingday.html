@@ -1,1245 +1,1114 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="_csrf" th:content="${_csrf.token}" />
-  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
-  <title>Family Day Portal - Sisters of Mary Schools</title>
+  <!DOCTYPE html>
+  <html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+    <title>Family Day Portal - Sisters of Mary Schools</title>
 
-  <!-- Bootstrap CSS & Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS & Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- SweetAlert2 -->
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      margin: 0;
-      color: #334155;
-      overflow-x: hidden;
-    }
+    <style>
+      body { 
+        font-family: 'Inter', sans-serif; 
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        margin: 0;
+        color: #334155;
+        overflow-x: hidden;
+      }
 
-    .app-container { 
-      display: flex; 
-      min-height: 100vh; 
-    }
-    .main-content { 
-      flex: 1; 
-      display: flex; 
-      flex-direction: column; 
-      margin-left: 280px; 
-      transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-x: hidden;
-    }
-    .content-area { 
-      flex: 1; 
-      padding: 2.5rem; 
-      background: transparent;
-      position: relative;
-      overflow-x: hidden;
-      box-sizing: border-box;
-    }
-    .content-area::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle at 20% 20%, rgba(65, 105, 225, 0.03) 0%, transparent 50%);
-      pointer-events: none;
-    }
+      .app-container { 
+        display: flex; 
+        min-height: 100vh; 
+      }
+      .main-content { 
+        flex: 1; 
+        display: flex; 
+        flex-direction: column; 
+        margin-left: 280px; 
+        transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-x: hidden;
+      }
+      .content-area { 
+        flex: 1; 
+        padding: 2.5rem; 
+        background: transparent;
+        position: relative;
+        overflow-x: hidden;
+        box-sizing: border-box;
+      }
+      .content-area::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(65, 105, 225, 0.03) 0%, transparent 50%);
+        pointer-events: none;
+      }
 
-    /* When sidebar is collapsed (desktop) */
-    #sidebar.sidebar-collapsed ~ .main-content { margin-left: 75px; }
+      /* When sidebar is collapsed (desktop) */
+      #sidebar.sidebar-collapsed ~ .main-content { margin-left: 75px; }
 
-    .page-title { 
-      font-weight: 800; 
-      letter-spacing: -.02em; 
-      color: #1e293b;
-      font-size: 2.25rem;
-      background: linear-gradient(135deg, #4169e1 0%, #6366f1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 2rem;
-      position: relative;
-    }
+      .page-title { 
+        font-weight: 800; 
+        letter-spacing: -.02em; 
+        color: #1e293b;
+        font-size: 2.25rem;
+        background: linear-gradient(135deg, #4169e1 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 2rem;
+        position: relative;
+      }
 
-    /* Enhanced Cards */
-    .card { 
-      border: 2px solid #e2e8f0;
-      border-radius: 16px; 
-      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05); 
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: #ffffff;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
-      opacity: 0;
-      transition: opacity .3s ease;
-    }
-    .card:hover { 
-      transform: translateY(-6px) scale(1.002); 
-      box-shadow: 0 16px 48px rgba(0,0,0,.16), 0 6px 20px rgba(65, 105, 225, 0.1);
-      border-color: #cbd5e1;
-    }
-    .card:hover::before {
-      opacity: 1;
-    }
-    .card-body { 
-      padding: 1.5rem; 
-      position: relative;
-      z-index: 1;
-    }
+      /* Enhanced Cards */
+      .card { 
+        border: 2px solid #e2e8f0;
+        border-radius: 16px; 
+        box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05); 
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #ffffff;
+        position: relative;
+        overflow: hidden;
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+        opacity: 0;
+        transition: opacity .3s ease;
+      }
+      .card:hover { 
+        transform: translateY(-6px) scale(1.002); 
+        box-shadow: 0 16px 48px rgba(0,0,0,.16), 0 6px 20px rgba(65, 105, 225, 0.1);
+        border-color: #cbd5e1;
+      }
+      .card:hover::before {
+        opacity: 1;
+      }
+      .card-body { 
+        padding: 1.5rem; 
+        position: relative;
+        z-index: 1;
+      }
 
-    /* Enhanced Tabs */
-    .tabs-wrap { 
-      background: #ffffff;
-      border: 2px solid #e2e8f0;
-      border-radius: 16px; 
-      padding: 0.75rem; 
-      margin-bottom: 2rem; 
-      box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
-      position: relative;
-      overflow: hidden;
-    }
-    .tabs-wrap::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
-    }
-    .tabs-wrap .nav-link { 
-      font-weight: 600; 
-      border-radius: 12px;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      color: #64748b;
-      margin: 0.25rem;
-      padding: 0.75rem 1.25rem;
-      border: 2px solid transparent;
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    }
-    .tabs-wrap .nav-link::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-      transition: left 0.5s ease;
-    }
-    .tabs-wrap .nav-link:hover {
-      background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
-      color: #4169e1;
-      border-color: #cbd5e1;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(65, 105, 225, 0.15);
-    }
-    .tabs-wrap .nav-link:hover::before {
-      left: 100%;
-    }
-    .tabs-wrap .nav-link.active { 
-      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
-      color: #fff;
-      border-color: #4169e1;
-      box-shadow: 0 8px 25px rgba(65, 105, 225, 0.4), 0 3px 12px rgba(0,0,0,.1);
-      transform: translateY(-3px);
-    }
+      /* Enhanced Tabs */
+      .tabs-wrap { 
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px; 
+        padding: 0.75rem; 
+        margin-bottom: 2rem; 
+        box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
+        position: relative;
+        overflow: hidden;
+      }
+      .tabs-wrap::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+      }
+      .tabs-wrap .nav-link { 
+        font-weight: 600; 
+        border-radius: 12px;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #64748b;
+        margin: 0.25rem;
+        padding: 0.75rem 1.25rem;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      }
+      .tabs-wrap .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        transition: left 0.5s ease;
+      }
+      .tabs-wrap .nav-link:hover {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
+        color: #4169e1;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(65, 105, 225, 0.15);
+      }
+      .tabs-wrap .nav-link:hover::before {
+        left: 100%;
+      }
+      .tabs-wrap .nav-link.active { 
+        background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+        color: #fff;
+        border-color: #4169e1;
+        box-shadow: 0 8px 25px rgba(65, 105, 225, 0.4), 0 3px 12px rgba(0,0,0,.1);
+        transform: translateY(-3px);
+      }
 
-    /* Enhanced Profile Cards */
-    .entity-photo { 
-      width: 160px; 
-      height: 160px; 
-      object-fit: cover; 
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.15);
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 4px solid #fff;
-      position: relative;
-    }
-    .entity-photo::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border-radius: 12px;
-      box-shadow: inset 0 2px 6px rgba(0,0,0,.1);
-      pointer-events: none;
-    }
-    .entity-photo:hover {
-      transform: scale(1.05) rotate(1deg);
-      box-shadow: 0 16px 48px rgba(65, 105, 225, 0.3);
-    }
+      /* Enhanced Profile Cards */
+      .entity-photo { 
+        width: 160px; 
+        height: 160px; 
+        object-fit: cover; 
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,.15);
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 4px solid #fff;
+        position: relative;
+      }
+      .entity-photo::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 12px;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,.1);
+        pointer-events: none;
+      }
+      .entity-photo:hover {
+        transform: scale(1.05) rotate(1deg);
+        box-shadow: 0 16px 48px rgba(65, 105, 225, 0.3);
+      }
 
-    /* Compact layout adjustments */
-    .row.g-tight { row-gap: 1rem !important; }
-    .card-compact .card-body { 
-      padding: 2rem 1.5rem; 
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      position: relative;
-    }
-    .card-compact .card-body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
-      border-radius: 16px 16px 0 0;
-    }
-    .profile-meta p { 
-      margin-bottom: .75rem; 
-      font-size: .95rem;
-      padding: 1rem 1.5rem;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      border: 2px solid #e2e8f0;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    .profile-meta p::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 4px;
-      background: linear-gradient(180deg, #4169e1 0%, #6366f1 100%);
-      opacity: 0.8;
-    }
-    .profile-meta p:hover {
-      background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
-      transform: translateX(4px) scale(1.01);
-      box-shadow: 0 6px 20px rgba(65, 105, 225, 0.15);
-      border-color: #4169e1;
-    }
-    .profile-meta p:last-child {
-      margin-bottom: 0;
-    }
-    .profile-meta strong {
-      color: #334155;
-      font-weight: 700;
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-right: 0.5rem;
-    }
-    .profile-meta span {
-      color: #4169e1;
-      font-weight: 600;
-      font-size: 1rem;
-    }
+      /* Compact layout adjustments */
+      .row.g-tight { row-gap: 1rem !important; }
+      .card-compact .card-body { 
+        padding: 2rem 1.5rem; 
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        position: relative;
+      }
+      .card-compact .card-body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+        border-radius: 16px 16px 0 0;
+      }
+      .profile-meta p { 
+        margin-bottom: .75rem; 
+        font-size: .95rem;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 2px solid #e2e8f0;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .profile-meta p::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, #4169e1 0%, #6366f1 100%);
+        opacity: 0.8;
+      }
+      .profile-meta p:hover {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
+        transform: translateX(4px) scale(1.01);
+        box-shadow: 0 6px 20px rgba(65, 105, 225, 0.15);
+        border-color: #4169e1;
+      }
+      .profile-meta p:last-child {
+        margin-bottom: 0;
+      }
+      .profile-meta strong {
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-right: 0.5rem;
+      }
+      .profile-meta span {
+        color: #4169e1;
+        font-weight: 600;
+        font-size: 1rem;
+      }
 
-    /* Enhanced Table Styling */
-    .table-wrap { 
-      max-height: 320px; 
-      overflow-y: auto; 
-      overflow-x: auto; 
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
-      border: 2px solid #e2e8f0;
-      background: #fff;
-    }
-    .table--wide { min-width: 1000px; }
-    .ml-table { min-width: 240px; }
+      /* Enhanced Table Styling */
+      .table-wrap { 
+        max-height: 320px; 
+        overflow-y: auto; 
+        overflow-x: auto; 
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
+        border: 2px solid #e2e8f0;
+        background: #fff;
+      }
+      .table--wide { min-width: 1000px; }
+      .ml-table { min-width: 240px; }
 
-    .table thead th { 
-      position: sticky; 
-      top: 0; 
-      background: #4169e1;
-      color: white;
-      z-index: 1; 
-      box-shadow: 0 2px 8px rgba(65, 105, 225, 0.3);
-      font-weight: 700;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid #3754db;
-      padding: 1rem 0.75rem;
-    }
-    .table-sm td, .table-sm th { 
-      padding: .6rem .75rem; 
-      border-color: #e2e8f0;
-      font-weight: 500;
-    }
-    .table-bordered>:not(caption)>*>* { 
-      border-width: 0 0 2px 0; 
-      border-color: #e2e8f0; 
-    }
-    .table-striped > tbody > tr:nth-of-type(odd) > td {
-      background-color: #f8fafc;
-    }
-    .table tbody tr {
-      transition: all .3s ease;
-      border-bottom: 2px solid #e2e8f0;
-    }
-    .table tbody tr:hover {
-      background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%) !important;
-      transform: scale(1.005);
-      box-shadow: 0 4px 15px rgba(65, 105, 225, 0.12);
-      position: relative;
-      z-index: 2;
-    }
-    .col-photo { width: 60px; }
-    .col-small { width: 86px; }
-    .log-img { 
-      width: 48px; 
-      height: 48px; 
-      object-fit: cover; 
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,.15);
-      border: 3px solid #fff;
-      transition: transform .3s ease;
-    }
-    .log-img:hover {
-      transform: scale(1.15);
-      box-shadow: 0 6px 25px rgba(65, 105, 225, 0.3);
-    }
+      .table thead th { 
+        position: sticky; 
+        top: 0; 
+        background: #4169e1;
+        color: white;
+        z-index: 1; 
+        box-shadow: 0 2px 8px rgba(65, 105, 225, 0.3);
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #3754db;
+        padding: 1rem 0.75rem;
+      }
+      .table-sm td, .table-sm th { 
+        padding: .6rem .75rem; 
+        border-color: #e2e8f0;
+        font-weight: 500;
+      }
+      .table-bordered>:not(caption)>*>* { 
+        border-width: 0 0 2px 0; 
+        border-color: #e2e8f0; 
+      }
+      .table-striped > tbody > tr:nth-of-type(odd) > td {
+        background-color: #f8fafc;
+      }
+      .table tbody tr {
+        transition: all .3s ease;
+        border-bottom: 2px solid #e2e8f0;
+      }
+      .table tbody tr:hover {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%) !important;
+        transform: scale(1.005);
+        box-shadow: 0 4px 15px rgba(65, 105, 225, 0.12);
+        position: relative;
+        z-index: 2;
+      }
+      .col-photo { width: 60px; }
+      .col-small { width: 86px; }
+      .log-img { 
+        width: 48px; 
+        height: 48px; 
+        object-fit: cover; 
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,.15);
+        border: 3px solid #fff;
+        transition: transform .3s ease;
+      }
+      .log-img:hover {
+        transform: scale(1.15);
+        box-shadow: 0 6px 25px rgba(65, 105, 225, 0.3);
+      }
 
-    /* Enhanced Masterlist styling */
-    .ml-item { 
-      cursor: pointer; 
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-radius: 8px;
-    }
-    .ml-item:hover { 
-      background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
-      transform: translateX(6px) scale(1.02);
-      box-shadow: 0 4px 15px rgba(65, 105, 225, 0.2);
-    }
-    .ml-item td {
-      border-color: #e2e8f0;
-      padding: 0.75rem 1rem;
-      font-weight: 500;
-      color: #475569;
-      border-width: 0 0 2px 0;
-    }
-    .ml-item:hover td {
-      color: #1e293b;
-      font-weight: 600;
-    }
-    .ml-table {
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,.08);
-    }
-    .ml-table thead th {
-      background: #4169e1;
-      color: white;
-      font-weight: 700;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border: none;
-      padding: 1rem 0.75rem;
-    }
-    .ml-table th:first-child, .ml-table td:first-child { width: 58%; }
-    .ml-table th:last-child, .ml-table td:last-child { width: 42%; }
+      /* Enhanced Masterlist styling */
+      .ml-item { 
+        cursor: pointer; 
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 8px;
+      }
+      .ml-item:hover { 
+        background: linear-gradient(135deg, #f0f4f8 0%, #e8f2ff 100%);
+        transform: translateX(6px) scale(1.02);
+        box-shadow: 0 4px 15px rgba(65, 105, 225, 0.2);
+      }
+      .ml-item td {
+        border-color: #e2e8f0;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        color: #475569;
+        border-width: 0 0 2px 0;
+      }
+      .ml-item:hover td {
+        color: #1e293b;
+        font-weight: 600;
+      }
+      .ml-table {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      }
+      .ml-table thead th {
+        background: #4169e1;
+        color: white;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+        padding: 1rem 0.75rem;
+      }
+      .ml-table th:first-child, .ml-table td:first-child { width: 58%; }
+      .ml-table th:last-child, .ml-table td:last-child { width: 42%; }
 
-    /* Enhanced SweetAlert modal styling */
-    .swal2-popup.vmodal { 
-      padding: 0; 
-      border-radius: 20px; 
-      overflow: hidden;
-      box-shadow: 0 25px 80px rgba(0,0,0,.15), 0 8px 32px rgba(65, 105, 225, 0.1);
-      border: 2px solid #e2e8f0;
-    }
-    .swal2-popup.vmodal .swal2-title.vmodal-title { 
-      margin: 0; 
-      padding: 24px 28px; 
-      background: #4169e1;
-      color: #fff; 
-      font-weight: 700; 
-      font-size: 1.35rem;
-      letter-spacing: -.01em;
-      position: relative;
-    }
-    .swal2-popup.vmodal .swal2-title.vmodal-title::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
-    }
-    .swal2-popup.vmodal .swal2-html-container { 
-      padding: 24px 28px 0; 
-      margin: 0; 
-    }
-    .swal2-popup.vmodal .swal2-actions { 
-      padding: 0 28px 24px; 
-      margin: 24px 0 0 0; 
-    }
-    .swal2-popup.vmodal .swal2-cancel { 
-      margin-left: .75rem; 
-    }
-    .swal2-popup.vmodal .btn-primary {
-      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
-      border-color: #4169e1;
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(65, 105, 225, 0.3);
-      transition: all .3s ease;
-    }
-    .swal2-popup.vmodal .btn-primary:hover {
-      background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(65, 105, 225, 0.4);
-    }
+      /* Enhanced SweetAlert modal styling */
+      .swal2-popup.vmodal { 
+        padding: 0; 
+        border-radius: 20px; 
+        overflow: hidden;
+        box-shadow: 0 25px 80px rgba(0,0,0,.15), 0 8px 32px rgba(65, 105, 225, 0.1);
+        border: 2px solid #e2e8f0;
+      }
+      .swal2-popup.vmodal .swal2-title.vmodal-title { 
+        margin: 0; 
+        padding: 24px 28px; 
+        background: #4169e1;
+        color: #fff; 
+        font-weight: 700; 
+        font-size: 1.35rem;
+        letter-spacing: -.01em;
+        position: relative;
+      }
+      .swal2-popup.vmodal .swal2-title.vmodal-title::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+      }
+      .swal2-popup.vmodal .swal2-html-container { 
+        padding: 24px 28px 0; 
+        margin: 0; 
+      }
+      .swal2-popup.vmodal .swal2-actions { 
+        padding: 0 28px 24px; 
+        margin: 24px 0 0 0; 
+      }
+      .swal2-popup.vmodal .swal2-cancel { 
+        margin-left: .75rem; 
+      }
+      .swal2-popup.vmodal .btn-primary {
+        background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+        border-color: #4169e1;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(65, 105, 225, 0.3);
+        transition: all .3s ease;
+      }
+      .swal2-popup.vmodal .btn-primary:hover {
+        background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(65, 105, 225, 0.4);
+      }
 
-    /* Enhanced Form controls */
-    .form-control {
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-      font-size: 0.95rem;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,.04);
-    }
-    .form-control:focus {
-      border-color: #4169e1;
-      box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1), 0 4px 15px rgba(65, 105, 225, 0.15);
-      transform: translateY(-1px);
-    }
-    .form-control::placeholder {
-      color: #94a3b8;
-      font-style: italic;
-    }
-    .input-group-text {
-      border: 2px solid #e2e8f0;
-      border-radius: 12px 0 0 12px;
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      color: #4169e1;
-      font-weight: 600;
-      transition: all .3s ease;
-    }
-    .input-group .form-control {
-      border-left: none;
-      border-radius: 0 12px 12px 0;
-    }
-    .input-group:focus-within .input-group-text {
-      border-color: #4169e1;
-      background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-      transform: translateY(-1px);
-    }
-    .form-label {
-      font-weight: 700;
-      color: #334155;
-      margin-bottom: 0.75rem;
-      font-size: 0.95rem;
-      letter-spacing: 0.3px;
-    }
+      /* Enhanced Form controls */
+      .form-control {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      }
+      .form-control:focus {
+        border-color: #4169e1;
+        box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1), 0 4px 15px rgba(65, 105, 225, 0.15);
+        transform: translateY(-1px);
+      }
+      .form-control::placeholder {
+        color: #94a3b8;
+        font-style: italic;
+      }
+      .input-group-text {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px 0 0 12px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #4169e1;
+        font-weight: 600;
+        transition: all .3s ease;
+      }
+      .input-group .form-control {
+        border-left: none;
+        border-radius: 0 12px 12px 0;
+      }
+      .input-group:focus-within .input-group-text {
+        border-color: #4169e1;
+        background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+        transform: translateY(-1px);
+      }
+      .form-label {
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+      }
 
-    /* Enhanced Time/date display */
-    .time-date-display {
-      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-      border-radius: 16px;
-      padding: 1.5rem 2rem;
-      margin-bottom: 2rem;
-      border: 2px solid #e2e8f0;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
-    }
-    .time-date-display::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #4169e1 0%, #6366f1 100%);
-    }
-    .time-date-display .fw-semibold {
-      color: #475569;
-      font-weight: 700;
-    }
-    .time-date-display span:not(.fw-semibold) {
-      color: #4169e1;
-      font-weight: 600;
-      font-family: 'Monaco', 'Menlo', monospace;
-    }
+      /* Enhanced Time/date display */
+      .time-date-display {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid #e2e8f0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.05);
+      }
+      .time-date-display::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #4169e1 0%, #6366f1 100%);
+      }
+      .time-date-display .fw-semibold {
+        color: #475569;
+        font-weight: 700;
+      }
+      .time-date-display span:not(.fw-semibold) {
+        color: #4169e1;
+        font-weight: 600;
+        font-family: 'Monaco', 'Menlo', monospace;
+      }
 
-    /* Enhanced visual elements */
-    .fw-bold {
-      font-weight: 700;
-      color: #1e293b;
-      letter-spacing: -.01em;
-    }
-    
-    .text-muted {
-      color: #64748b !important;
-      font-weight: 500;
-    }
+      /* Enhanced visual elements */
+      .fw-bold {
+        font-weight: 700;
+        color: #1e293b;
+        letter-spacing: -.01em;
+      }
+      
+      .text-muted {
+        color: #64748b !important;
+        font-weight: 500;
+      }
 
-    /* Loading state animation */
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    
-    /* Success feedback animation */
-    @keyframes pulse-success {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-    }
+      /* Loading state animation */
+      @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      
+      /* Success feedback animation */
+      @keyframes pulse-success {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+      }
 
-    /* Enhanced icons */
-    .bi {
-      transition: all .3s ease;
-    }
-    
-    /* Better visual hierarchy */
-    h5.fw-bold {
-      color: #1e293b;
-      font-weight: 700;
-      font-size: 1.1rem;
-      letter-spacing: -.01em;
-    }
-    
-    h6.fw-bold {
-      color: #334155;
-      font-weight: 700;
-      font-size: 0.95rem;
-      letter-spacing: 0.2px;
-      text-transform: uppercase;
-    }
+      /* Enhanced icons */
+      .bi {
+        transition: all .3s ease;
+      }
+      
+      /* Better visual hierarchy */
+      h5.fw-bold {
+        color: #1e293b;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: -.01em;
+      }
+      
+      h6.fw-bold {
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+      }
 
-    /* Enhanced small text */
-    small.text-muted {
-      font-weight: 500;
-      color: #64748b;
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
+      /* Enhanced small text */
+      small.text-muted {
+        font-weight: 500;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
 
-    /* Better button styling */
-    .btn {
-      font-weight: 600;
-      border-radius: 12px;
-      padding: 0.75rem 1.5rem;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      letter-spacing: 0.2px;
-      border: 2px solid transparent;
-    }
-    
-    .btn:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 8px 25px rgba(0,0,0,.15);
-    }
+      /* Better button styling */
+      .btn {
+        font-weight: 600;
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.2px;
+        border: 2px solid transparent;
+      }
+      
+      .btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 25px rgba(0,0,0,.15);
+      }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
-      border-color: #4169e1;
-      box-shadow: 0 4px 15px rgba(65, 105, 225, 0.3);
-    }
+      .btn-primary {
+        background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+        border-color: #4169e1;
+        box-shadow: 0 4px 15px rgba(65, 105, 225, 0.3);
+      }
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
-      border-color: #3754db;
-      box-shadow: 0 8px 25px rgba(65, 105, 225, 0.4);
-    }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
+        border-color: #3754db;
+        box-shadow: 0 8px 25px rgba(65, 105, 225, 0.4);
+      }
 
-    .btn-outline-secondary {
-      border-color: #e2e8f0;
-      color: #64748b;
-      background: #ffffff;
-    }
+      .btn-outline-secondary {
+        border-color: #e2e8f0;
+        color: #64748b;
+        background: #ffffff;
+      }
 
-    .btn-outline-secondary:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-      color: #475569;
-    }
+      .btn-outline-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #475569;
+      }
 
-    /* Responsive adjustments */
-    @media (min-width: 1200px) { .entity-photo { width: 180px; height: 180px; } }
-    @media (max-width: 992px) { .entity-photo { width: 140px; height: 140px; } }
-    @media (max-width: 768px) {
-      .main-content { margin-left: 0 !important; padding-top: 70px; }
-      .content-area { padding: 1.5rem; }
-      .entity-photo { width: 120px; height: 120px; }
-      .col-xl-3, .col-lg-4, .col-xl-6, .col-lg-5 { margin-bottom: 1rem; }
-      .page-title { font-size: 1.75rem; }
-    }
-    @media (max-width: 576px) {
-      .content-area { padding: 1rem; }
-      .entity-photo { width: 100px; height: 100px; }
-      .tabs-wrap { padding: 0.5rem; }
-      .page-title { font-size: 1.5rem; }
-      .time-date-display { padding: 1rem; }
-      .card-body { padding: 1rem; }
-    }
-  </style>
-</head>
-<body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='familyday',
-                                                 studentInfoExpanded=${studentInfoExpanded},
-                                                 asmsiExpanded=${asmsiExpanded},
-                                                 admissionExpanded=${admissionExpanded},
-                                                 attendanceExpanded=${attendanceExpanded},
-                                                 eventsExpanded=${eventsExpanded},
-                                                 familyDayExpanded=${familyDayExpanded})"></div>
+      /* Responsive adjustments */
+      @media (min-width: 1200px) { .entity-photo { width: 180px; height: 180px; } }
+      @media (max-width: 992px) { .entity-photo { width: 140px; height: 140px; } }
+      @media (max-width: 768px) {
+        .main-content { margin-left: 0 !important; padding-top: 70px; }
+        .content-area { padding: 1.5rem; }
+        .entity-photo { width: 120px; height: 120px; }
+        .col-xl-3, .col-lg-4, .col-xl-6, .col-lg-5 { margin-bottom: 1rem; }
+        .page-title { font-size: 1.75rem; }
+      }
+      @media (max-width: 576px) {
+        .content-area { padding: 1rem; }
+        .entity-photo { width: 100px; height: 100px; }
+        .tabs-wrap { padding: 0.5rem; }
+        .page-title { font-size: 1.5rem; }
+        .time-date-display { padding: 1rem; }
+        .card-body { padding: 1rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Sidebar -->
+      <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='familyday',
+                                                  studentInfoExpanded=${studentInfoExpanded},
+                                                  asmsiExpanded=${asmsiExpanded},
+                                                  admissionExpanded=${admissionExpanded},
+                                                  attendanceExpanded=${attendanceExpanded},
+                                                  eventsExpanded=${eventsExpanded},
+                                                  familyDayExpanded=${familyDayExpanded})"></div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Header -->
-      <div th:replace="fragments/header :: header(${username})"></div>
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Header -->
+        <div th:replace="fragments/header :: header(${username})"></div>
 
-      <!-- Page Body -->
-      <main class="content-area">
-        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
-          <h1 class="page-title mb-0"><i class="bi bi-calendar-heart me-3 text-primary"></i>Sisters of Mary School – Boystown Family Day</h1>
-          <div class="time-date-display mb-0" style="margin: 0; padding: 1rem 1.5rem; flex-shrink: 0;">
-            <div class="d-flex flex-wrap gap-4 align-items-center">
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-calendar3 text-primary fs-5"></i>
-                <span class="fw-semibold">Date:</span> 
-                <span id="main-date"></span>
-              </div>
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-clock text-primary fs-5"></i>
-                <span class="fw-semibold">Time:</span> 
-                <span id="main-time"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Enhanced Tabs -->
-        <div class="tabs-wrap">
-          <ul class="nav nav-pills gap-2" id="portalTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="tab-students-btn" data-bs-toggle="tab" data-bs-target="#tab-students" type="button" role="tab">
-                <i class="bi bi-mortarboard me-2"></i>Students
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-nts-btn" data-bs-toggle="tab" data-bs-target="#tab-nts" type="button" role="tab">
-                <i class="bi bi-tools me-2"></i>NTS
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-faculty-btn" data-bs-toggle="tab" data-bs-target="#tab-faculty" type="button" role="tab">
-                <i class="bi bi-person-badge me-2"></i>Faculty
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-grads-btn" data-bs-toggle="tab" data-bs-target="#tab-grads" type="button" role="tab">
-                <i class="bi bi-award me-2"></i>Graduates
-              </button>
-            </li>
-          </ul>
-        </div>
-
-        <div class="tab-content">
-          <!-- ===================== STUDENTS ===================== -->
-          <div class="tab-pane fade show active" id="tab-students" role="tabpanel" aria-labelledby="tab-students-btn">
-            <!-- current user (for students only) -->
-            <input type="hidden" id="current-user" th:value="${username}" />
-
-            <div class="mb-4">
-              <label for="search-stu" class="form-label">
-                <i class="bi bi-search me-1"></i>Search by ID Number
-              </label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                <input type="text" class="form-control" id="search-stu" placeholder="e.g. TAL2022-005" />
-              </div>
-            </div>
-
-            <div class="row g-tight">
-              <!-- Profile: narrower -->
-              <div class="col-xl-3 col-lg-4">
-                <div class="card shadow-sm h-100 card-compact" id="card-stu" style="display:none;">
-                  <div class="card-body text-center profile-meta">
-                    <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
-                    <p><strong>LRN:</strong> <span id="lrn-stu">-</span></p>
-                    <p><strong>ID Number:</strong> <span id="id-stu">-</span></p>
-                    <p><strong>Name:</strong> <span id="name-stu">-</span></p>
-                    <p><strong>Location:</strong> <span id="campus-stu">-</span></p>
-                    <p><strong>Family Saint:</strong> <span id="saint-stu">-</span></p>
-                    <p><strong>Batch Number:</strong> <span id="batch-stu">-</span></p>
-                    <p class="mb-0"><strong>Address:</strong> <span id="addr-stu">-</span></p>
-                  </div>
+        <!-- Page Body -->
+        <main class="content-area">
+          <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
+            <h1 class="page-title mb-0"><i class="bi bi-calendar-heart me-3 text-primary"></i>Sisters of Mary School – Girlstown Family Day</h1>
+            <div class="time-date-display mb-0" style="margin: 0; padding: 1rem 1.5rem; flex-shrink: 0;">
+              <div class="d-flex flex-wrap gap-4 align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-calendar3 text-primary fs-5"></i>
+                  <span class="fw-semibold">Date:</span> 
+                  <span id="main-date"></span>
                 </div>
-              </div>
-
-              <!-- Logs -->
-              <div class="col-xl-6 col-lg-5">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Visitors logs</h5>
-                      <small class="text-muted">showing latest 5</small>
-                    </div>
-
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
-                        <thead>
-                          <tr>
-                            <th class="col-photo">Photo</th>
-                            <th>Name</th>
-                            <th>ID Number</th>
-                            <th class="col-small">Date</th>
-                            <th class="col-small">Time In</th>
-                            <th>Address</th>
-                            <th class="col-small">Adult</th>
-                            <th class="col-small">Kid</th>
-                            <th class="col-small">Total</th>
-                            <th class="col-small">Contact #</th>
-                            <th class="col-small">Vehicle</th>
-                          </tr>
-                        </thead>
-                        <tbody id="logs-stu"></tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Masterlist table (Name + ID) -->
-              <div class="col-lg-3">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
-                    <input id="ml-stu-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-bordered mb-0 ml-table">
-                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
-                        <tbody id="ml-stu"></tbody>
-                      </table>
-                    </div>
-                    <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Tip: click a row to use the ID.</small>
-                  </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-clock text-primary fs-5"></i>
+                  <span class="fw-semibold">Time:</span> 
+                  <span id="main-time"></span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- ===================== NTS ===================== -->
-          <div class="tab-pane fade" id="tab-nts" role="tabpanel" aria-labelledby="tab-nts-btn">
-            <div class="mb-4">
-              <label for="search-nts" class="form-label">
-                <i class="bi bi-search me-1"></i>Search by Employee ID
-              </label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-tools"></i></span>
-                <input type="text" class="form-control" id="search-nts" placeholder="e.g. SMS-NTS-002" />
-              </div>
-            </div>
-
-            <div class="row g-tight">
-              <!-- Profile: narrower -->
-              <div class="col-xl-3 col-lg-4">
-                <div class="card shadow-sm h-100 card-compact" id="card-nts" style="display:none;">
-                  <div class="card-body text-center profile-meta">
-                    <img id="photo-nts" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
-                    <p><strong>Employee ID:</strong> <span id="id-nts">-</span></p>
-                    <p><strong>Name:</strong> <span id="name-nts">-</span></p>
-                    <p><strong>Position:</strong> <span id="pos-nts">-</span></p>
-                    <p class="mb-0"><strong>Department:</strong> <span id="dept-nts">-</span></p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Logs -->
-              <div class="col-xl-6 col-lg-5">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Latest records</h5>
-                      <small class="text-muted">showing latest 5</small>
-                    </div>
-
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
-                        <thead>
-                          <tr>
-                            <th class="col-photo">Photo</th>
-                            <th>Name</th>
-                            <th>Employee ID</th>
-                            <th class="col-small">Date</th>
-                            <th class="col-small">Time</th>
-                            <th>Position</th>
-                            <th>Department</th>
-                            <th class="col-small">Adult</th>
-                            <th class="col-small">Kid</th>
-                            <th class="col-small">Total</th>
-                            <th class="col-small">Contact #</th>
-                            <th class="col-small">Vehicle</th>
-                          </tr>
-                        </thead>
-                        <tbody id="logs-nts"></tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Masterlist table -->
-              <div class="col-lg-3">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
-                    <input id="ml-nts-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-bordered mb-0 ml-table">
-                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
-                        <tbody id="ml-nts"></tbody>
-                      </table>
-                    </div>
-                    <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Click a row to use the ID.</small>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <!-- Enhanced Tabs -->
+          <div class="tabs-wrap">
+            <ul class="nav nav-pills gap-2" id="portalTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-students-btn" data-bs-toggle="tab" data-bs-target="#tab-students" type="button" role="tab">
+                  <i class="bi bi-mortarboard me-2"></i>Students
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-nts-btn" data-bs-toggle="tab" data-bs-target="#tab-nts" type="button" role="tab">
+                  <i class="bi bi-tools me-2"></i>NTS
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-faculty-btn" data-bs-toggle="tab" data-bs-target="#tab-faculty" type="button" role="tab">
+                  <i class="bi bi-person-badge me-2"></i>Faculty
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-grads-btn" data-bs-toggle="tab" data-bs-target="#tab-grads" type="button" role="tab">
+                  <i class="bi bi-award me-2"></i>Graduates
+                </button>
+              </li>
+            </ul>
           </div>
 
-          <!-- ===================== FACULTY ===================== -->
-          <div class="tab-pane fade" id="tab-faculty" role="tabpanel" aria-labelledby="tab-faculty-btn">
-            <div class="mb-4">
-              <label for="search-fac" class="form-label">
-                <i class="bi bi-search me-1"></i>Search by Employee ID
-              </label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                <input type="text" class="form-control" id="search-fac" placeholder="e.g. SMS-001" />
-              </div>
-            </div>
+          <div class="tab-content">
+            <!-- ===================== STUDENTS ===================== -->
+            <div class="tab-pane fade show active" id="tab-students" role="tabpanel" aria-labelledby="tab-students-btn">
+              <!-- current user (for students only) -->
+              <input type="hidden" id="current-user" th:value="${username}" />
 
-            <div class="row g-tight">
-              <!-- Profile: narrower -->
-              <div class="col-xl-3 col-lg-4">
-                <div class="card shadow-sm h-100 card-compact" id="card-fac" style="display:none;">
-                  <div class="card-body text-center profile-meta">
-                    <img id="photo-fac" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
-                    <p><strong>Employee ID:</strong> <span id="id-fac">-</span></p>
-                    <p><strong>Name:</strong> <span id="name-fac">-</span></p>
-                    <p><strong>Position:</strong> <span id="pos-fac">-</span></p>
-                    <p class="mb-0"><strong>Department:</strong> <span id="dept-fac">-</span></p>
-                  </div>
+              <div class="mb-4">
+                <label for="search-stu" class="form-label">
+                  <i class="bi bi-search me-1"></i>Search by ID Number
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                  <input type="text" class="form-control" id="search-stu" placeholder="e.g. TAL2022-005" />
                 </div>
               </div>
 
-              <!-- Logs -->
-              <div class="col-xl-6 col-lg-5">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Latest records</h5>
-                      <small class="text-muted">showing latest 5</small>
-                    </div>
-
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
-                        <thead>
-                          <tr>
-                            <th class="col-photo">Photo</th>
-                            <th>Name</th>
-                            <th>Employee ID</th>
-                            <th class="col-small">Date</th>
-                            <th class="col-small">Time</th>
-                            <th>Position</th>
-                            <th>Department</th>
-                            <th class="col-small">Adult</th>
-                            <th class="col-small">Kid</th>
-                            <th class="col-small">Total</th>
-                            <th class="col-small">Contact #</th>
-                            <th class="col-small">Vehicle</th>
-                          </tr>
-                        </thead>
-                        <tbody id="logs-fac"></tbody>
-                      </table>
+              <div class="row g-tight">
+                <!-- Profile: narrower -->
+                <div class="col-xl-3 col-lg-4">
+                  <div class="card shadow-sm h-100 card-compact" id="card-stu" style="display:none;">
+                    <div class="card-body text-center profile-meta">
+                      <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                      <p><strong>LRN:</strong> <span id="lrn-stu">-</span></p>
+                      <p><strong>ID Number:</strong> <span id="id-stu">-</span></p>
+                      <p><strong>Name:</strong> <span id="name-stu">-</span></p>
+                      <p><strong>Location:</strong> <span id="campus-stu">-</span></p>
+                      <p><strong>Family Saint:</strong> <span id="saint-stu">-</span></p>
+                      <p><strong>Batch Number:</strong> <span id="batch-stu">-</span></p>
+                      <p class="mb-0"><strong>Address:</strong> <span id="addr-stu">-</span></p>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Masterlist table -->
-              <div class="col-lg-3">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
-                    <input id="ml-fac-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-bordered mb-0 ml-table">
-                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
-                        <tbody id="ml-fac"></tbody>
-                      </table>
-                    </div>
-                    <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Click a row to use the ID.</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                <!-- Logs -->
+                <div class="col-xl-6 col-lg-5">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Visitors logs</h5>
+                        <small class="text-muted">showing latest 5</small>
+                      </div>
 
-          <!-- ===================== GRADUATES ===================== -->
-          <div class="tab-pane fade" id="tab-grads" role="tabpanel" aria-labelledby="tab-grads-btn">
-            <div class="mb-4">
-              <label for="search-gra" class="form-label">
-                <i class="bi bi-search me-1"></i>Search by ID Number
-              </label>
-              <div class="input-group">
-                <span class="input-group-text"><i class="bi bi-award"></i></span>
-                <input type="text" class="form-control" id="search-gra" placeholder="e.g. TAL2017-045" />
-              </div>
-            </div>
-
-            <div class="row g-tight">
-              <!-- Profile: narrower -->
-              <div class="col-xl-3 col-lg-4">
-                <div class="card shadow-sm h-100 card-compact" id="card-gra" style="display:none;">
-                  <div class="card-body text-center profile-meta">
-                    <img id="photo-gra" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
-                    <p><strong>ID Number:</strong> <span id="id-gra">-</span></p>
-                    <p><strong>Batch Number:</strong> <span id="batch-gra">-</span></p>
-                    <p class="mb-0"><strong>Address:</strong> <span id="addr-gra">-</span></p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Logs -->
-              <div class="col-xl-6 col-lg-5">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Latest records</h5>
-                      <small class="text-muted">showing latest 5</small>
-                    </div>
-
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
-                        <thead>
-                          <tr>
-                            <th class="col-photo">Photo</th>
-                            <th>ID Number</th>
-                            <th class="col-small">Date</th>
-                            <th class="col-small">Time</th>
-                            <th>Address</th>
-                            <th class="col-small">Batch #</th>
-                            <th class="col-small">Adult</th>
-                            <th class="col-small">Kid</th>
-                            <th class="col-small">Total</th>
-                            <th class="col-small">Contact #</th>
-                            <th class="col-small">Vehicle</th>
-                          </tr>
-                        </thead>
-                        <tbody id="logs-gra"></tbody>
-                      </table>
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
+                          <thead>
+                            <tr>
+                              <th class="col-photo">Photo</th>
+                              <th>Name</th>
+                              <th>ID Number</th>
+                              <th class="col-small">Date</th>
+                              <th class="col-small">Time In</th>
+                              <th>Address</th>
+                              <th class="col-small">Adult</th>
+                              <th class="col-small">Kid</th>
+                              <th class="col-small">Total</th>
+                              <th class="col-small">Contact #</th>
+                              <th class="col-small">Vehicle</th>
+                            </tr>
+                          </thead>
+                          <tbody id="logs-stu"></tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Masterlist table -->
-              <div class="col-lg-3">
-                <div class="card shadow-sm h-100">
-                  <div class="card-body">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
-                    <input id="ml-gra-q" type="text" class="form-control mb-3" placeholder="Search ID or Name…">
-                    <div class="table-responsive table-wrap">
-                      <table class="table table-sm table-bordered mb-0 ml-table">
-                        <thead><tr><th>Name</th><th>ID</th></tr></thead>
-                        <tbody id="ml-gra"></tbody>
-                      </table>
+                <!-- Masterlist table (Name + ID) -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
+                      <input id="ml-stu-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-bordered mb-0 ml-table">
+                          <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                          <tbody id="ml-stu"></tbody>
+                        </table>
+                      </div>
+                      <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Tip: click a row to use the ID.</small>
                     </div>
-                    <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Click a row to use the ID.</small>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div><!-- /tab-content -->
-      </main>
+
+            <!-- ===================== NTS ===================== -->
+            <div class="tab-pane fade" id="tab-nts" role="tabpanel" aria-labelledby="tab-nts-btn">
+              <div class="mb-4">
+                <label for="search-nts" class="form-label">
+                  <i class="bi bi-search me-1"></i>Search by Employee ID
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-tools"></i></span>
+                  <input type="text" class="form-control" id="search-nts" placeholder="e.g. SMS-NTS-002" />
+                </div>
+              </div>
+
+              <div class="row g-tight">
+                <!-- Profile: narrower -->
+                <div class="col-xl-3 col-lg-4">
+                  <div class="card shadow-sm h-100 card-compact" id="card-nts" style="display:none;">
+                    <div class="card-body text-center profile-meta">
+                      <img id="photo-nts" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                      <p><strong>Employee ID:</strong> <span id="id-nts">-</span></p>
+                      <p><strong>Name:</strong> <span id="name-nts">-</span></p>
+                      <p><strong>Position:</strong> <span id="pos-nts">-</span></p>
+                      <p class="mb-0"><strong>Department:</strong> <span id="dept-nts">-</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="col-xl-6 col-lg-5">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Latest records</h5>
+                        <small class="text-muted">showing latest 5</small>
+                      </div>
+
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
+                          <thead>
+                            <tr>
+                              <th class="col-photo">Photo</th>
+                              <th>Name</th>
+                              <th>Employee ID</th>
+                              <th class="col-small">Date</th>
+                              <th class="col-small">Time</th>
+                              <th>Position</th>
+                              <th>Department</th>
+                              <th class="col-small">Adult</th>
+                              <th class="col-small">Kid</th>
+                              <th class="col-small">Total</th>
+                              <th class="col-small">Contact #</th>
+                              <th class="col-small">Vehicle</th>
+                            </tr>
+                          </thead>
+                          <tbody id="logs-nts"></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Masterlist table -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
+                      <input id="ml-nts-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-bordered mb-0 ml-table">
+                          <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                          <tbody id="ml-nts"></tbody>
+                        </table>
+                      </div>
+                      <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Click a row to use the ID.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===================== FACULTY ===================== -->
+            <div class="tab-pane fade" id="tab-faculty" role="tabpanel" aria-labelledby="tab-faculty-btn">
+              <div class="mb-4">
+                <label for="search-fac" class="form-label">
+                  <i class="bi bi-search me-1"></i>Search by Employee ID
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                  <input type="text" class="form-control" id="search-fac" placeholder="e.g. SMS-001" />
+                </div>
+              </div>
+
+              <div class="row g-tight">
+                <!-- Profile: narrower -->
+                <div class="col-xl-3 col-lg-4">
+                  <div class="card shadow-sm h-100 card-compact" id="card-fac" style="display:none;">
+                    <div class="card-body text-center profile-meta">
+                      <img id="photo-fac" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                      <p><strong>Employee ID:</strong> <span id="id-fac">-</span></p>
+                      <p><strong>Name:</strong> <span id="name-fac">-</span></p>
+                      <p><strong>Position:</strong> <span id="pos-fac">-</span></p>
+                      <p class="mb-0"><strong>Department:</strong> <span id="dept-fac">-</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="col-xl-6 col-lg-5">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Latest records</h5>
+                        <small class="text-muted">showing latest 5</small>
+                      </div>
+
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
+                          <thead>
+                            <tr>
+                              <th class="col-photo">Photo</th>
+                              <th>Name</th>
+                              <th>Employee ID</th>
+                              <th class="col-small">Date</th>
+                              <th class="col-small">Time</th>
+                              <th>Position</th>
+                              <th>Department</th>
+                              <th class="col-small">Adult</th>
+                              <th class="col-small">Kid</th>
+                              <th class="col-small">Total</th>
+                              <th class="col-small">Contact #</th>
+                              <th class="col-small">Vehicle</th>
+                            </tr>
+                          </thead>
+                          <tbody id="logs-fac"></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Masterlist table -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
+                      <input id="ml-fac-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-bordered mb-0 ml-table">
+                          <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                          <tbody id="ml-fac"></tbody>
+                        </table>
+                      </div>
+                      <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Click a row to use the ID.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===================== GRADUATES ===================== -->
+            <div class="tab-pane fade" id="tab-grads" role="tabpanel" aria-labelledby="tab-grads-btn">
+              <div class="mb-4">
+                <label for="search-gra" class="form-label">
+                  <i class="bi bi-search me-1"></i>Search by ID Number
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-award"></i></span>
+                  <input type="text" class="form-control" id="search-gra" placeholder="e.g. TAL2017-045" />
+                </div>
+              </div>
+
+              <div class="row g-tight">
+                <!-- Profile: narrower -->
+                <div class="col-xl-3 col-lg-4">
+                  <div class="card shadow-sm h-100 card-compact" id="card-gra" style="display:none;">
+                    <div class="card-body text-center profile-meta">
+                      <img id="photo-gra" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
+                      <p><strong>ID Number:</strong> <span id="id-gra">-</span></p>
+                      <p><strong>Batch Number:</strong> <span id="batch-gra">-</span></p>
+                      <p class="mb-0"><strong>Address:</strong> <span id="addr-gra">-</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Logs -->
+                <div class="col-xl-6 col-lg-5">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Latest records</h5>
+                        <small class="text-muted">showing latest 5</small>
+                      </div>
+
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-striped table-bordered align-middle mb-0 table--wide">
+                          <thead>
+                            <tr>
+                              <th class="col-photo">Photo</th>
+                              <th>ID Number</th>
+                              <th class="col-small">Date</th>
+                              <th class="col-small">Time</th>
+                              <th>Address</th>
+                              <th class="col-small">Batch #</th>
+                              <th class="col-small">Adult</th>
+                              <th class="col-small">Kid</th>
+                              <th class="col-small">Total</th>
+                              <th class="col-small">Contact #</th>
+                              <th class="col-small">Vehicle</th>
+                            </tr>
+                          </thead>
+                          <tbody id="logs-gra"></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Masterlist table -->
+                <div class="col-lg-3">
+                  <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                      <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
+                      <input id="ml-gra-q" type="text" class="form-control mb-3" placeholder="Search ID or Name…">
+                      <div class="table-responsive table-wrap">
+                        <table class="table table-sm table-bordered mb-0 ml-table">
+                          <thead><tr><th>Name</th><th>ID</th></tr></thead>
+                          <tbody id="ml-gra"></tbody>
+                        </table>
+                      </div>
+                      <small class="text-muted d-block mt-3"><i class="bi bi-cursor me-1"></i>Click a row to use the ID.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- /tab-content -->
+        </main>
+      </div>
     </div>
-  </div>
 
-  <!-- Bootstrap JS (bundle includes Popper & Collapse) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS (bundle includes Popper & Collapse) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Inline Thymeleaf var (fallback) -->
-  <script th:inline="javascript">const currentUser = /*[[${username}]]*/ "admin";</script>
+    <!-- Inline Thymeleaf var (fallback) -->
+    <script th:inline="javascript">const currentUser = /*[[${username}]]*/ "admin";</script>
 
-  <script>
-    /* ===== main clock ===== */
-    const startMainClock=()=>{
-      const de=document.getElementById('main-date'),te=document.getElementById('main-time');
-      const tick=()=>{const now=new Date();de.textContent=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});te.textContent=now.toLocaleTimeString('en-US');};
-      tick(); return setInterval(tick,1000);
-    };
-    startMainClock();
-
-    /* ===== helpers ===== */
-    function csrfHeader() {
-      const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content") || "";
-      const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content") || "X-CSRF-TOKEN";
-      return { headerName: header, token };
-    }
-    async function simpleFetch(url) { const r=await fetch(url); if(!r.ok) throw new Error(r.status); return r.json(); }
-    const esc = s => String(s ?? '')
-      .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-      .replaceAll('"','&quot;').replaceAll("'",'&#39;');
-
-    /* ===== modal (shared) ===== */
-    async function openCountsModal({ title, idLabel, idValue, defaultAdults=1 }) {
-      return Swal.fire({
-        title,
-        customClass:{ popup:'vmodal', title:'vmodal-title', confirmButton:'btn btn-primary', cancelButton:'btn btn-outline-secondary' },
-        buttonsStyling:false,
-        html: `
-          <div class="text-start">
-            <div class="mb-2"><strong>${idLabel}:</strong> ${idValue || '-'}</div>
-            <div class="row g-2">
-              <div class="col-4"><label class="form-label">Adult</label><input id="swal-adult" type="number" min="0" value="${defaultAdults}" class="form-control"/></div>
-              <div class="col-4"><label class="form-label">Kids</label><input id="swal-kid" type="number" min="0" value="0" class="form-control"/></div>
-              <div class="col-4"><label class="form-label">Total</label><input id="swal-total" type="number" min="0" value="${defaultAdults}" class="form-control" readonly/></div>
-            </div>
-            <div class="mt-3">
-              <label class="form-label">Active Contact Number <small class="text-muted">(optional)</small></label>
-              <input id="swal-contact" type="tel" class="form-control" placeholder="e.g. 09XXXXXXXXX"/>
-            </div>
-            <div class="mt-3">
-              <label class="form-label d-block">Vehicle <small class="text-muted">(optional)</small></label>
-              <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-mc" value="MOTORCYCLE"><label class="form-check-label" for="veh-mc">Motorcycle</label></div>
-              <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-car" value="FOUR_WHEELED"><label class="form-check-label" for="veh-car">4-wheeled Car</label></div>
-            </div>
-          </div>`,
-        showCancelButton:true,
-        confirmButtonText:'Save',
-        didOpen: () => {
-          const a=document.getElementById('swal-adult'), k=document.getElementById('swal-kid'), t=document.getElementById('swal-total');
-          const recalc=()=>{ const av=parseInt(a.value||'0',10), kv=parseInt(k.value||'0',10); t.value=(isNaN(av)?0:av)+(isNaN(kv)?0:kv); };
-          a.addEventListener('input',recalc); k.addEventListener('input',recalc); recalc();
-        },
-        preConfirm: () => {
-          const a=parseInt(document.getElementById('swal-adult').value||'0',10);
-          const k=parseInt(document.getElementById('swal-kid').value||'0',10);
-          const t=parseInt(document.getElementById('swal-total').value||'0',10);
-          const contact=document.getElementById('swal-contact').value.trim() || null;
-          const vehicle=document.querySelector('input[name="swal-vehicle"]:checked')?.value || null;
-          if (a < 0 || k < 0) { Swal.showValidationMessage('Counts cannot be negative.'); return false; }
-          return { adultVisitor:a, kidVisitor:k, totalVisitors:t, contactNumber:contact, vehicleType:vehicle };
-        }
-      }).then(r=>r);
-    }
-
-    /* =========================================================
-       STUDENTS
-       ========================================================= */
-    async function submitStudentVisit(student, counts) {
-      const now = new Date();
-      const payload = {
-        idNumber: student.idNumber,
-        lrn: student.lrn,
-        name: student.name,
-        campus: student.campus,
-        familySaint: student.familySaint,
-        batchNumber: student.batchNumber,
-        imageUrl: student.imageUrl,
-        address: student.address || null,
-        date: now.toISOString().split("T")[0],
-        timeIn: now.toLocaleTimeString('en-US', { hour12:false }),
-        adultVisitor: counts?.adultVisitor ?? 0,
-        kidVisitor: counts?.kidVisitor ?? 0,
-        totalVisitors: counts?.totalVisitors ?? 0,
-        contactNumber: counts?.contactNumber ?? null,
-        vehicleType: counts?.vehicleType ?? null,
-        account: document.getElementById('current-user')?.value || currentUser || 'system'
+    <script>
+      /* ===== main clock ===== */
+      const startMainClock=()=>{
+        const de=document.getElementById('main-date'),te=document.getElementById('main-time');
+        const tick=()=>{const now=new Date();de.textContent=now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});te.textContent=now.toLocaleTimeString('en-US');};
+        tick(); return setInterval(tick,1000);
       };
-      const { headerName, token } = csrfHeader();
-      const res = await fetch("/api/visitingday/submit", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", [headerName]:token },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(`Save failed (${res.status})`);
-    }
-    async function searchStudentById(id) {
-      const res = await fetch(`/api/attendance/student/${encodeURIComponent(id)}`);
-      if (!res.ok) throw new Error("Student not found");
-      return res.json();
-    }
-    async function loadStudentLogs() {
-      const res = await fetch("/api/visitingday/logs");
-      if (!res.ok) return;
-      const logs = await res.json();
-      const tbody = document.getElementById("logs-stu");
-      tbody.innerHTML = "";
-      (logs.slice(0,5)).forEach(log => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
-          <td>${log.name || '-'}</td>
-          <td>${log.idNumber || '-'}</td>
-          <td>${log.date || '-'}</td>
-          <td>${log.timeIn || '-'}</td>
-          <td>${log.address || '-'}</td>
-          <td>${log.adultVisitor ?? '-'}</td>
-          <td>${log.kidVisitor ?? '-'}</td>
-          <td>${log.totalVisitors ?? '-'}</td>
-          <td>${log.contactNumber || '-'}</td>
-          <td>${log.vehicleType || '-'}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    document.getElementById("search-stu").addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      const id = e.target.value.trim(); if (!id) return;
-      try {
-        const s = await searchStudentById(id);
-        document.getElementById("photo-stu").src = s.imageUrl || "/images/default-profile.png";
-        document.getElementById("lrn-stu").textContent = s.lrn ?? "-";
-        document.getElementById("id-stu").textContent = s.idNumber ?? "-";
-        document.getElementById("name-stu").textContent = s.name ?? "-";
-        document.getElementById("campus-stu").textContent = s.campus ?? "-";
-        document.getElementById("saint-stu").textContent = s.familySaint ?? "-";
-        document.getElementById("batch-stu").textContent = s.batchNumber ?? "-";
-        document.getElementById("addr-stu").textContent = s.address ?? "-";
-        document.getElementById("card-stu").style.display = "block";
+      startMainClock();
 
-        const modal = await openCountsModal({ title:`Visitors for ${s.name || s.idNumber}`, idLabel:'ID', idValue:s.idNumber, defaultAdults:1 });
-        if (modal.isConfirmed) {
-          await submitStudentVisit(s, modal.value);
-          await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
-          await loadStudentLogs();
-        }
-      } catch (err) {
-        await Swal.fire({ icon:'error', title:'Lookup failed', text: err.message || 'Try again.' });
-        document.getElementById("card-stu").style.display = "none";
-      } finally { e.target.value=""; e.target.focus(); }
-    });
-    loadStudentLogs();
+      /* ===== helpers ===== */
+      function csrfHeader() {
+        const token = document.querySelector('meta[name="_csrf"]')?.getAttribute("content") || "";
+        const header = document.querySelector('meta[name="_csrf_header"]')?.getAttribute("content") || "X-CSRF-TOKEN";
+        return { headerName: header, token };
+      }
+      async function simpleFetch(url) { const r=await fetch(url); if(!r.ok) throw new Error(r.status); return r.json(); }
+      const esc = s => String(s ?? '')
+        .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+        .replaceAll('"','&quot;').replaceAll("'",'&#39;');
 
-    /* Students masterlist */
-    async function loadMlStudents(q='') {
-      const data = await simpleFetch(`/api/attendance/students?query=${encodeURIComponent(q)}`);
-      const tb = document.getElementById('ml-stu');
-      tb.innerHTML = '';
-      (data || []).forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.className='ml-item';
-        tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.idNumber)}</td>`;
-        tr.addEventListener('click', ()=>{
-          const box=document.getElementById('search-stu');
-          box.value = r.idNumber; box.focus();
-          box.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
-        });
-        tb.appendChild(tr);
-      });
-      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
-    }
-    document.getElementById('ml-stu-q').addEventListener('keydown', e=>{
-      if (e.key!=='Enter') return;
-      loadMlStudents(e.target.value.trim());
-    });
-    loadMlStudents('');
+      /* ===== modal (shared) ===== */
+      async function openCountsModal({ title, idLabel, idValue, defaultAdults=1 }) {
+        return Swal.fire({
+          title,
+          customClass:{ popup:'vmodal', title:'vmodal-title', confirmButton:'btn btn-primary', cancelButton:'btn btn-outline-secondary' },
+          buttonsStyling:false,
+          html: `
+            <div class="text-start">
+              <div class="mb-2"><strong>${idLabel}:</strong> ${idValue || '-'}</div>
+              <div class="row g-2">
+                <div class="col-4"><label class="form-label">Adult</label><input id="swal-adult" type="number" min="0" value="${defaultAdults}" class="form-control"/></div>
+                <div class="col-4"><label class="form-label">Kids</label><input id="swal-kid" type="number" min="0" value="0" class="form-control"/></div>
+                <div class="col-4"><label class="form-label">Total</label><input id="swal-total" type="number" min="0" value="${defaultAdults}" class="form-control" readonly/></div>
+              </div>
+              <div class="mt-3">
+                <label class="form-label">Active Contact Number <small class="text-muted">(optional)</small></label>
+                <input id="swal-contact" type="tel" class="form-control" placeholder="e.g. 09XXXXXXXXX"/>
+              </div>
+              <div class="mt-3">
+                <label class="form-label d-block">Vehicle <small class="text-muted">(optional)</small></label>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-mc" value="MOTORCYCLE"><label class="form-check-label" for="veh-mc">Motorcycle</label></div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="swal-vehicle" id="veh-car" value="FOUR_WHEELED"><label class="form-check-label" for="veh-car">4-wheeled Car</label></div>
+              </div>
+            </div>`,
+          showCancelButton:true,
+          confirmButtonText:'Save',
+          didOpen: () => {
+            const a=document.getElementById('swal-adult'), k=document.getElementById('swal-kid'), t=document.getElementById('swal-total');
+            const recalc=()=>{ const av=parseInt(a.value||'0',10), kv=parseInt(k.value||'0',10); t.value=(isNaN(av)?0:av)+(isNaN(kv)?0:kv); };
+            a.addEventListener('input',recalc); k.addEventListener('input',recalc); recalc();
+          },
+          preConfirm: () => {
+            const a=parseInt(document.getElementById('swal-adult').value||'0',10);
+            const k=parseInt(document.getElementById('swal-kid').value||'0',10);
+            const t=parseInt(document.getElementById('swal-total').value||'0',10);
+            const contact=document.getElementById('swal-contact').value.trim() || null;
+            const vehicle=document.querySelector('input[name="swal-vehicle"]:checked')?.value || null;
+            if (a < 0 || k < 0) { Swal.showValidationMessage('Counts cannot be negative.'); return false; }
+            return { adultVisitor:a, kidVisitor:k, totalVisitors:t, contactNumber:contact, vehicleType:vehicle };
+          }
+        }).then(r=>r);
+      }
 
-    /* =========================================================
-       NTS
-       ========================================================= */
-    document.getElementById("search-nts").addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      const id = e.target.value.trim(); if (!id) return;
-
-      try {
-        const emp = await simpleFetch(`/api/nts/${encodeURIComponent(id)}`);
-
-        document.getElementById("photo-nts").src = emp.imageUrl || "/images/default-profile.png";
-        document.getElementById("id-nts").textContent   = emp.employeeId ?? "-";
-        document.getElementById("name-nts").textContent = emp.name ?? "-";
-        document.getElementById("pos-nts").textContent  = emp.position ?? "-";
-        document.getElementById("dept-nts").textContent = emp.department ?? "-";
-        document.getElementById("card-nts").style.display = "block";
-
-        const modal = await openCountsModal({
-          title:`Visitors for ${emp.name || emp.employeeId}`,
-          idLabel:'Employee ID',
-          idValue:emp.employeeId,
-          defaultAdults:1
-        });
-        if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
-
+      /* =========================================================
+        STUDENTS
+        ========================================================= */
+      async function submitStudentVisit(student, counts) {
+        const now = new Date();
+        const payload = {
+          idNumber: student.idNumber,
+          lrn: student.lrn,
+          name: student.name,
+          campus: student.campus,
+          familySaint: student.familySaint,
+          batchNumber: student.batchNumber,
+          imageUrl: student.imageUrl,
+          address: student.address || null,
+          date: now.toISOString().split("T")[0],
+          timeIn: now.toLocaleTimeString('en-US', { hour12:false }),
+          adultVisitor: counts?.adultVisitor ?? 0,
+          kidVisitor: counts?.kidVisitor ?? 0,
+          totalVisitors: counts?.totalVisitors ?? 0,
+          contactNumber: counts?.contactNumber ?? null,
+          vehicleType: counts?.vehicleType ?? null,
+          account: document.getElementById('current-user')?.value || currentUser || 'system'
+        };
         const { headerName, token } = csrfHeader();
-        const visitRes = await fetch("/api/nts/visit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", [headerName]: token },
-          body: JSON.stringify({
-            employeeId: emp.employeeId,
-            adultVisitor: modal.value.adultVisitor,
-            kidVisitor: modal.value.kidVisitor,
-            totalVisitors: modal.value.totalVisitors,
-            contactNumber: modal.value.contactNumber,
-            vehicleType: modal.value.vehicleType
-          })
+        const res = await fetch("/api/visitingday/submit", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", [headerName]:token },
+          body: JSON.stringify(payload)
         });
-        if (!visitRes.ok) throw new Error(`Visit failed (${visitRes.status})`);
-
-        await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
-        await loadNtsLogs();
-
-      } catch (err) {
-        await Swal.fire({
-          icon:'error',
-          title:'Request failed',
-          text: err.message.includes('404') ? 'Employee not found' : err.message
-        });
-        document.getElementById("card-nts").style.display = "none";
-      } finally { e.target.value=""; e.target.focus(); }
-    });
-    async function loadNtsLogs() {
-      try {
-        const res = await fetch("/api/nts/logs");
+        if (!res.ok) throw new Error(`Save failed (${res.status})`);
+      }
+      async function searchStudentById(id) {
+        const res = await fetch(`/api/attendance/student/${encodeURIComponent(id)}`);
+        if (!res.ok) throw new Error("Student not found");
+        return res.json();
+      }
+      async function loadStudentLogs() {
+        const res = await fetch("/api/visitingday/logs");
         if (!res.ok) return;
         const logs = await res.json();
-        const tbody = document.getElementById("logs-nts");
+        const tbody = document.getElementById("logs-stu");
         tbody.innerHTML = "";
         (logs.slice(0,5)).forEach(log => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
             <td>${log.name || '-'}</td>
-            <td>${log.employeeId || '-'}</td>
+            <td>${log.idNumber || '-'}</td>
             <td>${log.date || '-'}</td>
-            <td>${log.time || '-'}</td>
-            <td>${log.position || '-'}</td>
-            <td>${log.department || '-'}</td>
+            <td>${log.timeIn || '-'}</td>
+            <td>${log.address || '-'}</td>
             <td>${log.adultVisitor ?? '-'}</td>
             <td>${log.kidVisitor ?? '-'}</td>
             <td>${log.totalVisitors ?? '-'}</td>
@@ -1247,248 +1116,385 @@
             <td>${log.vehicleType || '-'}</td>`;
           tbody.appendChild(tr);
         });
-      } catch {}
-    }
-    loadNtsLogs();
-
-    /* NTS masterlist */
-    async function loadMlNts(q='') {
-      const data = await simpleFetch(`/api/nts/masterlist?query=${encodeURIComponent(q)}`);
-      const tb = document.getElementById('ml-nts');
-      tb.innerHTML = '';
-      (data || []).forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.className='ml-item';
-        tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.employeeId)}</td>`;
-        tr.addEventListener('click', ()=>{
-          const box=document.getElementById('search-nts');
-          box.value = r.employeeId; box.focus();
-          box.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
-        });
-        tb.appendChild(tr);
-      });
-      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
-    }
-    document.getElementById('ml-nts-q').addEventListener('keydown', e=>{
-      if (e.key!=='Enter') return;
-      loadMlNts(e.target.value.trim());
-    });
-    loadMlNts('');
-
-    /* =========================================================
-       FACULTY (single binding)
-       ========================================================= */
-    async function loadFacultyLogs() {
-      try {
-        const res = await fetch("/api/faculty/logs");
-        if (!res.ok) return;
-        const logs = await res.json();
-        const tbody = document.getElementById("logs-fac");
-        tbody.innerHTML = "";
-        (logs || []).forEach(log => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
-            <td>${log.name || '-'}</td>
-            <td>${log.employeeId || '-'}</td>
-            <td>${log.date || '-'}</td>
-            <td>${log.time || '-'}</td>
-            <td>${log.position || '-'}</td>
-            <td>${log.department || '-'}</td>
-            <td>${log.adultVisitor ?? '-'}</td>
-            <td>${log.kidVisitor ?? '-'}</td>
-            <td>${log.totalVisitors ?? '-'}</td>
-            <td>${log.contactNumber || '-'}</td>
-            <td>${log.vehicleType || '-'}</td>`;
-          tbody.appendChild(tr);
-        });
-      } catch {}
-    }
-    loadFacultyLogs();
-
-    async function performFacultySearch(empId) {
-      if (!empId) return;
-      try {
-        const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(empId)}`);
-
-        document.getElementById('photo-fac').src = fac.imageUrl || '/images/default-profile.png';
-        document.getElementById('id-fac').textContent   = fac.employeeId ?? '-';
-        document.getElementById('name-fac').textContent = fac.name ?? '-';
-        document.getElementById('pos-fac').textContent  = fac.position ?? '-';
-        document.getElementById('dept-fac').textContent = fac.department ?? '-';
-        document.getElementById('card-fac').style.display = 'block';
-
-        const modal = await openCountsModal({
-          title: `Visitors for ${fac.name || fac.employeeId}`,
-          idLabel: 'Employee ID',
-          idValue: fac.employeeId,
-          defaultAdults: 1
-        });
-        if (!modal.isConfirmed) return;
-
-        const { headerName, token } = csrfHeader();
-        const res = await fetch('/api/faculty/visit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', [headerName]: token },
-          body: JSON.stringify({
-            employeeId: fac.employeeId,
-            adultVisitor:  modal.value.adultVisitor,
-            kidVisitor:    modal.value.kidVisitor,
-            totalVisitors: modal.value.totalVisitors,
-            contactNumber: modal.value.contactNumber,
-            vehicleType:   modal.value.vehicleType
-          })
-        });
-        if (!res.ok) throw new Error(`Visit failed (${res.status})`);
-
-        await Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
-        await loadFacultyLogs();
-      } catch (err) {
-        await Swal.fire({ icon: 'error', title: 'Request failed', text: err.message || 'Please try again.' });
-        document.getElementById('card-fac').style.display = 'none';
       }
-    }
-    document.getElementById('search-fac').addEventListener('keydown', async (e)=>{
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const id = e.target.value.trim(); if (!id) return;
-      await performFacultySearch(id);
-      e.target.value=''; e.target.focus();
-    });
+      document.getElementById("search-stu").addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const id = e.target.value.trim(); if (!id) return;
+        try {
+          const s = await searchStudentById(id);
+          document.getElementById("photo-stu").src = s.imageUrl || "/images/default-profile.png";
+          document.getElementById("lrn-stu").textContent = s.lrn ?? "-";
+          document.getElementById("id-stu").textContent = s.idNumber ?? "-";
+          document.getElementById("name-stu").textContent = s.name ?? "-";
+          document.getElementById("campus-stu").textContent = s.campus ?? "-";
+          document.getElementById("saint-stu").textContent = s.familySaint ?? "-";
+          document.getElementById("batch-stu").textContent = s.batchNumber ?? "-";
+          document.getElementById("addr-stu").textContent = s.address ?? "-";
+          document.getElementById("card-stu").style.display = "block";
 
-    async function loadMlFaculty(q='') {
-      const data = await simpleFetch(`/api/faculty/masterlist?query=${encodeURIComponent(q)}`);
-      const tb = document.getElementById('ml-fac');
-      tb.innerHTML = '';
-      (data || []).forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.className='ml-item';
-        tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.employeeId)}</td>`;
-        tr.addEventListener('click', ()=>{
-          const box=document.getElementById('search-fac');
-          box.value = r.employeeId; box.focus();
-          // call full flow directly (no fake key)
-          performFacultySearch(r.employeeId);
-        });
-        tb.appendChild(tr);
+          const modal = await openCountsModal({ title:`Visitors for ${s.name || s.idNumber}`, idLabel:'ID', idValue:s.idNumber, defaultAdults:1 });
+          if (modal.isConfirmed) {
+            await submitStudentVisit(s, modal.value);
+            await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+            await loadStudentLogs();
+          }
+        } catch (err) {
+          await Swal.fire({ icon:'error', title:'Lookup failed', text: err.message || 'Try again.' });
+          document.getElementById("card-stu").style.display = "none";
+        } finally { e.target.value=""; e.target.focus(); }
       });
-      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
-    }
-    document.getElementById('ml-fac-q').addEventListener('keydown', e=>{
-      if (e.key!=='Enter') return;
-      loadMlFaculty(e.target.value.trim());
+      loadStudentLogs();
+
+      /* Students masterlist */
+      async function loadMlStudents(q='') {
+  const data = await simpleFetch(`/api/attendance/students/masterlist?query=${encodeURIComponent(q)}`);
+  const tb = document.getElementById('ml-stu');
+  tb.innerHTML = '';
+
+  (data || []).forEach(r => {
+    const tr = document.createElement('tr');
+    tr.className = 'ml-item';
+    tr.innerHTML = `<td>${esc(r.name)}</td><td>${esc(r.idNumber)}</td>`;
+    tr.addEventListener('click', () => {
+      const box = document.getElementById('search-stu');
+      box.value = r.idNumber;
+      box.focus();
+      box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
     });
-    loadMlFaculty('');
+    tb.appendChild(tr);
+  });
 
-    /* =========================================================
-       GRADUATES (single binding)
-       ========================================================= */
-    async function loadGradLogs() {
-      try {
-        const res = await fetch("/api/graduates/logs");
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const rows = await res.json();
-        const tbody = document.getElementById("logs-gra");
-        tbody.innerHTML = "";
-        (rows || []).forEach(row => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><img src="${row.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
-            <td>${row.idNumber || '-'}</td>
-            <td>${row.date || '-'}</td>
-            <td>${row.time || '-'}</td>
-            <td>${row.address || '-'}</td>
-            <td>${row.batchNumber || '-'}</td>
-            <td>${row.adultVisitor ?? '-'}</td>
-            <td>${row.kidVisitor ?? '-'}</td>
-            <td>${row.totalVisitors ?? '-'}</td>
-            <td>${row.contactNumber || '-'}</td>
-            <td>${row.vehicleType || '-'}</td>`;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        console.error("loadGradLogs failed:", err);
-      }
-    }
-    loadGradLogs();
+  if (!data?.length) {
+    tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
+  }
+}
 
-    async function performGraduateSearch(id) {
-      if (!id) return;
-      try {
-        const g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
-
-        document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
-        document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
-        document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
-        document.getElementById("addr-gra").textContent  = g.address ?? "-";
-        document.getElementById("card-gra").style.display = "block";
-
-        const modal = await openCountsModal({
-          title:`Visitors for ${g.idNumber}`,
-          idLabel:'ID Number',
-          idValue:g.idNumber,
-          defaultAdults:1
-        });
-        if (!modal.isConfirmed) return;
-
-        const { headerName, token } = csrfHeader();
-        const res = await fetch("/api/graduates/visit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", [headerName]: token },
-          body: JSON.stringify({
-            idNumber: g.idNumber,
-            adultVisitor:  modal.value.adultVisitor,
-            kidVisitor:    modal.value.kidVisitor,
-            totalVisitors: modal.value.totalVisitors,
-            contactNumber: modal.value.contactNumber,
-            vehicleType:   modal.value.vehicleType
-          })
-        });
-        if (!res.ok) throw new Error(await res.text() || "Save failed");
-
-        await Swal.fire({ icon: "success", title: "Saved", timer: 1200, showConfirmButton: false });
-        await loadGradLogs();
-      } catch (err) {
-        await Swal.fire({ icon:"error", title:"Request failed", text: err.message || "Please try again." });
-        document.getElementById("card-gra").style.display = "none";
-      }
-    }
-    document.getElementById("search-gra").addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return;
-      e.preventDefault();
-      const id = e.target.value.trim(); if (!id) return;
-      await performGraduateSearch(id);
-      e.target.value=""; e.target.focus();
-    });
-
-    async function loadMlGrads(q='') {
-      const data = await simpleFetch(`/api/graduates/masterlist?query=${encodeURIComponent(q)}`);
-      const tb = document.getElementById('ml-gra');
-      tb.innerHTML = '';
-      (data || []).forEach(r=>{
-        const tr=document.createElement('tr');
-        tr.className='ml-item';
-        tr.innerHTML=`<td>${esc(r.name ?? '-')}</td><td>${esc(r.idNumber)}</td>`;
-        tr.addEventListener('click', ()=>{
-          const box=document.getElementById('search-gra');
-          box.value = r.idNumber; box.focus();
-          // run full flow directly (no fake key)
-          performGraduateSearch(r.idNumber);
-        });
-        tb.appendChild(tr);
+      document.getElementById('ml-stu-q').addEventListener('keydown', e=>{
+        if (e.key!=='Enter') return;
+        loadMlStudents(e.target.value.trim());
       });
-      if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
-    }
-    document.getElementById('ml-gra-q').addEventListener('keydown', e=>{
-      if (e.key!=='Enter') return;
-      loadMlGrads(e.target.value.trim());
-    });
-    loadMlGrads('');
+      loadMlStudents('');
 
-    // Page level initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('Family Day Portal loaded');
-    });
-  </script>
-</body>
-</html>
+      /* =========================================================
+        NTS
+        ========================================================= */
+      document.getElementById("search-nts").addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const id = e.target.value.trim(); if (!id) return;
+
+        try {
+          const emp = await simpleFetch(`/api/nts/${encodeURIComponent(id)}`);
+
+          document.getElementById("photo-nts").src = emp.imageUrl || "/images/default-profile.png";
+          document.getElementById("id-nts").textContent   = emp.employeeId ?? "-";
+          document.getElementById("name-nts").textContent = emp.name ?? "-";
+          document.getElementById("pos-nts").textContent  = emp.position ?? "-";
+          document.getElementById("dept-nts").textContent = emp.department ?? "-";
+          document.getElementById("card-nts").style.display = "block";
+
+          const modal = await openCountsModal({
+            title:`Visitors for ${emp.name || emp.employeeId}`,
+            idLabel:'Employee ID',
+            idValue:emp.employeeId,
+            defaultAdults:1
+          });
+          if (!modal.isConfirmed) { e.target.value=""; e.target.focus(); return; }
+
+          const { headerName, token } = csrfHeader();
+          const visitRes = await fetch("/api/nts/visit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", [headerName]: token },
+            body: JSON.stringify({
+              employeeId: emp.employeeId,
+              adultVisitor: modal.value.adultVisitor,
+              kidVisitor: modal.value.kidVisitor,
+              totalVisitors: modal.value.totalVisitors,
+              contactNumber: modal.value.contactNumber,
+              vehicleType: modal.value.vehicleType
+            })
+          });
+          if (!visitRes.ok) throw new Error(`Visit failed (${visitRes.status})`);
+
+          await Swal.fire({ icon:'success', title:'Saved', timer:1200, showConfirmButton:false });
+          await loadNtsLogs();
+
+        } catch (err) {
+          await Swal.fire({
+            icon:'error',
+            title:'Request failed',
+            text: err.message.includes('404') ? 'Employee not found' : err.message
+          });
+          document.getElementById("card-nts").style.display = "none";
+        } finally { e.target.value=""; e.target.focus(); }
+      });
+      async function loadNtsLogs() {
+        try {
+          const res = await fetch("/api/nts/logs");
+          if (!res.ok) return;
+          const logs = await res.json();
+          const tbody = document.getElementById("logs-nts");
+          tbody.innerHTML = "";
+          (logs.slice(0,5)).forEach(log => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+              <td>${log.name || '-'}</td>
+              <td>${log.employeeId || '-'}</td>
+              <td>${log.date || '-'}</td>
+              <td>${log.time || '-'}</td>
+              <td>${log.position || '-'}</td>
+              <td>${log.department || '-'}</td>
+              <td>${log.adultVisitor ?? '-'}</td>
+              <td>${log.kidVisitor ?? '-'}</td>
+              <td>${log.totalVisitors ?? '-'}</td>
+              <td>${log.contactNumber || '-'}</td>
+              <td>${log.vehicleType || '-'}</td>`;
+            tbody.appendChild(tr);
+          });
+        } catch {}
+      }
+      loadNtsLogs();
+
+      /* NTS masterlist */
+      async function loadMlNts(q='') {
+        const data = await simpleFetch(`/api/nts/masterlist?query=${encodeURIComponent(q)}`);
+        const tb = document.getElementById('ml-nts');
+        tb.innerHTML = '';
+        (data || []).forEach(r=>{
+          const tr=document.createElement('tr');
+          tr.className='ml-item';
+          tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.employeeId)}</td>`;
+          tr.addEventListener('click', ()=>{
+            const box=document.getElementById('search-nts');
+            box.value = r.employeeId; box.focus();
+            box.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));
+          });
+          tb.appendChild(tr);
+        });
+        if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
+      }
+      document.getElementById('ml-nts-q').addEventListener('keydown', e=>{
+        if (e.key!=='Enter') return;
+        loadMlNts(e.target.value.trim());
+      });
+      loadMlNts('');
+
+      /* =========================================================
+        FACULTY (single binding)
+        ========================================================= */
+      async function loadFacultyLogs() {
+        try {
+          const res = await fetch("/api/faculty/logs");
+          if (!res.ok) return;
+          const logs = await res.json();
+          const tbody = document.getElementById("logs-fac");
+          tbody.innerHTML = "";
+          (logs || []).forEach(log => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><img src="${log.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+              <td>${log.name || '-'}</td>
+              <td>${log.employeeId || '-'}</td>
+              <td>${log.date || '-'}</td>
+              <td>${log.time || '-'}</td>
+              <td>${log.position || '-'}</td>
+              <td>${log.department || '-'}</td>
+              <td>${log.adultVisitor ?? '-'}</td>
+              <td>${log.kidVisitor ?? '-'}</td>
+              <td>${log.totalVisitors ?? '-'}</td>
+              <td>${log.contactNumber || '-'}</td>
+              <td>${log.vehicleType || '-'}</td>`;
+            tbody.appendChild(tr);
+          });
+        } catch {}
+      }
+      loadFacultyLogs();
+
+      async function performFacultySearch(empId) {
+        if (!empId) return;
+        try {
+          const fac = await simpleFetch(`/api/faculty/${encodeURIComponent(empId)}`);
+
+          document.getElementById('photo-fac').src = fac.imageUrl || '/images/default-profile.png';
+          document.getElementById('id-fac').textContent   = fac.employeeId ?? '-';
+          document.getElementById('name-fac').textContent = fac.name ?? '-';
+          document.getElementById('pos-fac').textContent  = fac.position ?? '-';
+          document.getElementById('dept-fac').textContent = fac.department ?? '-';
+          document.getElementById('card-fac').style.display = 'block';
+
+          const modal = await openCountsModal({
+            title: `Visitors for ${fac.name || fac.employeeId}`,
+            idLabel: 'Employee ID',
+            idValue: fac.employeeId,
+            defaultAdults: 1
+          });
+          if (!modal.isConfirmed) return;
+
+          const { headerName, token } = csrfHeader();
+          const res = await fetch('/api/faculty/visit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', [headerName]: token },
+            body: JSON.stringify({
+              employeeId: fac.employeeId,
+              adultVisitor:  modal.value.adultVisitor,
+              kidVisitor:    modal.value.kidVisitor,
+              totalVisitors: modal.value.totalVisitors,
+              contactNumber: modal.value.contactNumber,
+              vehicleType:   modal.value.vehicleType
+            })
+          });
+          if (!res.ok) throw new Error(`Visit failed (${res.status})`);
+
+          await Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
+          await loadFacultyLogs();
+        } catch (err) {
+          await Swal.fire({ icon: 'error', title: 'Request failed', text: err.message || 'Please try again.' });
+          document.getElementById('card-fac').style.display = 'none';
+        }
+      }
+      document.getElementById('search-fac').addEventListener('keydown', async (e)=>{
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const id = e.target.value.trim(); if (!id) return;
+        await performFacultySearch(id);
+        e.target.value=''; e.target.focus();
+      });
+
+      async function loadMlFaculty(q='') {
+        const data = await simpleFetch(`/api/faculty/masterlist?query=${encodeURIComponent(q)}`);
+        const tb = document.getElementById('ml-fac');
+        tb.innerHTML = '';
+        (data || []).forEach(r=>{
+          const tr=document.createElement('tr');
+          tr.className='ml-item';
+          tr.innerHTML=`<td>${esc(r.name)}</td><td>${esc(r.employeeId)}</td>`;
+          tr.addEventListener('click', ()=>{
+            const box=document.getElementById('search-fac');
+            box.value = r.employeeId; box.focus();
+            // call full flow directly (no fake key)
+            performFacultySearch(r.employeeId);
+          });
+          tb.appendChild(tr);
+        });
+        if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
+      }
+      document.getElementById('ml-fac-q').addEventListener('keydown', e=>{
+        if (e.key!=='Enter') return;
+        loadMlFaculty(e.target.value.trim());
+      });
+      loadMlFaculty('');
+
+      /* =========================================================
+        GRADUATES (single binding)
+        ========================================================= */
+      async function loadGradLogs() {
+        try {
+          const res = await fetch("/api/graduates/logs");
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const rows = await res.json();
+          const tbody = document.getElementById("logs-gra");
+          tbody.innerHTML = "";
+          (rows || []).forEach(row => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><img src="${row.imageUrl || '/images/default-profile.png'}" class="log-img"/></td>
+              <td>${row.idNumber || '-'}</td>
+              <td>${row.date || '-'}</td>
+              <td>${row.time || '-'}</td>
+              <td>${row.address || '-'}</td>
+              <td>${row.batchNumber || '-'}</td>
+              <td>${row.adultVisitor ?? '-'}</td>
+              <td>${row.kidVisitor ?? '-'}</td>
+              <td>${row.totalVisitors ?? '-'}</td>
+              <td>${row.contactNumber || '-'}</td>
+              <td>${row.vehicleType || '-'}</td>`;
+            tbody.appendChild(tr);
+          });
+        } catch (err) {
+          console.error("loadGradLogs failed:", err);
+        }
+      }
+      loadGradLogs();
+
+      async function performGraduateSearch(id) {
+        if (!id) return;
+        try {
+          const g = await simpleFetch(`/api/graduates/${encodeURIComponent(id)}`);
+
+          document.getElementById("photo-gra").src = g.imageUrl || "/images/default-profile.png";
+          document.getElementById("id-gra").textContent    = g.idNumber ?? "-";
+          document.getElementById("batch-gra").textContent = g.batchNumber ?? "-";
+          document.getElementById("addr-gra").textContent  = g.address ?? "-";
+          document.getElementById("card-gra").style.display = "block";
+
+          const modal = await openCountsModal({
+            title:`Visitors for ${g.idNumber}`,
+            idLabel:'ID Number',
+            idValue:g.idNumber,
+            defaultAdults:1
+          });
+          if (!modal.isConfirmed) return;
+
+          const { headerName, token } = csrfHeader();
+          const res = await fetch("/api/graduates/visit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", [headerName]: token },
+            body: JSON.stringify({
+              idNumber: g.idNumber,
+              adultVisitor:  modal.value.adultVisitor,
+              kidVisitor:    modal.value.kidVisitor,
+              totalVisitors: modal.value.totalVisitors,
+              contactNumber: modal.value.contactNumber,
+              vehicleType:   modal.value.vehicleType
+            })
+          });
+          if (!res.ok) throw new Error(await res.text() || "Save failed");
+
+          await Swal.fire({ icon: "success", title: "Saved", timer: 1200, showConfirmButton: false });
+          await loadGradLogs();
+        } catch (err) {
+          await Swal.fire({ icon:"error", title:"Request failed", text: err.message || "Please try again." });
+          document.getElementById("card-gra").style.display = "none";
+        }
+      }
+      document.getElementById("search-gra").addEventListener("keydown", async (e) => {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        const id = e.target.value.trim(); if (!id) return;
+        await performGraduateSearch(id);
+        e.target.value=""; e.target.focus();
+      });
+
+      async function loadMlGrads(q='') {
+        const data = await simpleFetch(`/api/graduates/masterlist?query=${encodeURIComponent(q)}`);
+        const tb = document.getElementById('ml-gra');
+        tb.innerHTML = '';
+        (data || []).forEach(r=>{
+          const tr=document.createElement('tr');
+          tr.className='ml-item';
+          tr.innerHTML=`<td>${esc(r.name ?? '-')}</td><td>${esc(r.idNumber)}</td>`;
+          tr.addEventListener('click', ()=>{
+            const box=document.getElementById('search-gra');
+            box.value = r.idNumber; box.focus();
+            // run full flow directly (no fake key)
+            performGraduateSearch(r.idNumber);
+          });
+          tb.appendChild(tr);
+        });
+        if (!data?.length) tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
+      }
+      document.getElementById('ml-gra-q').addEventListener('keydown', e=>{
+        if (e.key!=='Enter') return;
+        loadMlGrads(e.target.value.trim());
+      });
+      loadMlGrads('');
+
+      // Page level initialization
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('Family Day Portal loaded');
+      });
+    </script>
+  </body>
+  </html>

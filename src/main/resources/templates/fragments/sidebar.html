@@ -185,13 +185,56 @@
     </li>
 
     <!-- Inventory -->
-    <li class="nav-item mb-1">
-      <a th:href="@{/inventory}"
-         class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
-         th:classappend="${activePage} == 'inventory' ? 'active bg-primary'">
-        <i class="bi bi-box-seam"></i><span class="sidebar-text">Inventory</span>
-      </a>
-    </li>
+ <!-- Inventory -->
+<li class="mb-1">
+  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+     data-bs-toggle="collapse"
+     data-bs-target="#inventorySettings"
+     role="button"
+     aria-controls="inventorySettings">
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-box-seam"></i>
+      <span class="sidebar-text">Inventory</span>
+    </span>
+    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+  </a>
+
+  <div id="inventorySettings"
+       class="collapse ps-4 mt-1"
+       th:classappend="${#arrays.contains({'inventory-shops','inventory-school-items','inventory-report'}, activePage)} ? ' show'">
+    <ul class="nav flex-column">
+
+      <!-- My Shops -->
+      <li class="nav-item mb-1">
+        <a th:href="@{/schoolshops}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'inventory-shops' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>My Shops
+        </a>
+      </li>
+
+      <!-- School Items -->
+      <li class="nav-item mb-1">
+        <a th:href="@{/schoolitems}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'inventory-school-items' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>School Items
+        </a>
+      </li>
+
+      <!-- Inventory Report -->
+      <li class="nav-item mb-1">
+        <a th:href="@{/inventory-report}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'inventory-report' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Inventory Report
+        </a>
+      </li>
+
+    </ul>
+  </div>
+</li>
+
 
     <!-- POS / Merchandise -->
     <li class="mb-1">
