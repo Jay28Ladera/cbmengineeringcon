@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import java.util.Objects;
+
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -143,6 +145,7 @@ public class ItemInventoryController {
 @GetMapping("/schoolitems/inventory/report")
 public String showInventoryReport(
         @RequestParam(value = "year", required = false) Integer year,
+        @RequestParam(value = "shop", required = false) String shop,
         Model model) {
 
     // ------- auth / header -------
@@ -167,12 +170,42 @@ public String showInventoryReport(
     LocalDate start = LocalDate.of(selectedYear, 1, 1);
     LocalDate end   = LocalDate.of(selectedYear, 12, 31);
 
-    // all items (rows)
-    List<SchoolItem> items = schoolItemRepository.findAll();
+    // ---------- ITEMS ----------
+    // load all items once
+    List<SchoolItem> allItems = schoolItemRepository.findAll();
 
-    // all logs for that year
+    // if ?shop=... is present, filter in Java; otherwise show all
+    List<SchoolItem> items;
+    if (shop != null && !shop.isBlank()) {
+        String shopLower = shop.trim().toLowerCase();
+        items = allItems.stream()
+                .filter(it -> it.getShops() != null &&
+                        it.getShops().toLowerCase().contains(shopLower))
+                .collect(Collectors.toList());
+    } else {
+        items = allItems;
+    }
+
+    // ---------- LOGS ----------
+    // logs for the whole year
     List<InventoryLog> logs =
             inventoryLogRepository.findBySessionDateBetween(start, end);
+
+    // if we are filtering by shop, keep only logs whose itemCode is in "items"
+    if (shop != null && !shop.isBlank()) {
+        Set<String> itemCodesForThisReport = items.stream()
+                .map(SchoolItem::getItemCode)
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .collect(Collectors.toSet());
+
+        logs = logs.stream()
+                .filter(log -> {
+                    String code = log.getItemCode();
+                    return code != null && itemCodesForThisReport.contains(code.trim());
+                })
+                .collect(Collectors.toList());
+    }
 
     // Map<itemCode, Map<month(1-12), InventoryLog>>
     Map<String, Map<Integer, InventoryLog>> itemMonthLogs = new HashMap<>();
@@ -191,7 +224,6 @@ public String showInventoryReport(
         if (existing == null) {
             monthMap.put(month, log);
         } else {
-            // keep the *latest* log for that month
             LocalDateTime existingTime = existing.getLoggedAt();
             LocalDateTime newTime = log.getLoggedAt();
             if (existingTime == null || (newTime != null && newTime.isAfter(existingTime))) {
@@ -215,9 +247,11 @@ public String showInventoryReport(
     model.addAttribute("itemMonthLogs", itemMonthLogs);
     model.addAttribute("years", yearList);
     model.addAttribute("selectedYear", selectedYear);
+    model.addAttribute("selectedShop", shop);   // optional, if you want to show it in the UI
     model.addAttribute("activePage", "inventory-report");
 
     return "schoolitems-inventory-report";
 }
+
 
 }

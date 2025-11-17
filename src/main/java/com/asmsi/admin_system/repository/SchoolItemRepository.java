@@ -12,4 +12,5 @@ public interface SchoolItemRepository extends JpaRepository<SchoolItem, Long> {
 
      // Find all items for a specific shop name
     List<SchoolItem> findByShops(String shops);
+    List<SchoolItem> findByShopsContainingIgnoreCase(String shops);
 }

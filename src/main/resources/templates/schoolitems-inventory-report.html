@@ -289,22 +289,31 @@
 
             <!-- Year selector + CSV -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
-              <form class="d-flex align-items-center gap-2"
-      method="get"
-      th:action="@{/schoolitems/inventory/report(shop=${selectedShop})}">
+             <form method="get" th:action="@{/schoolitems/inventory/report}">
+  <div class="d-flex align-items-center gap-2">
+    <span class="text-uppercase small fw-semibold text-muted">Year</span>
 
-                <span class="filters-label">Year</span>
-                <select id="yearSelect" name="year" class="form-select form-select-sm">
-                  <option th:each="y : ${years}"
-                          th:value="${y}"
-                          th:text="${y}"
-                          th:selected="${y} == ${selectedYear}">
-                  </option>
-                </select>
-                <button type="submit" class="btn btn-primary btn-custom btn-sm">
-                  <i class="bi bi-arrow-repeat me-1"></i>Apply
-                </button>
-              </form>
+    <select name="year" id="yearSelect" class="form-select form-select-sm"
+            style="width:auto">
+      <option th:each="y : ${years}"
+              th:value="${y}"
+              th:text="${y}"
+              th:selected="${y} == ${selectedYear}">
+      </option>
+    </select>
+
+    <!-- keep the current shop filter when changing year -->
+    <input type="hidden"
+           name="shop"
+           th:if="${selectedShop != null}"
+           th:value="${selectedShop}" />
+
+    <button type="submit" class="btn btn-primary btn-sm rounded-3 px-3">
+      <i class="bi bi-arrow-clockwise me-1"></i>Apply
+    </button>
+  </div>
+</form>
+
 
               <!-- CSV Download button -->
               <button id="exportCsvBtn"
