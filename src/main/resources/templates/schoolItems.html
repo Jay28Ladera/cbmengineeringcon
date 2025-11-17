@@ -178,6 +178,16 @@
       .page-header .card-body {
         padding: 1.25rem;
       }
+      /* Make session modal more mobile-friendly */
+      #inventorySessionModal .modal-dialog {
+        margin: 0.5rem;
+        width: 100%;
+        max-width: 100%;
+      }
+      .inventory-avatar {
+        width: 100px;
+        height: 100px;
+      }
     }
 
     /* Inventory Session modal style */
@@ -187,9 +197,9 @@
     }
 
     .inventory-avatar {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
+      width: 200px;
+      height: 200px;
+      border-radius: 10%;
       border: 4px solid #e5e7eb;
       object-fit: cover;
       background: #f9fafb;
@@ -258,6 +268,11 @@
               <button id="exportCsvBtn" type="button" class="btn btn-outline-success btn-custom">
                 <i class="bi bi-download me-2"></i>Export CSV
               </button>
+
+              <a th:href="@{/schoolitems/inventory/report(shop=${param.shop})}"
+   class="btn btn-outline-dark btn-custom">
+  <i class="bi bi-clipboard-data me-2"></i>Inventory Report
+</a>
             </div>
 
           </div>
@@ -696,8 +711,15 @@
         </div>
 
         <!-- Modal 2: Inventory Session (like attendance screen) -->
-        <div class="modal fade" id="inventorySessionModal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal fade"
+             id="inventorySessionModal"
+             tabindex="-1"
+             aria-hidden="true"
+             data-bs-backdrop="static"
+             data-bs-keyboard="false">
+          <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"
+               style="max-width: 1400px; width: 95vw;">
+
             <div class="modal-content">
               <div class="modal-header inventory-session-header">
                 <div>
@@ -709,7 +731,7 @@
                     <!-- filled via JS -->
                   </small>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <!-- X button removed on purpose -->
               </div>
 
               <div class="modal-body" style="background:#f8fafc">
@@ -751,6 +773,33 @@
                           <p class="mb-1"><strong>Status:</strong> <span id="invItemStatus">-</span></p>
                           <p class="mb-0"><strong>Qty on Hand:</strong> <span id="invItemQty">-</span></p>
                         </div>
+
+                        <hr class="my-3">
+
+                        <div class="text-start small">
+                          <label class="form-label fw-semibold mb-1">
+                            Quantity found in this inventory
+                          </label>
+                          <div class="d-flex align-items-center gap-2">
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    id="invQtyMinus">
+                              <i class="bi bi-dash-lg"></i>
+                            </button>
+                            <div class="px-3 py-1 border rounded bg-light small">
+                              <span id="invQtyCount">0</span>
+                              <span class="text-muted">/ <span id="invQtyOriginal">0</span></span>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    id="invQtyPlus">
+                              <i class="bi bi-plus-lg"></i>
+                            </button>
+                          </div>
+                          <small class="text-muted d-block mt-1">
+                            Max count is limited by Qty on Hand.
+                          </small>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -778,11 +827,12 @@
                                 <th class="text-end">Qty</th>
                                 <th>Condition</th>
                                 <th>Status</th>
+                                <th>Remarks</th>
                               </tr>
                             </thead>
                             <tbody id="inventoryLogBody">
                               <tr>
-                                <td colspan="7" class="text-center text-muted py-4">
+                                <td colspan="8" class="text-center text-muted py-4">
                                   No items scanned yet. Start by scanning an item code.
                                 </td>
                               </tr>
@@ -791,10 +841,14 @@
                         </div>
                       </div>
                       <div class="card-footer text-end">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
-                          Close
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                id="invCancelBtn">
+                          Cancel
                         </button>
-                        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">
+                        <button type="button"
+                                class="btn btn-primary btn-sm"
+                                id="invFinishBtn">
                           Finish Inventory
                         </button>
                       </div>
@@ -812,6 +866,13 @@
   </div>
 </div>
 
+<!-- Datalist for remarks -->
+<datalist id="invRemarksOptions">
+  <option value="lacking 1"></option>
+  <option value="damaged 1"></option>
+  <option value="unusable 1"></option>
+</datalist>
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script
@@ -826,6 +887,14 @@
 
 <script>
   $(function () {
+
+    // 🔹 Inventory session metadata (filled when you start)
+let inventorySessionMeta = {
+  date: null,
+  inCharge: null,
+  witnesses: null
+};
+
     // 🔹 DataTable init with Buttons (hidden CSV button)
     const table = $('#schoolItemsTable').DataTable({
       pageLength: 10,
@@ -983,52 +1052,54 @@
       });
     }
 
-    itemModalEl.addEventListener('show.bs.modal', function (e) {
-      const btn = e.relatedTarget;
-      const q = itemModalEl.querySelector.bind(itemModalEl);
+    if (itemModalEl) {
+      itemModalEl.addEventListener('show.bs.modal', function (e) {
+        const btn = e.relatedTarget;
+        const q = itemModalEl.querySelector.bind(itemModalEl);
 
-      if (btn && btn.hasAttribute('data-id')) {
-        q('.modal-title').textContent = 'Edit School Item';
+        if (btn && btn.hasAttribute('data-id')) {
+          q('.modal-title').textContent = 'Edit School Item';
 
-        q('#m-id').value = btn.getAttribute('data-id') || '';
-        q('#m-itemCode').value = btn.getAttribute('data-itemcode') || '';
-        q('#m-itemName').value = btn.getAttribute('data-itemname') || '';
-        q('#m-description').value = btn.getAttribute('data-description') || '';
-        q('#m-specification').value = btn.getAttribute('data-specification') || '';
-        q('#m-brandModel').value = btn.getAttribute('data-brandmodel') || '';
-        q('#m-quantityOnHand').value = btn.getAttribute('data-quantity') || 0;
-        q('#m-category').value = btn.getAttribute('data-category') || '';
-        q('#m-condition').value = btn.getAttribute('data-condition') || '';
-        q('#m-status').value = btn.getAttribute('data-status') || '';
-        q('#m-supplier').value = btn.getAttribute('data-supplier') || '';
-        q('#m-shops').value = btn.getAttribute('data-shops') || '';
-        q('#m-purchaseDate').value = btn.getAttribute('data-purchasedate') || '';
-        q('#m-purchaseCost').value = btn.getAttribute('data-purchasecost') || 0;
+          q('#m-id').value = btn.getAttribute('data-id') || '';
+          q('#m-itemCode').value = btn.getAttribute('data-itemcode') || '';
+          q('#m-itemName').value = btn.getAttribute('data-itemname') || '';
+          q('#m-description').value = btn.getAttribute('data-description') || '';
+          q('#m-specification').value = btn.getAttribute('data-specification') || '';
+          q('#m-brandModel').value = btn.getAttribute('data-brandmodel') || '';
+          q('#m-quantityOnHand').value = btn.getAttribute('data-quantity') || 0;
+          q('#m-category').value = btn.getAttribute('data-category') || '';
+          q('#m-condition').value = btn.getAttribute('data-condition') || '';
+          q('#m-status').value = btn.getAttribute('data-status') || '';
+          q('#m-supplier').value = btn.getAttribute('data-supplier') || '';
+          q('#m-shops').value = btn.getAttribute('data-shops') || '';
+          q('#m-purchaseDate').value = btn.getAttribute('data-purchasedate') || '';
+          q('#m-purchaseCost').value = btn.getAttribute('data-purchasecost') || 0;
 
-        const imgUrl = btn.getAttribute('data-imageurl') || '/images/default-product.png';
-        q('#m-imageUrl').value = imgUrl;
-        q('#m-imagePreview').src = imgUrl;
-      } else {
-        q('.modal-title').textContent = 'Add School Item';
+          const imgUrl = btn.getAttribute('data-imageurl') || '/images/default-product.png';
+          q('#m-imageUrl').value = imgUrl;
+          q('#m-imagePreview').src = imgUrl;
+        } else {
+          q('.modal-title').textContent = 'Add School Item';
 
-        q('#m-id').value = '';
-        q('#m-itemCode').value = '';
-        q('#m-itemName').value = '';
-        q('#m-description').value = '';
-        q('#m-specification').value = '';
-        q('#m-brandModel').value = '';
-        q('#m-quantityOnHand').value = 0;
-        q('#m-category').value = '';
-        q('#m-condition').value = '';
-        q('#m-status').value = '';
-        q('#m-supplier').value = '';
-        q('#m-shops').value = '';
-        q('#m-purchaseDate').value = '';
-        q('#m-purchaseCost').value = 0;
-        q('#m-imageUrl').value = '';
-        q('#m-imagePreview').src = '/images/default-product.png';
-      }
-    });
+          q('#m-id').value = '';
+          q('#m-itemCode').value = '';
+          q('#m-itemName').value = '';
+          q('#m-description').value = '';
+          q('#m-specification').value = '';
+          q('#m-brandModel').value = '';
+          q('#m-quantityOnHand').value = 0;
+          q('#m-category').value = '';
+          q('#m-condition').value = '';
+          q('#m-status').value = '';
+          q('#m-supplier').value = '';
+          q('#m-shops').value = '';
+          q('#m-purchaseDate').value = '';
+          q('#m-purchaseCost').value = 0;
+          q('#m-imageUrl').value = '';
+          q('#m-imagePreview').src = '/images/default-product.png';
+        }
+      });
+    }
 
     // 🔹 Inventory modal – auto-fill today's date
     const inventoryModalEl = document.getElementById('inventoryModal');
@@ -1060,62 +1131,15 @@
       });
     }
 
-    // 🔹 When "Start Inventory" is clicked: close modal 1, open modal 2
-    const inventoryStartForm = document.getElementById('inventoryStartForm');
-    if (inventoryStartForm) {
-      inventoryStartForm.addEventListener('submit', function (e) {
-        e.preventDefault();
+    // 🔹 Inventory session state
+    let currentItemCode = null;
+    let currentItemName = null;
+    let currentItemCondition = null;
+    let currentItemStatus = null;
 
-        const inchargeInput = document.getElementById('inv-incharge');
-        const witnessesInput = document.getElementById('inv-witnesses');
-        const dateInput = document.getElementById('inv-date');
+    // per-item counts: { code: { originalQty, countedQty } }
+    const inventoryCounts = {};
 
-        const inchargeName = inchargeInput.value.trim();
-        if (!inchargeName) {
-          inchargeInput.classList.add('is-invalid');
-          return;
-        } else {
-          inchargeInput.classList.remove('is-invalid');
-        }
-
-        const witnesses = witnessesInput.value.trim();
-        const dateVal = dateInput.value;
-
-        // Fill summary in session modal
-        const summaryEl = document.getElementById('invSessionSummary');
-        if (summaryEl) {
-          const heading = document.getElementById('inventoryHeadingText')
-            ? document.getElementById('inventoryHeadingText').innerText
-            : 'School Items Inventory';
-
-          summaryEl.textContent =
-            heading + ' • ' +
-            (dateVal || 'Date not set') +
-            ' • In charge: ' + inchargeName +
-            (witnesses ? ' • Witnesses: ' + witnesses : '');
-        }
-
-        // Reset inventory session log
-        const logBody = $('#inventoryLogBody');
-        logBody.html(`
-          <tr>
-            <td colspan="7" class="text-center text-muted py-4">
-              No items scanned yet. Start by scanning an item code.
-            </td>
-          </tr>
-        `);
-        $('#invSessionCount').text('0 items scanned');
-        $('#inventoryScanInput').val('');
-        $('#inventoryScanMessage').text('');
-        resetInventoryItemPanel();
-
-        // Switch modals
-        if (inventoryModalInstance) inventoryModalInstance.hide();
-        if (inventorySessionModalInstance) inventorySessionModalInstance.show();
-      });
-    }
-
-    // 🔹 Helpers for inventory session modal
     function resetInventoryItemPanel() {
       $('#invItemImg').attr('src', '/images/default-product.png');
       $('#invItemName').text('-');
@@ -1125,38 +1149,155 @@
       $('#invItemCondition').text('-');
       $('#invItemStatus').text('-');
       $('#invItemQty').text('-');
+      $('#invQtyCount').text('0');
+      $('#invQtyOriginal').text('0');
+      currentItemCode = null;
+      currentItemName = null;
+      currentItemCondition = null;
+      currentItemStatus = null;
     }
 
     function updateInventorySessionCount() {
-      const count = $('#inventoryLogBody tr').length;
+      const rows = $('#inventoryLogBody tr');
+      if (rows.length === 1 && rows.find('td').length === 1) {
+        $('#invSessionCount').text('0 items scanned');
+        return;
+      }
+      const count = rows.length;
       const label = count === 1 ? '1 item scanned' : count + ' items scanned';
       $('#invSessionCount').text(label);
     }
 
-    function appendInventoryLogRow(code, name, qty, condition, status) {
+    function appendOrUpdateInventoryLogRow(code, name, countedQty, condition, originalQty) {
       const logBody = $('#inventoryLogBody');
       const now = new Date();
       const dateStr = now.toISOString().slice(0, 10);
       const timeStr = now.toLocaleTimeString('en-PH', { hour12: false });
 
-      // Remove placeholder row if present
-      if (logBody.find('tr td').length === 1) {
+      // Remove placeholder row if present (single td with colspan)
+      if (logBody.find('tr td').length === 1 && logBody.find('tr td').attr('colspan') === '8') {
         logBody.empty();
       }
 
-      logBody.append(`
-        <tr>
-          <td>${dateStr}</td>
-          <td>${timeStr}</td>
-          <td>${code}</td>
-          <td>${name}</td>
-          <td class="text-end">${qty}</td>
-          <td>${condition}</td>
-          <td>${status}</td>
-        </tr>
-      `);
+      // Determine auto status
+      let autoStatus = 'LACKING';
+      const isComplete = originalQty > 0 && countedQty >= originalQty;
+      if (isComplete) {
+        autoStatus = 'COMPLETE';
+      }
+
+      // Try to find existing row for this code
+      let existingRow = null;
+      logBody.find('tr').each(function () {
+        const rowCode = $(this).find('td:nth-child(3)').text().trim();
+        if (rowCode === code) {
+          existingRow = $(this);
+          return false;
+        }
+      });
+
+      if (!existingRow) {
+        // New row
+        const disabledAttr = isComplete ? ' disabled' : '';
+        const rowHtml = `
+          <tr>
+            <td>${dateStr}</td>
+            <td>${timeStr}</td>
+            <td>${code}</td>
+            <td>${name}</td>
+            <td class="text-end">${countedQty}</td>
+            <td>${condition}</td>
+            <td>
+              <select class="form-select form-select-sm inv-status-select"
+                      data-item-code="${code}"${disabledAttr}>
+                <option value="COMPLETE"${autoStatus === 'COMPLETE' ? ' selected' : ''}>COMPLETE</option>
+                <option value="LACKING"${autoStatus === 'LACKING' ? ' selected' : ''}>LACKING</option>
+                <option value="DAMAGED">DAMAGED</option>
+                <option value="LOST">LOST</option>
+              </select>
+            </td>
+            <td>
+              <input type="text"
+                     class="form-control form-control-sm inv-remarks-input"
+                     list="invRemarksOptions"
+                     placeholder="Remarks (optional)" />
+            </td>
+          </tr>
+        `;
+        logBody.append(rowHtml);
+
+        // style the newly-added select
+        const newSelect = logBody.find('tr:last-child').find('select.inv-status-select')[0];
+        if (newSelect) {
+          styleStatusSelect(newSelect);
+        }
+      } else {
+        // Update existing row
+        existingRow.find('td:nth-child(1)').text(dateStr);
+        existingRow.find('td:nth-child(2)').text(timeStr);
+        existingRow.find('td:nth-child(4)').text(name);
+        existingRow.find('td:nth-child(5)').text(countedQty);
+        existingRow.find('td:nth-child(6)').text(condition);
+
+        const selectEl = existingRow.find('select.inv-status-select');
+        const currentStatus = selectEl.val() || 'LACKING';
+
+        if (isComplete) {
+          selectEl.val('COMPLETE');
+          selectEl.prop('disabled', true);
+        } else {
+          // If still lacking, keep user's manual choice unless it is COMPLETE
+          if (currentStatus === 'COMPLETE') {
+            selectEl.val('LACKING');
+          }
+          selectEl.prop('disabled', false);
+        }
+
+        // apply color based on current value
+        styleStatusSelect(selectEl[0]);
+      }
 
       updateInventorySessionCount();
+    }
+
+    // 🔹 Color-coding for status select
+    function styleStatusSelect(selectEl) {
+      const val = selectEl.value;
+      // reset
+      selectEl.style.backgroundColor = '';
+      selectEl.style.color = '';
+
+      if (!val) return;
+
+      if (val === 'COMPLETE') {
+        selectEl.style.backgroundColor = '#22c55e';  // green
+        selectEl.style.color = '#ffffff';
+      } else if (val === 'LACKING') {
+        selectEl.style.backgroundColor = '#f97316';  // orange
+        selectEl.style.color = '#ffffff';
+      } else if (val === 'DAMAGED') {
+        selectEl.style.backgroundColor = '#ef4444';  // red
+        selectEl.style.color = '#ffffff';
+      } else if (val === 'LOST') {
+        selectEl.style.backgroundColor = '#4b5563';  // dark gray/slate
+        selectEl.style.color = '#ffffff';
+      }
+    }
+
+    // Delegate change event so manual changes also recolor
+    $(document).on('change', '.inv-status-select', function () {
+      styleStatusSelect(this);
+    });
+
+    function updateQtyUIForCurrentItem() {
+      if (!currentItemCode || !inventoryCounts[currentItemCode]) {
+        $('#invQtyCount').text('0');
+        $('#invQtyOriginal').text('0');
+        return;
+      }
+      const entry = inventoryCounts[currentItemCode];
+      $('#invQtyCount').text(entry.countedQty);
+      $('#invQtyOriginal').text(entry.originalQty);
     }
 
     function findItemRowByCode(code) {
@@ -1195,8 +1336,10 @@
       const condition = row.find('td:nth-child(9)').text().trim();
       const status = row.find('td:nth-child(10)').text().trim();
       const shop = row.find('td:nth-child(11)').text().trim();
-      const qty = row.find('td:nth-child(7)').text().trim();
+      const qtyText = row.find('td:nth-child(7)').text().trim();
+      const originalQty = parseInt(qtyText, 10) || 0;
 
+      // Update item panel
       $('#invItemImg').attr('src', imgSrc);
       $('#invItemName').text(itemName || '-');
       $('#invItemCodeLabel').text('Item Code: ' + (itemCode || '-'));
@@ -1204,13 +1347,108 @@
       $('#invItemCategory').text(category || '-');
       $('#invItemCondition').text(condition || '-');
       $('#invItemStatus').text(status || '-');
-      $('#invItemQty').text(qty || '-');
+      $('#invItemQty').text(originalQty);
 
-      appendInventoryLogRow(itemCode, itemName, qty, condition, status);
+      currentItemCode = itemCode;
+      currentItemName = itemName;
+      currentItemCondition = condition;
+      currentItemStatus = status;
+
+      // Initialize or sync counts
+      if (!inventoryCounts[itemCode]) {
+        inventoryCounts[itemCode] = {
+          originalQty: originalQty,
+          countedQty: 0
+        };
+      } else {
+        // Update originalQty in case changed
+        inventoryCounts[itemCode].originalQty = originalQty;
+      }
+
+      // Each scan increments by 1 up to max
+      const entry = inventoryCounts[itemCode];
+      if (entry.originalQty > 0 && entry.countedQty >= entry.originalQty) {
+        msgEl.text('You have already reached the maximum quantity for this item.');
+      } else {
+        entry.countedQty += 1;
+      }
+
+      updateQtyUIForCurrentItem();
+      appendOrUpdateInventoryLogRow(itemCode, itemName, entry.countedQty, condition, entry.originalQty);
+
       $('#inventoryScanInput').val('');
     }
 
-    // Scan input enter key
+    // 🔹 When "Start Inventory" is clicked: close modal 1, open modal 2
+    const inventoryStartForm = document.getElementById('inventoryStartForm');
+    if (inventoryStartForm) {
+      inventoryStartForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const inchargeInput = document.getElementById('inv-incharge');
+        const witnessesInput = document.getElementById('inv-witnesses');
+        const dateInput = document.getElementById('inv-date');
+
+        const inchargeName = inchargeInput.value.trim();
+        if (!inchargeName) {
+          inchargeInput.classList.add('is-invalid');
+          return;
+        } else {
+          inchargeInput.classList.remove('is-invalid');
+        }
+
+        const witnesses = witnessesInput.value.trim();
+        const dateVal = dateInput.value;
+        // Save metadata for this session
+inventorySessionMeta = {
+  date: dateVal,
+  inCharge: inchargeName,
+  witnesses: witnesses
+};
+
+
+        // Fill summary in session modal
+        const summaryEl = document.getElementById('invSessionSummary');
+        if (summaryEl) {
+          const heading = document.getElementById('inventoryHeadingText')
+            ? document.getElementById('inventoryHeadingText').innerText
+            : 'School Items Inventory';
+
+          summaryEl.textContent =
+            heading + ' • ' +
+            (dateVal || 'Date not set') +
+            ' • In charge: ' + inchargeName +
+            (witnesses ? ' • Witnesses: ' + witnesses : '');
+        }
+
+        // Reset inventory session log
+        const logBody = $('#inventoryLogBody');
+        logBody.html(`
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+              No items scanned yet. Start by scanning an item code.
+            </td>
+          </tr>
+        `);
+        $('#invSessionCount').text('0 items scanned');
+        $('#inventoryScanInput').val('');
+        $('#inventoryScanMessage').text('');
+        resetInventoryItemPanel();
+
+        // Reset counts state
+        for (const key in inventoryCounts) {
+          if (Object.hasOwn(inventoryCounts, key)) {
+            delete inventoryCounts[key];
+          }
+        }
+
+        // Switch modals
+        if (inventoryModalInstance) inventoryModalInstance.hide();
+        if (inventorySessionModalInstance) inventorySessionModalInstance.show();
+      });
+    }
+
+    // 🔹 Scan input enter key
     $('#inventoryScanInput').on('keypress', function (e) {
       if (e.which === 13) { // Enter
         e.preventDefault();
@@ -1220,8 +1458,147 @@
       }
     });
 
+    // 🔹 Plus / Minus buttons for current item
+    $('#invQtyPlus').on('click', function () {
+      if (!currentItemCode || !inventoryCounts[currentItemCode]) return;
+      const entry = inventoryCounts[currentItemCode];
+      if (entry.originalQty > 0 && entry.countedQty >= entry.originalQty) {
+        $('#inventoryScanMessage').text('You have already reached the maximum quantity for this item.');
+        return;
+      }
+      entry.countedQty += 1;
+      $('#inventoryScanMessage').text('');
+      updateQtyUIForCurrentItem();
+      appendOrUpdateInventoryLogRow(currentItemCode, currentItemName, entry.countedQty, currentItemCondition, entry.originalQty);
+    });
+
+    $('#invQtyMinus').on('click', function () {
+      if (!currentItemCode || !inventoryCounts[currentItemCode]) return;
+      const entry = inventoryCounts[currentItemCode];
+      if (entry.countedQty <= 0) return;
+      entry.countedQty -= 1;
+      $('#inventoryScanMessage').text('');
+      updateQtyUIForCurrentItem();
+      appendOrUpdateInventoryLogRow(currentItemCode, currentItemName, entry.countedQty, currentItemCondition, entry.originalQty);
+    });
+
+    // 🔹 Cancel + Finish buttons for Inventory Session
+    const invCancelBtn = document.getElementById('invCancelBtn');
+    if (invCancelBtn) {
+      invCancelBtn.addEventListener('click', function () {
+        const ok = confirm("Are you sure you want to cancel? You'll be start from the beginning of your progress.");
+        if (!ok) return;
+
+        // Reset log table
+        const logBody = $('#inventoryLogBody');
+        logBody.html(`
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+              No items scanned yet. Start by scanning an item code.
+            </td>
+          </tr>
+        `);
+        $('#invSessionCount').text('0 items scanned');
+        $('#inventoryScanInput').val('');
+        $('#inventoryScanMessage').text('');
+        resetInventoryItemPanel();
+
+        // Clear counts
+        for (const key in inventoryCounts) {
+          if (Object.hasOwn(inventoryCounts, key)) {
+            delete inventoryCounts[key];
+          }
+        }
+
+        if (inventorySessionModalInstance) inventorySessionModalInstance.hide();
+      });
+    }
+
+    const invFinishBtn = document.getElementById('invFinishBtn');
+if (invFinishBtn) {
+  invFinishBtn.addEventListener('click', function () {
+    const logBody = $('#inventoryLogBody');
+    const rows = logBody.find('tr');
+
+    // If only placeholder row, nothing to save
+    if (rows.length === 1 && rows.find('td').attr('colspan') === '8') {
+      alert('No items scanned yet. Nothing to save.');
+      return;
+    }
+
+    // Build entries array
+    const entries = [];
+    rows.each(function () {
+      const tds = $(this).find('td');
+      if (tds.length !== 8) return; // skip invalid rows
+
+      const date = tds.eq(0).text().trim();
+      const time = tds.eq(1).text().trim();
+      const itemCode = tds.eq(2).text().trim();
+      const itemName = tds.eq(3).text().trim();
+      const qty = parseInt(tds.eq(4).text().trim(), 10) || 0;
+      const condition = tds.eq(5).text().trim();
+      const status = $(this).find('select.inv-status-select').val() || '';
+      const remarks = $(this).find('input.inv-remarks-input').val() || '';
+
+      entries.push({
+        date: date,
+        time: time,
+        itemCode: itemCode,
+        itemName: itemName,
+        quantity: qty,
+        condition: condition,
+        status: status,
+        remarks: remarks
+      });
+    });
+
+    if (entries.length === 0) {
+      alert('No valid rows to save.');
+      return;
+    }
+
+    // Prepare payload
+    const payload = {
+      sessionDate: inventorySessionMeta.date,
+      inCharge: inventorySessionMeta.inCharge,
+      witnesses: inventorySessionMeta.witnesses,
+      entries: entries
+    };
+
+    // CSRF headers
+    const csrfToken = $('meta[name="_csrf"]').attr('content');
+    const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+    $.ajax({
+      url: '/schoolitems/inventory/save',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(payload),
+      beforeSend: function (xhr) {
+        if (csrfHeader && csrfToken) {
+          xhr.setRequestHeader(csrfHeader, csrfToken);
+        }
+      },
+      success: function () {
+        alert('Inventory session saved successfully.');
+        if (inventorySessionModalInstance) inventorySessionModalInstance.hide();
+        location.reload(); // optional: refresh page
+      },
+      error: function (xhr) {
+        console.error(xhr);
+        alert('Failed to save inventory session. Please try again.');
+      }
+    });
+  });
+}
+
+
   });
 </script>
 
 </body>
 </html>
+
+
+

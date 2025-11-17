@@ -172,7 +172,7 @@
       <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
          data-bs-toggle="collapse" data-bs-target="#eventsAttendanceLog" role="button" aria-controls="eventsAttendanceLog">
         <span class="d-flex align-items-center gap-2">
-          <i class="bi bi-calendar-event"></i><span class="sidebar-text">Events</span>
+          <i class="bi bi-calendar-event"></i><span class="sidebar-text">Student Clubs</span>
         </span>
         <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
       </a>
@@ -222,14 +222,15 @@
         </a>
       </li>
 
-      <!-- Inventory Report -->
-      <li class="nav-item mb-1">
-        <a th:href="@{/inventory-report}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'inventory-report' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Inventory Report
-        </a>
-      </li>
+     <!-- Inventory Report -->
+<li class="nav-item mb-1">
+  <a th:href="@{/schoolitems/inventory/report}"
+     class="nav-link text-white-50 rounded-2 py-2"
+     th:classappend="${activePage} == 'inventory-report' ? 'active bg-primary text-white'">
+    <i class="bi bi-dot me-1"></i>Inventory Report
+  </a>
+</li>
+
 
     </ul>
   </div>

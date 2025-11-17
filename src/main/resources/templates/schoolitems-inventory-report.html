@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Items Inventory Report - Sisters of Mary Schools</title>
+
+  <!-- CSRF (optional, if Spring Security enabled) -->
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+  <!-- DataTables core -->
+  <link rel="stylesheet"
+        href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+  <!-- DataTables Buttons (for CSV export) -->
+  <link rel="stylesheet"
+        href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      color: #334155;
+      margin: 0;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 2.5rem;
+      position: relative;
+    }
+
+    .content-area > .wrap {
+      max-width: 1650px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, .06);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+    }
+
+    .page-header .card-body {
+      padding: 2rem;
+    }
+
+    .page-header h2 {
+      color: #1e293b;
+      font-weight: 800;
+      font-size: 1.75rem;
+      margin-bottom: .5rem;
+    }
+
+    .btn-custom {
+      border-radius: 12px;
+      font-weight: 600;
+      padding: .6rem 1.2rem;
+      transition: .3s;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, .1);
+      border: none;
+    }
+
+    .btn-custom:hover {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .btn-primary.btn-custom {
+      background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+    }
+
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow:
+        0 12px 40px rgba(0, 0, 0, .1),
+        0 4px 16px rgba(65, 105, 225, .08);
+      background: #fff;
+    }
+
+    .table th, .table td {
+      vertical-align: middle;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.5rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .table thead th {
+      background-color: #e5f0ff;
+      border-bottom: 2px solid #cbd5e1;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .table thead th.main-col {
+      background-color: #dbeafe;
+    }
+
+    .img-thumb {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #f8fafc;
+    }
+
+    /* DataTables cosmetics */
+    .dataTables_wrapper {
+      padding: 0.5rem 0.5rem 1.25rem;
+    }
+
+    /* hide built-in search to use our custom one */
+    .dataTables_filter {
+      display: none;
+    }
+
+    .dataTables_wrapper .dataTables_length select {
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      padding: 4px 10px;
+      max-width: 2000px;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      border-radius: 10px;
+      border: 2px solid #e2e8f0;
+      padding: 4px 10px;
+      margin: 0 2px;
+      background: #fff;
+      color: #4169e1 !important;
+      font-size: 0.8rem;
+    }
+
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background: #4169e1 !important;
+      color: #fff !important;
+      border-color: #4169e1;
+    }
+
+    .filters-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    /* ===== REPORT TABLE WRAPPER ===== */
+    .report-table-wrapper {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      overflow-x: auto;
+      padding: 0.5rem 0.5rem 1rem;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 8px 25px rgba(15, 23, 42, 0.1);
+    }
+
+    .report-table-scroll {
+      width: max-content;
+      min-width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .report-table-scroll table {
+      border-collapse: collapse;
+      white-space: nowrap;
+    }
+
+    .report-table-scroll thead th {
+      background: #e9f0ff;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    @media (max-width: 1200px) {
+      .report-table-wrapper {
+        width: 90%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+      }
+      .content-area {
+        padding: 1.5rem;
+      }
+      .page-header .card-body {
+        padding: 1.25rem;
+      }
+      .report-table-wrapper {
+        width: 100%;
+      }
+      .table {
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-container">
+
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(
+           role=${role},
+           activePage='inventory-report',
+           studentInfoExpanded=${studentInfoExpanded},
+           asmsiExpanded=${asmsiExpanded},
+           admissionExpanded=${admissionExpanded},
+           attendanceExpanded=${attendanceExpanded},
+           eventsExpanded=${eventsExpanded},
+           familyDayExpanded=${familyDayExpanded})">
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Header -->
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <!-- Page Body -->
+    <main class="content-area">
+      <div class="wrap">
+
+        <!-- Page Header -->
+        <div class="page-header card mb-4">
+          <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <h2>
+                <i class="bi bi-clipboard-data me-3"></i>
+                School Items Inventory Report
+              </h2>
+              <p class="mb-0 text-muted">
+                Form-style monthly report for each school item from January to December.
+              </p>
+            </div>
+
+            <!-- Year selector + CSV -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <form class="d-flex align-items-center gap-2"
+      method="get"
+      th:action="@{/schoolitems/inventory/report(shop=${selectedShop})}">
+
+                <span class="filters-label">Year</span>
+                <select id="yearSelect" name="year" class="form-select form-select-sm">
+                  <option th:each="y : ${years}"
+                          th:value="${y}"
+                          th:text="${y}"
+                          th:selected="${y} == ${selectedYear}">
+                  </option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-custom btn-sm">
+                  <i class="bi bi-arrow-repeat me-1"></i>Apply
+                </button>
+              </form>
+
+              <!-- CSV Download button -->
+              <button id="exportCsvBtn"
+                      type="button"
+                      class="btn btn-outline-success btn-custom btn-sm">
+                <i class="bi bi-download me-1"></i>Download CSV
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEARCH + FILTERS CARD -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="row g-3">
+              <!-- SEARCH full width -->
+              <div class="col-12">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-search me-1"></i>Search
+                </label>
+                <input type="text"
+                       id="reportSearch"
+                       class="form-control"
+                       placeholder="Search by item code, item name, shop..." />
+              </div>
+
+              <!-- FILTERS -->
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                  <span class="fw-semibold text-muted">
+                    <i class="bi bi-funnel me-1"></i>Filters
+                  </span>
+                  <button id="reportResetFilters" type="button"
+                          class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset filters
+                  </button>
+                </div>
+
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <select id="filterCondition" class="form-select form-select-sm">
+                      <option value="">All Condition</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <select id="filterShop" class="form-select form-select-sm">
+                      <option value="">All Shops</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <select id="filterQty" class="form-select form-select-sm">
+                      <option value="">All Qty on Hand</option>
+                      <option value="0">0</option>
+                      <option value="1-5">1 - 5</option>
+                      <option value="6-10">6 - 10</option>
+                      <option value=">10">&gt; 10</option>
+                    </select>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REPORT TABLE -->
+        <div class="report-table-wrapper">
+          <div class="report-table-scroll">
+            <table id="inventoryReportTable"
+                   class="table table-hover table-bordered align-middle text-center">
+              <thead>
+              <!-- Header row 1 -->
+              <tr>
+                <th class="main-col" rowspan="2">Picture</th>
+                <th class="main-col" rowspan="2">Item Code</th>
+                <th class="main-col" rowspan="2">Item Name</th>
+                <th class="main-col" rowspan="2">Qty on Hand</th>
+                <th class="main-col" rowspan="2">Condition</th>
+                <th class="main-col" rowspan="2">Shops</th>
+
+                <th colspan="3">JANUARY</th>
+                <th colspan="3">FEBRUARY</th>
+                <th colspan="3">MARCH</th>
+                <th colspan="3">APRIL</th>
+                <th colspan="3">MAY</th>
+                <th colspan="3">JUNE</th>
+                <th colspan="3">JULY</th>
+                <th colspan="3">AUGUST</th>
+                <th colspan="3">SEPTEMBER</th>
+                <th colspan="3">OCTOBER</th>
+                <th colspan="3">NOVEMBER</th>
+                <th colspan="3">DECEMBER</th>
+              </tr>
+              <!-- Header row 2 -->
+              <tr>
+                <!-- Each month: STATUS, COMMENTS, IN CHARGE -->
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+                <th>STATUS</th><th>COMMENTS</th><th>IN CHARGE</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="item : ${items}">
+                <td>
+                  <img th:src="${item.imageUrl} ?: @{/images/default-product.png}"
+                       alt="Item Picture" class="img-thumb" />
+                </td>
+                <td th:text="${item.itemCode}">sms001</td>
+                <td th:text="${item.itemName}">Sample Item</td>
+                <td th:text="${item.quantityOnHand}">0</td>
+                <td th:text="${item.condition}">New</td>
+                <td th:text="${item.shops}">ELECTRICAL SHOP</td>
+
+                <!-- Helper for this row: all logs for this item -->
+                <th:block th:with="monthMap=${itemMonthLogs[item.itemCode]}">
+
+                  <!-- JANUARY (1) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[1]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[1]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[1]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- FEBRUARY (2) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[2]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[2]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[2]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- MARCH (3) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[3]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[3]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[3]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- APRIL (4) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[4]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[4]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[4]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- MAY (5) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[5]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[5]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[5]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- JUNE (6) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[6]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[6]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[6]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- JULY (7) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[7]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[7]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[7]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- AUGUST (8) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[8]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[8]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[8]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- SEPTEMBER (9) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[9]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[9]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[9]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- OCTOBER (10) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[10]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[10]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[10]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- NOVEMBER (11) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[11]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[11]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[11]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                  <!-- DECEMBER (12) -->
+                  <td th:with="log=${monthMap == null ? null : monthMap[12]}"
+                      th:text="${log == null ? '' : log.quantity + ' - ' + log.status}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[12]}"
+                      th:text="${log == null ? '' : log.remarks}"></td>
+                  <td th:with="log=${monthMap == null ? null : monthMap[12]}"
+                      th:text="${log == null ? '' : log.inCharge}"></td>
+
+                </th:block>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script
+  src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<!-- DataTables Buttons (for CSV export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+<script>
+  $(function () {
+    // Init DataTable with Buttons (hidden CSV button)
+    const table = $('#inventoryReportTable').DataTable({
+      pageLength: 20,
+      lengthChange: true,
+      ordering: false,
+      dom: 'Blrtip',
+      buttons: [
+        {
+          extend: 'csvHtml5',
+          title: function () {
+            const year = $('#yearSelect').val() || '';
+            return 'School_Items_Inventory_Report_' + year;
+          },
+          className: 'buttons-csv d-none',
+          exportOptions: {
+            columns: ':visible',
+            modifier: {
+              search: 'applied',
+              order: 'applied'
+            }
+          }
+        }
+      ],
+      language: {
+        search: "",
+        lengthMenu: "Show _MENU_ rows"
+      }
+    });
+
+    // ===== STATUS COLOR-CODING (applies to "3 - COMPLETE", "1 - LACKING", etc.) =====
+    function applyStatusColors() {
+      $('#inventoryReportTable tbody td').each(function () {
+        const cell = this;
+        const raw = $(cell).text().trim();
+
+        // reset first
+        cell.style.backgroundColor = '';
+        cell.style.color = '';
+
+        if (!raw) return;
+
+        // look for "- COMPLETE", "- LACKING", "- DAMAGED", "- LOST"
+        const match = raw.match(/-\s*(COMPLETE|LACKING|DAMAGED|LOST)\b/i);
+        if (!match) return;
+
+        const statusPart = match[1].toUpperCase();
+
+        if (statusPart === 'COMPLETE') {
+          cell.style.backgroundColor = '#22c55e';   // green
+          cell.style.color = '#ffffff';
+        } else if (statusPart === 'LACKING') {
+          cell.style.backgroundColor = '#f97316';   // orange
+          cell.style.color = '#ffffff';
+        } else if (statusPart === 'DAMAGED') {
+          cell.style.backgroundColor = '#ef4444';   // red
+          cell.style.color = '#ffffff';
+        } else if (statusPart === 'LOST') {
+          cell.style.backgroundColor = '#4b5563';   // dark gray
+          cell.style.color = '#ffffff';
+        }
+      });
+    }
+
+    // run once on load + every redraw
+    applyStatusColors();
+    table.on('draw', applyStatusColors);
+
+    // ===== CSV download button =====
+    $('#exportCsvBtn').on('click', function () {
+      table.button('.buttons-csv').trigger();
+    });
+
+    // ===== Global search =====
+    $('#reportSearch').on('keyup change', function () {
+      table.search(this.value).draw();
+    });
+
+    // ===== Populate condition + shop filters from table data =====
+    function populateFilter(selectId, colIndex) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+
+      while (select.options.length > 1) {
+        select.remove(1);
+      }
+
+      const unique = new Set();
+      table.column(colIndex).data().each(function (val) {
+        const text = (val || '').toString().trim();
+        if (!text) return;
+
+        const clean = text.replace(/<[^>]*>/g, '').trim();
+        if (clean) unique.add(clean);
+      });
+
+      Array.from(unique)
+        .sort((a, b) => a.localeCompare(b))
+        .forEach(v => {
+          const opt = document.createElement('option');
+          opt.value = v;
+          opt.textContent = v;
+          select.appendChild(opt);
+        });
+    }
+
+    // Column indexes:
+    // 0 Picture, 1 Item Code, 2 Item Name, 3 Qty, 4 Condition, 5 Shops
+    populateFilter('filterCondition', 4);
+    populateFilter('filterShop', 5);
+
+    // ===== Exact-match filters =====
+    function bindExactFilter(selectId, colIndex) {
+      $('#' + selectId).on('change', function () {
+        const val = this.value;
+        if (val) {
+          table.column(colIndex)
+               .search('^' + $.fn.dataTable.util.escapeRegex(val) + '$', true, false)
+               .draw();
+        } else {
+          table.column(colIndex)
+               .search('', true, false)
+               .draw();
+        }
+      });
+    }
+
+    bindExactFilter('filterCondition', 4);
+    bindExactFilter('filterShop', 5);
+
+    // ===== Qty range filter for column 3 =====
+    $.fn.dataTable.ext.search.push(function (settings, data) {
+      if (settings.nTable !== document.getElementById('inventoryReportTable')) {
+        return true;
+      }
+
+      const qtyStr = data[3] || '0';
+      const qty = parseInt(qtyStr, 10) || 0;
+      const filterVal = $('#filterQty').val();
+
+      if (!filterVal) return true;
+      if (filterVal === '0') return qty === 0;
+      if (filterVal === '1-5') return qty >= 1 && qty <= 5;
+      if (filterVal === '6-10') return qty >= 6 && qty <= 10;
+      if (filterVal === '>10') return qty > 10;
+      return true;
+    });
+
+    $('#filterQty').on('change', function () {
+      table.draw();
+    });
+
+    // ===== Reset filters =====
+    $('#reportResetFilters').on('click', function () {
+      $('#reportSearch').val('');
+      table.search('');
+
+      $('#filterCondition, #filterShop, #filterQty').val('');
+
+      table.column(4).search('', true, false);
+      table.column(5).search('', true, false);
+
+      table.draw();
+    });
+  });
+</script>
+
+
+
+
+</body>
+</html>

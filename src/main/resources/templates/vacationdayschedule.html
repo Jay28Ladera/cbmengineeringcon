@@ -631,114 +631,105 @@
 
     // Render the listing table on top (with editable type-ahead fields)
     function renderScheduledTable() {
-      const tbody = document.getElementById("scheduled-table-body");
-      if (!tbody) return;
+  const tbody = document.getElementById("scheduled-table-body");
+  if (!tbody) return;
 
-      if (scheduledBatches.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="8" class="text-muted py-3">
-              <i class="bi bi-info-circle me-1"></i>No schedules set yet.
-            </td>
-          </tr>`;
-        return;
-      }
+  if (scheduledBatches.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-muted py-3">
+          <i class="bi bi-info-circle me-1"></i>No schedules set yet.
+        </td>
+      </tr>`;
+    return;
+  }
 
-      const today = toLocalDateStringYMD(new Date());
-      tbody.innerHTML = "";
-      let displayed = 0;
+  tbody.innerHTML = "";
+  let displayed = 0;
 
-      scheduledBatches.forEach((s, idx) => {
-        let dateText = "-";
-        let includeToday = false;
+  scheduledBatches.forEach((s, idx) => {
+    let dateText = "-";
 
-        const rawDate = s.estDateTime || s.datetime; // support both names
-        if (rawDate) {
-          const d = new Date(rawDate);
-          if (!isNaN(d.getTime())) {
-            dateText = d.toLocaleString("en-US", {
-              dateStyle: "medium",
-              timeStyle: "short"
-            });
-            const rowDate = toLocalDateStringYMD(d);
-            if (rowDate === today) {
-              includeToday = true;
-            }
-          }
-        }
-
-        // Only show schedules whose date is today
-        if (!includeToday) {
-          return;
-        }
-        displayed++;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${s.via}</td>
-          <td><span class="badge bg-secondary">${s.totalStudents ?? 0}</span></td>
-          <td><span class="badge bg-primary">${s.loggedIn ?? 0}</span></td>
-          <td>${dateText}</td>
-
-          <td>
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              list="venue-options"
-              value="${s.venue ? s.venue.replace(/"/g,'&quot;') : ''}"
-              placeholder="Select or type"
-              onchange="updateScheduledField(${idx}, 'venue', this.value)"
-              onblur="updateScheduledField(${idx}, 'venue', this.value)"
-            />
-          </td>
-
-          <td>
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              list="vehicle-options"
-              value="${s.vehicle ? s.vehicle.replace(/"/g,'&quot;') : ''}"
-              placeholder="Select or type"
-              onchange="updateScheduledField(${idx}, 'vehicle', this.value)"
-              onblur="updateScheduledField(${idx}, 'vehicle', this.value)"
-            />
-          </td>
-
-          <td>
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              list="status-options"
-              value="${(s.status || 'On Time').replace(/"/g,'&quot;')}"
-              placeholder="Select or type"
-              onchange="updateScheduledField(${idx}, 'status', this.value)"
-              onblur="updateScheduledField(${idx}, 'status', this.value)"
-            />
-          </td>
-
-          <td>
-            <input
-              type="text"
-              class="form-control form-control-sm"
-              list="message-options"
-              value="${(s.message || '').replace(/"/g,'&quot;') || 'None'}"
-              placeholder="Select or type"
-              onchange="updateScheduledField(${idx}, 'message', this.value)"
-              onblur="updateScheduledField(${idx}, 'message', this.value)"
-            />
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      if (displayed === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="8" class="text-muted py-3">
-              <i class="bi bi-info-circle me-1"></i>No schedules for today.</td>
-          </tr>`;
+    const rawDate = s.estDateTime || s.datetime; // support both names
+    if (rawDate) {
+      const d = new Date(rawDate);
+      if (!isNaN(d.getTime())) {
+        dateText = d.toLocaleString("en-US", {
+          dateStyle: "medium",
+          timeStyle: "short"
+        });
       }
     }
+
+    displayed++;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${s.via}</td>
+      <td><span class="badge bg-secondary">${s.totalStudents ?? 0}</span></td>
+      <td><span class="badge bg-primary">${s.loggedIn ?? 0}</span></td>
+      <td>${dateText}</td>
+
+      <td>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          list="venue-options"
+          value="${s.venue ? s.venue.replace(/"/g,'&quot;') : ''}"
+          placeholder="Select or type"
+          onchange="updateScheduledField(${idx}, 'venue', this.value)"
+          onblur="updateScheduledField(${idx}, 'venue', this.value)"
+        />
+      </td>
+
+      <td>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          list="vehicle-options"
+          value="${s.vehicle ? s.vehicle.replace(/"/g,'&quot;') : ''}"
+          placeholder="Select or type"
+          onchange="updateScheduledField(${idx}, 'vehicle', this.value)"
+          onblur="updateScheduledField(${idx}, 'vehicle', this.value)"
+        />
+      </td>
+
+      <td>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          list="status-options"
+          value="${(s.status || 'On Time').replace(/"/g,'&quot;')}"
+          placeholder="Select or type"
+          onchange="updateScheduledField(${idx}, 'status', this.value)"
+          onblur="updateScheduledField(${idx}, 'status', this.value)"
+        />
+      </td>
+
+      <td>
+        <input
+          type="text"
+          class="form-control form-control-sm"
+          list="message-options"
+          value="${(s.message || '').replace(/"/g,'&quot;') || 'None'}"
+          placeholder="Select or type"
+          onchange="updateScheduledField(${idx}, 'message', this.value)"
+          onblur="updateScheduledField(${idx}, 'message', this.value)"
+        />
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  if (displayed === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="text-muted py-3">
+          <i class="bi bi-info-circle me-1"></i>No schedules found.</td>
+      </tr>`;
+  }
+}
+
 
     // Init
     setInterval(updateClock, 1000);
