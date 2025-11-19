@@ -8,33 +8,34 @@ import com.asmsi.admin_system.entity.Shop;
 import com.asmsi.admin_system.repository.InventoryLogRepository;
 import com.asmsi.admin_system.repository.SchoolItemRepository;
 import com.asmsi.admin_system.repository.ShopRepository;
+import com.google.zxing.BarcodeFormat;
+
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.oned.Code128Writer;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import java.util.Objects;
+import org.springframework.web.server.ResponseStatusException;
 
-
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.URL;
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-
-
-
-
-
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 public class ItemInventoryController {
@@ -50,6 +51,7 @@ public class ItemInventoryController {
 
     // --------------------------------------------------
     // PAGE: School Items Inventory
+    // URL: /schoolitems[?shop=...]
     // --------------------------------------------------
     @GetMapping("/schoolitems")
     public String showSchoolItemsPage(
@@ -115,7 +117,8 @@ public class ItemInventoryController {
             if (payload.getSessionDate() != null && !payload.getSessionDate().isBlank()) {
                 sessionDate = LocalDate.parse(payload.getSessionDate());
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
 
         List<InventoryLog> logs = new ArrayList<>();
         for (InventoryEntryDto e : payload.getEntries()) {
@@ -139,119 +142,263 @@ public class ItemInventoryController {
     }
 
     // --------------------------------------------------
-// PAGE: Inventory Report (logs) with Year filter
-// URL: /schoolitems/inventory/report
-// --------------------------------------------------
-@GetMapping("/schoolitems/inventory/report")
-public String showInventoryReport(
-        @RequestParam(value = "year", required = false) Integer year,
-        @RequestParam(value = "shop", required = false) String shop,
-        Model model) {
+    // PAGE: Inventory Report (logs) with Year + optional Shop filter
+    // URL: /schoolitems/inventory/report?year=2025&shop=MACHINING
+    // --------------------------------------------------
+    @GetMapping("/schoolitems/inventory/report")
+    public String showInventoryReport(
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "shop", required = false) String shop,
+            Model model) {
 
-    // ------- auth / header -------
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth != null && auth.isAuthenticated()) {
-        String username = auth.getName();
-        String role = auth.getAuthorities().stream()
-                .findFirst()
-                .map(Object::toString)
-                .orElse("ROLE_USER");
+        // ------- auth / header -------
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated()) {
+            String username = auth.getName();
+            String role = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(Object::toString)
+                    .orElse("ROLE_USER");
 
-        model.addAttribute("username", username);
-        model.addAttribute("role", role);
-    } else {
-        model.addAttribute("username", "Guest");
-        model.addAttribute("role", "Unknown");
-    }
-
-    int currentYear = LocalDate.now().getYear();
-    int selectedYear = (year != null) ? year : currentYear;
-
-    LocalDate start = LocalDate.of(selectedYear, 1, 1);
-    LocalDate end   = LocalDate.of(selectedYear, 12, 31);
-
-    // ---------- ITEMS ----------
-    // load all items once
-    List<SchoolItem> allItems = schoolItemRepository.findAll();
-
-    // if ?shop=... is present, filter in Java; otherwise show all
-    List<SchoolItem> items;
-    if (shop != null && !shop.isBlank()) {
-        String shopLower = shop.trim().toLowerCase();
-        items = allItems.stream()
-                .filter(it -> it.getShops() != null &&
-                        it.getShops().toLowerCase().contains(shopLower))
-                .collect(Collectors.toList());
-    } else {
-        items = allItems;
-    }
-
-    // ---------- LOGS ----------
-    // logs for the whole year
-    List<InventoryLog> logs =
-            inventoryLogRepository.findBySessionDateBetween(start, end);
-
-    // if we are filtering by shop, keep only logs whose itemCode is in "items"
-    if (shop != null && !shop.isBlank()) {
-        Set<String> itemCodesForThisReport = items.stream()
-                .map(SchoolItem::getItemCode)
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .collect(Collectors.toSet());
-
-        logs = logs.stream()
-                .filter(log -> {
-                    String code = log.getItemCode();
-                    return code != null && itemCodesForThisReport.contains(code.trim());
-                })
-                .collect(Collectors.toList());
-    }
-
-    // Map<itemCode, Map<month(1-12), InventoryLog>>
-    Map<String, Map<Integer, InventoryLog>> itemMonthLogs = new HashMap<>();
-
-    for (InventoryLog log : logs) {
-        if (log.getItemCode() == null || log.getSessionDate() == null) {
-            continue;
-        }
-        String code = log.getItemCode().trim();
-        int month = log.getSessionDate().getMonthValue(); // 1..12
-
-        Map<Integer, InventoryLog> monthMap =
-                itemMonthLogs.computeIfAbsent(code, c -> new HashMap<>());
-
-        InventoryLog existing = monthMap.get(month);
-        if (existing == null) {
-            monthMap.put(month, log);
+            model.addAttribute("username", username);
+            model.addAttribute("role", role);
         } else {
-            LocalDateTime existingTime = existing.getLoggedAt();
-            LocalDateTime newTime = log.getLoggedAt();
-            if (existingTime == null || (newTime != null && newTime.isAfter(existingTime))) {
+            model.addAttribute("username", "Guest");
+            model.addAttribute("role", "Unknown");
+        }
+
+        int currentYear = LocalDate.now().getYear();
+        int selectedYear = (year != null) ? year : currentYear;
+
+        LocalDate start = LocalDate.of(selectedYear, 1, 1);
+        LocalDate end = LocalDate.of(selectedYear, 12, 31);
+
+        // all items
+        List<SchoolItem> items = schoolItemRepository.findAll();
+
+        // filter items by shop (same logic as /schoolitems)
+        if (shop != null && !shop.isBlank()) {
+            String shopTrimmed = shop.trim();
+            items = items.stream()
+                    .filter(i -> {
+                        String s = i.getShops();
+                        if (s == null) return false;
+                        return shopTrimmed.equalsIgnoreCase(s.trim());
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // all logs for that year
+        List<InventoryLog> logs =
+                inventoryLogRepository.findBySessionDateBetween(start, end);
+
+        // If a shop is selected, keep only logs whose itemCode belongs to that shop's items
+        if (shop != null && !shop.isBlank()) {
+            Set<String> itemCodesForThisReport = items.stream()
+                    .map(SchoolItem::getItemCode)
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(code -> !code.isEmpty())
+                    .collect(Collectors.toSet());
+
+            logs = logs.stream()
+                    .filter(log -> {
+                        String code = log.getItemCode();
+                        if (code == null) return false;
+                        return itemCodesForThisReport.contains(code.trim());
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        // Map<itemCode, Map<month(1-12), InventoryLog>>
+        Map<String, Map<Integer, InventoryLog>> itemMonthLogs = new HashMap<>();
+
+        for (InventoryLog log : logs) {
+            if (log.getItemCode() == null || log.getSessionDate() == null) {
+                continue;
+            }
+            String code = log.getItemCode().trim();
+            int month = log.getSessionDate().getMonthValue(); // 1..12
+
+            Map<Integer, InventoryLog> monthMap =
+                    itemMonthLogs.computeIfAbsent(code, c -> new HashMap<>());
+
+            InventoryLog existing = monthMap.get(month);
+            if (existing == null) {
                 monthMap.put(month, log);
+            } else {
+                // keep the *latest* log for that month
+                LocalDateTime existingTime = existing.getLoggedAt();
+                LocalDateTime newTime = log.getLoggedAt();
+                if (existingTime == null || (newTime != null && newTime.isAfter(existingTime))) {
+                    monthMap.put(month, log);
+                }
             }
         }
+
+        // Years for dropdown (based on logs)
+        Set<Integer> years = inventoryLogRepository.findAll().stream()
+                .filter(l -> l.getSessionDate() != null)
+                .map(l -> l.getSessionDate().getYear())
+                .collect(Collectors.toSet());
+        years.add(currentYear); // ensure current year is present
+
+        List<Integer> yearList = years.stream()
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
+
+        List<Shop> allShops = shopRepository.findAll();
+
+        model.addAttribute("items", items);
+        model.addAttribute("itemMonthLogs", itemMonthLogs);
+        model.addAttribute("years", yearList);
+        model.addAttribute("selectedYear", selectedYear);
+        model.addAttribute("selectedShop", shop);
+        model.addAttribute("allShops", allShops);
+        model.addAttribute("activePage", "inventory-report");
+
+        return "schoolitems-inventory-report";
     }
 
-    // Years for dropdown (based on logs)
-    Set<Integer> years = inventoryLogRepository.findAll().stream()
-            .filter(l -> l.getSessionDate() != null)
-            .map(l -> l.getSessionDate().getYear())
-            .collect(Collectors.toSet());
-    years.add(currentYear); // ensure current year is present
+    // --------------------------------------------------
+    // ACTION: Download barcode card as PNG
+    // URL: /schoolitems/barcode/{id}
+    // --------------------------------------------------
+    @GetMapping("/schoolitems/barcode/{id}")
+    public void downloadItemBarcodePng(@PathVariable Long id,
+                                       HttpServletResponse response) throws IOException {
 
-    List<Integer> yearList = years.stream()
-            .sorted(Comparator.reverseOrder())
-            .collect(Collectors.toList());
+        SchoolItem item = schoolItemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-    model.addAttribute("items", items);
-    model.addAttribute("itemMonthLogs", itemMonthLogs);
-    model.addAttribute("years", yearList);
-    model.addAttribute("selectedYear", selectedYear);
-    model.addAttribute("selectedShop", shop);   // optional, if you want to show it in the UI
-    model.addAttribute("activePage", "inventory-report");
+        String itemCode = item.getItemCode() != null ? item.getItemCode().trim() : "";
+        if (itemCode.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Item has no item code for barcode.");
+        }
 
-    return "schoolitems-inventory-report";
-}
+        // === Card size (landscape calling-card style) ===
+        int width = 700;   // pixels
+        int height = 350;  // pixels
 
+        BufferedImage card = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = card.createGraphics();
 
+        // --- Rendering quality ---
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // --- Background ---
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, width, height);
+
+        // light border
+        g.setColor(new Color(0xDDDDDD));
+        g.fillRoundRect(5, 5, width - 10, height - 10, 25, 25);
+
+        // inner white area
+        g.setColor(Color.WHITE);
+        g.fillRoundRect(12, 12, width - 24, height - 24, 20, 20);
+
+        int paddingLeft = 30;
+        int paddingTop = 30;
+
+        // === LEFT SIDE: picture ===
+        int pictureBoxWidth = 220;
+        int pictureBoxHeight = 220;
+
+        BufferedImage itemImage = null;
+        try {
+            if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) {
+                itemImage = ImageIO.read(new URL(item.getImageUrl()));
+            }
+        } catch (Exception ignored) {
+        }
+
+        if (itemImage != null) {
+            // scale keeping aspect ratio
+            double scale = Math.min(
+                    (double) pictureBoxWidth / itemImage.getWidth(),
+                    (double) pictureBoxHeight / itemImage.getHeight());
+            int imgW = (int) (itemImage.getWidth() * scale);
+            int imgH = (int) (itemImage.getHeight() * scale);
+            int imgX = paddingLeft + (pictureBoxWidth - imgW) / 2;
+            int imgY = paddingTop + (pictureBoxHeight - imgH) / 2;
+            g.drawImage(itemImage, imgX, imgY, imgW, imgH, null);
+        } else {
+            // placeholder
+            g.setColor(new Color(0xE5E7EB));
+            g.fillRoundRect(paddingLeft, paddingTop, pictureBoxWidth, pictureBoxHeight, 18, 18);
+            g.setColor(new Color(0x9CA3AF));
+            g.setFont(new Font("SansSerif", Font.BOLD, 14));
+            String noImg = "NO IMAGE";
+            int textW = g.getFontMetrics().stringWidth(noImg);
+            int textX = paddingLeft + (pictureBoxWidth - textW) / 2;
+            int textY = paddingTop + pictureBoxHeight / 2;
+            g.drawString(noImg, textX, textY);
+        }
+
+        // === RIGHT SIDE: text + barcode ===
+        int rightX = paddingLeft + pictureBoxWidth + 30;
+
+        String name = item.getItemName() != null ? item.getItemName() : "-";
+        String brand = item.getBrandModel() != null ? item.getBrandModel() : "-";
+        int qty = item.getQuantityOnHand() != null ? item.getQuantityOnHand() : 0;
+
+        // Title (item name)
+        g.setColor(new Color(0x111827));
+        g.setFont(new Font("SansSerif", Font.BOLD, 22));
+        g.drawString(name, rightX, paddingTop + 25);
+
+        // Details
+        g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        int textY = paddingTop + 55;
+        int lineGap = 20;
+
+        g.setColor(new Color(0x374151));
+        g.drawString("Item code: " + itemCode, rightX, textY);
+        textY += lineGap;
+        g.drawString("Brand: " + brand, rightX, textY);
+        textY += lineGap;
+        g.drawString("Qty on hand: " + qty, rightX, textY);
+        textY += lineGap + 10;
+
+        // === Barcode (Code128) ===
+        try {
+            int barcodeWidth = 350;
+            int barcodeHeight = 70;
+
+            Code128Writer writer = new Code128Writer();
+            BitMatrix matrix = writer.encode(itemCode, BarcodeFormat.CODE_128,
+                    barcodeWidth, barcodeHeight);
+            BufferedImage barcodeImage = MatrixToImageWriter.toBufferedImage(matrix);
+
+            int barcodeX = rightX;
+            int barcodeY = textY;
+
+            g.drawImage(barcodeImage, barcodeX, barcodeY, barcodeWidth, barcodeHeight, null);
+
+            // item code text under barcode
+            g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            int codeTextY = barcodeY + barcodeHeight + 20;
+            int codeTextWidth = g.getFontMetrics().stringWidth(itemCode);
+            int codeTextX = barcodeX + (barcodeWidth - codeTextWidth) / 2;
+            g.drawString(itemCode, codeTextX, codeTextY);
+
+        } catch (Exception e) {
+    g.setColor(Color.RED);
+    g.setFont(new Font("SansSerif", Font.PLAIN, 14));
+    g.drawString("Barcode error", rightX, textY + 20);
+        }
+
+        g.dispose();
+
+        // === Write PNG to response ===
+        String safeCode = itemCode.replaceAll("[^a-zA-Z0-9_-]", "_");
+        response.setContentType("image/png");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"barcode-" + safeCode + ".png\"");
+
+        ImageIO.write(card, "png", response.getOutputStream());
+    }
 }

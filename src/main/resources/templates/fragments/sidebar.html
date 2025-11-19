@@ -54,6 +54,14 @@
               <i class="bi bi-dot me-1"></i>VIA Settings
             </a>
           </li>
+
+            <!-- NEW: Student Statistics -->
+      <li class="nav-item mb-1">
+        <a th:href="@{/student-statistics}" class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'student-statistics' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Student Statistics
+        </a>
+      </li>
         </ul>
       </div>
     </li>
@@ -389,7 +397,7 @@
 
   <!-- Footer -->
   <div class="mt-auto p-3 text-center border-top border-secondary border-opacity-25">
-    <small class="text-secondary sidebar-text"><i class="bi bi-heart-fill text-danger me-1"></i>&copy;2025 Jay M Ladera, Troy Ricafort, and Team</small>
+    <small class="text-secondary sidebar-text"><i class="bi bi-heart-fill text-danger me-1"></i>&copy;2025 Jay M Ladera</small>
   </div>
 
   <!-- Sidebar Script -->
