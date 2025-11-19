@@ -422,6 +422,12 @@
                         <i class="bi bi-trash"></i>
                       </button>
                     </form>
+
+                  <a th:href="@{/schoolitems/barcode/{id}(id=${item.id})}"
+   class="btn btn-sm btn-outline-primary"
+   title="Download barcode card">
+  <i class="bi bi-upc-scan"></i>
+</a>
                   </div>
                 </td>
               </tr>

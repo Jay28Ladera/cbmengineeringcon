@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Statistics Report - Sisters of Mary Schools</title>
+
+  <!-- Bootstrap CSS & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      margin: 0;
+      color: #334155;
+      overflow-x: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-x: hidden;
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .content-area {
+      flex: 1;
+      padding: 2.5rem;
+      background: transparent;
+      position: relative;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+
+    .content-area::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(65, 105, 225, 0.03) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .page-header {
+      background: #ffffff;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+    }
+
+    .page-header .card-body {
+      padding: 2rem;
+    }
+
+    .page-header h2 {
+      color: #1e293b;
+      font-weight: 800;
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
+      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
+      opacity: 0;
+      transition: opacity .3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 36px rgba(0,0,0,.15);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .stat-pill {
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 1.4rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #64748b;
+      margin-bottom: 0.1rem;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .stat-subtext {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 0.15rem;
+    }
+
+    .summary-card {
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 6px 20px rgba(0,0,0,.06);
+    }
+
+    .summary-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 0.75rem;
+    }
+
+    .summary-title i {
+      color: #4169e1;
+    }
+
+    .summary-subtitle {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-bottom: 0.75rem;
+    }
+
+    .summary-table {
+      font-size: 0.85rem;
+    }
+
+    .summary-table thead th {
+      background: #eff6ff;
+      border-bottom: 1px solid #dbeafe;
+      color: #1e293b;
+      font-weight: 700;
+      text-align: center;
+      padding: 0.55rem 0.4rem;
+    }
+
+    .summary-table tbody td {
+      padding: 0.45rem 0.4rem;
+      text-align: center;
+      vertical-align: middle;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .badge-soft {
+      border-radius: 999px;
+      padding: 0.15rem 0.7rem;
+      font-weight: 600;
+      font-size: 0.75rem;
+      border: 1px solid transparent;
+    }
+
+    .badge-soft-blue {
+      background: #eff6ff;
+      color: #2563eb;
+      border-color: #bfdbfe;
+    }
+
+    .badge-soft-purple {
+      background: #f5f3ff;
+      color: #7c3aed;
+      border-color: #ddd6fe;
+    }
+
+    .badge-soft-green {
+      background: #ecfdf3;
+      color: #16a34a;
+      border-color: #bbf7d0;
+    }
+
+    .badge-soft-amber {
+      background: #fffbeb;
+      color: #d97706;
+      border-color: #fef3c7;
+    }
+
+    .text-dim {
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+      .main-content { margin-left: 0 !important; padding-top: 70px; }
+      .content-area { padding: 1.5rem; }
+      .page-header .card-body { padding: 1.5rem; }
+    }
+
+    @media (max-width: 576px) {
+      .content-area { padding: 1rem; }
+      .page-header .card-body { padding: 1rem; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app-container">
+  <!-- Sidebar -->
+  <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='student-statistics',
+                                               studentInfoExpanded=${studentInfoExpanded},
+                                               asmsiExpanded=${asmsiExpanded},
+                                               admissionExpanded=${admissionExpanded},
+                                               attendanceExpanded=${attendanceExpanded},
+                                               eventsExpanded=${eventsExpanded},
+                                               familyDayExpanded=${familyDayExpanded})"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <!-- Page Body -->
+    <main class="content-area">
+      <!-- Page Header -->
+      <div class="page-header card mb-4">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="flex-grow-1">
+              <h2><i class="bi bi-graph-up-arrow me-3"></i>Student Statistics Report</h2>
+              <p class="mb-0">
+                Overview of <strong>all registered students</strong> based on the Student Information Manager.
+                Summaries are grouped by VIA, Family Saint (per batch), and Batch Number.
+              </p>
+            </div>
+            <div class="text-end">
+              <div class="text-dim">Generated for: <span th:text="${username}">admin</span></div>
+              <div class="text-dim">
+                <i class="bi bi-clock-history me-1"></i>
+                <span id="generatedDate">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP SUMMARY CARDS -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="stat-pill">
+                <div class="stat-icon">
+                  <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                  <div class="stat-label">Total Students</div>
+                  <div class="stat-value" id="totalStudents">0</div>
+                  <div class="stat-subtext">All students in the current master list</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="stat-pill">
+                <div class="stat-icon" style="background:#ecfeff;color:#0891b2;">
+                  <i class="bi bi-signpost-split"></i>
+                </div>
+                <div>
+                  <div class="stat-label">Distinct VIA</div>
+                  <div class="stat-value" id="distinctVia">0</div>
+                  <div class="stat-subtext">Unique mission areas (VIA) represented</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <div class="stat-pill">
+                <div class="stat-icon" style="background:#fdf2ff;color:#a21caf;">
+                  <i class="bi bi-calendar3"></i>
+                </div>
+                <div>
+                  <div class="stat-label">Distinct Batches</div>
+                  <div class="stat-value" id="distinctBatches">0</div>
+                  <div class="stat-subtext">Unique batch numbers in this dataset</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUMMARY CARDS ROW -->
+      <div class="row g-4">
+        <!-- Summary by VIA -->
+        <div class="col-12 col-lg-4">
+          <div class="summary-card h-100">
+            <div class="summary-title">
+              <i class="bi bi-signpost"></i>
+              <span>Summary by VIA</span>
+            </div>
+            <div class="summary-subtitle">
+              Total number of students per VIA (mission area).
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm summary-table">
+                <thead>
+                  <tr>
+                    <th>VIA</th>
+                    <th>No. of Students</th>
+                    <th>% of Total</th>
+                  </tr>
+                </thead>
+                <tbody id="viaSummaryBody">
+                  <tr>
+                    <td colspan="3" class="text-center text-dim py-3">
+                      No data loaded.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary by Family Saint grouped by Batch -->
+        <div class="col-12 col-lg-4">
+          <div class="summary-card h-100">
+            <div class="summary-title">
+              <i class="bi bi-people"></i>
+              <span>Summary by Family Saint (per Batch)</span>
+            </div>
+            <div class="summary-subtitle">
+              Number of students by combination of <strong>Batch Number</strong> and <strong>Family Saint</strong>.
+            </div>
+            <div class="table-responsive" style="max-height: 420px; overflow-y: auto;">
+              <table class="table table-sm summary-table">
+                <thead>
+                  <tr>
+                    <th>Batch</th>
+                    <th>Family Saint</th>
+                    <th>No. of Students</th>
+                  </tr>
+                </thead>
+                <tbody id="familyBatchSummaryBody">
+                  <tr>
+                    <td colspan="3" class="text-center text-dim py-3">
+                      No data loaded.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary by Batch -->
+        <div class="col-12 col-lg-4">
+          <div class="summary-card h-100">
+            <div class="summary-title">
+              <i class="bi bi-collection-play-fill"></i>
+              <span>Summary by Batch Number</span>
+            </div>
+            <div class="summary-subtitle">
+              Distribution of students across each batch number.
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm summary-table">
+                <thead>
+                  <tr>
+                    <th>Batch Number</th>
+                    <th>No. of Students</th>
+                    <th>% of Total</th>
+                  </tr>
+                </thead>
+                <tbody id="batchSummaryBody">
+                  <tr>
+                    <td colspan="3" class="text-center text-dim py-3">
+                      No data loaded.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTNOTE -->
+      <div class="mt-4 text-dim">
+        <i class="bi bi-info-circle me-1"></i>
+        This report is based on the current <strong>Student Information Manager</strong> dataset
+        (<code>students</code> list). Any updates to the master list will be reflected the next time
+        you reload this page.
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Stats Logic: uses the Thymeleaf "students" model -->
+<script th:inline="javascript">
+  // "students" from backend: List<Student> -> JSON
+  // Each student is expected to have: via, familySaint, batchNumber, etc.
+  const students = /*[[${students}]]*/ [];
+
+  function formatPercent(part, total) {
+    if (!total || total === 0) return '0%';
+    return ( (part / total) * 100 ).toFixed(1) + '%';
+  }
+
+  function buildStudentStatistics() {
+    const totalStudents = students.length || 0;
+    const viaMap = new Map();             // VIA -> count
+    const batchMap = new Map();           // Batch -> count
+    const familyBatchMap = new Map();     // (batch||saint) -> count
+
+    students.forEach(s => {
+      const via    = (s.via || 'N/A').toString().trim() || 'N/A';
+      const saint  = (s.familySaint || 'N/A').toString().trim() || 'N/A';
+      const batch  = (s.batchNumber != null ? String(s.batchNumber) : 'N/A').trim() || 'N/A';
+
+      viaMap.set(via, (viaMap.get(via) || 0) + 1);
+      batchMap.set(batch, (batchMap.get(batch) || 0) + 1);
+
+      const key = batch + '||' + saint;
+      familyBatchMap.set(key, (familyBatchMap.get(key) || 0) + 1);
+    });
+
+    // ---- Top summary cards ----
+    document.getElementById('totalStudents').textContent = totalStudents;
+    document.getElementById('distinctVia').textContent = viaMap.size;
+    document.getElementById('distinctBatches').textContent = batchMap.size;
+
+    const genDateEl = document.getElementById('generatedDate');
+    if (genDateEl) {
+      const now = new Date();
+      genDateEl.textContent = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // ---- Summary by VIA ----
+    const viaBody = document.getElementById('viaSummaryBody');
+    viaBody.innerHTML = '';
+
+    if (!viaMap.size) {
+      viaBody.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center text-dim py-3">No VIA data available.</td>
+        </tr>`;
+    } else {
+      Array.from(viaMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([via, count]) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><span class="badge-soft badge-soft-blue">${via}</span></td>
+            <td><span class="badge-soft badge-soft-green">${count}</span></td>
+            <td>${formatPercent(count, totalStudents)}</td>
+          `;
+          viaBody.appendChild(tr);
+        });
+    }
+
+    // ---- Summary by Family Saint grouped by Batch ----
+    const fbBody = document.getElementById('familyBatchSummaryBody');
+    fbBody.innerHTML = '';
+
+    if (!familyBatchMap.size) {
+      fbBody.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center text-dim py-3">No Family Saint / Batch data available.</td>
+        </tr>`;
+    } else {
+      Array.from(familyBatchMap.entries())
+        .sort((a, b) => {
+          const [ba, sa] = a[0].split('||');
+          const [bb, sb] = b[0].split('||');
+          if (ba === bb) return sa.localeCompare(sb);
+          return ba.localeCompare(bb);
+        })
+        .forEach(([key, count]) => {
+          const [batch, saint] = key.split('||');
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><span class="badge-soft badge-soft-amber">${batch}</span></td>
+            <td><span class="badge-soft badge-soft-purple">${saint}</span></td>
+            <td><span class="badge-soft badge-soft-green">${count}</span></td>
+          `;
+          fbBody.appendChild(tr);
+        });
+    }
+
+    // ---- Summary by Batch Number ----
+    const batchBody = document.getElementById('batchSummaryBody');
+    batchBody.innerHTML = '';
+
+    if (!batchMap.size) {
+      batchBody.innerHTML = `
+        <tr>
+          <td colspan="3" class="text-center text-dim py-3">No batch data available.</td>
+        </tr>`;
+    } else {
+      Array.from(batchMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([batch, count]) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><span class="badge-soft badge-soft-amber">${batch}</span></td>
+            <td><span class="badge-soft badge-soft-green">${count}</span></td>
+            <td>${formatPercent(count, totalStudents)}</td>
+          `;
+          batchBody.appendChild(tr);
+        });
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', buildStudentStatistics);
+</script>
+
+</body>
+</html>
