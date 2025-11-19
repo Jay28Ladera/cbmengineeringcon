@@ -4,12 +4,14 @@ package com.asmsi.admin_system.controller;
 import com.asmsi.admin_system.entity.VacationSchedule;
 import com.asmsi.admin_system.repository.VacationScheduleRepository;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/vacation-schedule")
@@ -57,5 +59,25 @@ public class VacationScheduleApiController {
         entity.setUpdatedAt(LocalDateTime.now());
 
         return scheduleRepository.save(entity);
+    }
+
+    // DELETE by VIA
+    @DeleteMapping("/{via}")
+    public ResponseEntity<Void> deleteByVia(@PathVariable("via") String via) {
+        if (via == null || via.isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        String normalizedVia = via.trim();
+
+        Optional<VacationSchedule> existingOpt =
+                scheduleRepository.findByVia(normalizedVia);
+
+        if (existingOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        scheduleRepository.delete(existingOpt.get());
+        return ResponseEntity.noContent().build();
     }
 }

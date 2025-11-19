@@ -195,11 +195,12 @@
                         <th>Vehicle</th>
                         <th>Status</th>
                         <th>Message</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody id="scheduled-table-body">
                       <tr>
-                        <td colspan="8" class="text-muted py-3">
+                        <td colspan="9" class="text-muted py-3">
                           <i class="bi bi-info-circle me-1"></i>No schedules set yet.
                         </td>
                       </tr>
@@ -589,6 +590,58 @@
       }
     }
 
+    // 🔹 DELETE schedule for a VIA (top table)
+    async function deleteSchedule(index) {
+      const schedule = scheduledBatches[index];
+      if (!schedule) return;
+
+      const result = await Swal.fire({
+        title: `Delete schedule for VIA ${schedule.via}?`,
+        text: "This will remove this schedule from the list.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete",
+        cancelButtonText: "Cancel"
+      });
+
+      if (!result.isConfirmed) return;
+
+      const { token, header } = getCsrf();
+
+      try {
+        // Assumes backend DELETE mapping like /api/vacation-schedule/{via}
+        const res = await fetch(`/api/vacation-schedule/${encodeURIComponent(schedule.via)}`, {
+          method: "DELETE",
+          headers: {
+            ...(token && header ? { [header]: token } : {})
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to delete schedule");
+        }
+
+        // Remove from local list and re-render
+        scheduledBatches.splice(index, 1);
+        renderScheduledTable();
+
+        Swal.fire({
+          icon: "success",
+          title: "Deleted",
+          text: `Schedule for VIA ${schedule.via} has been removed.`,
+          timer: 900,
+          showConfirmButton: false
+        });
+      } catch (e) {
+        console.error(e);
+        Swal.fire({
+          icon: "error",
+          title: "Delete failed",
+          text: "Could not delete schedule. Please try again."
+        });
+      }
+    }
+
     // Update a field when input changes in the top table
     async function updateScheduledField(index, field, value) {
       if (!scheduledBatches[index]) return;
@@ -631,105 +684,113 @@
 
     // Render the listing table on top (with editable type-ahead fields)
     function renderScheduledTable() {
-  const tbody = document.getElementById("scheduled-table-body");
-  if (!tbody) return;
+      const tbody = document.getElementById("scheduled-table-body");
+      if (!tbody) return;
 
-  if (scheduledBatches.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" class="text-muted py-3">
-          <i class="bi bi-info-circle me-1"></i>No schedules set yet.
-        </td>
-      </tr>`;
-    return;
-  }
+      if (scheduledBatches.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-muted py-3">
+              <i class="bi bi-info-circle me-1"></i>No schedules set yet.
+            </td>
+          </tr>`;
+        return;
+      }
 
-  tbody.innerHTML = "";
-  let displayed = 0;
+      tbody.innerHTML = "";
+      let displayed = 0;
 
-  scheduledBatches.forEach((s, idx) => {
-    let dateText = "-";
+      scheduledBatches.forEach((s, idx) => {
+        let dateText = "-";
 
-    const rawDate = s.estDateTime || s.datetime; // support both names
-    if (rawDate) {
-      const d = new Date(rawDate);
-      if (!isNaN(d.getTime())) {
-        dateText = d.toLocaleString("en-US", {
-          dateStyle: "medium",
-          timeStyle: "short"
-        });
+        const rawDate = s.estDateTime || s.datetime; // support both names
+        if (rawDate) {
+          const d = new Date(rawDate);
+          if (!isNaN(d.getTime())) {
+            dateText = d.toLocaleString("en-US", {
+              dateStyle: "medium",
+              timeStyle: "short"
+            });
+          }
+        }
+
+        displayed++;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.via}</td>
+          <td><span class="badge bg-secondary">${s.totalStudents ?? 0}</span></td>
+          <td><span class="badge bg-primary">${s.loggedIn ?? 0}</span></td>
+          <td>${dateText}</td>
+
+          <td>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="venue-options"
+              value="${s.venue ? s.venue.replace(/"/g,'&quot;') : ''}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'venue', this.value)"
+              onblur="updateScheduledField(${idx}, 'venue', this.value)"
+            />
+          </td>
+
+          <td>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="vehicle-options"
+              value="${s.vehicle ? s.vehicle.replace(/"/g,'&quot;') : ''}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'vehicle', this.value)"
+              onblur="updateScheduledField(${idx}, 'vehicle', this.value)"
+            />
+          </td>
+
+          <td>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="status-options"
+              value="${(s.status || 'On Time').replace(/"/g,'&quot;')}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'status', this.value)"
+              onblur="updateScheduledField(${idx}, 'status', this.value)"
+            />
+          </td>
+
+          <td>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              list="message-options"
+              value="${(s.message || '').replace(/"/g,'&quot;') || 'None'}"
+              placeholder="Select or type"
+              onchange="updateScheduledField(${idx}, 'message', this.value)"
+              onblur="updateScheduledField(${idx}, 'message', this.value)"
+            />
+          </td>
+
+          <td>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              onclick="deleteSchedule(${idx})">
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (displayed === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-muted py-3">
+              <i class="bi bi-info-circle me-1"></i>No schedules found.</td>
+          </tr>`;
       }
     }
-
-    displayed++;
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${s.via}</td>
-      <td><span class="badge bg-secondary">${s.totalStudents ?? 0}</span></td>
-      <td><span class="badge bg-primary">${s.loggedIn ?? 0}</span></td>
-      <td>${dateText}</td>
-
-      <td>
-        <input
-          type="text"
-          class="form-control form-control-sm"
-          list="venue-options"
-          value="${s.venue ? s.venue.replace(/"/g,'&quot;') : ''}"
-          placeholder="Select or type"
-          onchange="updateScheduledField(${idx}, 'venue', this.value)"
-          onblur="updateScheduledField(${idx}, 'venue', this.value)"
-        />
-      </td>
-
-      <td>
-        <input
-          type="text"
-          class="form-control form-control-sm"
-          list="vehicle-options"
-          value="${s.vehicle ? s.vehicle.replace(/"/g,'&quot;') : ''}"
-          placeholder="Select or type"
-          onchange="updateScheduledField(${idx}, 'vehicle', this.value)"
-          onblur="updateScheduledField(${idx}, 'vehicle', this.value)"
-        />
-      </td>
-
-      <td>
-        <input
-          type="text"
-          class="form-control form-control-sm"
-          list="status-options"
-          value="${(s.status || 'On Time').replace(/"/g,'&quot;')}"
-          placeholder="Select or type"
-          onchange="updateScheduledField(${idx}, 'status', this.value)"
-          onblur="updateScheduledField(${idx}, 'status', this.value)"
-        />
-      </td>
-
-      <td>
-        <input
-          type="text"
-          class="form-control form-control-sm"
-          list="message-options"
-          value="${(s.message || '').replace(/"/g,'&quot;') || 'None'}"
-          placeholder="Select or type"
-          onchange="updateScheduledField(${idx}, 'message', this.value)"
-          onblur="updateScheduledField(${idx}, 'message', this.value)"
-        />
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  if (displayed === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" class="text-muted py-3">
-          <i class="bi bi-info-circle me-1"></i>No schedules found.</td>
-      </tr>`;
-  }
-}
-
 
     // Init
     setInterval(updateClock, 1000);
