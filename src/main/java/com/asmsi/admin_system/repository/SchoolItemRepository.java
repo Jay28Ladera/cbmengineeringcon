@@ -10,7 +10,9 @@ public interface SchoolItemRepository extends JpaRepository<SchoolItem, Long> {
 
     boolean existsByItemCode(String itemCode);
 
-     // Find all items for a specific shop name
-    List<SchoolItem> findByShops(String shops);
+    // Find all items for a specific shop name
+    List<SchoolItem>findByShops(String shops);
+
     List<SchoolItem> findByShopsContainingIgnoreCase(String shops);
 }
+
