@@ -283,7 +283,7 @@
             <th>VIA</th>
             <th>No. Students</th>
             <th>Logged In</th>
-            <th>Departure</th>
+            
         </tr>
     </thead>
     <tbody id="summary-table-body">
@@ -521,11 +521,7 @@
         <td>${via}</td>
         <td><span class="badge bg-secondary">${totalStudents}</span></td>
         <td><span class="badge bg-primary">${group.students.size}</span></td>
-        <td>${
-          group.lastDeparture
-            ? `<span class="badge bg-danger">${group.lastDeparture}</span>`
-            : "-"
-        }</td>
+        
       `;
       tbody.appendChild(tr);
     });

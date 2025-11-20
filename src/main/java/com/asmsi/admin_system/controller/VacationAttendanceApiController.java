@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/api/vacationattendance")
@@ -38,31 +37,21 @@ public class VacationAttendanceApiController {
         return vacationAttendanceRepository.findDistinctAccounts();
     }
 
-    // ---------- submit vacation attendance ----------
+    // ===========================================================
+    //  ALWAYS TIME-IN — NEVER TIME-OUT
+    // ===========================================================
     @PostMapping("/submit")
     @ResponseBody
     public ResponseEntity<String> submitAttendance(@RequestBody VacationAttendance log) {
-        String idNumber = log.getIdNumber();
-        LocalDate today = LocalDate.now();
 
-        // Check latest record for today
-        Optional<VacationAttendance> latestLogOpt =
-                vacationAttendanceRepository.findTopByIdNumberAndDateOrderByTimeInDesc(idNumber, today);
-
-        // If last record has no timeOut → set timeOut (TIME-OUT mechanics)
-        if (latestLogOpt.isPresent() && latestLogOpt.get().getTimeOut() == null) {
-            VacationAttendance latestLog = latestLogOpt.get();
-            latestLog.setTimeOut(LocalTime.now());
-            vacationAttendanceRepository.save(latestLog);
-            return ResponseEntity.ok("Time Out recorded.");
-        }
-
-        // Otherwise → create a new TIME-IN record
+        // If frontend did not send date/time, supply them
         if (log.getDate() == null) log.setDate(LocalDate.now());
         if (log.getTimeIn() == null) log.setTimeIn(LocalTime.now());
 
+        // Save new TIME-IN record always
         vacationAttendanceRepository.save(log);
-        return ResponseEntity.ok("Attendance recorded.");
+
+        return ResponseEntity.ok("Time In recorded.");
     }
 
     // ---------- logs by ID ----------
@@ -72,7 +61,7 @@ public class VacationAttendanceApiController {
         return vacationAttendanceRepository.findByIdNumber(idNumber);
     }
 
-    // ---------- student lookup (same as old) ----------
+    // ---------- student lookup ----------
     @GetMapping("/student/{idNumber}")
     @ResponseBody
     public ResponseEntity<Student> fetchStudentData(@PathVariable String idNumber) {
@@ -81,7 +70,7 @@ public class VacationAttendanceApiController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // ---------- all logs (sorted) ----------
+    // ---------- all logs ----------
     @GetMapping("/logs")
     @ResponseBody
     public ResponseEntity<List<VacationAttendance>> getAllLogs() {
@@ -91,22 +80,26 @@ public class VacationAttendanceApiController {
         return ResponseEntity.ok(logs);
     }
 
-    // ---------- page renderer (vacationattendance.html) ----------
+    // ---------- page renderer ----------
     @GetMapping("/page")
     public String vacationAttendancePage(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
         if (auth != null && auth.isAuthenticated()) {
             String username = auth.getName();
             String role = auth.getAuthorities().stream()
                     .findFirst()
                     .map(Object::toString)
                     .orElse("ROLE_USER");
+
             model.addAttribute("username", username);
             model.addAttribute("role", role);
+
         } else {
             model.addAttribute("username", "Guest");
             model.addAttribute("role", "Unknown");
         }
-        return "vacationattendance"; // renders vacationattendance.html
+
+        return "vacationattendance";
     }
 }
