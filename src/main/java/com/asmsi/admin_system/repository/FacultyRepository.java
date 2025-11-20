@@ -11,6 +11,7 @@ import java.util.Optional;
 
 public interface FacultyRepository extends JpaRepository<Faculty, Long> {
     Optional<Faculty> findByEmployeeId(String employeeId);
+    
     boolean existsByEmployeeId(String employeeId);
 
      @Query("""
