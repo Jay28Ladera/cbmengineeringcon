@@ -51,34 +51,37 @@ public class ItemInventoryController {
 
     // --------------------------------------------------
     // PAGE: School Items Inventory (FAST LOAD)
-    // --------------------------------------------------
-    @GetMapping("/schoolitems")
-    public String showSchoolItemsPage(
-            @RequestParam(value = "shop", required = false) String shop,
-            Model model) {
+   @GetMapping("/schoolitems")
+public String showSchoolItemsPage(
+        @RequestParam(value = "shop", required = false) String shop,
+        Model model) {
 
-        // ------- auth / header -------
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth != null && auth.isAuthenticated()) {
-            model.addAttribute("username", auth.getName());
-            model.addAttribute("role", auth.getAuthorities().stream()
-                    .findFirst().map(Object::toString).orElse("ROLE_USER"));
-        } else {
-            model.addAttribute("username", "Guest");
-            model.addAttribute("role", "Unknown");
-        }
-
-        // Only load shops (small data)
-        List<Shop> allShops = shopRepository.findAll();
-
-        model.addAttribute("allShops", allShops);
-        model.addAttribute("selectedShop", shop);
-        model.addAttribute("activePage", "inventory-school-items");
-
-        // DO NOT load items here → page loads instantly
-        return "schoolitems";
+    if (auth != null && auth.isAuthenticated()) {
+        model.addAttribute("username", auth.getName());
+        model.addAttribute("role", auth.getAuthorities().stream()
+                .findFirst().map(Object::toString).orElse("ROLE_USER"));
+    } else {
+        model.addAttribute("username", "Guest");
+        model.addAttribute("role", "Unknown");
     }
+
+    List<Shop> allShops;
+    try {
+        allShops = shopRepository.findAll();
+    } catch (Exception ex) {
+        // TODO: use your logger here
+        ex.printStackTrace();
+        allShops = java.util.Collections.emptyList();
+    }
+
+    model.addAttribute("allShops", allShops);
+    model.addAttribute("selectedShop", shop);
+    model.addAttribute("activePage", "inventory-school-items");
+
+    return "schoolitems";
+}
 
     // --------------------------------------------------
     // API: AJAX fetch of items (Slow part moved here)
