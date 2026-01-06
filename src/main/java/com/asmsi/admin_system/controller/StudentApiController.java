@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import org.springframework.data.domain.Sort;
+
+
 
 @RestController
 @RequestMapping("/api")
@@ -36,6 +40,10 @@ public class StudentApiController {
         response.put("data", studentPage.getContent());
 
         return response;
+    }
+     @GetMapping("/students/all")
+    public List<Student> getAllStudents() {
+        return studentRepository.findAll(Sort.by("idNumber"));
     }
 
     // ✅ NEW: totals per VIA (for your summary table)
