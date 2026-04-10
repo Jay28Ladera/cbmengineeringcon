@@ -6,8 +6,24 @@ import java.util.Optional;
 import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
     List<User> findByIsApprovedFalse();
     List<User> findByIsApprovedTrue();
+
+      List<User> findByIsApprovedTrueOrderByNameAsc();
+
+       
+
+    Optional<User> findByUsernameIgnoreCase(String username);
+
+     boolean existsByUsername(String username);
+
+    boolean existsByEmail(String email);
+      
+
+  
+
 }

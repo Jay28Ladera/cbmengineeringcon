@@ -10,14 +10,20 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.data.domain.Pageable;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
-    Optional<Student> findByIdNumber(String idNumber); // Customize as needed
-     List<Student> findByIdNumberIn(Collection<String> idNumbers);
-        @Query("""
+    Optional<Student> findByIdNumber(String idNumber);
+    List<Student> findByIdNumberIn(Collection<String> idNumbers);
+
+    @Query("""
+        select s from Student s
+        where trim(s.idNumber) = trim(:idNumber)
+    """)
+    Optional<Student> findByIdNumberTrimmed(@Param("idNumber") String idNumber);
+
+    @Query("""
         select s from Student s
         where (:q is null or :q = ''
                or lower(s.name) like lower(concat('%', :q, '%'))
@@ -25,26 +31,20 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         order by s.name asc
     """)
     List<Student> searchTop(@Param("q") String q, Pageable pageable);
- // 🔹 Raw query: VIA + total count
+
     @Query("SELECT s.via AS via, COUNT(s) AS total FROM Student s GROUP BY s.via")
     List<Object[]> countStudentsByViaRaw();
 
-    // 🔹 Convenience method: convert to Map<String, Long>
     default Map<String, Long> countStudentsByVia() {
         Map<String, Long> result = new HashMap<>();
         List<Object[]> rows = countStudentsByViaRaw();
 
         for (Object[] row : rows) {
-            String via = (String) row[0];   // s.via
-            Long total = (Long) row[1];     // COUNT(s)
+            String via = (String) row[0];
+            Long total = (Long) row[1];
             result.put(via, total);
         }
 
         return result;
     }
-
-
-    
-    
-     
 }

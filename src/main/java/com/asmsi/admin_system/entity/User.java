@@ -1,3 +1,4 @@
+// src/main/java/com/asmsi/admin_system/entity/User.java
 package com.asmsi.admin_system.entity;
 
 import jakarta.persistence.*;
@@ -52,7 +53,11 @@ public class User implements UserDetails {
     @Column(name = "token_expiry")
     private LocalDateTime tokenExpiry;
 
-    // Explicitly override getUsername to satisfy UserDetails
+    // 🔹 NEW: profile image URL (relative path)
+    @Column(name = "profile_image_url")
+    private String profileImageUrl;
+
+    // -------- UserDetails methods --------
     @Override
     public String getUsername() {
         return this.username;
@@ -64,22 +69,14 @@ public class User implements UserDetails {
     }
 
     @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
+    public boolean isAccountNonExpired() { return true; }
 
     @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
+    public boolean isAccountNonLocked() { return true; }
 
     @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
+    public boolean isCredentialsNonExpired() { return true; }
 
     @Override
-    public boolean isEnabled() {
-        return isApproved;
-    }
+    public boolean isEnabled() { return isApproved; }
 }

@@ -20,11 +20,11 @@ public class SchoolItem {
     @Column(nullable = false)
     private String itemName;
 
-    @Lob
-    private String description;
+   @Column(columnDefinition = "TEXT")
+private String description;
 
-    @Lob
-    private String specification;
+@Column(columnDefinition = "TEXT")
+private String specification;
 
     private String brandModel;
 

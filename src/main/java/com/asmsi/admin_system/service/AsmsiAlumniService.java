@@ -6,6 +6,9 @@ import com.asmsi.admin_system.entity.AsmsiAlumni;
 import com.asmsi.admin_system.repository.AsmsiAlumniRepository;
 import com.opencsv.CSVReaderHeaderAware;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,7 +29,9 @@ public class AsmsiAlumniService {
         this.cloudinary = cloudinary;
     }
 
-    public List<AsmsiAlumni> list() { return repo.findAll(); }
+    public List<AsmsiAlumni> list() {
+        return repo.findAll();
+    }
 
     public void add(AsmsiAlumni a, MultipartFile imageFile) throws Exception {
         if (repo.existsByIdNumber(a.getIdNumber()))
@@ -63,15 +68,19 @@ public class AsmsiAlumniService {
 
         if (imageFile != null && !imageFile.isEmpty())
             cur.setImageUrl(cloudinary.uploadImage(imageFile));
+        // no need to call save explicitly; JPA will flush because of @Transactional,
+        // but you can call repo.save(cur) if you prefer it explicit.
     }
 
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) {
+        repo.deleteById(id);
+    }
 
-    // CSV (unchanged)
+    // ---------- CSV IMPORT (unchanged) ----------
     public int importCsv(MultipartFile file) throws Exception {
         int upserts = 0;
         try (var r = new CSVReaderHeaderAware(new InputStreamReader(file.getInputStream()))) {
-            Map<String,String> row;
+            Map<String, String> row;
             DateTimeFormatter iso = DateTimeFormatter.ISO_LOCAL_DATE;
             while ((row = r.readMap()) != null) {
                 String idNumber = get(row, "idNumber");
@@ -79,22 +88,22 @@ public class AsmsiAlumniService {
 
                 AsmsiAlumni a = repo.findByIdNumber(idNumber).orElseGet(AsmsiAlumni::new);
                 a.setIdNumber(idNumber);
-                a.setBatchNumber(get(row,"batchNumber"));
-                a.setLastName(get(row,"lastName"));
-                a.setFirstName(get(row,"firstName"));
-                a.setMiddleName(get(row,"middleName"));
-                a.setFather(get(row,"father"));
-                a.setMother(get(row,"mother"));
-                String dob = get(row,"dateOfBirth");
-                a.setDateOfBirth(dob.isBlank()? null : LocalDate.parse(dob, iso));
-                a.setAddress(get(row,"address"));
-                a.setHighestEducationalAttainment(get(row,"highestEducationalAttainment"));
-                a.setSelfEmployed(get(row,"selfEmployed"));
-                a.setEmployed(get(row,"employed"));
-                a.setEmployerName(get(row,"employerName"));
-                a.setContactNumber(get(row,"contactNumber"));
-                a.setEmail(get(row,"email"));
-                a.setFbAccount(get(row,"fbAccount"));
+                a.setBatchNumber(get(row, "batchNumber"));
+                a.setLastName(get(row, "lastName"));
+                a.setFirstName(get(row, "firstName"));
+                a.setMiddleName(get(row, "middleName"));
+                a.setFather(get(row, "father"));
+                a.setMother(get(row, "mother"));
+                String dob = get(row, "dateOfBirth");
+                a.setDateOfBirth(dob.isBlank() ? null : LocalDate.parse(dob, iso));
+                a.setAddress(get(row, "address"));
+                a.setHighestEducationalAttainment(get(row, "highestEducationalAttainment"));
+                a.setSelfEmployed(get(row, "selfEmployed"));
+                a.setEmployed(get(row, "employed"));
+                a.setEmployerName(get(row, "employerName"));
+                a.setContactNumber(get(row, "contactNumber"));
+                a.setEmail(get(row, "email"));
+                a.setFbAccount(get(row, "fbAccount"));
                 String imageUrl = get(row, "imageUrl");
                 if (!imageUrl.isBlank()) a.setImageUrl(imageUrl);
 
@@ -105,12 +114,12 @@ public class AsmsiAlumniService {
         return upserts;
     }
 
-    private static String get(Map<String,String> row, String key){
-        if (row==null) return "";
+    private static String get(Map<String, String> row, String key) {
+        if (row == null) return "";
         String v = row.get(key);
-        if (v==null) v = row.get(key.toLowerCase());
-        if (v==null) v = row.get(key.toUpperCase());
-        return v==null ? "" : v.trim();
+        if (v == null) v = row.get(key.toLowerCase());
+        if (v == null) v = row.get(key.toUpperCase());
+        return v == null ? "" : v.trim();
     }
 
     // ------- STATS -------
@@ -132,7 +141,7 @@ public class AsmsiAlumniService {
         if (rows != null && !rows.isEmpty()) {
             Object[] r = rows.get(0);
             employed = num(r[0]);
-            selfEmp  = num(r[1]);
+            selfEmp = num(r[1]);
         }
         long total = repo.count();
         return new EmploymentStats(employed, selfEmp, total);
@@ -143,5 +152,32 @@ public class AsmsiAlumniService {
         if (o instanceof Number n) return n.longValue();
         if (o instanceof Object[] a && a.length > 0 && a[0] instanceof Number n0) return n0.longValue();
         try { return Long.parseLong(o.toString()); } catch (Exception e) { return 0L; }
+    }
+
+    // ------- NEW: paging for DataTables server-side -------
+
+    /**
+     * Returns a page of alumni for DataTables.
+     *
+     * @param search search string (may be null/blank)
+     * @param page   zero-based page index
+     * @param size   page size
+     */
+    public Page<AsmsiAlumni> findPage(String search, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        if (search == null || search.isBlank()) {
+            return repo.findAll(pageable);
+        }
+
+        String q = search.trim().toLowerCase();
+        return repo.searchPage(q, pageable);
+    }
+
+    /**
+     * Total count of alumni (for recordsTotal in DataTables).
+     */
+    public long countAll() {
+        return repo.count();
     }
 }

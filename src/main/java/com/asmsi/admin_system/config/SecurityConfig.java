@@ -40,7 +40,7 @@ public class SecurityConfig {
                                 "/forget-password", "/forgot-password", "/reset-password",
                                 "/css/**", "/js/**", "/images/**", "/upload-csv", "/home",
                                 "/api/attendance/**", // Include all attendance API endpoints
-                                "/family-saint-settings/api")
+                                "/family-saint-settings/api","/schoolitems/import", "/schoolitems/import/**", "/schoolitems/export/**","/api/schoolitems/inventory-wizard/**")
                         .permitAll()
                         .requestMatchers("/admission/**", "/submit")
                         .hasRole("ADMIN")

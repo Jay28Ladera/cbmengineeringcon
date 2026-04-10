@@ -25,6 +25,25 @@ public class Shop {
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(name = "assigned_user_id")
+private Long assignedUserId;
+
+public Long getAssignedUserId() {
+    return assignedUserId;
+
+    
+}
+
+
+
+public void setAssignedUserId(Long assignedUserId) {
+    this.assignedUserId = assignedUserId;
+}
+
+
+
+
+
     // ---- getters & setters ----
     public Long getId() {
         return id;

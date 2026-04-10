@@ -2,6 +2,7 @@
 package com.asmsi.admin_system.repository;
 
 import com.asmsi.admin_system.entity.AsmsiAlumni;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -53,4 +54,30 @@ public interface AsmsiAlumniRepository extends JpaRepository<AsmsiAlumni, Long> 
         order by a.lastName asc, a.firstName asc, a.middleName asc
     """)
     List<AsmsiAlumni> searchTop(@Param("q") String q, Pageable pageable);
+
+    /* ------------ NEW: paged search for DataTables ------------- */
+    @Query("""
+        select a from AsmsiAlumni a
+        where
+            lower(a.idNumber) like concat('%', :q, '%')
+         or lower(coalesce(a.batchNumber, '')) like concat('%', :q, '%')
+         or lower(coalesce(a.lastName, '')) like concat('%', :q, '%')
+         or lower(coalesce(a.firstName, '')) like concat('%', :q, '%')
+         or lower(coalesce(a.middleName, '')) like concat('%', :q, '%')
+         or lower(
+                concat(
+                    coalesce(a.lastName, ''), ', ',
+                    coalesce(a.firstName, ''), ' ',
+                    coalesce(a.middleName, '')
+                )
+           ) like concat('%', :q, '%')
+         or lower(
+                concat(
+                    coalesce(a.firstName, ''), ' ',
+                    coalesce(a.middleName, ''), ' ',
+                    coalesce(a.lastName, '')
+                )
+           ) like concat('%', :q, '%')
+    """)
+    Page<AsmsiAlumni> searchPage(@Param("q") String q, Pageable pageable);
 }

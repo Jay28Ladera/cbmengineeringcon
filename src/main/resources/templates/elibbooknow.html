@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-Library Book Now</title>
+
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      margin: 0;
+      color: #334155;
+    }
+
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .room-live-item.is-full {
+      border-color: #fecaca;
+      background: #fff7f7;
+    }
+    .wizard-progress {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .85rem;
+  flex-wrap: wrap;
+}
+
+.wizard-step-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .45rem .7rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+.wizard-step-chip.active {
+  border-color: #c7d2fe;
+  background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+  color: #4338ca;
+}
+
+.wizard-step-chip.done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.wizard-step-number {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: .68rem;
+  font-weight: 800;
+}
+
+.wizard-step-chip.active .wizard-step-number {
+  background: #6366f1;
+  color: #fff;
+}
+
+.wizard-step-chip.done .wizard-step-number {
+  background: #22c55e;
+  color: #fff;
+}
+
+.wizard-panel {
+  display: none;
+}
+
+.wizard-panel.active {
+  display: block;
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+  margin-top: .85rem;
+}
+
+.wizard-actions-right {
+  display: flex;
+  justify-content: flex-end;
+  gap: .55rem;
+  margin-left: auto;
+}
+
+.wizard-refresh-note {
+  font-size: .68rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.btn-outline-secondary {
+  border-radius: 9px;
+}
+
+    .room-live-item.is-limited {
+      border-color: #fde68a;
+      background: #fffdf5;
+    }
+
+    .room-live-item.is-good {
+      border-color: #dbeafe;
+      background: #ffffff;
+    }
+
+    .guide-room-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      padding: .48rem .55rem;
+    }
+
+    .guide-room-item.is-full {
+      border-color: #fecaca;
+      background: #fff7f7;
+    }
+
+    .guide-room-item.is-inactive {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+      opacity: .9;
+    }
+
+    .guide-room-item.is-available {
+      border-color: #dbeafe;
+      background: #f8fbff;
+    }
+
+    .guide-room-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .4rem;
+    }
+
+    .guide-room-name {
+      font-size: .67rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.1;
+    }
+
+    .guide-room-badge {
+      font-size: .52rem;
+      font-weight: 800;
+      padding: .14rem .36rem;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .guide-room-badge.available {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .student-preview-box {
+  margin-top: .5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: .55rem .65rem;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+}
+
+.student-preview-box.is-loading {
+  border-color: #dbeafe;
+  background: #f8fbff;
+}
+
+.student-preview-box.is-found {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.student-preview-box.is-not-found {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.student-preview-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.student-preview-avatar.placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #64748b;
+  background: #f8fafc;
+}
+
+.student-preview-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.student-preview-label {
+  font-size: .55rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #94a3b8;
+  font-weight: 700;
+  margin-bottom: .08rem;
+  line-height: 1.05;
+}
+
+.student-preview-name {
+  font-size: .72rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1.1;
+  margin: 0;
+  word-break: break-word;
+}
+
+.student-preview-meta {
+  font-size: .62rem;
+  color: #64748b;
+  margin-top: .08rem;
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+    .guide-room-badge.full {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .guide-room-badge.inactive {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .guide-room-meta {
+      margin-top: .16rem;
+      font-size: .58rem;
+      color: #64748b;
+      line-height: 1.15;
+    }
+
+    .selected-room-live-box {
+      margin-top: .45rem;
+      padding: .5rem .55rem;
+      border-radius: 10px;
+      border: 1px dashed #cbd5e1;
+      background: rgba(255,255,255,.8);
+    }
+
+    .selected-room-live-label {
+      display: block;
+      font-size: .54rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-bottom: .07rem;
+      line-height: 1.05;
+    }
+
+    .selected-room-live-value {
+      display: block;
+      font-size: .66rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.15;
+    }
+
+    .guide-empty-state {
+      font-size: .6rem;
+      color: #64748b;
+      padding: .2rem 0;
+      line-height: 1.15;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .content-area {
+      flex: 1;
+      padding: .85rem 1rem;
+      position: relative;
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
+
+    .page-header-card {
+      border: none;
+      border-radius: 14px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #8b5cf6 100%) !important;
+      box-shadow: 0 10px 24px rgba(102, 126, 234, 0.14);
+      margin-bottom: .65rem;
+    }
+
+    .page-header-card .card-body {
+      padding: .8rem 1rem;
+      color: #fff;
+    }
+
+    .page-title {
+      font-weight: 800;
+      letter-spacing: -.02em;
+      font-size: 1.12rem;
+      margin-bottom: .1rem;
+    }
+
+    .page-subtitle {
+      margin: 0;
+      color: rgba(255,255,255,.92);
+      font-size: .72rem;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) 360px;
+      gap: .8rem;
+      align-items: start;
+    }
+
+    .card {
+      border: none;
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(15,23,42,.07), 0 2px 5px rgba(15,23,42,.03);
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    }
+
+    .card-body {
+      padding: .95rem;
+    }
+
+    .section-title {
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: .08rem;
+      font-size: .92rem;
+    }
+
+    .section-subtitle {
+      color: #64748b;
+      margin-bottom: 0;
+      font-size: .74rem;
+    }
+
+    .form-label {
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: .28rem;
+      font-size: .78rem;
+    }
+
+    .form-control,
+    .form-select {
+      border: 1px solid #dbe3ef;
+      border-radius: 10px;
+      padding: .58rem .72rem;
+      font-size: .82rem;
+      transition: all .2s ease;
+      background: #fff;
+      box-shadow: none;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,.10);
+    }
+
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220,53,69,.10);
+    }
+
+    .form-hint {
+      font-size: .68rem;
+      color: #64748b;
+      margin-top: .2rem;
+    }
+
+    .btn {
+      font-weight: 700;
+      border-radius: 9px;
+      padding: .58rem .78rem;
+      transition: all .2s ease;
+      font-size: .8rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      box-shadow: 0 6px 14px rgba(102,126,234,.18);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+    }
+
+    .helper-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: .55rem;
+      padding: .65rem .72rem;
+      background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      margin-bottom: .75rem;
+      font-size: .74rem;
+    }
+
+    .helper-banner i {
+      font-size: .88rem;
+      color: #5b5bd6;
+      margin-top: .02rem;
+    }
+
+    .helper-banner strong {
+      display: block;
+      color: #1e293b;
+      margin-bottom: .04rem;
+    }
+
+    .alert {
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 6px 16px rgba(15,23,42,.05);
+      margin-bottom: .65rem;
+      font-size: .76rem;
+      padding: .6rem .72rem;
+    }
+
+    .sub-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: .75rem;
+    }
+
+    .quick-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .45rem;
+      margin-top: .55rem;
+    }
+
+    .quick-summary-item {
+      padding: .58rem .65rem;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+    }
+
+    .quick-summary-label {
+      font-size: .56rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #94a3b8;
+      margin-bottom: .08rem;
+    }
+
+    .quick-summary-value {
+      font-size: .72rem;
+      font-weight: 800;
+      color: #1e293b;
+    }
+
+    .pc-assignments-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .55rem;
+      margin-top: .65rem;
+    }
+
+    .pc-user-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      padding: .65rem;
+    }
+
+    .pc-user-head {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .5rem;
+    }
+
+    .pc-user-badge {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(102,126,234,.14), rgba(118,75,162,.18));
+      color: #5b5bd6;
+      font-weight: 800;
+      flex: 0 0 auto;
+      font-size: .72rem;
+    }
+
+    .pc-user-title {
+      font-size: .76rem;
+      font-weight: 800;
+      color: #1e293b;
+      margin: 0;
+    }
+
+    .pc-user-subtitle {
+      font-size: .64rem;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .info-panel {
+      position: sticky;
+      top: .85rem;
+      display: grid;
+      gap: .6rem;
+    }
+
+    .mini-card {
+      border: 1px solid #dbeafe;
+      border-radius: 12px;
+      background: #fff;
+      padding: .65rem;
+      box-shadow: 0 4px 12px rgba(15,23,42,.04);
+    }
+
+    .mini-head {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: .45rem;
+    }
+
+    .mini-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      font-size: .58rem;
+      flex: 0 0 auto;
+    }
+
+    .mini-title {
+      font-size: .72rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.1;
+      margin: 0;
+    }
+
+    .mini-subtitle {
+      font-size: .58rem;
+      color: #64748b;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: .3rem;
+    }
+
+    .mini-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 9px;
+      background: #fff;
+      padding: .4rem .48rem;
+    }
+
+    .mini-label {
+      font-size: .54rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-bottom: .05rem;
+      line-height: 1.05;
+    }
+
+    .mini-value {
+      font-size: .66rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.05;
+    }
+
+    .mini-meta {
+      margin-top: .06rem;
+      font-size: .56rem;
+      color: #64748b;
+      line-height: 1.05;
+    }
+
+    .selected-guide {
+      border: 1px solid #dbeafe;
+      background: linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+      border-radius: 12px;
+      padding: .65rem;
+      box-shadow: 0 4px 12px rgba(102,126,234,.05);
+    }
+
+    .selected-guide-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .35rem;
+      margin-top: .45rem;
+    }
+
+    .selected-guide-item {
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      border-radius: 9px;
+      padding: .42rem .48rem;
+    }
+
+    .selected-guide-label {
+      display: block;
+      font-size: .54rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #94a3b8;
+      font-weight: 700;
+      margin-bottom: .05rem;
+      line-height: 1.05;
+    }
+
+    .selected-guide-value {
+      display: block;
+      font-size: .66rem;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.05;
+    }
+
+    .selected-guide-footer {
+      margin-top: .45rem;
+      padding: .45rem .5rem;
+      border-radius: 9px;
+      background: rgba(255,255,255,.8);
+      border: 1px dashed #cbd5e1;
+      color: #475569;
+      font-weight: 600;
+      font-size: .6rem;
+      line-height: 1.15;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+
+    @media (max-width: 1200px) {
+      .page-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .info-panel {
+        position: static;
+      }
+
+      .selected-guide-grid,
+      .quick-summary,
+      .pc-assignments-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+      }
+
+      .content-area {
+        padding: .75rem;
+      }
+
+      .page-title {
+        font-size: .95rem;
+      }
+
+      .page-header-card .card-body,
+      .card-body {
+        padding: .8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='elibrary-booknow',
+                                               studentInfoExpanded=${studentInfoExpanded},
+                                               asmsiExpanded=${asmsiExpanded},
+                                               admissionExpanded=${admissionExpanded},
+                                               attendanceExpanded=${attendanceExpanded},
+                                               eventsExpanded=${eventsExpanded},
+                                               familyDayExpanded=${familyDayExpanded})"></div>
+
+  <div class="main-content">
+    <div th:replace="fragments/header :: header(${username})"></div>
+
+    <main class="content-area">
+      <div class="card page-header-card">
+        <div class="card-body">
+          <h2 class="page-title mb-1">
+            <i class="bi bi-journal-bookmark-fill me-2"></i>
+            E-Library Booking
+          </h2>
+          <p class="page-subtitle">Create a new booking request.</p>
+        </div>
+      </div>
+
+      <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center justify-content-between">
+        <div>
+          <i class="bi bi-check-circle me-2"></i>
+          <span th:text="${successMessage}">Success message</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center justify-content-between">
+        <div>
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <span th:text="${errorMessage}">Error message</span>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+
+      <div class="page-grid">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="section-title mb-1">Book the E-Library</h5>
+            <p class="section-subtitle mb-3">Fill out the schedule, choose the room, and assign each student ID per computer.</p>
+
+            <div class="helper-banner">
+              <i class="bi bi-lightbulb"></i>
+              <div>
+                <strong>Helpful tip</strong>
+                Student ID fields will appear automatically based on the number of computers needed.
+              </div>
+            </div>
+
+            <form th:action="@{/save}" method="post" class="row g-3" id="bookNowForm">
+              <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+<div class="col-12">
+  <div class="wizard-progress" id="wizardProgress">
+    <div class="wizard-step-chip active" data-step-chip="1">
+      <span class="wizard-step-number">1</span>
+      <span>Schedule</span>
+    </div>
+    <div class="wizard-step-chip" data-step-chip="2">
+      <span class="wizard-step-number">2</span>
+      <span>Booking Details</span>
+    </div>
+    <div class="wizard-step-chip" data-step-chip="3">
+      <span class="wizard-step-number">3</span>
+      <span>Student Assignment</span>
+    </div>
+  </div>
+</div>
+
+<div class="col-12">
+  <div id="timeValidationAlert" class="alert alert-danger d-none mb-0">
+    Invalid schedule selected.
+  </div>
+</div>
+
+<div class="col-12">
+  <div id="roomCapacityAlert" class="alert alert-danger d-none mb-0">
+    Not enough PCs are available for the selected room and time.
+  </div>
+</div>
+
+<div class="col-12">
+  <div class="wizard-panel active" data-step-panel="1">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" name="bookingDate" id="bookingDate" required>
+        <div class="form-hint">Pick the date you want to reserve the room.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Computers Needed</label>
+        <input type="number" min="1" class="form-control" name="computersNeeded" id="computersNeededInput" required>
+        <div class="form-hint">Enter how many PCs will be used for this session.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Start Time</label>
+        <input type="time" class="form-control" name="startTime" id="startTime" required>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">End Time</label>
+        <input type="time" class="form-control" name="endTime" id="endTime" required>
+      </div>
+    </div>
+  </div>
+
+  <div class="wizard-panel" data-step-panel="2">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Room</label>
+        <select class="form-select" name="roomNumber" id="roomNumber" required>
+          <option value="">Select Room</option>
+          <option th:each="r : ${rooms}" th:value="${r.roomName}" th:text="${r.roomName}">Room</option>
+        </select>
+        <div class="form-hint">Only configured rooms from the backend will appear here.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Requested By</label>
+        <input type="text"
+               class="form-control"
+               name="requestedBy"
+               id="requestedBy"
+               th:value="${username}"
+               readonly
+               required>
+        <div class="form-hint">Automatically filled from the current logged-in user.</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Section / Department</label>
+        <input type="text" class="form-control" name="sectionName" id="sectionName">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Purpose</label>
+        <input type="text" class="form-control" name="purpose" id="purpose">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Remarks</label>
+        <textarea class="form-control" name="remarks" id="remarks" rows="3" placeholder="Optional notes or special instructions"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="wizard-panel" data-step-panel="3">
+    <div class="sub-card">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <div>
+          <h6 class="mb-1 fw-bold" style="font-size:.82rem;">Assigned Student IDs per PC</h6>
+          <p class="text-muted mb-0 small" style="font-size:.68rem;">Student ID fields refresh automatically based on room, schedule, and actual PC availability.</p>
+        </div>
+        <div class="wizard-refresh-note" id="wizardRefreshNote">Availability checked before this step.</div>
+      </div>
+
+      <div class="quick-summary">
+        <div class="quick-summary-item">
+          <div class="quick-summary-label">Requested PCs</div>
+          <div class="quick-summary-value" id="requestedPcCount">0</div>
+        </div>
+        <div class="quick-summary-item">
+          <div class="quick-summary-label">Generated Fields</div>
+          <div class="quick-summary-value" id="generatedFieldCount">0</div>
+        </div>
+      </div>
+
+      <div class="pc-assignments-grid" id="pcUserAssignments"></div>
+    </div>
+  </div>
+</div>
+
+<div class="col-12">
+  <div class="wizard-actions">
+    <div></div>
+    <div class="wizard-actions-right">
+      <button type="button" class="btn btn-outline-secondary d-none" id="prevStepBtn">
+        <i class="bi bi-arrow-left me-1"></i>Previous
+      </button>
+
+      <button type="button" class="btn btn-primary" id="nextStepBtn">
+        Next<i class="bi bi-arrow-right ms-1"></i>
+      </button>
+
+      <button type="submit" class="btn btn-primary d-none" id="submitBookingBtn">
+        <i class="bi bi-send-check me-1"></i>Submit Booking Request
+      </button>
+    </div>
+  </div>
+</div></form>
+          </div>
+        </div>
+
+        <div class="info-panel">
+          <div class="selected-guide">
+            <div class="mini-head mb-2">
+              <div class="mini-icon"><i class="bi bi-calendar-check-fill"></i></div>
+              <div>
+                <h6 class="mini-title">Selected Day Guide</h6>
+                <p class="mini-subtitle">Fetched from your settings</p>
+              </div>
+            </div>
+
+            <div class="selected-guide-grid">
+              <div class="selected-guide-item">
+                <span class="selected-guide-label">Day</span>
+                <span class="selected-guide-value" id="ruleSelectedDay">-</span>
+              </div>
+              <div class="selected-guide-item">
+                <span class="selected-guide-label">Booking</span>
+                <span class="selected-guide-value" id="ruleBookingAllowed">-</span>
+              </div>
+              <div class="selected-guide-item">
+                <span class="selected-guide-label">Opening Hours</span>
+                <span class="selected-guide-value" id="ruleOpeningHours">-</span>
+              </div>
+              <div class="selected-guide-item">
+                <span class="selected-guide-label">Break Time</span>
+                <span class="selected-guide-value" id="ruleBreakTime">-</span>
+              </div>
+            </div>
+
+            
+
+            
+
+            
+          </div>
+
+          <div class="mini-card">
+            <div class="mini-head">
+              <div class="mini-icon"><i class="bi bi-door-open-fill"></i></div>
+              <div>
+                <h6 class="mini-title">Room Availability</h6>
+                <p class="mini-subtitle">Fetched from your room settings</p>
+              </div>
+            </div>
+
+            <div class="mini-list" id="liveRoomAvailabilityList">
+              <div class="mini-item" th:if="${rooms == null or #lists.isEmpty(rooms)}">
+                <div class="mini-label">No rooms found</div>
+                <div class="mini-meta">Rooms data not loaded</div>
+              </div>
+
+              <div class="mini-item room-live-item"
+                   th:each="r : ${rooms}"
+                   th:attr="data-room-name=${r.roomName},data-total-pcs=${r.totalPcs},data-room-active=${r.active}">
+                <div class="mini-label room-live-name" th:text="${r.roomName}">Room</div>
+                <div class="mini-value">
+                  <span class="room-live-available" th:text="${r.totalPcs}">40</span> PCs Available
+                </div>
+                <div class="mini-meta">
+                  <span class="room-live-used">0</span> used of
+                  <span class="room-live-total" th:text="${r.totalPcs}">40</span>
+                  <span class="ms-1">•</span>
+                  <span class="room-live-status" th:text="${r.active ? 'Active' : 'Inactive'}">Active</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          
+
+          <div class="mini-card">
+  <div class="mini-head">
+    <div class="mini-icon"><i class="bi bi-clock-history"></i></div>
+    <div>
+      <h6 class="mini-title">Open Hours Per Day</h6>
+      <p class="mini-subtitle">Fetched from your settings</p>
+    </div>
+  </div>
+
+  <div class="mini-list" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem;">
+    <div class="mini-item">
+      <div class="mini-label">Monday</div>
+      <div class="mini-value" th:text="${monSetting != null && monSetting.openTime != null && monSetting.closeTime != null ? monSetting.openTime + ' - ' + monSetting.closeTime : 'Not set'}">08:00 - 17:00</div>
+      <div class="mini-meta" th:text="${monSetting != null && monSetting.enabled ? (monSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Enabled • Bookable</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Tuesday</div>
+      <div class="mini-value" th:text="${tueSetting != null && tueSetting.openTime != null && tueSetting.closeTime != null ? tueSetting.openTime + ' - ' + tueSetting.closeTime : 'Not set'}">08:00 - 17:00</div>
+      <div class="mini-meta" th:text="${tueSetting != null && tueSetting.enabled ? (tueSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Enabled • Bookable</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Wednesday</div>
+      <div class="mini-value" th:text="${wedSetting != null && wedSetting.openTime != null && wedSetting.closeTime != null ? wedSetting.openTime + ' - ' + wedSetting.closeTime : 'Not set'}">08:00 - 17:00</div>
+      <div class="mini-meta" th:text="${wedSetting != null && wedSetting.enabled ? (wedSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Enabled • Bookable</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Thursday</div>
+      <div class="mini-value" th:text="${thuSetting != null && thuSetting.openTime != null && thuSetting.closeTime != null ? thuSetting.openTime + ' - ' + thuSetting.closeTime : 'Not set'}">08:00 - 17:00</div>
+      <div class="mini-meta" th:text="${thuSetting != null && thuSetting.enabled ? (thuSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Enabled • Bookable</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Friday</div>
+      <div class="mini-value" th:text="${friSetting != null && friSetting.openTime != null && friSetting.closeTime != null ? friSetting.openTime + ' - ' + friSetting.closeTime : 'Not set'}">08:00 - 17:00</div>
+      <div class="mini-meta" th:text="${friSetting != null && friSetting.enabled ? (friSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Enabled • Bookable</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Saturday</div>
+      <div class="mini-value" th:text="${satSetting != null && satSetting.openTime != null && satSetting.closeTime != null ? satSetting.openTime + ' - ' + satSetting.closeTime : 'Not set'}">Not set</div>
+      <div class="mini-meta" th:text="${satSetting != null && satSetting.enabled ? (satSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Disabled</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Sunday</div>
+      <div class="mini-value" th:text="${sunSetting != null && sunSetting.openTime != null && sunSetting.closeTime != null ? sunSetting.openTime + ' - ' + sunSetting.closeTime : 'Not set'}">Not set</div>
+      <div class="mini-meta" th:text="${sunSetting != null && sunSetting.enabled ? (sunSetting.bookable ? 'Enabled • Bookable' : 'Enabled • Not Bookable') : 'Disabled'}">Disabled</div>
+    </div>
+  </div>
+</div>
+
+          <div class="mini-card">
+            <div class="mini-card">
+  <div class="mini-head">
+    <div class="mini-icon"><i class="bi bi-sliders"></i></div>
+    <div>
+      <h6 class="mini-title">Booking Rules</h6>
+      <p class="mini-subtitle">Fetched from your booking rule settings</p>
+    </div>
+  </div>
+
+  <div class="mini-list" style="grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem;">
+    <div class="mini-item">
+      <div class="mini-label">Max Days Ahead</div>
+      <div class="mini-value" th:text="${bookingRule != null ? bookingRule.maxAdvanceDays : '-'}">1</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Minimum Duration</div>
+      <div class="mini-value"><span th:text="${bookingRule != null ? bookingRule.minBookingMinutes : '-'}">60</span> mins</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Maximum Duration</div>
+      <div class="mini-value"><span th:text="${bookingRule != null ? bookingRule.maxBookingMinutes : '-'}">180</span> mins</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Max PCs Per Booking</div>
+      <div class="mini-value" th:text="${bookingRule != null ? bookingRule.maxComputersPerBooking : '-'}">40</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Approval Required</div>
+      <div class="mini-value" th:text="${bookingRule != null && bookingRule.approvalRequired ? 'Yes' : 'No'}">Yes</div>
+    </div>
+
+    <div class="mini-item">
+      <div class="mini-label">Same Day Booking</div>
+      <div class="mini-value" th:text="${bookingRule != null && bookingRule.allowSameDayBooking ? 'Allowed' : 'Not Allowed'}">Allowed</div>
+    </div>
+  </div>
+</div>
+        </div>
+      </div>
+
+      <div id="dayRulesContainer" class="d-none">
+        <div data-day-code="MON"
+             th:attr="
+               data-enabled=${monSetting != null ? monSetting.enabled : false},
+               data-bookable=${monSetting != null ? monSetting.bookable : false},
+               data-open-time=${monSetting != null && monSetting.openTime != null ? monSetting.openTime : ''},
+               data-close-time=${monSetting != null && monSetting.closeTime != null ? monSetting.closeTime : ''},
+               data-break-start-time=${monSetting != null && monSetting.breakStartTime != null ? monSetting.breakStartTime : ''},
+               data-break-end-time=${monSetting != null && monSetting.breakEndTime != null ? monSetting.breakEndTime : ''}">
+        </div>
+
+        <div data-day-code="TUE"
+             th:attr="
+               data-enabled=${tueSetting != null ? tueSetting.enabled : false},
+               data-bookable=${tueSetting != null ? tueSetting.bookable : false},
+               data-open-time=${tueSetting != null && tueSetting.openTime != null ? tueSetting.openTime : ''},
+               data-close-time=${tueSetting != null && tueSetting.closeTime != null ? tueSetting.closeTime : ''},
+               data-break-start-time=${tueSetting != null && tueSetting.breakStartTime != null ? tueSetting.breakStartTime : ''},
+               data-break-end-time=${tueSetting != null && tueSetting.breakEndTime != null ? tueSetting.breakEndTime : ''}">
+        </div>
+
+        <div data-day-code="WED"
+             th:attr="
+               data-enabled=${wedSetting != null ? wedSetting.enabled : false},
+               data-bookable=${wedSetting != null ? wedSetting.bookable : false},
+               data-open-time=${wedSetting != null && wedSetting.openTime != null ? wedSetting.openTime : ''},
+               data-close-time=${wedSetting != null && wedSetting.closeTime != null ? wedSetting.closeTime : ''},
+               data-break-start-time=${wedSetting != null && wedSetting.breakStartTime != null ? wedSetting.breakStartTime : ''},
+               data-break-end-time=${wedSetting != null && wedSetting.breakEndTime != null ? wedSetting.breakEndTime : ''}">
+        </div>
+
+        <div data-day-code="THU"
+             th:attr="
+               data-enabled=${thuSetting != null ? thuSetting.enabled : false},
+               data-bookable=${thuSetting != null ? thuSetting.bookable : false},
+               data-open-time=${thuSetting != null && thuSetting.openTime != null ? thuSetting.openTime : ''},
+               data-close-time=${thuSetting != null && thuSetting.closeTime != null ? thuSetting.closeTime : ''},
+               data-break-start-time=${thuSetting != null && thuSetting.breakStartTime != null ? thuSetting.breakStartTime : ''},
+               data-break-end-time=${thuSetting != null && thuSetting.breakEndTime != null ? thuSetting.breakEndTime : ''}">
+        </div>
+
+        <div data-day-code="FRI"
+             th:attr="
+               data-enabled=${friSetting != null ? friSetting.enabled : false},
+               data-bookable=${friSetting != null ? friSetting.bookable : false},
+               data-open-time=${friSetting != null && friSetting.openTime != null ? friSetting.openTime : ''},
+               data-close-time=${friSetting != null && friSetting.closeTime != null ? friSetting.closeTime : ''},
+               data-break-start-time=${friSetting != null && friSetting.breakStartTime != null ? friSetting.breakStartTime : ''},
+               data-break-end-time=${friSetting != null && friSetting.breakEndTime != null ? friSetting.breakEndTime : ''}">
+        </div>
+
+        <div data-day-code="SAT"
+             th:attr="
+               data-enabled=${satSetting != null ? satSetting.enabled : false},
+               data-bookable=${satSetting != null ? satSetting.bookable : false},
+               data-open-time=${satSetting != null && satSetting.openTime != null ? satSetting.openTime : ''},
+               data-close-time=${satSetting != null && satSetting.closeTime != null ? satSetting.closeTime : ''},
+               data-break-start-time=${satSetting != null && satSetting.breakStartTime != null ? satSetting.breakStartTime : ''},
+               data-break-end-time=${satSetting != null && satSetting.breakEndTime != null ? satSetting.breakEndTime : ''}">
+        </div>
+
+        <div data-day-code="SUN"
+             th:attr="
+               data-enabled=${sunSetting != null ? sunSetting.enabled : false},
+               data-bookable=${sunSetting != null ? sunSetting.bookable : false},
+               data-open-time=${sunSetting != null && sunSetting.openTime != null ? sunSetting.openTime : ''},
+               data-close-time=${sunSetting != null && sunSetting.closeTime != null ? sunSetting.closeTime : ''},
+               data-break-start-time=${sunSetting != null && sunSetting.breakStartTime != null ? sunSetting.breakStartTime : ''},
+               data-break-end-time=${sunSetting != null && sunSetting.breakEndTime != null ? sunSetting.breakEndTime : ''}">
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const bookNowForm = document.getElementById("bookNowForm");
+
+  const bookingDateInput = document.getElementById("bookingDate");
+  const computersNeededInput = document.getElementById("computersNeededInput");
+  const startTimeInput = document.getElementById("startTime");
+  const endTimeInput = document.getElementById("endTime");
+  const roomNumberInput = document.getElementById("roomNumber");
+  const requestedByInput = document.getElementById("requestedBy");
+
+  const pcUserAssignments = document.getElementById("pcUserAssignments");
+  const requestedPcCount = document.getElementById("requestedPcCount");
+  const generatedFieldCount = document.getElementById("generatedFieldCount");
+
+  const timeValidationAlert = document.getElementById("timeValidationAlert");
+  const roomCapacityAlert = document.getElementById("roomCapacityAlert");
+
+  const ruleSelectedDay = document.getElementById("ruleSelectedDay");
+  const ruleBookingAllowed = document.getElementById("ruleBookingAllowed");
+  const ruleOpeningHours = document.getElementById("ruleOpeningHours");
+  const ruleBreakTime = document.getElementById("ruleBreakTime");
+
+  const wizardPanels = Array.from(document.querySelectorAll("[data-step-panel]"));
+  const wizardStepChips = Array.from(document.querySelectorAll("[data-step-chip]"));
+  const prevStepBtn = document.getElementById("prevStepBtn");
+  const nextStepBtn = document.getElementById("nextStepBtn");
+  const submitBookingBtn = document.getElementById("submitBookingBtn");
+  const wizardRefreshNote = document.getElementById("wizardRefreshNote");
+
+  let currentWizardStep = 1;
+  let latestRoomAvailability = [];
+  let latestAssignablePcNumbers = [];
+
+  const studentLookupCache = new Map();
+  const studentLookupTimers = new WeakMap();
+
+  const dayRules = {};
+  document.querySelectorAll("#dayRulesContainer [data-day-code]").forEach(el => {
+    const dayCode = String(el.dataset.dayCode || "").toUpperCase();
+    dayRules[dayCode] = {
+      enabled: String(el.dataset.enabled) === "true",
+      bookable: String(el.dataset.bookable) === "true",
+      openTime: el.dataset.openTime || "",
+      closeTime: el.dataset.closeTime || "",
+      breakStartTime: el.dataset.breakStartTime || "",
+      breakEndTime: el.dataset.breakEndTime || ""
+    };
+  });
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function timeToMinutes(value) {
+    if (!value || !String(value).includes(":")) return NaN;
+    const [h, m] = String(value).split(":").map(Number);
+    return (h * 60) + m;
+  }
+
+  function formatTime12h(value) {
+    if (!value || !String(value).includes(":")) return "-";
+    const [hourStr, minuteStr] = String(value).split(":");
+    let hour = parseInt(hourStr, 10);
+    const minute = minuteStr || "00";
+    const suffix = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12;
+    return `${hour}:${minute} ${suffix}`;
+  }
+
+  function getDayCodeFromDate(dateString) {
+    if (!dateString) return "";
+    const date = new Date(dateString + "T00:00:00");
+    const day = date.getDay();
+    return ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"][day] || "";
+  }
+
+  function updateSummary(total) {
+    if (requestedPcCount) {
+      requestedPcCount.textContent = total > 0 ? total : 0;
+    }
+    if (generatedFieldCount) {
+      generatedFieldCount.textContent = pcUserAssignments ? pcUserAssignments.children.length : 0;
+    }
+  }
+
+  function clearTimeValidationMessage() {
+    if (!timeValidationAlert) return;
+    timeValidationAlert.classList.add("d-none");
+    timeValidationAlert.textContent = "Invalid schedule selected.";
+  }
+
+  function showTimeValidationMessage(message) {
+    if (!timeValidationAlert) return;
+    timeValidationAlert.textContent = message || "Invalid schedule selected.";
+    timeValidationAlert.classList.remove("d-none");
+  }
+
+  function clearRoomCapacityMessage() {
+    if (!roomCapacityAlert) return;
+    roomCapacityAlert.classList.add("d-none");
+    roomCapacityAlert.textContent = "Not enough PCs are available for the selected room and time.";
+  }
+
+  function showRoomCapacityMessage(message) {
+    if (!roomCapacityAlert) return;
+    roomCapacityAlert.textContent = message || "Not enough PCs are available for the selected room and time.";
+    roomCapacityAlert.classList.remove("d-none");
+  }
+
+  function updateRulesNote() {
+    const dateValue = bookingDateInput?.value?.trim() || "";
+    const dayCode = getDayCodeFromDate(dateValue);
+    const rule = dayRules[dayCode];
+
+    const labelMap = {
+      MON: "Monday",
+      TUE: "Tuesday",
+      WED: "Wednesday",
+      THU: "Thursday",
+      FRI: "Friday",
+      SAT: "Saturday",
+      SUN: "Sunday"
+    };
+
+    if (ruleSelectedDay) {
+      ruleSelectedDay.textContent = dayCode ? (labelMap[dayCode] || dayCode) : "-";
+    }
+
+    if (ruleBookingAllowed) {
+      if (!dayCode || !rule) {
+        ruleBookingAllowed.textContent = "-";
+      } else {
+        ruleBookingAllowed.textContent = rule.enabled
+          ? (rule.bookable ? "Allowed" : "Not Bookable")
+          : "Disabled";
+      }
+    }
+
+    if (ruleOpeningHours) {
+      if (!rule || !rule.openTime || !rule.closeTime) {
+        ruleOpeningHours.textContent = "-";
+      } else {
+        ruleOpeningHours.textContent = `${formatTime12h(rule.openTime)} - ${formatTime12h(rule.closeTime)}`;
+      }
+    }
+
+    if (ruleBreakTime) {
+      if (!rule || !rule.breakStartTime || !rule.breakEndTime) {
+        ruleBreakTime.textContent = "None";
+      } else {
+        ruleBreakTime.textContent = `${formatTime12h(rule.breakStartTime)} - ${formatTime12h(rule.breakEndTime)}`;
+      }
+    }
+  }
+
+  function validateScheduleAgainstRules() {
+    clearTimeValidationMessage();
+    updateRulesNote();
+
+    const bookingDate = bookingDateInput?.value?.trim() || "";
+    const startTime = startTimeInput?.value?.trim() || "";
+    const endTime = endTimeInput?.value?.trim() || "";
+
+    if (!bookingDate || !startTime || !endTime) {
+      return true;
+    }
+
+    const dayCode = getDayCodeFromDate(bookingDate);
+    const rule = dayRules[dayCode];
+
+    if (!rule) {
+      showTimeValidationMessage("No rules found for the selected day.");
+      return false;
+    }
+
+    if (!rule.enabled) {
+      showTimeValidationMessage("Selected day is disabled.");
+      return false;
+    }
+
+    if (!rule.bookable) {
+      showTimeValidationMessage("Selected day is not bookable.");
+      return false;
+    }
+
+    const start = timeToMinutes(startTime);
+    const end = timeToMinutes(endTime);
+    const open = timeToMinutes(rule.openTime);
+    const close = timeToMinutes(rule.closeTime);
+
+    if (Number.isNaN(start) || Number.isNaN(end) || start >= end) {
+      showTimeValidationMessage("End time must be later than start time.");
+      return false;
+    }
+
+    if (!Number.isNaN(open) && start < open) {
+      showTimeValidationMessage("Start time is earlier than opening hours.");
+      return false;
+    }
+
+    if (!Number.isNaN(close) && end > close) {
+      showTimeValidationMessage("End time is beyond closing hours.");
+      return false;
+    }
+
+    if (rule.breakStartTime && rule.breakEndTime) {
+      const breakStart = timeToMinutes(rule.breakStartTime);
+      const breakEnd = timeToMinutes(rule.breakEndTime);
+      const overlapsBreak = start < breakEnd && end > breakStart;
+
+      if (overlapsBreak) {
+        showTimeValidationMessage("Selected schedule overlaps with break time.");
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function validateTimeGuideOnly() {
+    validateScheduleAgainstRules();
+  }
+
+  function resetRoomDropdownOptions() {
+    if (!roomNumberInput) return;
+
+    Array.from(roomNumberInput.options).forEach(option => {
+      const roomName = option.value;
+
+      if (!roomName) {
+        option.disabled = false;
+        option.textContent = "Select Room";
+        return;
+      }
+
+      option.disabled = false;
+      option.textContent = roomName;
+    });
+  }
+
+  function resetRoomAvailabilityToTotals() {
+    document.querySelectorAll(".room-live-item").forEach(item => {
+      const total = parseInt(item.dataset.totalPcs || "0", 10);
+      const active = String(item.dataset.roomActive) === "true";
+
+      const availableEl = item.querySelector(".room-live-available");
+      const usedEl = item.querySelector(".room-live-used");
+      const totalEl = item.querySelector(".room-live-total");
+      const statusEl = item.querySelector(".room-live-status");
+
+      if (availableEl) availableEl.textContent = total;
+      if (usedEl) usedEl.textContent = 0;
+      if (totalEl) totalEl.textContent = total;
+      if (statusEl) statusEl.textContent = active ? "Active" : "Inactive";
+
+      item.classList.remove("is-full", "is-limited", "is-good");
+
+      if (!active || total <= 0) {
+        item.classList.add("is-full");
+      } else {
+        item.classList.add("is-good");
+      }
+    });
+
+    resetRoomDropdownOptions();
+  }
+
+  function hasCompleteScheduleInputs() {
+    return !!(
+      bookingDateInput?.value?.trim() &&
+      startTimeInput?.value?.trim() &&
+      endTimeInput?.value?.trim()
+    );
+  }
+
+  function updateRoomDropdownAvailability() {
+    if (!roomNumberInput) return;
+
+    const requested = parseInt(computersNeededInput?.value || "0", 10);
+    const hasSchedule = hasCompleteScheduleInputs();
+    const currentValue = roomNumberInput.value;
+
+    Array.from(roomNumberInput.options).forEach(option => {
+      const roomName = option.value;
+
+      if (!roomName) {
+        option.disabled = false;
+        option.textContent = "Select Room";
+        return;
+      }
+
+      const match = latestRoomAvailability.find(r => r.roomName === roomName);
+
+      if (!hasSchedule || !match) {
+        option.disabled = false;
+        option.textContent = roomName;
+        return;
+      }
+
+      if (!match.active) {
+        option.disabled = true;
+        option.textContent = `${roomName} (Inactive)`;
+        return;
+      }
+
+      if (match.availablePcs <= 0) {
+        option.disabled = true;
+        option.textContent = `${roomName} (Full)`;
+        return;
+      }
+
+      if (requested > 0 && match.availablePcs < requested) {
+        option.disabled = false;
+        option.textContent = `${roomName} (${match.availablePcs} available)`;
+        return;
+      }
+
+      option.disabled = false;
+      option.textContent = `${roomName} (${match.availablePcs} available)`;
+    });
+
+    const selectedOptionStillExists = Array.from(roomNumberInput.options).some(
+      option => option.value === currentValue
+    );
+
+    if (!selectedOptionStillExists) {
+      roomNumberInput.value = "";
+    }
+  }
+
+  function updateSelectedRoomLiveSummary() {
+    return;
+  }
+
+  function updateCapacityGuideOnly() {
+    clearRoomCapacityMessage();
+
+    const bookingDate = bookingDateInput?.value?.trim();
+    const startTime = startTimeInput?.value?.trim();
+    const endTime = endTimeInput?.value?.trim();
+    const roomName = roomNumberInput?.value?.trim();
+    const requested = parseInt(computersNeededInput?.value || "0", 10);
+
+    updateRoomDropdownAvailability();
+
+    if (!bookingDate || !startTime || !endTime || !roomName || !requested || requested < 1) {
+      return;
+    }
+
+    const selectedRoom = latestRoomAvailability.find(r => r.roomName === roomName);
+    if (!selectedRoom) return;
+
+    if (!selectedRoom.active) {
+      showRoomCapacityMessage("Selected room is inactive.");
+      return;
+    }
+
+    if (requested > selectedRoom.availablePcs) {
+      showRoomCapacityMessage(
+        `Only ${selectedRoom.availablePcs} PC(s) are available in ${selectedRoom.roomName} for the selected time.`
+      );
+    }
+  }
+
+  async function updateRoomAvailabilityLive(isSilent = false) {
+    const bookingDate = bookingDateInput?.value?.trim();
+    const startTime = startTimeInput?.value?.trim();
+    const endTime = endTimeInput?.value?.trim();
+
+    latestRoomAvailability = [];
+    clearRoomCapacityMessage();
+
+    if (!bookingDate || !startTime || !endTime) {
+      resetRoomAvailabilityToTotals();
+      updateRoomDropdownAvailability();
+      latestAssignablePcNumbers = [];
+      buildPcUserAssignments();
+      return;
+    }
+
+    try {
+      const url = `/room-live-availability?bookingDate=${encodeURIComponent(bookingDate)}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        if (!isSilent) {
+          resetRoomAvailabilityToTotals();
+          updateRoomDropdownAvailability();
+        }
+        return;
+      }
+
+      const data = await response.json();
+      latestRoomAvailability = Array.isArray(data) ? data : [];
+
+      document.querySelectorAll(".room-live-item").forEach(item => {
+        const roomName = item.dataset.roomName;
+        const match = latestRoomAvailability.find(r => r.roomName === roomName);
+        if (!match) return;
+
+        const availableEl = item.querySelector(".room-live-available");
+        const usedEl = item.querySelector(".room-live-used");
+        const totalEl = item.querySelector(".room-live-total");
+        const statusEl = item.querySelector(".room-live-status");
+
+        if (availableEl) availableEl.textContent = match.availablePcs;
+        if (usedEl) usedEl.textContent = match.usedPcs;
+        if (totalEl) totalEl.textContent = match.totalPcs;
+        if (statusEl) statusEl.textContent = match.active ? "Active" : "Inactive";
+
+        item.classList.remove("is-good", "is-limited", "is-full");
+
+        if (!match.active || match.availablePcs <= 0) {
+          item.classList.add("is-full");
+        } else if (match.availablePcs < match.totalPcs) {
+          item.classList.add("is-limited");
+        } else {
+          item.classList.add("is-good");
+        }
+      });
+
+      updateRoomDropdownAvailability();
+      updateCapacityGuideOnly();
+    } catch (e) {
+      if (!isSilent) {
+        latestRoomAvailability = [];
+        resetRoomAvailabilityToTotals();
+        updateRoomDropdownAvailability();
+      }
+    }
+  }
+
+  async function updateAssignablePcPreview(isSilent = false) {
+    const bookingDate = bookingDateInput?.value?.trim();
+    const startTime = startTimeInput?.value?.trim();
+    const endTime = endTimeInput?.value?.trim();
+    const roomName = roomNumberInput?.value?.trim();
+    const requested = parseInt(computersNeededInput?.value || "0", 10);
+
+    latestAssignablePcNumbers = [];
+
+    if (!bookingDate || !startTime || !endTime || !roomName || !requested || requested < 1) {
+      buildPcUserAssignments();
+      return;
+    }
+
+    try {
+      const url = `/room-assignable-pcs?bookingDate=${encodeURIComponent(bookingDate)}&startTime=${encodeURIComponent(startTime)}&endTime=${encodeURIComponent(endTime)}&roomName=${encodeURIComponent(roomName)}&computersNeeded=${encodeURIComponent(requested)}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        latestAssignablePcNumbers = [];
+        if (!isSilent) buildPcUserAssignments();
+        return;
+      }
+
+      const data = await response.json();
+      latestAssignablePcNumbers = Array.isArray(data.assignablePcNumbers)
+        ? data.assignablePcNumbers
+        : [];
+
+      buildPcUserAssignments();
+
+      if (data.capacityExceeded) {
+        showRoomCapacityMessage(
+          data.message || "Not enough PCs are available for the selected room and time."
+        );
+      } else {
+        clearRoomCapacityMessage();
+      }
+    } catch (e) {
+      latestAssignablePcNumbers = [];
+      if (!isSilent) buildPcUserAssignments();
+    }
+  }
+
+  function buildPcUserAssignments() {
+    const total = parseInt(computersNeededInput?.value || "0", 10);
+
+    if (!pcUserAssignments) return;
+
+    const previousValues = Array.from(
+      pcUserAssignments.querySelectorAll('input[name="studentPcUserIds"]')
+    ).map(input => input.value || "");
+
+    pcUserAssignments.innerHTML = "";
+
+    if (!total || total < 1) {
+      updateSummary(0);
+      return;
+    }
+
+    const bookingDate = bookingDateInput?.value?.trim() || "";
+    const startTime = startTimeInput?.value?.trim() || "";
+    const endTime = endTimeInput?.value?.trim() || "";
+    const roomName = roomNumberInput?.value?.trim() || "";
+
+    const useLivePcNumbers =
+      bookingDate &&
+      startTime &&
+      endTime &&
+      roomName &&
+      Array.isArray(latestAssignablePcNumbers) &&
+      latestAssignablePcNumbers.length > 0;
+
+    const pcNumbersToRender = useLivePcNumbers
+      ? latestAssignablePcNumbers.slice(0, total)
+      : Array.from({ length: total }, (_, i) => i + 1);
+
+    for (let i = 0; i < pcNumbersToRender.length; i++) {
+      const actualPcNumber = pcNumbersToRender[i];
+
+      const card = document.createElement("div");
+      card.className = "pc-user-card";
+      card.innerHTML = `
+        <div class="pc-user-head">
+          <div class="pc-user-badge">${actualPcNumber}</div>
+          <div>
+            <h6 class="pc-user-title">PC ${actualPcNumber}</h6>
+            <p class="pc-user-subtitle">Enter 12-digit student ID</p>
+          </div>
+        </div>
+
+        <input
+          type="text"
+          class="form-control student-id-input"
+          name="studentPcUserIds"
+          placeholder="Enter 12-digit Student ID"
+          maxlength="12"
+          pattern="\\d{12}"
+          inputmode="numeric"
+          required
+          value="${previousValues[i] || ""}"
+          data-pc-number="${actualPcNumber}"
+          autocomplete="off"
+        >
+
+        <div class="student-preview-box" data-student-preview>
+          <div class="student-preview-avatar placeholder">?</div>
+          <div class="student-preview-content">
+            <div class="student-preview-label">Student Preview</div>
+            <p class="student-preview-name">Waiting for student ID</p>
+            <div class="student-preview-meta">Type 12 digits to search</div>
+          </div>
+        </div>
+      `;
+
+      pcUserAssignments.appendChild(card);
+    }
+
+    updateSummary(pcNumbersToRender.length);
+    refreshAllStudentPreviews();
+  }
+
+  function getPreviewBoxFromInput(input) {
+    if (!input) return null;
+    const card = input.closest(".pc-user-card");
+    return card ? card.querySelector("[data-student-preview]") : null;
+  }
+
+  function renderStudentPreviewIdle(input) {
+    const preview = getPreviewBoxFromInput(input);
+    if (!preview) return;
+
+    preview.className = "student-preview-box";
+    preview.innerHTML = `
+      <div class="student-preview-avatar placeholder">?</div>
+      <div class="student-preview-content">
+        <div class="student-preview-label">Student Preview</div>
+        <p class="student-preview-name">Waiting for student ID</p>
+        <div class="student-preview-meta">Type 12 digits to search</div>
+      </div>
+    `;
+  }
+
+  function renderStudentPreviewLoading(input) {
+    const preview = getPreviewBoxFromInput(input);
+    if (!preview) return;
+
+    preview.className = "student-preview-box is-loading";
+    preview.innerHTML = `
+      <div class="student-preview-avatar placeholder">
+        <i class="bi bi-search"></i>
+      </div>
+      <div class="student-preview-content">
+        <div class="student-preview-label">Student Preview</div>
+        <p class="student-preview-name">Checking student...</p>
+        <div class="student-preview-meta">Searching student record</div>
+      </div>
+    `;
+  }
+
+  function renderStudentPreviewFound(input, student) {
+    const preview = getPreviewBoxFromInput(input);
+    if (!preview) return;
+
+    const safeName = escapeHtml(student?.name || "Unnamed student");
+    const safeId = escapeHtml(student?.idNumber || input.value || "");
+    const safeCampus = escapeHtml(student?.campus || "");
+    const safeVia = escapeHtml(student?.via || "");
+    const safeFamilySaint = escapeHtml(student?.familySaint || "");
+    const imageUrl = student?.imageUrl ? String(student.imageUrl) : "";
+
+    let meta = `ID Number: ${safeId}`;
+    if (safeCampus) meta += ` • ${safeCampus}`;
+    if (safeVia) meta += ` • ${safeVia}`;
+    if (safeFamilySaint) meta += ` • ${safeFamilySaint}`;
+
+    preview.className = "student-preview-box is-found";
+    preview.innerHTML = `
+      ${
+        imageUrl
+          ? `<img src="${escapeHtml(imageUrl)}" alt="${safeName}" class="student-preview-avatar">`
+          : `<div class="student-preview-avatar placeholder"><i class="bi bi-person-fill"></i></div>`
+      }
+      <div class="student-preview-content">
+        <div class="student-preview-label">Student Found</div>
+        <p class="student-preview-name">${safeName}</p>
+        <div class="student-preview-meta">${meta}</div>
+      </div>
+    `;
+  }
+
+  function renderStudentPreviewNotFound(input, message = "Student not found.") {
+    const preview = getPreviewBoxFromInput(input);
+    if (!preview) return;
+
+    preview.className = "student-preview-box is-not-found";
+    preview.innerHTML = `
+      <div class="student-preview-avatar placeholder">!</div>
+      <div class="student-preview-content">
+        <div class="student-preview-label">Student Preview</div>
+        <p class="student-preview-name">No matching student</p>
+        <div class="student-preview-meta">${escapeHtml(message)}</div>
+      </div>
+    `;
+  }
+
+  async function lookupStudentForInput(input) {
+    if (!input) return;
+
+    const idNumber = (input.value || "").trim();
+
+    if (!idNumber) {
+      renderStudentPreviewIdle(input);
+      return;
+    }
+
+    if (idNumber.length < 12) {
+      renderStudentPreviewNotFound(input, "Please complete the 12-digit student ID.");
+      return;
+    }
+
+    if (studentLookupCache.has(idNumber)) {
+      const cached = studentLookupCache.get(idNumber);
+      if (cached && cached.found) {
+        renderStudentPreviewFound(input, cached);
+      } else {
+        renderStudentPreviewNotFound(input, cached?.message || "Student not found.");
+      }
+      return;
+    }
+
+    renderStudentPreviewLoading(input);
+
+    try {
+      const response = await fetch(`/students/lookup?idNumber=${encodeURIComponent(idNumber)}`, {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        renderStudentPreviewNotFound(input, "Unable to check student right now.");
+        return;
+      }
+
+      const data = await response.json();
+      studentLookupCache.set(idNumber, data);
+
+      if (data && data.found) {
+        renderStudentPreviewFound(input, data);
+      } else {
+        renderStudentPreviewNotFound(input, data?.message || "Student not found.");
+      }
+    } catch (error) {
+      console.error("Student lookup failed:", error);
+      renderStudentPreviewNotFound(input, "Lookup failed. Please try again.");
+    }
+  }
+
+  function queueStudentLookup(input) {
+    if (!input) return;
+
+    if (studentLookupTimers.has(input)) {
+      clearTimeout(studentLookupTimers.get(input));
+    }
+
+    const timer = setTimeout(() => {
+      lookupStudentForInput(input);
+    }, 250);
+
+    studentLookupTimers.set(input, timer);
+  }
+
+  function refreshAllStudentPreviews() {
+    document.querySelectorAll(".student-id-input").forEach(input => {
+      const val = (input.value || "").trim();
+      if (!val) {
+        renderStudentPreviewIdle(input);
+      } else {
+        queueStudentLookup(input);
+      }
+    });
+  }
+
+  function showWizardStep(step) {
+    currentWizardStep = step;
+
+    wizardPanels.forEach(panel => {
+      panel.classList.toggle("active", Number(panel.dataset.stepPanel) === step);
+    });
+
+    wizardStepChips.forEach(chip => {
+      const chipStep = Number(chip.dataset.stepChip);
+      chip.classList.remove("active", "done");
+
+      if (chipStep < step) {
+        chip.classList.add("done");
+      } else if (chipStep === step) {
+        chip.classList.add("active");
+      }
+    });
+
+    if (prevStepBtn) prevStepBtn.classList.toggle("d-none", step === 1);
+    if (nextStepBtn) nextStepBtn.classList.toggle("d-none", step === 3);
+    if (submitBookingBtn) submitBookingBtn.classList.toggle("d-none", step !== 3);
+  }
+
+  function validateStep1() {
+    if (!bookingDateInput?.value) {
+      bookingDateInput?.focus();
+      return false;
+    }
+
+    if (!computersNeededInput?.value || Number(computersNeededInput.value) < 1) {
+      computersNeededInput?.focus();
+      return false;
+    }
+
+    if (!startTimeInput?.value) {
+      startTimeInput?.focus();
+      return false;
+    }
+
+    if (!endTimeInput?.value) {
+      endTimeInput?.focus();
+      return false;
+    }
+
+    return validateScheduleAgainstRules();
+  }
+
+  function validateStep2() {
+    if (!roomNumberInput?.value) {
+      roomNumberInput?.focus();
+      return false;
+    }
+
+    if (!requestedByInput?.value) {
+      requestedByInput?.focus();
+      return false;
+    }
+
+    return true;
+  }
+
+  async function refreshStep1Availability() {
+    if (nextStepBtn) {
+      nextStepBtn.disabled = true;
+      nextStepBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Checking...`;
+    }
+
+    try {
+      await updateRoomAvailabilityLive(true);
+    } finally {
+      if (nextStepBtn) {
+        nextStepBtn.disabled = false;
+        nextStepBtn.innerHTML = `Next<i class="bi bi-arrow-right ms-1"></i>`;
+      }
+    }
+  }
+
+  async function refreshStep2AvailabilityAndAssignments() {
+    if (nextStepBtn) {
+      nextStepBtn.disabled = true;
+      nextStepBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Checking...`;
+    }
+
+    if (wizardRefreshNote) {
+      wizardRefreshNote.textContent = "Refreshing latest availability...";
+    }
+
+    try {
+      await updateRoomAvailabilityLive(true);
+      await updateAssignablePcPreview(true);
+
+      if (wizardRefreshNote) {
+        const now = new Date();
+        wizardRefreshNote.textContent =
+          "Availability checked at " +
+          now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      }
+    } finally {
+      if (nextStepBtn) {
+        nextStepBtn.disabled = false;
+        nextStepBtn.innerHTML = `Next<i class="bi bi-arrow-right ms-1"></i>`;
+      }
+    }
+  }
+
+  if (computersNeededInput) {
+    computersNeededInput.addEventListener("input", function () {
+      this.value = this.value.replace(/[^0-9]/g, "");
+      updateSummary(parseInt(this.value || "0", 10));
+      latestAssignablePcNumbers = [];
+      buildPcUserAssignments();
+
+      latestRoomAvailability = [];
+      resetRoomAvailabilityToTotals();
+      updateRoomDropdownAvailability();
+      clearRoomCapacityMessage();
+    });
+  }
+
+  document.addEventListener("input", function (e) {
+    if (e.target.classList.contains("student-id-input")) {
+      e.target.value = e.target.value.replace(/[^0-9]/g, "").slice(0, 12);
+      queueStudentLookup(e.target);
+    }
+  });
+
+  document.addEventListener("blur", function (e) {
+    if (e.target.classList.contains("student-id-input")) {
+      lookupStudentForInput(e.target);
+    }
+  }, true);
+
+  [bookingDateInput, startTimeInput, endTimeInput].forEach(el => {
+    if (!el) return;
+
+    el.addEventListener("change", function () {
+      validateTimeGuideOnly();
+      latestRoomAvailability = [];
+      latestAssignablePcNumbers = [];
+      resetRoomAvailabilityToTotals();
+      updateRoomDropdownAvailability();
+      clearRoomCapacityMessage();
+      buildPcUserAssignments();
+    });
+
+    el.addEventListener("input", function () {
+      validateTimeGuideOnly();
+      latestRoomAvailability = [];
+      latestAssignablePcNumbers = [];
+      resetRoomAvailabilityToTotals();
+      updateRoomDropdownAvailability();
+      clearRoomCapacityMessage();
+      buildPcUserAssignments();
+    });
+  });
+
+  if (roomNumberInput) {
+    roomNumberInput.addEventListener("change", function () {
+      updateSelectedRoomLiveSummary();
+      clearRoomCapacityMessage();
+      latestAssignablePcNumbers = [];
+      buildPcUserAssignments();
+    });
+  }
+
+  if (prevStepBtn) {
+    prevStepBtn.addEventListener("click", function () {
+      if (currentWizardStep > 1) {
+        showWizardStep(currentWizardStep - 1);
+      }
+    });
+  }
+
+  if (nextStepBtn) {
+    nextStepBtn.addEventListener("click", async function () {
+      if (currentWizardStep === 1) {
+        if (!validateStep1()) return;
+        await refreshStep1Availability();
+        showWizardStep(2);
+        return;
+      }
+
+      if (currentWizardStep === 2) {
+        if (!validateStep2()) return;
+        await refreshStep2AvailabilityAndAssignments();
+        showWizardStep(3);
+      }
+    });
+  }
+
+  bookNowForm?.addEventListener("submit", function (e) {
+    if (currentWizardStep !== 3) {
+      e.preventDefault();
+      return;
+    }
+
+    const studentInputs = Array.from(document.querySelectorAll(".student-id-input"));
+    const hasEmpty = studentInputs.some(input => !(input.value || "").trim());
+
+    if (studentInputs.length > 0 && hasEmpty) {
+      e.preventDefault();
+      const firstEmpty = studentInputs.find(input => !(input.value || "").trim());
+      firstEmpty?.focus();
+      return;
+    }
+  });
+
+  showWizardStep(1);
+  buildPcUserAssignments();
+  updateRulesNote();
+  resetRoomAvailabilityToTotals();
+  updateRoomDropdownAvailability();
+});
+</script>
+</body>
+</html>
