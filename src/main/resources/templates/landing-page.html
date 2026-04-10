@@ -3,300 +3,1122 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sisters of Mary School | Admin Portal</title>
+    <title>Sisters of Mary School | Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
     <style>
+      :root {
+        --blue-dark: #153a7a;
+        --blue: #2456a6;
+        --blue-soft: #67b8ff;
+        --sky: #dff2ff;
+        --sky-2: #cfe7f7;
+        --white: #ffffff;
+        --text: #183153;
+        --muted: #5c6f86;
+        --border: #d8e5f0;
+        --card-shadow: 0 18px 40px rgba(25, 61, 116, 0.12);
+        --radius-lg: 24px;
+        --radius-md: 18px;
+        --radius-sm: 12px;
+        --container: 1180px;
+      }
+
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: "Inter", sans-serif;
+        background: #edf7fb;
+        color: var(--text);
         overflow-x: hidden;
-        background: #ffffff;
-        color: #1e293b;
       }
 
-      .background-slider {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        z-index: -2;
-        transition: opacity 1s ease-in-out;
+      img {
+        display: block;
+        max-width: 100%;
       }
 
-      .background-slider::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.3);
-        z-index: 1;
+      a {
+        text-decoration: none;
+        color: inherit;
       }
 
-      .navbar {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        z-index: 1000;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(65, 105, 225, 0.1);
-        padding: 1rem 0;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-
-      .navbar-content {
-        max-width: 1200px;
+      .container {
+        width: min(var(--container), calc(100% - 32px));
         margin: 0 auto;
+      }
+
+      .topbar {
+        background: #ffffff;
+        border-bottom: 1px solid #e6eef5;
+        font-size: 12px;
+        color: #5d728a;
+      }
+
+      .topbar-inner {
+        min-height: 38px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0 2rem;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .topbar-left,
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .topbar a:hover {
+        color: var(--blue);
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(14px);
+        box-shadow: 0 8px 24px rgba(17, 56, 113, 0.06);
+      }
+
+      .nav {
+        min-height: 82px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
       }
 
       .brand {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 14px;
       }
 
-      .nav-logo {
-        width: 48px;
-        height: 48px;
-        border-radius: 8px;
+      .brand img {
+        width: 56px;
+        height: 56px;
+        object-fit: contain;
       }
 
-      .school-name {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #1e293b;
-      }
-
-      .nav-buttons {
+      .brand-text {
         display: flex;
-        gap: 0.75rem;
+        flex-direction: column;
+        line-height: 1.1;
       }
 
-      .btn-primary, .btn-secondary {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        text-decoration: none;
+      .brand-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--blue-dark);
+      }
+
+      .brand-subtitle {
+        font-size: 12px;
         font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        border: 2px solid;
-        display: inline-block;
+        color: #6a7d95;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #5d7088;
+      }
+
+      .nav-links a:hover {
+        color: var(--blue);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 12px 22px;
+        font-weight: 700;
+        font-size: 14px;
+        transition: 0.25s ease;
+        border: 1px solid transparent;
+        cursor: pointer;
       }
 
       .btn-primary {
-        background: #4169e1;
+        background: linear-gradient(135deg, #1f4ea6, #2c7adf);
         color: white;
-        border-color: #4169e1;
+        box-shadow: 0 10px 24px rgba(36, 86, 166, 0.22);
       }
 
       .btn-primary:hover {
-        background: #3754db;
-        border-color: #3754db;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+        transform: translateY(-2px);
       }
 
-      .btn-secondary {
-        background: transparent;
-        color: #4169e1;
-        border-color: #4169e1;
+      .btn-outline {
+        border-color: #b4cde8;
+        color: var(--blue);
+        background: #ffffff;
       }
 
-      .btn-secondary:hover {
-        background: #4169e1;
-        color: white;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+      .btn-outline:hover {
+        background: #f3f9ff;
+      }
+
+      .mobile-toggle {
+        display: none;
       }
 
       .hero {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        text-align: center;
         position: relative;
-        z-index: 10;
-        padding: 2rem;
+        overflow: hidden;
+        background: linear-gradient(180deg, #d8eeff 0%, #c4e4fb 100%);
       }
 
-      .hero-content {
-        max-width: 700px;
+      .hero-grid {
+        min-height: 720px;
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: center;
+        gap: 30px;
+        padding: 70px 0;
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 18px;
       }
 
       .hero h1 {
-        font-size: clamp(2.5rem, 5vw, 3.5rem);
-        font-weight: 800;
-        margin-bottom: 1.5rem;
-        color: #ffffff;
-        line-height: 1.2;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        font-size: clamp(40px, 5vw, 68px);
+        line-height: 0.98;
+        font-weight: 900;
+        color: #10366d;
+        letter-spacing: -0.04em;
+        margin-bottom: 18px;
       }
 
-      .hero-subtitle {
-        font-size: 1.2rem;
-        color: #ffffff;
-        margin-bottom: 2rem;
-        font-weight: 500;
+      .hero h1 span {
+        color: #2a7be1;
+      }
+
+      .hero p {
+        max-width: 640px;
+        font-size: 17px;
+        line-height: 1.8;
+        color: #4f6782;
+        margin-bottom: 28px;
+      }
+
+      .hero-buttons {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 34px;
+      }
+
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .hero-stat {
+        background: rgba(255, 255, 255, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: var(--card-shadow);
+      }
+
+      .hero-stat strong {
+        display: block;
+        color: var(--blue-dark);
+        font-size: 24px;
+        margin-bottom: 4px;
+      }
+
+      .hero-stat span {
+        font-size: 13px;
+        color: #63758d;
         line-height: 1.5;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       }
 
-      footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
+      .hero-visual {
+        position: relative;
+      }
+
+      .slider-shell {
+        position: relative;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 24px 60px rgba(18, 57, 111, 0.16);
+        border-radius: 34px;
+        padding: 18px;
+      }
+
+      .slider-main {
+        position: relative;
+        height: 460px;
+        border-radius: 28px;
+        overflow: hidden;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        transition: opacity 1s ease;
+      }
+
+      .slide.active {
+        opacity: 1;
+      }
+
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(10, 41, 87, 0.7), rgba(10, 41, 87, 0.15));
+      }
+
+      .slide-caption {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        bottom: 28px;
+        z-index: 2;
+        color: white;
+      }
+
+      .slide-caption h3 {
+        font-size: 28px;
+        margin-bottom: 10px;
+        line-height: 1.1;
+      }
+
+      .slide-caption p {
+        font-size: 14px;
+        line-height: 1.7;
+        color: rgba(255, 255, 255, 0.88);
+      }
+
+      .slider-dots {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 16px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #a3c7ec;
+        transition: 0.25s ease;
+      }
+
+      .dot.active {
+        width: 28px;
+        border-radius: 999px;
+        background: var(--blue);
+      }
+
+      .section {
+        padding: 90px 0;
+      }
+
+      .section-header {
         text-align: center;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-top: 1px solid rgba(65, 105, 225, 0.1);
-        color: #64748b;
-        font-size: 0.85rem;
-        font-weight: 500;
-        z-index: 100;
+        max-width: 820px;
+        margin: 0 auto 42px;
       }
 
-      /* Responsive design */
-      @media (max-width: 768px) {
-        .navbar-content {
-          padding: 0 1rem;
+      .section-header .tag {
+        display: inline-block;
+        color: var(--blue);
+        background: #e4f2ff;
+        border-radius: 999px;
+        padding: 10px 15px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 14px;
+      }
+
+      .section-header h2 {
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1.05;
+        color: #153a7a;
+        margin-bottom: 14px;
+      }
+
+      .section-header p {
+        color: #66809a;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      .updates-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .update-card,
+      .program-card,
+      .news-card,
+      .history-card,
+      .mission-card,
+      .feature-panel,
+      .contact-card {
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 26px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+      }
+
+      .update-card img,
+      .program-card img,
+      .news-card img {
+        width: 100%;
+        height: 210px;
+        object-fit: cover;
+      }
+
+      .update-body,
+      .program-body,
+      .news-body {
+        padding: 22px;
+      }
+
+      .update-body h3,
+      .program-body h3,
+      .news-body h3,
+      .history-card h3,
+      .feature-panel h3,
+      .mission-card h3,
+      .contact-card h3 {
+        color: var(--blue-dark);
+        font-size: 22px;
+        margin-bottom: 10px;
+      }
+
+      .update-body p,
+      .program-body p,
+      .news-body p,
+      .history-card p,
+      .feature-panel p,
+      .mission-card p,
+      .contact-card p {
+        color: #688099;
+        line-height: 1.8;
+        font-size: 14px;
+      }
+
+      .card-link {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 18px;
+        color: var(--blue);
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .statement-band {
+        background: linear-gradient(180deg, #e7f5ff 0%, #eef8fd 100%);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .statement-box {
+        max-width: 880px;
+        margin: 0 auto;
+        text-align: center;
+        background: linear-gradient(135deg, #5fb8ff, #8ccfff);
+        color: white;
+        border-radius: 28px;
+        padding: 36px 28px;
+        box-shadow: 0 20px 50px rgba(58, 129, 219, 0.18);
+      }
+
+      .statement-box h2 {
+        font-size: clamp(26px, 4vw, 42px);
+        line-height: 1.2;
+        margin-bottom: 14px;
+      }
+
+      .statement-box p {
+        font-size: 15px;
+        line-height: 1.8;
+        color: rgba(255, 255, 255, 0.92);
+      }
+
+      .mission-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .mission-card {
+        padding: 28px;
+        min-height: 100%;
+      }
+
+      .mission-card .badge {
+        display: inline-block;
+        padding: 8px 12px;
+        background: #e7f3ff;
+        border-radius: 999px;
+        color: var(--blue);
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 14px;
+      }
+
+      .mission-card h3 {
+        margin-bottom: 14px;
+      }
+
+      .mission-card.dark {
+        background: linear-gradient(180deg, #143b77, #0d2e5e);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .mission-card.dark h3,
+      .mission-card.dark p,
+      .mission-card.dark .card-link,
+      .mission-card.dark .badge {
+        color: white;
+      }
+
+      .mission-card.dark .badge {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .programs-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .program-card {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .program-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      .stars {
+        color: #ffb400;
+        font-size: 18px;
+        letter-spacing: 2px;
+        margin: 12px 0;
+      }
+
+      .history-section {
+        background: linear-gradient(135deg, #12386f, #1f4ea1);
+        color: white;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .history-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 26px;
+        align-items: center;
+      }
+
+      .history-copy .tag {
+        display: inline-block;
+        padding: 10px 15px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 16px;
+      }
+
+      .history-copy h2 {
+        font-size: clamp(30px, 4vw, 46px);
+        line-height: 1.08;
+        margin-bottom: 16px;
+      }
+
+      .history-copy p {
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 15px;
+        line-height: 1.9;
+      }
+
+      .history-card {
+        padding: 34px;
+        border: none;
+      }
+
+      .news-grid {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 24px;
+      }
+
+      .news-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .news-card.horizontal {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        align-items: stretch;
+      }
+
+      .news-card.horizontal img {
+        height: 100%;
+      }
+
+      .news-meta {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #7c90a7;
+        margin-bottom: 10px;
+      }
+
+      .subscribe-section {
+        background: linear-gradient(135deg, #14386f, #194b95);
+        color: white;
+      }
+
+      .subscribe-box {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .subscribe-copy h2 {
+        font-size: clamp(28px, 4vw, 42px);
+        margin-bottom: 10px;
+      }
+
+      .subscribe-copy p {
+        color: rgba(255, 255, 255, 0.84);
+        line-height: 1.8;
+      }
+
+      .subscribe-form {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        max-width: 540px;
+      }
+
+      .subscribe-form input {
+        flex: 1;
+        border: none;
+        outline: none;
+        border-radius: 999px;
+        padding: 16px 18px;
+        font-size: 14px;
+      }
+
+      .footer {
+        background: #edf7fb;
+        border-top: 1px solid #d9e7f2;
+        padding: 34px 0;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: 1.2fr repeat(4, 1fr);
+        gap: 24px;
+      }
+
+      .footer-brand p,
+      .footer-links a {
+        color: #6d8299;
+        line-height: 1.8;
+        font-size: 14px;
+      }
+
+      .footer-links h4 {
+        color: var(--blue-dark);
+        margin-bottom: 12px;
+        font-size: 16px;
+      }
+
+      .footer-links {
+        display: grid;
+        gap: 8px;
+      }
+
+      .copyright {
+        margin-top: 26px;
+        padding-top: 18px;
+        border-top: 1px solid #d7e5f0;
+        font-size: 13px;
+        color: #7b8da4;
+        text-align: center;
+      }
+
+      @media (max-width: 1100px) {
+        .hero-grid,
+        .history-grid,
+        .news-grid,
+        .footer-grid,
+        .subscribe-box,
+        .mission-grid,
+        .programs-grid,
+        .updates-grid {
+          grid-template-columns: 1fr;
         }
 
-        .school-name {
-          font-size: 1.2rem;
-        }
-
-        .nav-buttons {
-          gap: 0.5rem;
-        }
-
-        .btn-primary, .btn-secondary {
-          padding: 0.6rem 1.2rem;
-          font-size: 0.85rem;
-        }
-
-        .hero {
-          padding: 6rem 1rem 2rem;
-        }
-
-        .hero-subtitle {
-          font-size: 1.1rem;
+        .hero-stats {
+          grid-template-columns: 1fr;
         }
       }
 
-      @media (max-width: 480px) {
-        .navbar-content {
+      @media (max-width: 900px) {
+        .nav-links {
+          display: none;
+        }
+
+        .mobile-toggle {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 46px;
+          height: 46px;
+          border-radius: 14px;
+          border: 1px solid #d4e4f2;
+          background: #ffffff;
+          color: var(--blue-dark);
+          font-size: 20px;
+        }
+
+        .hero-grid {
+          min-height: auto;
+          padding: 50px 0 70px;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .topbar-inner,
+        .nav,
+        .subscribe-form,
+        .news-card.horizontal {
+          grid-template-columns: 1fr;
           flex-direction: column;
-          gap: 1rem;
-          padding: 0 1rem;
+          align-items: flex-start;
         }
 
-        .brand {
-          gap: 0.5rem;
+        .nav-actions {
+          width: 100%;
         }
 
-        .nav-logo {
-          width: 40px;
-          height: 40px;
-        }
-
-        .school-name {
-          font-size: 1.1rem;
-        }
-
-        .hero {
-          padding: 5rem 1rem 2rem;
+        .nav-actions .btn {
+          display: none;
         }
 
         .hero h1 {
-          margin-bottom: 1rem;
+          font-size: 40px;
         }
 
-        .hero-subtitle {
-          font-size: 1rem;
-          margin-bottom: 1.5rem;
+        .slider-main {
+          height: 360px;
+        }
+
+        .update-card img,
+        .program-card img,
+        .news-card img,
+        .news-card.horizontal img {
+          height: 220px;
+        }
+
+        .history-card,
+        .mission-card,
+        .statement-box,
+        .slider-shell,
+        .update-card,
+        .program-card,
+        .news-card {
+          border-radius: 20px;
+        }
+
+        .section {
+          padding: 70px 0;
         }
       }
     </style>
   </head>
   <body>
-    <div class="background-slider" id="backgroundSlider"></div>
+    
 
-    <header class="navbar">
-      <div class="navbar-content">
-        <div class="brand">
-          <img
-            src="/images/logo.png"
-            alt="Sisters of Mary School Logo"
-            class="nav-logo"
-          />
-          <span class="school-name">Sisters of Mary School</span>
-        </div>
-        <div class="nav-buttons">
-          <a href="/login" class="btn-primary">Login</a>
-          <a href="/signup" class="btn-secondary">Sign Up</a>
+    <header class="site-header">
+      <div class="container nav">
+        <a href="#home" class="brand">
+          <img src="/images/logo.png" alt="Sisters of Mary School Logo" />
+          <div class="brand-text">
+            <span class="brand-title">The Sisters of Mary School - Boystown Inc.</span>
+            <span class="brand-subtitle">Tungkop, Minglanilla, Cebu</span>
+          </div>
+        </a>
+
+        <nav class="nav-links">
+          <a href="#about">About Us</a>
+          <a href="#programs">Programs</a>
+          <a href="#mission">Mission</a>
+          <a href="#history">History</a>
+          
+          <a href="#contact">Contact</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="/login" class="btn btn-outline">Login</a>
+          <a href="/signup" class="btn btn-primary">Register</a>
+          <button class="mobile-toggle" type="button">☰</button>
         </div>
       </div>
     </header>
 
-    <main class="hero">
-      <div class="hero-content">
-        <h1>Empowering Education at Sisters of Mary School</h1>
-        <p class="hero-subtitle">
-          Manage student records, announcements, and school operations through
-          our secure Admin Portal.
-        </p>
-      </div>
+    <main>
+      <section class="hero" id="home">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">Faith • Education • Mission</span>
+            <h1>
+              Transforming lives through <span>education, service, and hope</span>
+            </h1>
+            <p>
+              The Sisters of Mary School - Boystown Inc. is a mission-driven
+              educational institution dedicated to nurturing the potential of
+              youth through holistic formation, academic excellence, and
+              compassionate service.
+            <div class="hero-buttons">
+              <a href="/login" class="btn btn-primary">Access Portal</a>
+              <a href="#programs" class="btn btn-outline">Explore Programs</a>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <strong>60+</strong>
+                <span>Years of mission-driven educational service</span>
+              </div>
+              <div class="hero-stat">
+                <strong>Global</strong>
+                <span>Meet graduates and supporters around the world</span>
+              </div>
+              <div class="hero-stat">
+                <strong>Student-Centered</strong>
+                <span>Focused on formation, excellence, and compassion</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="slider-shell">
+              <div class="slider-main" id="sliderMain">
+                <div class="slide active" style="background-image: url('/images/movingup.jpg');">
+                  <div class="slide-caption">
+                    <h3>Building futures with joy and purpose</h3>
+                    <p>Celebrate moments of growth, confidence, and community.</p>
+                  </div>
+                </div>
+                <div class="slide" style="background-image: url('/images/kid2.jpg');">
+                  <div class="slide-caption">
+                    <h3>Developing talents in academics and sports</h3>
+                    <p>Support every learner through meaningful opportunities.</p>
+                  </div>
+                </div>
+                <div class="slide" style="background-image: url('/images/kid3.jpg');">
+                  <div class="slide-caption">
+                    <h3>Forming values-based leaders</h3>
+                    <p>Shape character, discipline, and service through education.</p>
+                  </div>
+                </div>
+                <div class="slide" style="background-image: url('/images/kid4.jpg');">
+                  <div class="slide-caption">
+                    <h3>One mission, many lives changed</h3>
+                    <p>Witness the spirit of hope across every school experience.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="slider-dots" id="sliderDots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      
+
+      <section class="section statement-band">
+        <div class="container">
+          <div class="statement-box">
+            <h2>
+              The Sisters of Mary Schools are a testament to a legacy of
+              educational excellence and compassionate service.
+            </h2>
+            <p>
+              Established with a deep commitment to nurturing minds and hearts,
+              the institution continues to offer quality education that not only
+              develops academic competence but also inspires students to live by
+              Christian values and social responsibility.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="mission">
+        <div class="container">
+          <div class="section-header">
+
+            <h2>Philosophy, mission, and vision</h2>
+            <p>
+              Present your institutional foundation in a more modern three-column
+              layout that is elegant, readable, and visually strong.
+            </p>
+          </div>
+
+          <div class="mission-grid">
+            <article class="mission-card">
+              <span class="badge">Philosophy</span>
+              <h3>Forming lives with purpose</h3>
+              <p>
+                The Sisters of Mary believes that education is a pathway to human
+                dignity, faith formation, and personal transformation. Students
+                are guided to use their gifts for the good of others and to live
+                with compassion, discipline, and integrity.
+              </p>
+              <a href="#" class="card-link">Read more →</a>
+            </article>
+
+            <article class="mission-card dark">
+              <span class="badge">Mission</span>
+              <h3>Serving the youth through quality education</h3>
+              <p>
+                Inspired by the charism of the Sisters of Mary, the school serves
+                the poor and the youth through holistic and intensive formation,
+                equipping students with knowledge, values, and practical skills
+                for a meaningful future.
+              </p>
+              <a href="#" class="card-link">Read more →</a>
+            </article>
+
+            <article class="mission-card">
+              <span class="badge">Vision</span>
+              <h3>Excellence rooted in faith and service</h3>
+              <p>
+                The Sisters of Mary School envisions graduates who are competent,
+                value-driven, and committed to uplifting society through their
+                lives, work, and witness in the spirit of charity and humility.
+              </p>
+              <a href="#" class="card-link">Read more →</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="programs">
+        <div class="container">
+          <div class="section-header">
+      
+            <h2>Discover the academic and training opportunities</h2>
+            <p>
+              Highlight the core educational programs in a visually engaging grid
+              that invites exploration and connection to the school's mission.
+          </div>
+
+          <div class="programs-grid">
+            <article class="program-card">
+              <img src="/images/ict.jpg" alt="Elementary School" />
+              <div class="program-body">
+                <h3>Information Communication Technology - Courses</h3>
+                <p>
+                  A comprehensive curriculum that equips students with essential
+                  digital literacy, coding, and technology skills for the modern
+                  world.
+                <div class="stars">★★★★★</div>
+                <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
+              </div>
+            </article>
+
+            <article class="program-card">
+              <img src="/images/insdustrial.jpg" alt="High School Programs" />
+              <div class="program-body">
+                <h3>Industrial Arts Courses</h3>
+                <p>
+                  A comprehensive high school curriculum that integrates academic
+                  excellence with character formation and practical skills.
+                <div class="stars">★★★★★</div>
+                <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
+              </div>
+            </article>
+
+            <article class="program-card">
+              <img src="/images/homeco.png" alt="Livelihood Training Center" />
+              <div class="program-body">
+                <h3>Home Economics Courses</h3>
+                <p>
+                  A dynamic training program that equips students with practical
+                  skills in culinary arts, hospitality, and entrepreneurship.
+                <div class="stars">★★★★★</div>
+                <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section history-section" id="history">
+        <div class="container history-grid">
+          <div class="history-copy">
+            <span class="tag">Our History</span>
+            <h2>A mission that began with hope and continues through generations</h2>
+            <p>
+              The Sisters of Mary Schools were founded as part of the mission of
+              the Religious Congregation of the Sisters of Mary, established by
+              Venerable Aloysius Schwartz in Busan, South Korea. The mission
+              expanded to the Philippines and grew into institutions known for
+              education, formation, and service to the poor.
+            </p>
+          </div>
+
+          <div class="history-card">
+            <h3>Rooted in service and educational compassion</h3>
+            <p>
+              From its earliest years, the school has pursued an integrated form
+              of education that addresses academic development, moral formation,
+              and practical support. This legacy continues today in communities
+              where students are empowered to build better futures.
+            </p>
+            <a href="#" class="card-link">Read More →</a>
+          </div>
+        </div>
+      </section>
+
+      
+      
     </main>
 
-    <footer>&copy; 2025 Sisters of Mary School. All rights reserved.</footer>
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <div class="brand" style="margin-bottom:14px;">
+              <img src="/images/logo.png" alt="Sisters of Mary School Logo" style="width:48px;height:48px;" />
+              <div class="brand-text">
+                <span class="brand-title" style="font-size:16px;">The Sisters of Mary School - Boystown Incorporated</span>
+      
+              </div>
+            </div>
+           
+          </div>
+
+          <div class="footer-links">
+            <h4>About</h4>
+            <a href="#about">Our School</a>
+            <a href="#mission">Mission & Vision</a>
+            <a href="#history">Our History</a>
+          </div>
+
+       
+
+          <div class="footer-links">
+            <h4>Quick Links</h4>
+            <a href="https://www.facebook.com/profile.php?id=100089779629368">News</a>
+            <a href="/login">Login</a>
+            <a href="/signup">Register</a>
+          </div>
+
+          <div class="footer-links">
+            <h4>Contact</h4>
+            <a href="mailto:boystownminglanilla@onesms.edu.ph">boystownminglanilla@onesms.edu.ph</a>
+            <a href="tel:+630000000000">(032) 272 8636</a>
+            
+          </div>
+        </div>
+
+        <div class="copyright">
+          © 2026 The Sisters of Mary Schools. Powered and Engineered by JML Digital Innovations.
+        </div>
+      </div>
+    </footer>
 
     <script>
-      const images = [
-        "/images/photo1.webp",
-        "/images/photo2.png",
-        "/images/photo3.jpg",
-        "/images/photo4.jpg",
-      ];
+      const slides = document.querySelectorAll('.slide');
+      const dots = document.querySelectorAll('.dot');
+      let currentSlide = 0;
 
-      let current = 0;
-      const slider = document.getElementById("backgroundSlider");
+      function showSlide(index) {
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === index);
+        });
 
-      function changeBackground() {
-        slider.style.opacity = 0;
-        setTimeout(() => {
-          slider.style.backgroundImage = `url('${images[current]}')`;
-          slider.style.opacity = 1;
-          current = (current + 1) % images.length;
-        }, 500);
+        dots.forEach((dot, i) => {
+          dot.classList.toggle('active', i === index);
+        });
       }
 
-      // Initialize
-      slider.style.backgroundImage = `url('${images[0]}')`;
-      slider.style.opacity = 1;
-      current = 1;
+      function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+      }
 
-      // Start slideshow
-      setInterval(changeBackground, 8000);
+      setInterval(nextSlide, 5000);
     </script>
   </body>
 </html>
