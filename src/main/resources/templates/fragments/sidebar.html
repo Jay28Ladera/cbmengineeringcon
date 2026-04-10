@@ -44,56 +44,68 @@
 
   <div id="elibrarySettings"
        class="collapse ps-4 mt-1"
-       th:classappend="${#arrays.contains({'elibrary-pending','elibrary-approved','elibrary-mybooking','elibrary-booknow','elibrary-settings'}, activePage)} ? ' show'">
+       th:classappend="${#arrays.contains({'elibrary-pending','elibrary-approved','elibrary-mybooking','elibrary-booknow','elibrary-settings','elibrary-myreport'}, activePage)} ? ' show'">
     <ul class="nav flex-column">
 
+      <!-- ADMIN ONLY -->
+      <th:block th:if="${role == 'admin'}">
+
+        <li class="nav-item mb-1">
+          <a th:href="@{/pending}"
+             class="nav-link text-white-50 rounded-2 py-2"
+             th:classappend="${activePage} == 'elibrary-pending' ? 'active bg-primary text-white'">
+            <i class="bi bi-dot me-1"></i>Pending
+          </a>
+        </li>
+
+        <li class="nav-item mb-1">
+          <a th:href="@{/approved}"
+             class="nav-link text-white-50 rounded-2 py-2"
+             th:classappend="${activePage} == 'elibrary-approved' ? 'active bg-primary text-white'">
+            <i class="bi bi-dot me-1"></i>Approved
+          </a>
+        </li>
+
+      </th:block>
+
+      <!-- VISIBLE TO ALL -->
       <li class="nav-item mb-1">
-  <a th:href="@{/pending}"
-     class="nav-link text-white-50 rounded-2 py-2"
-     th:classappend="${activePage} == 'elibrary-pending' ? 'active bg-primary text-white'">
-    <i class="bi bi-dot me-1"></i>Pending
-  </a>
-</li>
+        <a th:href="@{/my-booking}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'elibrary-mybooking' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>My Booking
+        </a>
+      </li>
 
-<li class="nav-item mb-1">
-  <a th:href="@{/approved}"
-     class="nav-link text-white-50 rounded-2 py-2"
-     th:classappend="${activePage} == 'elibrary-approved' ? 'active bg-primary text-white'">
-    <i class="bi bi-dot me-1"></i>Approved
-  </a>
-</li>
+      <li class="nav-item mb-1">
+        <a th:href="@{/book-now}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'elibrary-booknow' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Book Now
+        </a>
+      </li>
 
-<li class="nav-item mb-1">
-  <a th:href="@{/my-booking}"
-     class="nav-link text-white-50 rounded-2 py-2"
-     th:classappend="${activePage} == 'elibrary-mybooking' ? 'active bg-primary text-white'">
-    <i class="bi bi-dot me-1"></i>My Booking
-  </a>
-</li>
+      <!-- ADMIN ONLY -->
+      <th:block th:if="${role == 'admin'}">
 
-<li class="nav-item mb-1">
-  <a th:href="@{/book-now}"
-     class="nav-link text-white-50 rounded-2 py-2"
-     th:classappend="${activePage} == 'elibrary-booknow' ? 'active bg-primary text-white'">
-    <i class="bi bi-dot me-1"></i>Book Now
-  </a>
-</li>
+        <li class="nav-item mb-1">
+          <a th:href="@{/settings}"
+             class="nav-link text-white-50 rounded-2 py-2"
+             th:classappend="${activePage} == 'elibrary-settings' ? 'active bg-primary text-white'">
+            <i class="bi bi-dot me-1"></i>Settings
+          </a>
+        </li>
 
-<li class="nav-item mb-1">
-  <a th:href="@{/settings}"
-     class="nav-link text-white-50 rounded-2 py-2"
-     th:classappend="${activePage} == 'elibrary-settings' ? 'active bg-primary text-white'">
-    <i class="bi bi-dot me-1"></i>Settings
-  </a>
-</li>
+        <li class="nav-item mb-1">
+          <a th:href="@{/elibrary/report}"
+             class="nav-link text-white-50 rounded-2 py-2"
+             th:classappend="${activePage} == 'elibrary-myreport' ? 'active bg-primary text-white'">
+            <i class="bi bi-dot me-1"></i>My Report
+          </a>
+        </li>
 
-<li class="nav-item mb-1">
-  <a th:href="@{/elibrary/report}"
-     class="nav-link text-white-50 rounded-2 py-2"
-     th:classappend="${activePage} == 'elibrary-myreport' ? 'active bg-primary text-white'">
-    <i class="bi bi-dot me-1"></i>My Report
-  </a>
-</li>
+      </th:block>
+
     </ul>
   </div>
 </li>
