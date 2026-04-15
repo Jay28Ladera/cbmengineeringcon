@@ -37,6 +37,81 @@
   flex-wrap: wrap;
 }
 
+.csv-import-box {
+  margin-top: .65rem;
+  padding: .7rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.csv-import-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: .55rem;
+}
+
+.csv-import-title {
+  font-size: .74rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.csv-import-subtitle {
+  font-size: .64rem;
+  color: #64748b;
+  margin: .12rem 0 0;
+  line-height: 1.25;
+}
+
+.csv-import-actions {
+  display: flex;
+  gap: .45rem;
+  flex-wrap: wrap;
+}
+
+.csv-import-status {
+  margin-top: .55rem;
+  font-size: .7rem;
+  border-radius: 10px;
+  padding: .55rem .65rem;
+  display: none;
+}
+
+.csv-import-status.show {
+  display: block;
+}
+
+.csv-import-status.success {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.csv-import-status.warning {
+  background: #fffdf5;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.csv-import-status.error {
+  background: #fff7f7;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+}
+
+.csv-import-example {
+  margin-top: .45rem;
+  font-size: .62rem;
+  color: #64748b;
+  line-height: 1.3;
+}
+
 .wizard-step-chip {
   display: inline-flex;
   align-items: center;
@@ -921,7 +996,37 @@
         </div>
       </div>
 
-      <div class="pc-assignments-grid" id="pcUserAssignments"></div>
+      <div class="csv-import-box">
+  <div class="csv-import-head">
+    <div>
+      <h6 class="csv-import-title">Import Student IDs from CSV</h6>
+      <p class="csv-import-subtitle">
+        Upload a CSV file to auto-fill the generated student ID fields.
+      </p>
+    </div>
+
+    <div class="csv-import-actions">
+      <input type="file" id="csvImportInput" accept=".csv,text/csv" class="d-none">
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="csvImportBtn">
+        <i class="bi bi-upload me-1"></i>Upload CSV
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" id="csvClearBtn">
+        <i class="bi bi-eraser me-1"></i>Clear Filled IDs
+      </button>
+    </div>
+  </div>
+
+  <div id="csvImportStatus" class="csv-import-status"></div>
+
+  <div class="csv-import-example">
+    Accepted format:<br>
+    <strong>202600000001</strong><br>
+    <strong>202600000002</strong><br><br>
+    You may also use comma-separated values in one row.
+  </div>
+</div>
+
+<div class="pc-assignments-grid" id="pcUserAssignments"></div>
     </div>
   </div>
 </div>
@@ -1211,6 +1316,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const pcUserAssignments = document.getElementById("pcUserAssignments");
   const requestedPcCount = document.getElementById("requestedPcCount");
   const generatedFieldCount = document.getElementById("generatedFieldCount");
+    const csvImportInput = document.getElementById("csvImportInput");
+  const csvImportBtn = document.getElementById("csvImportBtn");
+  const csvClearBtn = document.getElementById("csvClearBtn");
+  const csvImportStatus = document.getElementById("csvImportStatus");
 
   const timeValidationAlert = document.getElementById("timeValidationAlert");
   const roomCapacityAlert = document.getElementById("roomCapacityAlert");
@@ -1310,6 +1419,165 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!roomCapacityAlert) return;
     roomCapacityAlert.textContent = message || "Not enough PCs are available for the selected room and time.";
     roomCapacityAlert.classList.remove("d-none");
+  }
+
+    function clearCsvImportStatus() {
+    if (!csvImportStatus) return;
+    csvImportStatus.className = "csv-import-status";
+    csvImportStatus.textContent = "";
+  }
+
+  function showCsvImportStatus(type, message) {
+    if (!csvImportStatus) return;
+    csvImportStatus.className = `csv-import-status show ${type || "warning"}`;
+    csvImportStatus.textContent = message || "";
+  }
+
+  function getStudentIdInputs() {
+    return Array.from(
+      document.querySelectorAll('#pcUserAssignments input[name="studentPcUserIds"]')
+    );
+  }
+
+  function clearFilledStudentIds() {
+    const inputs = getStudentIdInputs();
+
+    inputs.forEach(input => {
+      input.value = "";
+      input.classList.remove("is-invalid");
+      renderStudentPreviewIdle(input);
+    });
+
+    clearCsvImportStatus();
+  }
+
+  function parseCsvTextToStudentIds(text) {
+    const rawText = String(text || "").replace(/\r/g, "\n");
+    const lines = rawText
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
+
+    const parsedIds = [];
+    const invalidValues = [];
+
+    lines.forEach(line => {
+      const cells = line
+        .split(/[,\t;]+/)
+        .map(cell => cell.trim())
+        .filter(Boolean);
+
+      cells.forEach(cell => {
+        const normalized = cell.replace(/^["']|["']$/g, "").trim();
+
+        if (!normalized) return;
+
+        // skip header-like cell
+        if (
+          normalized.toLowerCase() === "student_id" ||
+          normalized.toLowerCase() === "student id" ||
+          normalized.toLowerCase() === "id" ||
+          normalized.toLowerCase() === "student_number" ||
+          normalized.toLowerCase() === "student number"
+        ) {
+          return;
+        }
+
+        if (/^\d{12}$/.test(normalized)) {
+          parsedIds.push(normalized);
+        } else {
+          invalidValues.push(normalized);
+        }
+      });
+    });
+
+    return {
+      ids: parsedIds,
+      invalidValues: invalidValues
+    };
+  }
+
+  function applyImportedStudentIds(studentIds) {
+    const inputs = getStudentIdInputs();
+
+    if (!inputs.length) {
+      showCsvImportStatus("warning", "No generated student ID fields found yet.");
+      return;
+    }
+
+    inputs.forEach(input => {
+      input.value = "";
+      input.classList.remove("is-invalid");
+      renderStudentPreviewIdle(input);
+    });
+
+    let filledCount = 0;
+
+    inputs.forEach((input, index) => {
+      const value = studentIds[index] || "";
+      input.value = value;
+
+      if (value) {
+        input.classList.remove("is-invalid");
+        queueStudentLookup(input);
+        filledCount++;
+      }
+    });
+
+    if (studentIds.length > inputs.length) {
+      showCsvImportStatus(
+        "warning",
+        `Imported ${filledCount} student ID(s). ${studentIds.length - inputs.length} extra value(s) were ignored because only ${inputs.length} PC field(s) are available.`
+      );
+      return;
+    }
+
+    showCsvImportStatus(
+      "success",
+      `Successfully imported ${filledCount} student ID(s) into ${inputs.length} generated field(s).`
+    );
+  }
+
+  async function importStudentIdsFromCsvFile(file) {
+    if (!file) {
+      showCsvImportStatus("error", "Please choose a CSV file first.");
+      return;
+    }
+
+    const fileName = String(file.name || "").toLowerCase();
+    if (!fileName.endsWith(".csv")) {
+      showCsvImportStatus("error", "Only CSV files are allowed.");
+      return;
+    }
+
+    const inputs = getStudentIdInputs();
+    if (!inputs.length) {
+      showCsvImportStatus("warning", "Generate the student ID fields first before importing.");
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const parsed = parseCsvTextToStudentIds(text);
+
+      if (!parsed.ids.length) {
+        showCsvImportStatus("error", "No valid 12-digit student IDs were found in the CSV file.");
+        return;
+      }
+
+      applyImportedStudentIds(parsed.ids);
+
+      if (parsed.invalidValues.length) {
+        const shownInvalid = parsed.invalidValues.slice(0, 5).join(", ");
+        showCsvImportStatus(
+          "warning",
+          `Imported valid student IDs, but some invalid values were skipped: ${shownInvalid}${parsed.invalidValues.length > 5 ? "..." : ""}`
+        );
+      }
+    } catch (error) {
+      console.error("CSV import failed:", error);
+      showCsvImportStatus("error", "Failed to read the CSV file.");
+    }
   }
 
   function updateRulesNote() {
@@ -1691,7 +1959,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function buildPcUserAssignments() {
+    function buildPcUserAssignments() {
     const total = parseInt(computersNeededInput?.value || "0", 10);
 
     if (!pcUserAssignments) return;
@@ -1704,6 +1972,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!total || total < 1) {
       updateSummary(0);
+      clearCsvImportStatus();
       return;
     }
 
@@ -1767,6 +2036,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     updateSummary(pcNumbersToRender.length);
     refreshAllStudentPreviews();
+
+    if (csvImportInput) {
+      csvImportInput.value = "";
+    }
+    clearCsvImportStatus();
   }
 
   function getPreviewBoxFromInput(input) {
@@ -2102,6 +2376,61 @@ document.addEventListener("DOMContentLoaded", function () {
     prevStepBtn.addEventListener("click", function () {
       if (currentWizardStep > 1) {
         showWizardStep(currentWizardStep - 1);
+      }
+    });
+  }
+
+    if (csvImportBtn) {
+    csvImportBtn.addEventListener("click", function () {
+      const inputs = getStudentIdInputs();
+      if (!inputs.length) {
+        showCsvImportStatus("warning", "Generate the student ID fields first before importing.");
+        return;
+      }
+
+      csvImportInput?.click();
+    });
+  }
+
+  if (csvImportInput) {
+    csvImportInput.addEventListener("change", async function (event) {
+      const file = event.target.files && event.target.files[0]
+        ? event.target.files[0]
+        : null;
+
+      await importStudentIdsFromCsvFile(file);
+    });
+  }
+
+  if (csvClearBtn) {
+    csvClearBtn.addEventListener("click", function () {
+      clearFilledStudentIds();
+      if (csvImportInput) {
+        csvImportInput.value = "";
+      }
+      showCsvImportStatus("success", "Student ID fields were cleared.");
+    });
+  }
+
+    if (bookNowForm) {
+    bookNowForm.addEventListener("submit", function (event) {
+      const inputs = getStudentIdInputs();
+      let hasInvalid = false;
+
+      inputs.forEach(input => {
+        const value = String(input.value || "").trim();
+
+        input.classList.remove("is-invalid");
+
+        if (!/^\d{12}$/.test(value)) {
+          input.classList.add("is-invalid");
+          hasInvalid = true;
+        }
+      });
+
+      if (hasInvalid) {
+        event.preventDefault();
+        showCsvImportStatus("error", "All student IDs must be exactly 12 digits before submitting.");
       }
     });
   }

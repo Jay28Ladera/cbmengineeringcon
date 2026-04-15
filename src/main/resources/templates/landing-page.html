@@ -561,6 +561,57 @@
         margin: 12px 0;
       }
 
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 20px;
+      }
+
+      .gallery-card {
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        min-height: 280px;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        box-shadow: var(--card-shadow);
+      }
+
+      .gallery-card img {
+        width: 100%;
+        height: 100%;
+        min-height: 280px;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+      }
+
+      .gallery-card:hover img {
+        transform: scale(1.06);
+      }
+
+      .gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(11, 41, 86, 0.78), rgba(11, 41, 86, 0.12));
+        display: flex;
+        align-items: flex-end;
+        padding: 20px;
+      }
+
+      .gallery-overlay h3 {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 6px;
+      }
+
+      .gallery-overlay p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
       .history-section {
         background: linear-gradient(135deg, #12386f, #1f4ea1);
         color: white;
@@ -719,7 +770,8 @@
         .subscribe-box,
         .mission-grid,
         .programs-grid,
-        .updates-grid {
+        .updates-grid,
+        .gallery-grid {
           grid-template-columns: 1fr;
         }
 
@@ -791,7 +843,8 @@
         .slider-shell,
         .update-card,
         .program-card,
-        .news-card {
+        .news-card,
+        .gallery-card {
           border-radius: 20px;
         }
 
@@ -802,8 +855,6 @@
     </style>
   </head>
   <body>
-    
-
     <header class="site-header">
       <div class="container nav">
         <a href="#home" class="brand">
@@ -818,8 +869,8 @@
           <a href="#about">About Us</a>
           <a href="#programs">Programs</a>
           <a href="#mission">Mission</a>
+          <a href="#gallery">Gallery</a>
           <a href="#history">History</a>
-          
           <a href="#contact">Contact</a>
         </nav>
 
@@ -844,6 +895,7 @@
               educational institution dedicated to nurturing the potential of
               youth through holistic formation, academic excellence, and
               compassionate service.
+            </p>
             <div class="hero-buttons">
               <a href="/login" class="btn btn-primary">Access Portal</a>
               <a href="#programs" class="btn btn-outline">Explore Programs</a>
@@ -903,8 +955,6 @@
         </div>
       </section>
 
-      
-
       <section class="section statement-band">
         <div class="container">
           <div class="statement-box">
@@ -925,7 +975,6 @@
       <section class="section" id="mission">
         <div class="container">
           <div class="section-header">
-
             <h2>Philosophy, mission, and vision</h2>
             <p>
               Present your institutional foundation in a more modern three-column
@@ -975,11 +1024,11 @@
       <section class="section" id="programs">
         <div class="container">
           <div class="section-header">
-      
             <h2>Discover the academic and training opportunities</h2>
             <p>
               Highlight the core educational programs in a visually engaging grid
               that invites exploration and connection to the school's mission.
+            </p>
           </div>
 
           <div class="programs-grid">
@@ -991,6 +1040,7 @@
                   A comprehensive curriculum that equips students with essential
                   digital literacy, coding, and technology skills for the modern
                   world.
+                </p>
                 <div class="stars">★★★★★</div>
                 <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
               </div>
@@ -1003,6 +1053,7 @@
                 <p>
                   A comprehensive high school curriculum that integrates academic
                   excellence with character formation and practical skills.
+                </p>
                 <div class="stars">★★★★★</div>
                 <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
               </div>
@@ -1015,8 +1066,64 @@
                 <p>
                   A dynamic training program that equips students with practical
                   skills in culinary arts, hospitality, and entrepreneurship.
+                </p>
                 <div class="stars">★★★★★</div>
                 <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="gallery">
+        <div class="container">
+          <div class="section-header">
+            <span class="tag">Student Gallery</span>
+            <h2>Moments of student life, growth, and achievement</h2>
+            <p>
+              Showcase the vibrant spirit of the students through academic life,
+              campus activities, values formation, and memorable school moments.
+            </p>
+          </div>
+
+          <div class="gallery-grid">
+            <article class="gallery-card">
+              <img src="/images/kid2.jpg" alt="Students in campus activities" />
+              <div class="gallery-overlay">
+                <div>
+                  <h3>Campus Life</h3>
+                  <p>Celebrating daily life, friendship, and meaningful learning experiences.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="gallery-card">
+              <img src="/images/kid3.jpg" alt="Students in leadership and formation" />
+              <div class="gallery-overlay">
+                <div>
+                  <h3>Leadership & Formation</h3>
+                  <p>Developing character, discipline, and values-centered leadership.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="gallery-card">
+              <img src="/images/kid4.jpg" alt="Students in activities and service" />
+              <div class="gallery-overlay">
+                <div>
+                  <h3>Activities & Service</h3>
+                  <p>Engaging students in holistic programs, teamwork, and service.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="gallery-card">
+              <img src="/images/movingup.jpg" alt="Students during recognition or graduation" />
+              <div class="gallery-overlay">
+                <div>
+                  <h3>Achievements</h3>
+                  <p>Honoring milestones, graduation moments, and student success stories.</p>
+                </div>
               </div>
             </article>
           </div>
@@ -1049,12 +1156,9 @@
           </div>
         </div>
       </section>
-
-      
-      
     </main>
 
-    <footer class="footer">
+    <footer class="footer" id="contact">
       <div class="container">
         <div class="footer-grid">
           <div class="footer-brand">
@@ -1062,10 +1166,8 @@
               <img src="/images/logo.png" alt="Sisters of Mary School Logo" style="width:48px;height:48px;" />
               <div class="brand-text">
                 <span class="brand-title" style="font-size:16px;">The Sisters of Mary School - Boystown Incorporated</span>
-      
               </div>
             </div>
-           
           </div>
 
           <div class="footer-links">
@@ -1074,8 +1176,6 @@
             <a href="#mission">Mission & Vision</a>
             <a href="#history">Our History</a>
           </div>
-
-       
 
           <div class="footer-links">
             <h4>Quick Links</h4>
@@ -1088,7 +1188,6 @@
             <h4>Contact</h4>
             <a href="mailto:boystownminglanilla@onesms.edu.ph">boystownminglanilla@onesms.edu.ph</a>
             <a href="tel:+630000000000">(032) 272 8636</a>
-            
           </div>
         </div>
 
