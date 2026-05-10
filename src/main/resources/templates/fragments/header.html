@@ -7,29 +7,13 @@
   <a class="navbar-brand d-flex align-items-center text-white text-decoration-none" href="/home">
     <img src="/images/logo.png" alt="Sisters of Mary Schools Logo" class="me-3" style="width:50px;height:50px;border-radius:8px;" />
     <div class="d-flex flex-column">
-      <span class="fw-semibold mb-0" style="font-size:1.1rem;">Sisters of Mary School- Boystown Incorporated</span>
+      <span class="fw-semibold mb-0" style="font-size:1.1rem;">Sisters of Mary School- Girlstown Incorporated</span>
       <span class="text-light opacity-90" style="font-size:.85rem;">ADMINISTRATIVE MANAGEMENT SYSTEM</span>
     </div>
   </a>
 
   <!-- Right side -->
   <div class="ms-auto d-flex align-items-center">
-
-    <!-- Messages icon with dynamic badge -->
-    <a th:href="@{/messages}"
-       class="me-3 text-white position-relative"
-       title="Messages"
-       style="text-decoration:none;opacity:.9;"
-       onmouseover="this.style.opacity='1'"
-       onmouseout="this.style.opacity='.9'">
-      <i class="bi bi-envelope" style="font-size:1.2rem;"></i>
-      <span id="messageBadge"
-            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
-            style="font-size:.6rem;">
-        0
-        <span class="visually-hidden">unread messages</span>
-      </span>
-    </a>
 
     <!-- User dropdown -->
     <div class="dropdown">
@@ -39,11 +23,11 @@
         <span class="me-2 fw-semibold" th:text="${username}" style="margin-right:8px;">John Doe</span>
 
         <!-- Avatar -->
-        <img th:src="${profileImageUrl != null} ? ${profileImageUrl} : '/images/logo.png'"
-             src="/images/logo.png"
-             alt="Avatar"
-             class="rounded-circle border border-2 border-white border-opacity-50"
-             style="width:45px;height:45px;object-fit:cover;" />
+        <img th:src="${profileImageUrl != null and !#strings.isEmpty(profileImageUrl)} ? ${profileImageUrl} : @{/images/logo.png}"
+     src="/images/logo.png"
+     alt="Avatar"
+     class="rounded-circle border border-2 border-white border-opacity-50"
+     style="width:45px;height:45px;object-fit:cover;" />
       </button>
 
       <ul class="dropdown-menu dropdown-menu-end shadow"
@@ -98,48 +82,4 @@
       .navbar-brand .d-flex.flex-column span:last-child{ display:none; }
     }
   </style>
-
-  <!-- Notifications script (unread badge) -->
-  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-
-  <script th:inline="javascript">
-    (function () {
-      const currentUser = /*[[${username}]]*/ null;
-      const badge = document.getElementById('messageBadge');
-      if (!currentUser || !badge) return;
-
-      function setUnread(count) {
-        if (count > 0) {
-          badge.textContent = count > 99 ? '99+' : count;
-          badge.classList.remove('d-none');
-        } else {
-          badge.classList.add('d-none');
-        }
-      }
-
-      // initial unread from REST
-      fetch(/*[[@{/messages/unread-count}]]*/ '/messages/unread-count')
-        .then(r => r.json())
-        .then(setUnread)
-        .catch(() => {});
-
-      // live updates via WebSocket
-      const socket = new SockJS(/*[[@{/chat-websocket}]]*/ '/chat-websocket');
-      const client = Stomp.over(socket);
-      client.debug = null;
-
-      client.connect({}, function () {
-        client.subscribe('/user/' + currentUser + '/queue/messages', function () {
-          // each new message -> refresh unread count
-          fetch(/*[[@{/messages/unread-count}]]*/ '/messages/unread-count')
-            .then(r => r.json())
-            .then(setUnread)
-            .catch(() => {});
-        });
-      }, function () {
-        // ignore errors for now
-      });
-    })();
-  </script>
 </div>

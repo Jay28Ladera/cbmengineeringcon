@@ -13,6 +13,7 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         body { 
@@ -422,10 +423,14 @@
                                 <input type="text" id="idNumberSearch" class="form-control" placeholder="Enter Student ID Number to search existing records" autofocus>
                             </div>
                             <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary btn-custom w-100">
-                                    <i class="bi bi-search me-2"></i>Search Student
-                                </button>
-                            </div>
+    <button type="submit" class="btn btn-primary btn-custom w-100 mb-2">
+        <i class="bi bi-search me-2"></i>Search Student
+    </button>
+
+    <button type="button" class="btn btn-success btn-custom w-100" onclick="openQrScanner()">
+        <i class="bi bi-camera me-2"></i>Scan QR
+    </button>
+</div>
                         </div>
                     </form>
                 </div>
@@ -764,13 +769,137 @@
             </main>
         </div>
     </div>
+    <!-- QR Scanner Modal -->
+<div class="modal fade" id="qrScannerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px;">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-qr-code-scan me-2"></i>Scan Student QR Pass
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopQrScanner()"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <div id="qr-reader" style="width:100%; max-width:400px; margin:auto;"></div>
+                <p class="text-muted mt-3 mb-0">
+                    Point the camera at the student's QR pass.
+                </p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="stopQrScanner()">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Bootstrap JS -->
+     <!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         let currentStep = 1;
         const totalSteps = 3;
+
+        let html5QrScanner = null;
+let qrScannerModal = null;
+
+function openQrScanner() {
+    qrScannerModal = new bootstrap.Modal(document.getElementById('qrScannerModal'));
+    qrScannerModal.show();
+
+    setTimeout(() => {
+        startQrScanner();
+    }, 500);
+}
+
+function startQrScanner() {
+    const qrReaderId = "qr-reader";
+
+    if (html5QrScanner) {
+        stopQrScanner();
+    }
+
+    html5QrScanner = new Html5Qrcode(qrReaderId);
+
+    Html5Qrcode.getCameras()
+        .then(cameras => {
+            if (!cameras || cameras.length === 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'No Camera Found',
+                    text: 'Please check if your device has a working camera.'
+                });
+                return;
+            }
+
+            const backCamera = cameras.find(camera =>
+                camera.label.toLowerCase().includes("back") ||
+                camera.label.toLowerCase().includes("rear")
+            );
+
+            const cameraId = backCamera ? backCamera.id : cameras[0].id;
+
+            html5QrScanner.start(
+                cameraId,
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                scannedText => {
+                    const qrValue = scannedText.trim();
+
+                    document.getElementById("idNumberSearch").value = qrValue;
+
+                    stopQrScanner();
+
+                    if (qrScannerModal) {
+                        qrScannerModal.hide();
+                    }
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'QR Scanned',
+                        text: 'Searching student ID: ' + qrValue,
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+
+                    setTimeout(() => {
+                        searchStudent();
+                    }, 800);
+                },
+                errorMessage => {
+                    // ignore continuous scan errors
+                }
+            );
+        })
+        .catch(err => {
+            console.error("Camera error:", err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Camera Permission Error',
+                text: 'Please allow camera access and try again.'
+            });
+        });
+}
+
+function stopQrScanner() {
+    if (html5QrScanner) {
+        html5QrScanner.stop()
+            .then(() => {
+                html5QrScanner.clear();
+                html5QrScanner = null;
+            })
+            .catch(err => {
+                console.warn("QR scanner stop error:", err);
+            });
+    }
+}
 
         function updateStepIndicator() {
             for (let i = 1; i <= totalSteps; i++) {

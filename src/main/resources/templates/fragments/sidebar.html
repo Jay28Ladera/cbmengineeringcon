@@ -28,8 +28,27 @@
       </a>
     </li>
 
+    <!-- Messages (visible to all) -->
+    <li class="nav-item mb-1">
+  <a th:href="@{/messages}"
+     class="nav-link text-white d-flex align-items-center justify-content-between gap-2 rounded-3"
+     th:classappend="${activePage} == 'messages' ? 'active bg-primary'">
+
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-envelope"></i>
+      <span class="sidebar-text">Messages</span>
+    </span>
+
+    <span id="sidebarMessageBadge"
+          class="badge rounded-pill bg-danger d-none sidebar-text sidebar-message-badge"
+          style="font-size:.65rem;">
+      0
+    </span>
+  </a>
+</li>
+
     <!-- E Library -->
-<li class="mb-1">
+    <li class="mb-1">
   <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
      data-bs-toggle="collapse"
      data-bs-target="#elibrarySettings"
@@ -514,6 +533,60 @@
     <small class="text-secondary sidebar-text"><i class="bi bi-heart-fill text-danger me-1"></i>&copy;2025 Engr. Jay M Ladera</small>
   </div>
 
+
+  <!-- Messages unread badge script -->
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+  <script th:inline="javascript">
+    (function () {
+      const currentUser = /*[[${username}]]*/ null;
+      const badge = document.getElementById('sidebarMessageBadge');
+
+      if (!badge) return;
+
+      function setUnread(count) {
+        const unread = Number(count) || 0;
+
+        if (unread > 0) {
+          badge.textContent = unread > 99 ? '99+' : unread;
+          badge.classList.remove('d-none');
+        } else {
+          badge.textContent = '0';
+          badge.classList.add('d-none');
+        }
+      }
+
+      function refreshUnreadCount() {
+        fetch(/*[[@{/messages/unread-count}]]*/ '/messages/unread-count')
+          .then(response => {
+            if (!response.ok) return 0;
+            return response.json();
+          })
+          .then(count => setUnread(count))
+          .catch(() => setUnread(0));
+      }
+
+      refreshUnreadCount();
+
+      if (!currentUser || typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+        return;
+      }
+
+      const socket = new SockJS(/*[[@{/chat-websocket}]]*/ '/chat-websocket');
+      const client = Stomp.over(socket);
+      client.debug = null;
+
+      client.connect({}, function () {
+        client.subscribe('/user/' + currentUser + '/queue/messages', function () {
+          refreshUnreadCount();
+        });
+      }, function () {
+        // REST badge still works even if WebSocket fails
+      });
+    })();
+  </script>
+
   <!-- Sidebar Script -->
   <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
@@ -732,6 +805,20 @@
       width:20px;
       text-align:center;
       font-size:1.1rem;
+    }
+
+    .sidebar-message-badge{
+      min-width:20px;
+      height:20px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 6px;
+      box-shadow:0 2px 8px rgba(220,53,69,.35);
+    }
+
+    .sidebar-collapsed .sidebar-message-badge{
+      display:none !important;
     }
 
     .collapse .nav-link{

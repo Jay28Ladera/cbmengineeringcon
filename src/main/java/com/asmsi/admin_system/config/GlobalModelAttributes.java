@@ -23,27 +23,88 @@ public class GlobalModelAttributes {
 
     @ModelAttribute("username")
     public String username(Principal principal) {
-        return principal != null ? principal.getName() : null;
+        if (principal == null) {
+            return null;
+        }
+
+        return principal.getName();
     }
 
     @ModelAttribute("displayName")
     public String displayName(Principal principal) {
-        if (principal == null) return null;
-        Optional<User> user = userRepository.findByUsername(principal.getName());
-        return user.map(User::getName).orElse(null);
+        if (principal == null) {
+            return null;
+        }
+
+        Optional<User> userOptional = userRepository.findByUsername(principal.getName());
+
+        if (userOptional.isEmpty()) {
+            return principal.getName();
+        }
+
+        User user = userOptional.get();
+
+        if (user.getName() == null || user.getName().trim().isEmpty()) {
+            return principal.getName();
+        }
+
+        return user.getName();
     }
 
     @ModelAttribute("profileImageUrl")
     public String profileImageUrl(Principal principal) {
-        if (principal == null) return null;
-        return userRepository.findByUsername(principal.getName())
-                .map(User::getProfileImageUrl)
-                .orElse(null);
+        if (principal == null) {
+            return null;
+        }
+
+        Optional<User> userOptional = userRepository.findByUsername(principal.getName());
+
+        if (userOptional.isEmpty()) {
+            return null;
+        }
+
+        User user = userOptional.get();
+
+        if (user.getProfileImageUrl() == null || user.getProfileImageUrl().trim().isEmpty()) {
+            return null;
+        }
+
+        return user.getProfileImageUrl();
+    }
+
+    @ModelAttribute("role")
+    public String role(Principal principal) {
+        if (principal == null) {
+            return "user";
+        }
+
+        Optional<User> userOptional = userRepository.findByUsername(principal.getName());
+
+        if (userOptional.isEmpty()) {
+            return "user";
+        }
+
+        User user = userOptional.get();
+
+        if (user.getRole() == null || user.getRole().trim().isEmpty()) {
+            return "user";
+        }
+
+        return user.getRole();
     }
 
     @ModelAttribute("unreadCount")
     public Long unreadCount(Principal principal) {
-        if (principal == null) return 0L;
-        return messageRepository.countByRecipientAndSeenFalse(principal.getName());
+        if (principal == null) {
+            return 0L;
+        }
+
+        String currentUser = principal.getName();
+
+        if (currentUser == null || currentUser.trim().isEmpty()) {
+            return 0L;
+        }
+
+        return messageRepository.countByRecipientAndSeenFalse(currentUser);
     }
 }
