@@ -212,31 +212,77 @@
       </li>
 
       <!-- Admission -->
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse" data-bs-target="#admissionSettings" role="button" aria-controls="admissionSettings">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-person-plus"></i><span class="sidebar-text">Admission</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+<li class="mb-1">
+  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
+     data-bs-toggle="collapse" data-bs-target="#admissionSettings" role="button" aria-controls="admissionSettings">
+    <span class="d-flex align-items-center gap-2">
+      <i class="bi bi-person-plus"></i><span class="sidebar-text">Admission</span>
+    </span>
+    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+  </a>
+
+  <div id="admissionSettings" class="collapse ps-4 mt-1" th:classappend="${admissionExpanded} ? ' show'">
+    <ul class="nav flex-column">
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/studentpasser}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'studentpasser' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Student Passer
         </a>
-        <div id="admissionSettings" class="collapse ps-4 mt-1" th:classappend="${admissionExpanded} ? ' show'">
-          <ul class="nav flex-column">
-            <li class="nav-item mb-1"><a th:href="@{/studentpasser}" class="nav-link text-white-50 rounded-2 py-2"
-                th:classappend="${activePage} == 'studentpasser' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Student Passer</a></li>
-            <li class="nav-item mb-1"><a th:href="@{/admission}" class="nav-link text-white-50 rounded-2 py-2"
-                th:classappend="${activePage} == 'admission' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Admission Form</a></li>
-            <li class="nav-item mb-1"><a th:href="@{/upload-database}" class="nav-link text-white-50 rounded-2 py-2"
-                th:classappend="${activePage} == 'upload-database' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Upload Database</a></li>
-            <li class="nav-item mb-1"><a th:href="@{/admission-settings/view}" class="nav-link text-white-50 rounded-2 py-2"
-                th:classappend="${activePage} == 'admission-settings' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Admission Settings</a></li>
-            <li class="nav-item mb-1"><a th:href="@{/admissionreports}" class="nav-link text-white-50 rounded-2 py-2"
-                th:classappend="${activePage} == 'admissionreports' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Reports</a></li>
-            <li class="nav-item mb-1"><a th:href="@{/senthome}" class="nav-link text-white-50 rounded-2 py-2"
-                th:classappend="${activePage} == 'senthome' ? 'active bg-primary text-white'"><i class="bi bi-dot me-1"></i>Send Home</a></li>
-          </ul>
-        </div>
       </li>
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/admission/passer-health}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'passer-health' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Passer Health
+        </a>
+      </li>
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/admission}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'admission' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Admission Form
+        </a>
+      </li>
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/upload-database}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'upload-database' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Upload Database
+        </a>
+      </li>
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/admission-settings/view}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'admission-settings' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Admission Settings
+        </a>
+      </li>
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/admissionreports}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'admissionreports' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Reports
+        </a>
+      </li>
+
+      <li class="nav-item mb-1">
+        <a th:href="@{/senthome}"
+           class="nav-link text-white-50 rounded-2 py-2"
+           th:classappend="${activePage} == 'senthome' ? 'active bg-primary text-white'">
+          <i class="bi bi-dot me-1"></i>Send Home
+        </a>
+      </li>
+
+    </ul>
+  </div>
+</li>
 
       <!-- Inventory (ADMIN: full) -->
       <li class="mb-1">

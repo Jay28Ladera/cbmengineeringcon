@@ -209,6 +209,17 @@ public class AdmissionData {
     @Column
     private LocalDateTime timestamp;
 
+    @Column(name = "form137estatus")
+private String form137estatus;
+
+public String getForm137estatus() {
+    return form137estatus;
+}
+
+public void setForm137estatus(String form137estatus) {
+    this.form137estatus = form137estatus;
+}
+
 
 
 

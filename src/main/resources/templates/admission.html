@@ -680,12 +680,38 @@
                                             <td><input type="radio" name="goodmoralstatus" value="photocopy" class="form-check-input" th:checked="${studentData?.goodmoralstatus == 'photocopy'}"></td>
                                             <td><input type="radio" name="goodmoralstatus" value="pending" class="form-check-input" th:checked="${studentData?.goodmoralstatus == 'pending'}"></td>
                                         </tr>
-                                        <tr>
-                                            <td><strong>Form138</strong></td>
-                                            <td><input type="radio" name="form138status" value="original" class="form-check-input" th:checked="${studentData?.form138status == 'original'}" required></td>
-                                            <td><input type="radio" name="form138status" value="photocopy" class="form-check-input" th:checked="${studentData?.form138status == 'photocopy'}"></td>
-                                            <td><input type="radio" name="form138status" value="pending" class="form-check-input" th:checked="${studentData?.form138status == 'pending'}"></td>
-                                        </tr>
+                                      <tr>
+    <td><strong>Form138</strong></td>
+    <td><input type="radio" name="form138status" value="original" class="form-check-input" th:checked="${studentData?.form138status == 'original'}" required></td>
+    <td><input type="radio" name="form138status" value="photocopy" class="form-check-input" th:checked="${studentData?.form138status == 'photocopy'}"></td>
+    <td><input type="radio" name="form138status" value="pending" class="form-check-input" th:checked="${studentData?.form138status == 'pending'}"></td>
+</tr>
+
+<tr>
+    <td><strong>Form 137E</strong></td>
+    <td>
+        <input type="radio"
+               name="form137estatus"
+               value="original"
+               class="form-check-input"
+               th:checked="${studentData?.form137estatus == 'original'}"
+               required>
+    </td>
+    <td>
+        <input type="radio"
+               name="form137estatus"
+               value="photocopy"
+               class="form-check-input"
+               th:checked="${studentData?.form137estatus == 'photocopy'}">
+    </td>
+    <td>
+        <input type="radio"
+               name="form137estatus"
+               value="pending"
+               class="form-check-input"
+               th:checked="${studentData?.form137estatus == 'pending'}">
+    </td>
+</tr>
                                         <tr>
                                             <td><strong>Certificate of Indigency</strong></td>
                                             <td><input type="radio" name="indigencystatus" value="original" class="form-check-input" th:checked="${studentData?.indigencystatus == 'original'}" required></td>
@@ -1062,11 +1088,11 @@ function stopQrScanner() {
                     }
 
                     // Populate Step 3 radio buttons
-                    const radioFields = [
-                        'psastatus', 'baptismalstatus', 'confirmationstatus', 'goodmoralstatus',
-                        'form138status', 'indigencystatus', 'philhealthstatus', 'kasunduansatus',
-                        'photoStatus', 'medicalrecordstatus'
-                    ];
+                 const radioFields = [
+    'psastatus', 'baptismalstatus', 'confirmationstatus', 'goodmoralstatus',
+    'form138status', 'form137estatus', 'indigencystatus', 'philhealthstatus', 'kasunduansatus',
+    'photoStatus', 'medicalrecordstatus'
+];
 
                     radioFields.forEach(field => {
                         if (student[field]) {
