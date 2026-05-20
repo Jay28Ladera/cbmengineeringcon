@@ -5,69 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>List of Passers - Sisters of Mary Schools</title>
 
-  <!-- Bootstrap CSS & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- DataTables CSS removed to prevent style conflicts -->
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
 
-  <!-- jQuery & DataTables Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
 
   <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
+    body {
+      font-family: 'Inter', sans-serif;
       background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
       margin: 0;
       color: #334155;
       overflow-x: hidden;
     }
 
-    .app-container { 
-      display: flex; 
-      min-height: 100vh; 
+    .app-container {
+      display: flex;
+      min-height: 100vh;
     }
-    .main-content { 
-      flex: 1; 
-      display: flex; 
-      flex-direction: column; 
-      margin-left: 280px; 
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 280px;
       transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-x: hidden;
     }
-    .content-area { 
-      flex: 1; 
-      padding: 2.5rem; 
+
+    .content-area {
+      flex: 1;
+      padding: 2.5rem;
       background: transparent;
       position: relative;
       overflow-x: hidden;
       box-sizing: border-box;
     }
+
     .content-area::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      inset: 0;
       background: radial-gradient(circle at 20% 20%, rgba(65, 105, 225, 0.03) 0%, transparent 50%);
       pointer-events: none;
     }
 
-    /* When sidebar is collapsed (desktop) */
-    #sidebar.sidebar-collapsed ~ .main-content { margin-left: 75px; }
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 75px;
+    }
 
-    /* Clean Page Header - No Background Color */
-    .page-header { 
+    .page-header {
       background: #ffffff;
       border: 2px solid #e2e8f0;
       border-radius: 16px;
@@ -76,6 +72,7 @@
       position: relative;
       overflow: hidden;
     }
+
     .page-header::before {
       content: '';
       position: absolute;
@@ -85,51 +82,33 @@
       height: 4px;
       background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
     }
+
     .page-header .card-body {
       padding: 2rem;
     }
+
     .page-header h2 {
       color: #1e293b;
       font-weight: 800;
       font-size: 1.75rem;
       margin-bottom: 0.5rem;
     }
+
     .page-header p {
       color: #64748b;
       font-size: 1rem;
       margin-bottom: 0;
     }
 
-    /* Enhanced Cards */
-    .card { 
-      border: none; 
-      border-radius: 16px; 
-      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05); 
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
       background: #ffffff;
       position: relative;
       overflow: hidden;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #4169e1 0%, #6366f1 50%, #8b5cf6 100%);
-      opacity: 0;
-      transition: opacity .3s ease;
-    }
-    .card:hover { 
-      transform: translateY(-6px) scale(1.002); 
-      box-shadow: 0 16px 48px rgba(0,0,0,.16), 0 6px 20px rgba(65, 105, 225, 0.1);
-    }
-    .card:hover::before {
-      opacity: 1;
-    }
 
-    /* DataTable Container */
     .dataTables_wrapper {
       padding: 2rem;
       background: #fff;
@@ -138,7 +117,6 @@
       border: 1px solid #f1f5f9;
     }
 
-    /* DataTable Filter & Controls */
     .dataTables_length,
     .dataTables_filter,
     .dataTables_info,
@@ -160,7 +138,6 @@
     .dataTables_filter input::placeholder {
       color: #475569 !important;
       font-weight: 600 !important;
-      font-style: normal !important;
       opacity: 1 !important;
     }
 
@@ -169,7 +146,6 @@
       outline: none !important;
       box-shadow: 0 0 0 4px rgba(65, 105, 225, 0.1), 0 6px 20px rgba(65, 105, 225, 0.15) !important;
       background: #fff !important;
-      transform: translateY(-1px) !important;
     }
 
     .dataTables_filter label {
@@ -178,30 +154,6 @@
       margin-bottom: 0.5rem !important;
     }
 
-    /* Table Container */
-    .table-scroll-container {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
-      margin: 1rem 0;
-      width: 100%;
-      max-width: 100%;
-      box-sizing: border-box;
-      border: 1px solid #f1f5f9;
-    }
-
-    .table-responsive-custom {
-      overflow-x: auto;
-      overflow-y: visible;
-      -webkit-overflow-scrolling: touch;
-      width: 100%;
-      max-width: 100%;
-      position: relative;
-      box-sizing: border-box;
-      border-radius: 16px;
-    }
-
-    /* Beautiful Passers Table */
     #passerTable {
       border-collapse: separate;
       border-spacing: 0;
@@ -215,7 +167,6 @@
       box-shadow: 0 6px 24px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
     }
 
-    /* Force custom header styling with higher specificity */
     .dataTables_wrapper #passerTable thead th,
     #passerTable thead th,
     table#passerTable thead th {
@@ -228,32 +179,7 @@
       font-size: 0.8rem !important;
       letter-spacing: 0.5px !important;
       text-transform: uppercase !important;
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 10 !important;
       white-space: nowrap !important;
-      border-bottom: none !important;
-      border-top: none !important;
-      border-left: none !important;
-      border-right: none !important;
-    }
-
-    /* Override any DataTables sorting styles */
-    .dataTables_wrapper #passerTable thead th.sorting,
-    .dataTables_wrapper #passerTable thead th.sorting_asc,
-    .dataTables_wrapper #passerTable thead th.sorting_desc,
-    #passerTable thead th.sorting,
-    #passerTable thead th.sorting_asc,
-    #passerTable thead th.sorting_desc {
-      background: #4169e1 !important;
-      color: white !important;
-    }
-
-    /* Ensure sorting arrows are visible */
-    .dataTables_wrapper #passerTable thead th.sorting:after,
-    .dataTables_wrapper #passerTable thead th.sorting_asc:after,
-    .dataTables_wrapper #passerTable thead th.sorting_desc:after {
-      color: rgba(255,255,255,0.7) !important;
     }
 
     #passerTable tbody td {
@@ -262,14 +188,12 @@
       border-right: 1px solid #f1f5f9;
       vertical-align: middle;
       text-align: center;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       font-size: 0.85rem;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* Allow limited wrapping only for name columns */
     #passerTable tbody td:nth-child(2),
     #passerTable tbody td:nth-child(3),
     #passerTable tbody td:nth-child(4) {
@@ -301,21 +225,11 @@
       position: relative;
     }
 
-    #passerTable tbody tr:hover td {
-      border-color: #cbd5e1;
-    }
-
-    /* Special styling for arrived students */
     #passerTable tbody tr.table-success {
       background: linear-gradient(135deg, #dcfce7 0%, #f0fff4 100%) !important;
       border-left: 4px solid #22c55e;
     }
 
-    #passerTable tbody tr.table-success:hover {
-      background: linear-gradient(135deg, #bbf7d0 0%, #e8f5e9 100%) !important;
-    }
-
-    /* Data Styling */
     .student-id {
       background: linear-gradient(135deg, #4169e1 0%, #6366f1 100%);
       color: white;
@@ -350,7 +264,6 @@
       display: inline-block;
     }
 
-    /* Status Badges */
     .badge {
       font-size: 0.75rem;
       padding: 0.4rem 0.8rem;
@@ -369,7 +282,6 @@
       box-shadow: 0 2px 8px rgba(239,68,68,.3);
     }
 
-    /* Action Buttons */
     .btn-print {
       background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
       border: none;
@@ -377,7 +289,7 @@
       padding: 0.4rem 0.8rem;
       font-size: 0.75rem;
       font-weight: 600;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
       box-shadow: 0 3px 10px rgba(65,105,225,.2);
       color: white;
     }
@@ -386,9 +298,9 @@
       transform: translateY(-3px) scale(1.05);
       box-shadow: 0 6px 20px rgba(65,105,225,.4);
       background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
+      color: white;
     }
 
-    /* DataTable Buttons */
     .dt-button {
       background: linear-gradient(135deg, #4169e1 0%, #3754db 100%) !important;
       border: none !important;
@@ -398,7 +310,7 @@
       padding: 0.75rem 1.5rem !important;
       margin-right: 0.75rem !important;
       margin-bottom: 0.75rem !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      transition: all 0.3s ease !important;
       box-shadow: 0 4px 15px rgba(65,105,225,.3) !important;
       letter-spacing: 0.3px !important;
     }
@@ -409,7 +321,6 @@
       background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%) !important;
     }
 
-    /* DataTables Pagination Enhancement */
     .dataTables_wrapper .dataTables_paginate .paginate_button {
       border-radius: 10px !important;
       border: 2px solid #e2e8f0 !important;
@@ -448,25 +359,11 @@
       font-weight: 500;
     }
 
-    /* ID Card Modal Styling */
     .modal-content {
       border: none;
       border-radius: 20px;
       box-shadow: 0 25px 80px rgba(0,0,0,.15);
       overflow: hidden;
-    }
-
-    .modal-header {
-      background: #4169e1;
-      color: white;
-      border-bottom: none;
-      padding: 1.5rem 2rem;
-      font-weight: 700;
-    }
-
-    .modal-header .btn-close {
-      filter: invert(1);
-      opacity: 0.8;
     }
 
     .modal-footer {
@@ -475,7 +372,6 @@
       background: #fff;
     }
 
-    /* ID Card Preview */
     #idCardPreview {
       background-image: url('/images/templateid.jpg');
       background-size: cover;
@@ -512,7 +408,6 @@
       font-weight: 500;
     }
 
-    /* Loading Animation */
     .loading-overlay {
       position: fixed;
       top: 0;
@@ -541,39 +436,44 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Enhanced Visual Elements */
     .fw-bold {
       font-weight: 700;
       color: #1e293b;
       letter-spacing: -.01em;
     }
-    
+
     .text-muted {
       color: #64748b !important;
       font-weight: 500;
     }
 
-    /* Better Icons */
-    .bi {
-      transition: all .2s ease;
-    }
-
-    /* Mobile Responsiveness */
     @media (max-width: 768px) {
-      .main-content { margin-left: 0 !important; padding-top: 70px; }
-      .content-area { padding: 1.5rem; }
-      .page-header .card-body { padding: 1.5rem; }
-      .dataTables_wrapper { padding: 1.5rem; }
-      
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+      }
+
+      .content-area {
+        padding: 1.5rem;
+      }
+
+      .page-header .card-body {
+        padding: 1.5rem;
+      }
+
+      .dataTables_wrapper {
+        padding: 1.5rem;
+      }
+
       .dataTables_filter input {
         width: 100% !important;
       }
-      
+
       #passerTable {
         font-size: 0.75rem;
         min-width: 1000px;
       }
-      
+
       .dt-button {
         font-size: 0.8rem !important;
         padding: 0.5rem 1rem !important;
@@ -595,10 +495,18 @@
     }
 
     @media (max-width: 576px) {
-      .content-area { padding: 1rem; }
-      .page-header .card-body { padding: 1rem; }
-      .dataTables_wrapper { padding: 1rem; }
-      
+      .content-area {
+        padding: 1rem;
+      }
+
+      .page-header .card-body {
+        padding: 1rem;
+      }
+
+      .dataTables_wrapper {
+        padding: 1rem;
+      }
+
       .page-header h2 {
         font-size: 1.3rem;
       }
@@ -609,13 +517,13 @@
       }
     }
 
-    /* Print Styles for ID Card */
     @media print {
       body * {
         visibility: hidden !important;
       }
 
-      #idCardPreview, #idCardPreview * {
+      #idCardPreview,
+      #idCardPreview * {
         visibility: visible !important;
       }
 
@@ -650,13 +558,11 @@
 </head>
 
 <body>
-  <!-- Loading Overlay -->
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
   </div>
 
   <div class="app-container">
-    <!-- Sidebar -->
     <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='list-of-passers',
                                                  studentInfoExpanded=${studentInfoExpanded},
                                                  asmsiExpanded=${asmsiExpanded},
@@ -665,14 +571,10 @@
                                                  eventsExpanded=${eventsExpanded},
                                                  familyDayExpanded=${familyDayExpanded})"></div>
 
-    <!-- Main Content -->
     <div class="main-content">
-      <!-- Header -->
       <div th:replace="fragments/header :: header(${username})"></div>
 
-      <!-- Page Body -->
       <main class="content-area">
-        <!-- Clean Page Header -->
         <div class="page-header card">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
@@ -680,6 +582,7 @@
                 <h2><i class="bi bi-people-fill me-3"></i>List of Passers</h2>
                 <p class="mb-0">Comprehensive list of students who have passed the admission process. Track arrival status and print ID cards for enrolled students.</p>
               </div>
+
               <div class="text-center">
                 <div class="d-flex align-items-center justify-content-center mb-2">
                   <i class="bi bi-check-circle-fill me-2" style="font-size:3rem; color: #22c55e; opacity:.8;"></i>
@@ -693,9 +596,7 @@
           </div>
         </div>
 
-        <!-- Main Content Card -->
         <div class="card">
-          <!-- Passers Table Container -->
           <div class="table-responsive">
             <table class="table" id="passerTable">
               <thead>
@@ -711,31 +612,62 @@
                   <th><i class="bi bi-info-circle me-1"></i>Status</th>
                   <th><i class="bi bi-clock me-1"></i>Timestamp</th>
                   <th><i class="bi bi-printer me-1"></i>Actions</th>
+
+                  <th>Suffix</th>
+                  <th>Barangay</th>
+                  <th>Municipality</th>
+                  <th>Province</th>
+                  <th>Birth Date</th>
+                  <th>Birth Place</th>
+                  <th>Age</th>
+                  <th>ID Number Field</th>
+                  <th>LRN</th>
+                  <th>Religion</th>
+                  <th>Gender</th>
+                  <th>Citizenship</th>
+                  <th>Elementary School</th>
+                  <th>School Address</th>
+                  <th>Father Name</th>
+                  <th>Father Occupation</th>
+                  <th>Father Contact</th>
+                  <th>Mother Name</th>
+                  <th>Mother Occupation</th>
+                  <th>Mother Contact</th>
+                  <th>Guardian Name</th>
+                  <th>Guardian Relationship</th>
+                  <th>Guardian Occupation</th>
+                  <th>School Year</th>
+
+                  <th>PSA Status</th>
+                  <th>Baptismal Status</th>
+                  <th>Confirmation Status</th>
+                  <th>Good Moral Status</th>
+                  <th>Form 138 Status</th>
+                  <th>Form 137E Status</th>
+                  <th>Indigency Status</th>
+                  <th>PhilHealth Status</th>
+                  <th>Kasunduan Status</th>
+                  <th>Photo Status</th>
+                  <th>Medical Record Status</th>
+
+                  <th>Mother Sister</th>
+                  <th>Building Name</th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr th:each="student : ${passerList}"
                     th:classappend="${student.status == 'Arrived' ? 'table-success' : ''}">
-                  <td>
-                    <span class="student-id" th:text="${student.idNum}"></span>
-                  </td>
-                  <td>
-                    <div class="student-name" th:text="${student.lastName}"></div>
-                  </td>
-                  <td>
-                    <div class="student-name" th:text="${student.firstName}"></div>
-                  </td>
+                  <td><span class="student-id" th:text="${student.idNum}"></span></td>
+                  <td><div class="student-name" th:text="${student.lastName}"></div></td>
+                  <td><div class="student-name" th:text="${student.firstName}"></div></td>
                   <td th:text="${student.middleName}"></td>
                   <td th:text="${student.examPlace}"></td>
                   <td th:text="${student.guardianContact}"></td>
+                  <td><span class="code-number" th:text="${student.codeNumber}"></span></td>
+                  <td><span class="family-saint" th:text="${student.familySaint}"></span></td>
                   <td>
-                    <span class="code-number" th:text="${student.codeNumber}"></span>
-                  </td>
-                  <td>
-                    <span class="family-saint" th:text="${student.familySaint}"></span>
-                  </td>
-                  <td>
-                    <span th:class="'badge ' + (${student.status == 'Sent Home'} ? 'bg-danger' : 'bg-success')" 
+                    <span th:class="'badge ' + (${student.status == 'Sent Home'} ? 'bg-danger' : 'bg-success')"
                           th:text="${student.status}">
                     </span>
                   </td>
@@ -754,31 +686,65 @@
                       <i class="bi bi-printer me-1"></i>Print ID
                     </button>
                   </td>
+
+                  <td th:text="${student.suffix}"></td>
+                  <td th:text="${student.brgy}"></td>
+                  <td th:text="${student.municipality}"></td>
+                  <td th:text="${student.province}"></td>
+                  <td th:text="${student.birthDate}"></td>
+                  <td th:text="${student.birthPlace}"></td>
+                  <td th:text="${student.age}"></td>
+                  <td th:text="${student.idNumber}"></td>
+                  <td th:text="${student.lrn}"></td>
+                  <td th:text="${student.religion}"></td>
+                  <td th:text="${student.gender}"></td>
+                  <td th:text="${student.citizenship}"></td>
+                  <td th:text="${student.elemSchool}"></td>
+                  <td th:text="${student.schoolAddress}"></td>
+                  <td th:text="${student.fatherName}"></td>
+                  <td th:text="${student.fatherOccupation}"></td>
+                  <td th:text="${student.fatherContact}"></td>
+                  <td th:text="${student.motherName}"></td>
+                  <td th:text="${student.motherOccupation}"></td>
+                  <td th:text="${student.motherContact}"></td>
+                  <td th:text="${student.guardianName}"></td>
+                  <td th:text="${student.guardianRelationship}"></td>
+                  <td th:text="${student.guardianOccupation}"></td>
+                  <td th:text="${student.schoolYear}"></td>
+
+                  <td th:text="${student.psastatus}"></td>
+                  <td th:text="${student.baptismalstatus}"></td>
+                  <td th:text="${student.confirmationstatus}"></td>
+                  <td th:text="${student.goodmoralstatus}"></td>
+                  <td th:text="${student.form138status}"></td>
+                  <td th:text="${student.form137estatus}"></td>
+                  <td th:text="${student.indigencystatus}"></td>
+                  <td th:text="${student.philhealthstatus}"></td>
+                  <td th:text="${student.kasunduansatus}"></td>
+                  <td th:text="${student.photoStatus}"></td>
+                  <td th:text="${student.medicalrecordstatus}"></td>
+
+                  <td th:text="${student.motherSister}"></td>
+                  <td th:text="${student.buildingName}"></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-
       </main>
     </div>
   </div>
 
-  <!-- ID Preview Modal -->
-  <div class="modal fade" id="idPreviewModal" tabindex="-1" aria-labelledby="idPreviewModalLabel" aria-hidden="true">
+  <div class="modal fade" id="idPreviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 4.125in">
       <div id="idCardPreview" class="modal-content text-center p-2">
-        
-        <!-- Spacer above photo -->
         <div style="height: 0.5in;"></div>
 
-        <!-- Photo -->
         <img src="/images/1x1 template.jpg" alt="1x1 Photo"
              class="rounded border"
              style="width: 1in; height: 1in; object-fit: cover;" />
         <small class="id-label">(1x1)</small>
 
-        <!-- Spacer below photo -->
         <div style="height: 0.3in;"></div>
 
         <div class="id-field" id="previewIdNum" style="font-size: 1rem; line-height: 1;"></div>
@@ -801,7 +767,6 @@
         <small class="id-label">Mother Sister</small>
         <div style="height: 0.05in;"></div>
 
-        <!-- Modal Footer -->
         <div class="modal-footer justify-content-center mt-2">
           <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
             <i class="bi bi-x-lg me-2"></i>Close
@@ -814,75 +779,179 @@
     </div>
   </div>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Initialize DataTable
     $(document).ready(function () {
+      const exportColumns = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47
+      ];
+
+      const hiddenColumns = [
+        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+        41, 42, 43, 44, 45, 46, 47
+      ];
+
       $('#passerTable').DataTable({
         dom:
           "<'row mb-3'" +
-          "<'col-md-6 d-flex align-items-center'B>" +
+          "<'col-md-6 d-flex align-items-center flex-wrap gap-2'B>" +
           "<'col-md-6 d-flex justify-content-end'f>" +
           ">" +
           "<'row'<'col-sm-12'tr>>" +
           "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+
         buttons: [
           {
             extend: 'excelHtml5',
             text: '<i class="bi bi-file-earmark-excel me-1"></i>Excel',
-            title: 'List of Passers'
+            title: 'List of Passers - Complete Admission Data',
+            filename: 'list-of-passers-complete-admission-data',
+            exportOptions: {
+              columns: exportColumns,
+              modifier: {
+                search: 'none',
+                order: 'index',
+                page: 'all'
+              },
+              format: {
+                body: cleanExportText
+              }
+            }
+          },
+          {
+            extend: 'csvHtml5',
+            text: '<i class="bi bi-filetype-csv me-1"></i>CSV',
+            title: 'List of Passers - Complete Admission Data',
+            filename: 'list-of-passers-complete-admission-data',
+            bom: true,
+            exportOptions: {
+              columns: exportColumns,
+              modifier: {
+                search: 'none',
+                order: 'index',
+                page: 'all'
+              },
+              format: {
+                body: cleanExportText
+              }
+            }
           },
           {
             extend: 'pdfHtml5',
             text: '<i class="bi bi-filetype-pdf me-1"></i>PDF',
-            title: 'List of Passers',
+            title: 'List of Passers - Complete Admission Data',
+            filename: 'list-of-passers-complete-admission-data',
             orientation: 'landscape',
-            pageSize: 'A4'
+            pageSize: 'LEGAL',
+            exportOptions: {
+              columns: exportColumns,
+              modifier: {
+                search: 'none',
+                order: 'index',
+                page: 'all'
+              },
+              format: {
+                body: cleanExportText
+              }
+            },
+            customize: function (doc) {
+              doc.defaultStyle.fontSize = 4.5;
+              doc.styles.tableHeader.fontSize = 4.5;
+              doc.styles.title.fontSize = 10;
+              doc.pageMargins = [8, 12, 8, 12];
+
+              if (doc.content && doc.content[1] && doc.content[1].table) {
+                doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
+                doc.content[1].layout = {
+                  hLineWidth: function () { return 0.2; },
+                  vLineWidth: function () { return 0.2; },
+                  hLineColor: function () { return '#d1d5db'; },
+                  vLineColor: function () { return '#d1d5db'; },
+                  paddingLeft: function () { return 1; },
+                  paddingRight: function () { return 1; },
+                  paddingTop: function () { return 1; },
+                  paddingBottom: function () { return 1; }
+                };
+              }
+            }
+          },
+          {
+            extend: 'print',
+            text: '<i class="bi bi-printer me-1"></i>Print Table',
+            title: 'List of Passers - Complete Admission Data',
+            exportOptions: {
+              columns: exportColumns,
+              modifier: {
+                search: 'none',
+                order: 'index',
+                page: 'all'
+              },
+              format: {
+                body: cleanExportText
+              }
+            }
           }
         ],
+
         scrollX: true,
         responsive: false,
         pageLength: 10,
         lengthChange: true,
         autoWidth: false,
-        language: { 
+
+        language: {
           search: "",
           searchPlaceholder: "Search passers...",
           lengthMenu: "Show _MENU_ passers per page",
           info: "Showing _START_ to _END_ of _TOTAL_ passers",
-          paginate: { 
-            previous: "Previous", 
-            next: "Next" 
+          paginate: {
+            previous: "Previous",
+            next: "Next"
           }
         },
+
         columnDefs: [
-          { targets: [10], orderable: false }, // Actions column
+          { targets: [10], orderable: false },
+          { targets: hiddenColumns, visible: false, searchable: true },
           { targets: [9], type: 'date' }
         ]
       });
     });
 
-    // Print ID Card function
+    function cleanExportText(data) {
+      return String(data == null ? '' : data)
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
     function printIdCard(student) {
-      document.getElementById('previewIdNum').innerText = student.idNum;
-      document.getElementById('previewFullName').innerText = `${student.lastName}, ${student.firstName}`;
-      document.getElementById('previewFamilySaint').innerText = student.familySaint;
-      document.getElementById('previewBuilding').innerText = student.buildingName;
-      document.getElementById('previewMotherSister').innerText = student.motherSister;
+      document.getElementById('previewIdNum').innerText = student.idNum || '';
+      document.getElementById('previewFullName').innerText = `${student.lastName || ''}, ${student.firstName || ''}`;
+      document.getElementById('previewFamilySaint').innerText = student.familySaint || '';
+      document.getElementById('previewBuilding').innerText = student.buildingName || '';
+      document.getElementById('previewMotherSister').innerText = student.motherSister || '';
 
       const modalEl = document.getElementById('idPreviewModal');
       const modal = new bootstrap.Modal(modalEl);
       modal.show();
 
-      // Delay to ensure DOM is fully rendered
       setTimeout(() => {
         window.print();
       }, 500);
     }
 
-    // Loading overlay functions
     function showLoading() {
       document.getElementById('loadingOverlay').style.display = 'flex';
     }
@@ -891,14 +960,11 @@
       document.getElementById('loadingOverlay').style.display = 'none';
     }
 
-    // Hide loading on page load
     window.addEventListener('load', hideLoading);
 
-    // Page level initialization
     document.addEventListener('DOMContentLoaded', () => {
       console.log('List of Passers page loaded');
     });
   </script>
-
 </body>
 </html>
