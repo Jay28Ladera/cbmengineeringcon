@@ -16,6 +16,8 @@
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- QR / Barcode scanner -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
     <style>
       body { 
@@ -583,6 +585,225 @@
         color: #475569;
       }
 
+      /* Student tab: use the PROFILE CARD as the height basis.
+         Logs and Masterlist stay the same height and scroll INSIDE their cards. */
+      #tab-students .row.g-tight {
+        height: 690px;
+        align-items: stretch;
+      }
+
+      #tab-students .row.g-tight > [class*="col-"] {
+        height: 100%;
+      }
+
+      #tab-students #card-stu,
+      #tab-students .student-fill-card {
+        height: 100% !important;
+        max-height: 690px;
+      }
+
+      #tab-students .student-fill-card .card-body {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      #tab-students .student-fill-card .table-wrap {
+        flex: 1 1 0;
+        min-height: 0;
+        max-height: none;
+        overflow: auto;
+      }
+
+      #tab-students .student-fill-card .table-responsive {
+        height: auto;
+      }
+
+      #tab-students .student-fill-card .table-wrap::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+
+      @media (max-width: 991.98px) {
+        #tab-students .row.g-tight,
+        #tab-students .row.g-tight > [class*="col-"] {
+          height: auto;
+        }
+        #tab-students #card-stu,
+        #tab-students .student-fill-card {
+          height: auto !important;
+          max-height: none;
+        }
+        #tab-students .student-fill-card .table-wrap {
+          max-height: 420px;
+        }
+      }
+
+
+      /* Student ID-card inspired profile redesign */
+      #tab-students #card-stu {
+        border: 1px solid #d8e1ee;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+        background: #ffffff;
+        overflow: hidden;
+      }
+
+      #tab-students #card-stu::before {
+        opacity: 1;
+        height: 5px;
+        background: linear-gradient(90deg, #2563eb 0%, #4f46e5 55%, #7c3aed 100%);
+      }
+
+      #tab-students #card-stu .card-body {
+        padding: 0 !important;
+        text-align: left !important;
+        background: #fff;
+      }
+
+      #tab-students #card-stu .student-id-header {
+        padding: 1rem 1.1rem .9rem;
+        text-align: center;
+        border-bottom: 1px solid #e5eaf1;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+      }
+
+      #tab-students #card-stu .student-id-school {
+        margin: 0;
+        color: #1e3a8a;
+        font-size: .76rem;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+      }
+
+      #tab-students #card-stu .student-id-subtitle {
+        margin-top: .2rem;
+        color: #64748b;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      #tab-students #card-stu .student-id-main {
+        padding: 1.05rem 1.1rem 1.1rem;
+      }
+
+      #tab-students #card-stu .student-id-photo-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: .8rem;
+      }
+
+      #tab-students #card-stu .entity-photo {
+        width: 165px;
+        height: 165px;
+        border-radius: 14px;
+        object-fit: cover;
+        margin: 0 !important;
+        border: 4px solid #fff;
+        outline: 1px solid #dbe4f0;
+        box-shadow: 0 7px 20px rgba(15, 23, 42, 0.14);
+      }
+
+      #tab-students #card-stu .student-id-name {
+        text-align: center;
+        padding-bottom: .85rem;
+        margin-bottom: .8rem;
+        border-bottom: 1px dashed #d9e2ee;
+      }
+
+      #tab-students #card-stu .student-id-name #name-stu {
+        display: block;
+        color: #163b8c;
+        font-size: 1.02rem;
+        font-weight: 800;
+        line-height: 1.25;
+      }
+
+      #tab-students #card-stu .student-id-name small {
+        display: block;
+        margin-top: .22rem;
+        color: #64748b;
+        font-size: .67rem;
+        font-weight: 700;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      #tab-students #card-stu .student-id-number {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .55rem;
+        margin-bottom: .65rem;
+      }
+
+      #tab-students #card-stu .id-chip {
+        background: #f4f7fb;
+        border: 1px solid #dce5ef;
+        border-radius: 10px;
+        padding: .58rem .65rem;
+        min-width: 0;
+      }
+
+      #tab-students #card-stu .id-chip strong,
+      #tab-students #card-stu .student-id-detail strong {
+        display: block;
+        margin: 0 0 .15rem;
+        color: #64748b;
+        font-size: .60rem;
+        font-weight: 800;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+      }
+
+      #tab-students #card-stu .id-chip span,
+      #tab-students #card-stu .student-id-detail span {
+        display: block;
+        color: #1e40af;
+        font-size: .80rem;
+        font-weight: 700;
+        line-height: 1.25;
+        word-break: break-word;
+      }
+
+      #tab-students #card-stu .student-id-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .5rem;
+      }
+
+      #tab-students #card-stu .student-id-detail {
+        padding: .55rem .65rem;
+        border-bottom: 1px solid #edf1f6;
+        min-width: 0;
+      }
+
+      #tab-students #card-stu .student-id-detail.address {
+        grid-column: 1 / -1;
+        border-bottom: 0;
+        background: #f8fafc;
+        border-radius: 9px;
+        margin-top: .1rem;
+      }
+
+      #tab-students #card-stu:hover {
+        transform: none;
+      }
+
+      @media (max-width: 1200px) {
+        #tab-students #card-stu .student-id-number,
+        #tab-students #card-stu .student-id-details {
+          grid-template-columns: 1fr;
+        }
+        #tab-students #card-stu .student-id-detail.address {
+          grid-column: auto;
+        }
+      }
+
       /* Responsive adjustments */
       @media (min-width: 1200px) { .entity-photo { width: 180px; height: 180px; } }
       @media (max-width: 992px) { .entity-photo { width: 140px; height: 140px; } }
@@ -601,6 +822,55 @@
         .time-date-display { padding: 1rem; }
         .card-body { padding: 1rem; }
       }
+
+
+      /* Student camera QR / barcode scanner */
+      #scan-stu-btn {
+        border: 2px solid #4169e1;
+        background: linear-gradient(135deg, #4169e1 0%, #3754db 100%);
+        color: #fff;
+        padding: 0 1.15rem;
+        border-radius: 0 12px 12px 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .45rem;
+        font-weight: 700;
+        white-space: nowrap;
+        box-shadow: 0 4px 15px rgba(65,105,225,.22);
+      }
+      #scan-stu-btn:hover {
+        background: linear-gradient(135deg, #3754db 0%, #2d46d4 100%);
+        color: #fff;
+      }
+      #search-stu {
+        border-radius: 0 !important;
+        border-right: 0;
+      }
+      .student-scanner-popup { width: min(94vw, 560px) !important; }
+      #student-camera-reader {
+        width: 100%;
+        min-height: 280px;
+        overflow: hidden;
+        border-radius: 14px;
+        background: #0f172a;
+        border: 1px solid #cbd5e1;
+      }
+      #student-camera-reader video {
+        border-radius: 14px;
+        object-fit: cover;
+      }
+      .scanner-help {
+        margin-top: .8rem;
+        color: #64748b;
+        font-size: .85rem;
+        line-height: 1.45;
+      }
+      @media (max-width: 576px) {
+        #scan-stu-btn span { display: none; }
+        #scan-stu-btn { padding: 0 .9rem; }
+      }
+
     </style>
   </head>
   <body>
@@ -622,7 +892,7 @@
         <!-- Page Body -->
         <main class="content-area">
           <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-3">
-            <h1 class="page-title mb-0"><i class="bi bi-calendar-heart me-3 text-primary"></i>Sisters of Mary School – Girlstown Family Day</h1>
+            <h1 class="page-title mb-0"><i class="bi bi-calendar-heart me-3 text-primary"></i>Sisters of Mary School – Adlas Family Day</h1>
             <div class="time-date-display mb-0" style="margin: 0; padding: 1rem 1.5rem; flex-shrink: 0;">
               <div class="d-flex flex-wrap gap-4 align-items-center">
                 <div class="d-flex align-items-center gap-2">
@@ -677,7 +947,10 @@
                 </label>
                 <div class="input-group">
                   <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                  <input type="text" class="form-control" id="search-stu" placeholder="e.g. TAL2022-005" />
+                  <input type="text" class="form-control" id="search-stu" placeholder="Type, scan QR, or scan barcode" />
+                  <button class="btn" type="button" id="scan-stu-btn" title="Scan student QR code using camera">
+                    <i class="bi bi-qr-code-scan"></i><span>Scan</span>
+                  </button>
                 </div>
               </div>
 
@@ -685,22 +958,59 @@
                 <!-- Profile: narrower -->
                 <div class="col-xl-3 col-lg-4">
                   <div class="card shadow-sm h-100 card-compact" id="card-stu" style="display:none;">
-                    <div class="card-body text-center profile-meta">
-                      <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo mb-3"/>
-                      <p><strong>LRN:</strong> <span id="lrn-stu">-</span></p>
-                      <p><strong>ID Number:</strong> <span id="id-stu">-</span></p>
-                      <p><strong>Name:</strong> <span id="name-stu">-</span></p>
-                      <p><strong>Location:</strong> <span id="campus-stu">-</span></p>
-                      <p><strong>Family Saint:</strong> <span id="saint-stu">-</span></p>
-                      <p><strong>Batch Number:</strong> <span id="batch-stu">-</span></p>
-                      <p class="mb-0"><strong>Address:</strong> <span id="addr-stu">-</span></p>
+                    <div class="card-body">
+                      <div class="student-id-header">
+                        <p class="student-id-school">Sisters of Mary School – Girlstown</p>
+                        <div class="student-id-subtitle">Student Profile</div>
+                      </div>
+
+                      <div class="student-id-main">
+                        <div class="student-id-photo-wrap">
+                          <img id="photo-stu" src="/images/default-profile.png" alt="Photo" class="entity-photo"/>
+                        </div>
+
+                        <div class="student-id-name">
+                          <span id="name-stu">-</span>
+                          <small>Student</small>
+                        </div>
+
+                        <div class="student-id-number">
+                          <div class="id-chip">
+                            <strong>ID Number</strong>
+                            <span id="id-stu">-</span>
+                          </div>
+                          <div class="id-chip">
+                            <strong>LRN</strong>
+                            <span id="lrn-stu">-</span>
+                          </div>
+                        </div>
+
+                        <div class="student-id-details">
+                          <div class="student-id-detail">
+                            <strong>Location</strong>
+                            <span id="campus-stu">-</span>
+                          </div>
+                          <div class="student-id-detail">
+                            <strong>Batch Number</strong>
+                            <span id="batch-stu">-</span>
+                          </div>
+                          <div class="student-id-detail">
+                            <strong>Family Saint</strong>
+                            <span id="saint-stu">-</span>
+                          </div>
+                          <div class="student-id-detail address">
+                            <strong>Address</strong>
+                            <span id="addr-stu">-</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <!-- Logs -->
                 <div class="col-xl-6 col-lg-5">
-                  <div class="card shadow-sm h-100">
+                  <div class="card shadow-sm h-100 student-fill-card">
                     <div class="card-body">
                       <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold mb-0"><i class="bi bi-journal-text me-2 text-primary"></i>Visitors logs</h5>
@@ -733,7 +1043,7 @@
 
                 <!-- Masterlist table (Name + ID) -->
                 <div class="col-lg-3">
-                  <div class="card shadow-sm h-100">
+                  <div class="card shadow-sm h-100 student-fill-card">
                     <div class="card-body">
                       <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Masterlist</h6>
                       <input id="ml-stu-q" type="text" class="form-control mb-3" placeholder="Search name / ID…">
@@ -989,6 +1299,27 @@
       </div>
     </div>
 
+    <!-- Student QR Scanner Modal -->
+    <div class="modal fade" id="studentQrScannerModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:15px; overflow:hidden;">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">
+              <i class="bi bi-qr-code-scan me-2"></i>Scan Student QR
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopStudentQrScanner()"></button>
+          </div>
+          <div class="modal-body text-center">
+            <div id="student-qr-reader" style="width:100%; max-width:400px; margin:auto;"></div>
+            <p class="text-muted mt-3 mb-0">Point the camera at the student's QR code.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="stopStudentQrScanner()">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Bootstrap JS (bundle includes Popper & Collapse) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1146,34 +1477,113 @@
       });
       loadStudentLogs();
 
-      /* Students masterlist */
-      async function loadMlStudents(q='') {
-  const data = await simpleFetch(`/api/attendance/students/masterlist?query=${encodeURIComponent(q)}`);
-  const tb = document.getElementById('ml-stu');
-  tb.innerHTML = '';
+      /* =========================================================
+         STUDENTS MASTERLIST - COMPLETE STUDENT DATABASE
+         Requires StudentController endpoint:
+         GET /students/masterlist?query=...
+         ========================================================= */
+      function renderStudentMasterlist(rows) {
+        const tb = document.getElementById('ml-stu');
+        if (!tb) return;
 
-  (data || []).forEach(r => {
-    const tr = document.createElement('tr');
-    tr.className = 'ml-item';
-    tr.innerHTML = `<td>${esc(r.name)}</td><td>${esc(r.idNumber)}</td>`;
-    tr.addEventListener('click', () => {
-      const box = document.getElementById('search-stu');
-      box.value = r.idNumber;
-      box.focus();
-      box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    });
-    tb.appendChild(tr);
-  });
+        tb.innerHTML = '';
 
-  if (!data?.length) {
-    tb.innerHTML = `<tr><td colspan="2" class="text-center text-muted">No matches</td></tr>`;
-  }
-}
+        (rows || []).forEach(student => {
+          const tr = document.createElement('tr');
+          tr.className = 'ml-item';
+          tr.innerHTML = `
+            <td>${esc(student.name || '-')}</td>
+            <td>${esc(student.idNumber || '-')}</td>
+          `;
 
-      document.getElementById('ml-stu-q').addEventListener('keydown', e=>{
-        if (e.key!=='Enter') return;
+          tr.addEventListener('click', () => {
+            if (!student.idNumber) return;
+
+            const searchBox = document.getElementById('search-stu');
+            searchBox.value = student.idNumber;
+            searchBox.focus();
+            searchBox.dispatchEvent(new KeyboardEvent('keydown', {
+              key: 'Enter',
+              code: 'Enter',
+              bubbles: true
+            }));
+          });
+
+          tb.appendChild(tr);
+        });
+
+        if (!rows || rows.length === 0) {
+          tb.innerHTML = `
+            <tr>
+              <td colspan="2" class="text-center text-muted">No matching student</td>
+            </tr>
+          `;
+        }
+      }
+
+      async function loadMlStudents(q = '') {
+        const tb = document.getElementById('ml-stu');
+        if (!tb) return;
+
+        tb.innerHTML = `
+          <tr>
+            <td colspan="2" class="text-center text-muted">Loading...</td>
+          </tr>
+        `;
+
+        try {
+          const res = await fetch(`/students/masterlist?query=${encodeURIComponent(q)}`);
+
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+
+          const students = await res.json();
+          renderStudentMasterlist(Array.isArray(students) ? students : []);
+
+        } catch (err) {
+          console.error('Student masterlist error:', err);
+          tb.innerHTML = `
+            <tr>
+              <td colspan="2" class="text-center text-danger">Unable to load student list</td>
+            </tr>
+          `;
+        }
+      }
+
+      let studentSearchTimer;
+
+      document.getElementById('ml-stu-q')
+        .addEventListener('input', e => {
+
+          clearTimeout(studentSearchTimer);
+
+          const q = e.target.value.trim();
+
+          // Empty search = load default masterlist
+          if (!q) {
+            loadMlStudents('');
+            return;
+          }
+
+          // Don't search yet if only 1 character
+          if (q.length < 2) {
+            return;
+          }
+
+          // Wait 400ms after user stops typing
+          studentSearchTimer = setTimeout(() => {
+            loadMlStudents(q);
+          }, 400);
+        });
+
+      document.getElementById('ml-stu-q').addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        clearTimeout(studentSearchTimer);
         loadMlStudents(e.target.value.trim());
       });
+
       loadMlStudents('');
 
       /* =========================================================
@@ -1495,6 +1905,142 @@
       document.addEventListener('DOMContentLoaded', () => {
         console.log('Family Day Portal loaded');
       });
+
+
+      /* =========================================================
+         STUDENT CAMERA QR / BARCODE SCANNER
+         - Uses the device camera
+         - Reuses the existing student search workflow after scan
+         ========================================================= */
+      /* ===== STUDENT QR SCANNER =====
+         Uses the same working Html5Qrcode + Bootstrap modal pattern
+         as the Student Admission page. */
+      let studentHtml5QrScanner = null;
+      let studentQrScannerModal = null;
+      let studentQrScanAccepted = false;
+
+      function openStudentQrScanner() {
+        if (typeof Html5Qrcode === 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Scanner unavailable',
+            text: 'The QR scanner library could not be loaded.'
+          });
+          return;
+        }
+
+        studentQrScanAccepted = false;
+        studentQrScannerModal = new bootstrap.Modal(document.getElementById('studentQrScannerModal'));
+        studentQrScannerModal.show();
+
+        setTimeout(() => {
+          startStudentQrScanner();
+        }, 500);
+      }
+
+      function startStudentQrScanner() {
+        const qrReaderId = 'student-qr-reader';
+
+        if (studentHtml5QrScanner) {
+          stopStudentQrScanner();
+        }
+
+        studentHtml5QrScanner = new Html5Qrcode(qrReaderId);
+
+        Html5Qrcode.getCameras()
+          .then(cameras => {
+            if (!cameras || cameras.length === 0) {
+              Swal.fire({
+                icon: 'error',
+                title: 'No Camera Found',
+                text: 'Please check if your device has a working camera.'
+              });
+              return;
+            }
+
+            const backCamera = cameras.find(camera =>
+              camera.label.toLowerCase().includes('back') ||
+              camera.label.toLowerCase().includes('rear')
+            );
+
+            const cameraId = backCamera ? backCamera.id : cameras[0].id;
+
+            studentHtml5QrScanner.start(
+              cameraId,
+              {
+                fps: 10,
+                qrbox: { width: 250, height: 250 }
+              },
+              scannedText => {
+                if (studentQrScanAccepted) return;
+                studentQrScanAccepted = true;
+
+                const qrValue = String(scannedText || '').trim();
+                if (!qrValue) {
+                  studentQrScanAccepted = false;
+                  return;
+                }
+
+                const searchBox = document.getElementById('search-stu');
+                searchBox.value = qrValue;
+
+                stopStudentQrScanner();
+
+                if (studentQrScannerModal) {
+                  studentQrScannerModal.hide();
+                }
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'QR Scanned',
+                  text: 'Searching student ID: ' + qrValue,
+                  timer: 900,
+                  showConfirmButton: false
+                });
+
+                // Use the Visiting Day's EXISTING student search flow.
+                setTimeout(() => {
+                  searchBox.focus();
+                  searchBox.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    code: 'Enter',
+                    bubbles: true
+                  }));
+                }, 500);
+              },
+              () => {
+                // Ignore continuous scan errors while the camera is looking.
+              }
+            );
+          })
+          .catch(err => {
+            console.error('Camera error:', err);
+            Swal.fire({
+              icon: 'error',
+              title: 'Camera Permission Error',
+              text: 'Please allow camera access and try again.'
+            });
+          });
+      }
+
+      function stopStudentQrScanner() {
+        if (studentHtml5QrScanner) {
+          studentHtml5QrScanner.stop()
+            .then(() => {
+              studentHtml5QrScanner.clear();
+              studentHtml5QrScanner = null;
+            })
+            .catch(err => {
+              console.warn('QR scanner stop error:', err);
+              try { studentHtml5QrScanner.clear(); } catch (_) {}
+              studentHtml5QrScanner = null;
+            });
+        }
+      }
+
+      document.getElementById('studentQrScannerModal')?.addEventListener('hidden.bs.modal', stopStudentQrScanner);
+      document.getElementById('scan-stu-btn')?.addEventListener('click', openStudentQrScanner);
+
     </script>
   </body>
   </html>

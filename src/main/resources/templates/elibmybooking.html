@@ -31,6 +31,7 @@
       flex-direction: column;
       margin-left: 280px;
       transition: margin-left .3s cubic-bezier(.4, 0, .2, 1);
+      min-width: 0;
     }
 
     .content-area {
@@ -101,6 +102,43 @@
       font-size: .94rem;
     }
 
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .toolbar-left {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .toolbar-right {
+      display: flex;
+      gap: .65rem;
+      align-items: end;
+      flex-wrap: wrap;
+    }
+
+    .form-label {
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: .3rem;
+      font-size: .76rem;
+    }
+
+    .form-select {
+      border: 1px solid #dbe3ef;
+      border-radius: 10px;
+      padding: .58rem .72rem;
+      font-size: .82rem;
+      background: #fff;
+      min-width: 150px;
+    }
+
     .table-responsive {
       border-radius: 16px;
       overflow: auto;
@@ -111,6 +149,7 @@
 
     .table {
       margin-bottom: 0;
+      min-width: 1100px;
     }
 
     .table thead th {
@@ -148,13 +187,26 @@
       display: inline-flex;
       align-items: center;
       gap: .35rem;
+      white-space: nowrap;
     }
 
-    .badge-pending { background: #fff7ed; color: #c2410c; }
-    .badge-approved { background: #ecfdf5; color: #047857; }
-    .badge-rejected { background: #fef2f2; color: #b91c1c; }
+    .badge-pending {
+      background: #fff7ed;
+      color: #c2410c;
+    }
 
-    .empty-state {
+    .badge-approved {
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .badge-rejected {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+
+    .empty-state,
+    .loading-state {
       text-align: center;
       padding: 2.5rem 1rem;
       color: #64748b;
@@ -165,6 +217,46 @@
       display: block;
       margin-bottom: .75rem;
       color: #94a3b8;
+    }
+
+    .pagination-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .page-info {
+      font-size: .8rem;
+      color: #64748b;
+    }
+
+    .page-controls {
+      display: flex;
+      gap: .45rem;
+      align-items: center;
+    }
+
+    .page-btn {
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      border-radius: 9px;
+      padding: .45rem .7rem;
+      font-size: .78rem;
+      font-weight: 700;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      border-color: #667eea;
+      color: #4f46e5;
+    }
+
+    .page-btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
     }
 
     .alert {
@@ -182,10 +274,24 @@
       .content-area {
         padding: 1.25rem;
       }
+
+      .page-title {
+        font-size: 1.45rem;
+      }
+
+      .toolbar-right {
+        width: 100%;
+      }
+
+      .toolbar-right > div {
+        flex: 1;
+      }
     }
   </style>
 </head>
+
 <body>
+
 <div class="app-container">
 
   <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='elibrary-mybooking',
@@ -197,98 +303,649 @@
                                                familyDayExpanded=${familyDayExpanded})"></div>
 
   <div class="main-content">
+
     <div th:replace="fragments/header :: header(${username})"></div>
 
     <main class="content-area">
+
       <div class="card page-header-card">
         <div class="card-body">
+
           <h2 class="page-title mb-1">
             <i class="bi bi-journal-bookmark-fill me-2"></i>
             E-Library Booking
           </h2>
-          <p class="page-subtitle">My booking history and current status.</p>
+
+          <p class="page-subtitle">
+            My booking history and current status.
+          </p>
+
         </div>
       </div>
 
-      <div th:if="${successMessage}" class="alert alert-success d-flex align-items-center justify-content-between mb-4">
+
+      <div th:if="${successMessage}"
+           class="alert alert-success d-flex align-items-center justify-content-between mb-4">
+
         <div>
           <i class="bi bi-check-circle me-2"></i>
           <span th:text="${successMessage}">Success message</span>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"></button>
+
       </div>
 
-      <div th:if="${errorMessage}" class="alert alert-danger d-flex align-items-center justify-content-between mb-4">
+
+      <div th:if="${errorMessage}"
+           class="alert alert-danger d-flex align-items-center justify-content-between mb-4">
+
         <div>
           <i class="bi bi-exclamation-triangle me-2"></i>
           <span th:text="${errorMessage}">Error message</span>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"></button>
+
       </div>
+
 
       <div class="card">
+
         <div class="card-body">
-          <h5 class="section-title mb-1">My Booking Status</h5>
-          <p class="section-subtitle mb-3">Admin can see all bookings here. User can see only their own bookings.</p>
+
+          <div class="toolbar">
+
+            <div class="toolbar-left">
+
+              <h5 class="section-title mb-1">
+                My Booking Status
+              </h5>
+
+              <p class="section-subtitle">
+                Admin can see all bookings. Users see only their own bookings.
+                Records are loaded 20 at a time.
+              </p>
+
+            </div>
+
+
+            <div class="toolbar-right">
+
+              <div>
+                <label class="form-label">
+                  Status
+                </label>
+
+                <select class="form-select"
+                        id="statusFilter">
+
+                  <option value="">
+                    All Status
+                  </option>
+
+                  <option value="PENDING">
+                    Pending
+                  </option>
+
+                  <option value="APPROVED">
+                    Approved
+                  </option>
+
+                  <option value="REJECTED">
+                    Rejected
+                  </option>
+
+                  <option value="CANCELLED">
+                    Cancelled
+                  </option>
+
+                </select>
+
+              </div>
+
+
+              <div>
+                <label class="form-label">
+                  Show
+                </label>
+
+                <select class="form-select"
+                        id="pageSize">
+
+                  <option value="10">
+                    10 rows
+                  </option>
+
+                  <option value="20" selected>
+                    20 rows
+                  </option>
+
+                  <option value="50">
+                    50 rows
+                  </option>
+
+                  <option value="100">
+                    100 rows
+                  </option>
+
+                </select>
+
+              </div>
+
+            </div>
+
+          </div>
+
 
           <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead>
-                <tr>
-                  <th>Booking No.</th>
-                  <th>Requested By</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Computers</th>
-                  <th>Room</th>
-                  <th>Purpose</th>
-                  <th>Status</th>
-                  <th>Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:if="${#lists.isEmpty(myBookings)}">
-                  <td colspan="9">
-                    <div class="empty-state">
-                      <i class="bi bi-inbox"></i>
-                      No booking history found.
-                    </div>
-                  </td>
-                </tr>
 
-                <tr th:each="b : ${myBookings}">
-                  <td class="fw-bold" th:text="${b.bookingNo}">BK-2026-0003</td>
-                  <td th:text="${b.requestedBy}">Maria Santos</td>
-                  <td th:text="${b.bookingDate}">2026-04-02</td>
-                  <td>
-                    <span th:text="${b.startTime}"></span> - <span th:text="${b.endTime}"></span>
-                  </td>
-                  <td th:text="${b.computersNeeded}">35</td>
-                  <td th:text="${b.room.roomName}">E-Library Room 2</td>
-                  <td th:text="${b.purpose}">Typing Session</td>
-                  <td>
-                    <span th:if="${b.status.name() == 'PENDING'}" class="badge-soft badge-pending">
-                      <i class="bi bi-hourglass"></i>Pending
-                    </span>
-                    <span th:if="${b.status.name() == 'APPROVED'}" class="badge-soft badge-approved">
-                      <i class="bi bi-check-circle"></i>Approved
-                    </span>
-                    <span th:if="${b.status.name() == 'REJECTED' or b.status.name() == 'CANCELLED'}" class="badge-soft badge-rejected">
-                      <i class="bi bi-x-circle"></i>
-                      <span th:text="${b.status}">REJECTED</span>
-                    </span>
-                  </td>
-                  <td th:text="${b.statusRemarks} ?: '-'">-</td>
-                </tr>
+            <table class="table table-hover align-middle">
+
+              <thead>
+              <tr>
+                <th>Booking No.</th>
+                <th>Requested By</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Computers</th>
+                <th>Room</th>
+                <th>Purpose</th>
+                <th>Status</th>
+                <th>Remarks</th>
+              </tr>
+              </thead>
+
+
+              <tbody id="bookingTableBody">
+
+              <tr>
+                <td colspan="9">
+
+                  <div class="loading-state">
+
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Loading booking history...
+
+                  </div>
+
+                </td>
+              </tr>
+
               </tbody>
+
             </table>
+
           </div>
+
+
+          <div class="pagination-bar">
+
+            <div class="page-info"
+                 id="pageInfo">
+              Loading...
+            </div>
+
+
+            <div class="page-controls">
+
+              <button type="button"
+                      class="page-btn"
+                      id="previousBtn"
+                      disabled>
+
+                <i class="bi bi-chevron-left"></i>
+                Previous
+
+              </button>
+
+
+              <span class="page-info"
+                    id="pageNumber">
+                —
+              </span>
+
+
+              <button type="button"
+                      class="page-btn"
+                      id="nextBtn"
+                      disabled>
+
+                Next
+                <i class="bi bi-chevron-right"></i>
+
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
       </div>
+
     </main>
   </div>
 </div>
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  let currentPage = 0;
+  let totalPages = 0;
+  let activeRequest = null;
+
+
+  function esc(value) {
+
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
+
+  function statusBadge(status) {
+
+    const normalized =
+      String(status || '')
+        .toUpperCase();
+
+
+    if (normalized === 'PENDING') {
+
+      return `
+        <span class="badge-soft badge-pending">
+          <i class="bi bi-hourglass"></i>
+          Pending
+        </span>`;
+    }
+
+
+    if (normalized === 'APPROVED') {
+
+      return `
+        <span class="badge-soft badge-approved">
+          <i class="bi bi-check-circle"></i>
+          Approved
+        </span>`;
+    }
+
+
+    if (
+      normalized === 'REJECTED' ||
+      normalized === 'CANCELLED'
+    ) {
+
+      return `
+        <span class="badge-soft badge-rejected">
+          <i class="bi bi-x-circle"></i>
+          ${esc(normalized)}
+        </span>`;
+    }
+
+
+    return `
+      <span class="badge-soft">
+        ${esc(normalized || '-')}
+      </span>`;
+  }
+
+
+  function showMessage(
+    message,
+    loading = false
+  ) {
+
+    document
+      .getElementById('bookingTableBody')
+      .innerHTML = `
+        <tr>
+          <td colspan="9">
+
+            <div class="${loading ? 'loading-state' : 'empty-state'}">
+
+              ${
+                loading
+                  ? '<span class="spinner-border spinner-border-sm me-2"></span>'
+                  : '<i class="bi bi-inbox"></i>'
+              }
+
+              ${esc(message)}
+
+            </div>
+
+          </td>
+        </tr>`;
+  }
+
+
+  async function loadBookings() {
+
+    if (activeRequest) {
+      activeRequest.abort();
+    }
+
+
+    activeRequest =
+      new AbortController();
+
+
+    showMessage(
+      'Loading booking history...',
+      true
+    );
+
+
+    const size =
+      Number(
+        document
+          .getElementById('pageSize')
+          .value
+      ) || 20;
+
+
+    const status =
+      document
+        .getElementById('statusFilter')
+        .value;
+
+
+    const params =
+      new URLSearchParams({
+        page:
+          currentPage,
+
+        size:
+          size
+      });
+
+
+    if (status) {
+      params.set('status', status);
+    }
+
+
+    try {
+
+      const response =
+        await fetch(
+          `/my-booking/page?${params.toString()}`,
+          {
+            headers: {
+              'Accept': 'application/json'
+            },
+
+            cache: 'no-store',
+
+            signal:
+              activeRequest.signal
+          }
+        );
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          `Unable to load bookings (${response.status})`
+        );
+      }
+
+
+      const data =
+        await response.json();
+
+
+      const rows =
+        data.content || [];
+
+
+      currentPage =
+        Number(
+          data.page || 0
+        );
+
+
+      totalPages =
+        Number(
+          data.totalPages || 0
+        );
+
+
+      const totalElements =
+        Number(
+          data.totalElements || 0
+        );
+
+
+      if (!rows.length) {
+
+        showMessage(
+          'No booking history found.'
+        );
+
+
+        document
+          .getElementById('pageInfo')
+          .textContent =
+            'No records.';
+
+
+        document
+          .getElementById('pageNumber')
+          .textContent =
+            '—';
+
+
+        document
+          .getElementById('previousBtn')
+          .disabled =
+            true;
+
+
+        document
+          .getElementById('nextBtn')
+          .disabled =
+            true;
+
+
+        return;
+      }
+
+
+      document
+        .getElementById('bookingTableBody')
+        .innerHTML =
+          rows
+            .map(b => `
+              <tr>
+
+                <td class="fw-bold">
+                  ${esc(b.bookingNo || '-')}
+                </td>
+
+                <td>
+                  ${esc(b.requestedBy || '-')}
+                </td>
+
+                <td>
+                  ${esc(b.bookingDate || '-')}
+                </td>
+
+                <td>
+                  ${
+                    b.startTime && b.endTime
+                      ? `${esc(b.startTime)} - ${esc(b.endTime)}`
+                      : '-'
+                  }
+                </td>
+
+                <td>
+                  ${esc(b.computersNeeded ?? '-')}
+                </td>
+
+                <td>
+                  ${esc(b.roomName || '-')}
+                </td>
+
+                <td>
+                  ${esc(b.purpose || '-')}
+                </td>
+
+                <td>
+                  ${statusBadge(b.status)}
+                </td>
+
+                <td>
+                  ${esc(b.statusRemarks || '-')}
+                </td>
+
+              </tr>
+            `)
+            .join('');
+
+
+      const start =
+        currentPage * size + 1;
+
+
+      const end =
+        Math.min(
+          (currentPage + 1) * size,
+          totalElements
+        );
+
+
+      document
+        .getElementById('pageInfo')
+        .textContent =
+          `Showing ${start} to ${end} of ${totalElements} bookings`;
+
+
+      document
+        .getElementById('pageNumber')
+        .textContent =
+          totalPages > 0
+            ? `Page ${currentPage + 1} of ${totalPages}`
+            : '—';
+
+
+      document
+        .getElementById('previousBtn')
+        .disabled =
+          currentPage <= 0;
+
+
+      document
+        .getElementById('nextBtn')
+        .disabled =
+          totalPages === 0 ||
+          currentPage >= totalPages - 1;
+
+
+    } catch (error) {
+
+      if (
+        error.name ===
+        'AbortError'
+      ) {
+        return;
+      }
+
+
+      console.error(error);
+
+
+      showMessage(
+        'Unable to load booking history.'
+      );
+
+
+      document
+        .getElementById('pageInfo')
+        .textContent =
+          'Load failed.';
+
+
+      document
+        .getElementById('pageNumber')
+        .textContent =
+          '—';
+    }
+  }
+
+
+  document
+    .getElementById('statusFilter')
+    .addEventListener(
+      'change',
+      () => {
+
+        currentPage = 0;
+
+        loadBookings();
+      }
+    );
+
+
+  document
+    .getElementById('pageSize')
+    .addEventListener(
+      'change',
+      () => {
+
+        currentPage = 0;
+
+        loadBookings();
+      }
+    );
+
+
+  document
+    .getElementById('previousBtn')
+    .addEventListener(
+      'click',
+      () => {
+
+        if (currentPage > 0) {
+
+          currentPage--;
+
+          loadBookings();
+        }
+      }
+    );
+
+
+  document
+    .getElementById('nextBtn')
+    .addEventListener(
+      'click',
+      () => {
+
+        if (
+          currentPage <
+          totalPages - 1
+        ) {
+
+          currentPage++;
+
+          loadBookings();
+        }
+      }
+    );
+
+
+  // Initial page load:
+  // only first 20 bookings are requested.
+  loadBookings();
+</script>
+
 </body>
 </html>

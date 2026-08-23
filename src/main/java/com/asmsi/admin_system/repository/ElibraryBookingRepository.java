@@ -4,6 +4,8 @@ import com.asmsi.admin_system.entity.BookingStatus;
 import com.asmsi.admin_system.entity.ElibraryBooking;
 import com.asmsi.admin_system.entity.ElibraryRoom;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -67,4 +69,42 @@ public interface ElibraryBookingRepository extends JpaRepository<ElibraryBooking
             @Param("room") ElibraryRoom room,
             @Param("requestedByUsername") String requestedByUsername
     );
+
+    // ============================================================
+    // OPTIMIZED MY BOOKING - PAGINATED
+    // ============================================================
+
+    @EntityGraph(attributePaths = {"room"})
+    Page<ElibraryBooking> findAllByOrderByCreatedAtDesc(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"room"})
+    Page<ElibraryBooking> findByRequestedByUsernameOrderByCreatedAtDesc(
+            String requestedByUsername,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"room"})
+    Page<ElibraryBooking> findByStatusOrderByCreatedAtDesc(
+            BookingStatus status,
+            Pageable pageable
+    );
+
+    @EntityGraph(attributePaths = {"room"})
+    Page<ElibraryBooking> findByRequestedByUsernameAndStatusOrderByCreatedAtDesc(
+            String requestedByUsername,
+            BookingStatus status,
+            Pageable pageable
+    );
+
+
+    // ============================================================
+    // OPTIMIZED APPROVED BOOKING PAGE
+    // ============================================================
+
+    @EntityGraph(attributePaths = {"room"})
+    Page<ElibraryBooking> findByStatusOrderByBookingDateDescStartTimeDescCreatedAtDesc(
+            BookingStatus status,
+            Pageable pageable
+    );
+
 }
