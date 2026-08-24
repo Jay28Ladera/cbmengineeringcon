@@ -3,10 +3,12 @@ package com.asmsi.admin_system.controller;
 import com.asmsi.admin_system.dto.FamilySaintDTO;
 import com.asmsi.admin_system.entity.AdmissionData;
 import com.asmsi.admin_system.entity.FinalStudent;
+import com.asmsi.admin_system.entity.SentHomeStudent;
 import com.asmsi.admin_system.repository.AdmissionDataRepository;
 import com.asmsi.admin_system.repository.AdmissionSettingRepository;
 import com.asmsi.admin_system.repository.FamilySaintRepository;
 import com.asmsi.admin_system.repository.FinalStudentRepository;
+import com.asmsi.admin_system.repository.SentHomeStudentRepository;
 import com.asmsi.admin_system.service.AdmissionService;
 import com.asmsi.admin_system.service.UploadService;
 import com.asmsi.admin_system.service.XmlParserHelper;
@@ -47,6 +49,9 @@ public class AdmissionController {
 
     @Autowired
     private AdmissionDataRepository admissionDataRepository;
+
+    @Autowired
+    private SentHomeStudentRepository sentHomeStudentRepository;
 
     @GetMapping("/admission")
     public String admissionPage(Model model,
@@ -318,7 +323,14 @@ public class AdmissionController {
 
     @GetMapping("/studentpasser")
     public String viewPasserAdmission(Model model) {
-        List<AdmissionData> passerList = admissionDataRepository.findAll();
+
+        List<AdmissionData> passerList = admissionDataRepository.findAll()
+                .stream()
+                .filter(student ->
+                        student.getStatus() == null
+                        || !student.getStatus().equalsIgnoreCase("Enrolled")
+                )
+                .toList();
 
         model.addAttribute("passerList", passerList);
         model.addAttribute("activePage", "studentpasser");
@@ -326,12 +338,169 @@ public class AdmissionController {
         return "passeradmission";
     }
 
+    @PostMapping("/api/admission/delete-passer")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deletePasser(
+            @RequestParam Long id
+    ) {
+
+        Map<String, Object> response = new java.util.HashMap<>();
+
+        try {
+
+            if (!admissionDataRepository.existsById(id)) {
+                response.put("success", false);
+                response.put("message", "Passer record not found.");
+
+                return ResponseEntity
+                        .status(404)
+                        .body(response);
+            }
+
+            admissionDataRepository.deleteById(id);
+
+            response.put("success", true);
+            response.put(
+                    "message",
+                    "Passer deleted successfully."
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            response.put("success", false);
+            response.put(
+                    "message",
+                    "Unable to delete passer: " + e.getMessage()
+            );
+
+            return ResponseEntity
+                    .status(500)
+                    .body(response);
+        }
+    }
+
+
+    @PostMapping("/api/admission/delete-passers-bulk")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deletePassersBulk(
+            @RequestBody Map<String, List<Long>> request
+    ) {
+
+        Map<String, Object> response =
+                new java.util.HashMap<>();
+
+        try {
+
+            List<Long> ids =
+                    request.get("ids");
+
+            if (ids == null || ids.isEmpty()) {
+
+                response.put(
+                        "success",
+                        false
+                );
+
+                response.put(
+                        "message",
+                        "No passers were selected."
+                );
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(response);
+            }
+
+
+            List<Long> deletedIds =
+                    new java.util.ArrayList<>();
+
+
+            for (Long id : ids) {
+
+                if (
+                        id != null
+                        && admissionDataRepository
+                                .existsById(id)
+                ) {
+
+                    admissionDataRepository
+                            .deleteById(id);
+
+                    deletedIds.add(id);
+                }
+            }
+
+
+            response.put(
+                    "success",
+                    true
+            );
+
+            response.put(
+                    "deletedCount",
+                    deletedIds.size()
+            );
+
+            response.put(
+                    "deletedIds",
+                    deletedIds
+            );
+
+            response.put(
+                    "message",
+                    deletedIds.size()
+                            + " passer(s) deleted successfully."
+            );
+
+
+            return ResponseEntity.ok(
+                    response
+            );
+
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            response.put(
+                    "success",
+                    false
+            );
+
+            response.put(
+                    "message",
+                    "Unable to bulk delete passers: "
+                            + e.getMessage()
+            );
+
+            return ResponseEntity
+                    .status(500)
+                    .body(response);
+        }
+    }
+
+
     @GetMapping("/senthome")
     public String viewSentHomePage(Model model) {
-        List<AdmissionData> passerList = admissionDataRepository.findAll();
 
-        model.addAttribute("passerList", passerList);
-        model.addAttribute("activePage", "senthome");
+        List<SentHomeStudent> sentHomeList =
+                sentHomeStudentRepository
+                        .findAllByOrderBySentHomeAtDesc();
+
+        model.addAttribute(
+                "sentHomeList",
+                sentHomeList
+        );
+
+        model.addAttribute(
+                "activePage",
+                "senthome"
+        );
 
         return "senthome";
     }

@@ -2,12 +2,17 @@ package com.asmsi.admin_system.controller;
 
 import com.asmsi.admin_system.dto.ElibraryBookingForm;
 import com.asmsi.admin_system.dto.RoomLiveAvailabilityDto;
+import com.asmsi.admin_system.entity.BookingStatus;
 import com.asmsi.admin_system.entity.DayCode;
 import com.asmsi.admin_system.entity.ElibraryBooking;
 import com.asmsi.admin_system.entity.ElibraryOpenDaySetting;
 import com.asmsi.admin_system.entity.User;
 import com.asmsi.admin_system.repository.UserRepository;
+import com.asmsi.admin_system.repository.ElibraryBookingRepository;
 import com.asmsi.admin_system.service.ElibraryBookingService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -32,11 +37,16 @@ public class ElibraryBookingController {
 
     private final ElibraryBookingService bookingService;
     private final UserRepository userRepository;
+    private final ElibraryBookingRepository bookingRepository;
 
-    public ElibraryBookingController(ElibraryBookingService bookingService,
-                                     UserRepository userRepository) {
+    public ElibraryBookingController(
+            ElibraryBookingService bookingService,
+            UserRepository userRepository,
+            ElibraryBookingRepository bookingRepository
+    ) {
         this.bookingService = bookingService;
         this.userRepository = userRepository;
+        this.bookingRepository = bookingRepository;
     }
 
     private void loadBase(Model model, Authentication authentication, String activePage) {
@@ -117,21 +127,440 @@ public class ElibraryBookingController {
     }
 
     @GetMapping("/approved")
-    public String approved(Model model, Authentication authentication) {
-        loadBase(model, authentication, "elibrary-approved");
-        model.addAttribute("approvedBookings", bookingService.getApprovedBookings());
+    public String approved(
+            Model model,
+            Authentication authentication
+    ) {
+
+        loadBase(
+                model,
+                authentication,
+                "elibrary-approved"
+        );
+
+        // Do NOT load all approved bookings here.
+        // The page will fetch only one page of records through AJAX.
         return "elibapproved";
     }
 
+
+    @GetMapping("/approved/page")
+    @ResponseBody
+    public Map<String, Object> approvedPage(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size
+
+    ) {
+
+        int safePage =
+                Math.max(
+                        page,
+                        0
+                );
+
+        int safeSize =
+                Math.min(
+                        Math.max(
+                                size,
+                                10
+                        ),
+                        100
+                );
+
+
+        Pageable pageable =
+                PageRequest.of(
+                        safePage,
+                        safeSize
+                );
+
+
+        Page<ElibraryBooking> result =
+                bookingRepository
+                        .findByStatusOrderByBookingDateDescStartTimeDescCreatedAtDesc(
+                                BookingStatus.APPROVED,
+                                pageable
+                        );
+
+
+        List<Map<String, Object>> rows =
+                result
+                        .getContent()
+                        .stream()
+                        .map(booking -> {
+
+                            Map<String, Object> row =
+                                    new LinkedHashMap<>();
+
+                            row.put(
+                                    "id",
+                                    booking.getId()
+                            );
+
+                            row.put(
+                                    "bookingNo",
+                                    booking.getBookingNo()
+                            );
+
+                            row.put(
+                                    "requestedBy",
+                                    booking.getRequestedBy()
+                            );
+
+                            row.put(
+                                    "sectionName",
+                                    booking.getSectionName()
+                            );
+
+                            row.put(
+                                    "bookingDate",
+                                    booking.getBookingDate()
+                            );
+
+                            row.put(
+                                    "startTime",
+                                    booking.getStartTime()
+                            );
+
+                            row.put(
+                                    "endTime",
+                                    booking.getEndTime()
+                            );
+
+                            row.put(
+                                    "computersNeeded",
+                                    booking.getComputersNeeded()
+                            );
+
+                            row.put(
+                                    "roomName",
+                                    booking.getRoom() != null
+                                            ? booking.getRoom().getRoomName()
+                                            : ""
+                            );
+
+                            row.put(
+                                    "approvedByUsername",
+                                    booking.getApprovedByUsername()
+                            );
+
+                            row.put(
+                                    "status",
+                                    booking.getStatus() != null
+                                            ? booking.getStatus().name()
+                                            : ""
+                            );
+
+                            return row;
+                        })
+                        .toList();
+
+
+        Map<String, Object> response =
+                new LinkedHashMap<>();
+
+        response.put(
+                "content",
+                rows
+        );
+
+        response.put(
+                "page",
+                result.getNumber()
+        );
+
+        response.put(
+                "size",
+                result.getSize()
+        );
+
+        response.put(
+                "totalElements",
+                result.getTotalElements()
+        );
+
+        response.put(
+                "totalPages",
+                result.getTotalPages()
+        );
+
+        response.put(
+                "first",
+                result.isFirst()
+        );
+
+        response.put(
+                "last",
+                result.isLast()
+        );
+
+        return response;
+    }
+
     @GetMapping("/my-booking")
-    public String myBooking(Model model, Authentication authentication) {
-        loadBase(model, authentication, "elibrary-mybooking");
+    public String myBooking(
+            Model model,
+            Authentication authentication
+    ) {
+        loadBase(
+                model,
+                authentication,
+                "elibrary-mybooking"
+        );
 
-        String username = authentication != null ? authentication.getName() : "anonymous";
-        String role = resolveRole(authentication);
-
-        model.addAttribute("myBookings", bookingService.getBookingsForRole(username, role));
+        // Do not load all bookings here anymore.
+        // The page will request only one page of records via AJAX.
         return "elibmybooking";
+    }
+
+
+    @GetMapping("/my-booking/page")
+    @ResponseBody
+    public Map<String, Object> myBookingPage(
+
+            @RequestParam(defaultValue = "0")
+            int page,
+
+            @RequestParam(defaultValue = "10")
+            int size,
+
+            @RequestParam(defaultValue = "")
+            String status,
+
+            Authentication authentication
+
+    ) {
+
+        int safePage =
+                Math.max(
+                        page,
+                        0
+                );
+
+        int safeSize =
+                Math.min(
+                        Math.max(
+                                size,
+                                10
+                        ),
+                        100
+                );
+
+
+        String username =
+                authentication != null
+                        ? authentication.getName()
+                        : "anonymous";
+
+        String role =
+                resolveRole(
+                        authentication
+                );
+
+
+        BookingStatus statusFilter =
+                null;
+
+
+        if (
+                status != null
+                && !status.isBlank()
+                && !"ALL".equalsIgnoreCase(
+                        status.trim()
+                )
+        ) {
+
+            try {
+
+                statusFilter =
+                        BookingStatus.valueOf(
+                                status
+                                        .trim()
+                                        .toUpperCase()
+                        );
+
+            } catch (Exception ignored) {
+
+                statusFilter =
+                        null;
+            }
+        }
+
+
+        Pageable pageable =
+                PageRequest.of(
+                        safePage,
+                        safeSize
+                );
+
+
+        Page<ElibraryBooking> result;
+
+
+        if (
+                "admin".equalsIgnoreCase(
+                        role
+                )
+        ) {
+
+            if (statusFilter == null) {
+
+                result =
+                        bookingRepository
+                                .findAllByOrderByCreatedAtDesc(
+                                        pageable
+                                );
+
+            } else {
+
+                result =
+                        bookingRepository
+                                .findByStatusOrderByCreatedAtDesc(
+                                        statusFilter,
+                                        pageable
+                                );
+            }
+
+        } else {
+
+            if (statusFilter == null) {
+
+                result =
+                        bookingRepository
+                                .findByRequestedByUsernameOrderByCreatedAtDesc(
+                                        username,
+                                        pageable
+                                );
+
+            } else {
+
+                result =
+                        bookingRepository
+                                .findByRequestedByUsernameAndStatusOrderByCreatedAtDesc(
+                                        username,
+                                        statusFilter,
+                                        pageable
+                                );
+            }
+        }
+
+
+        List<Map<String, Object>> rows =
+                result
+                        .getContent()
+                        .stream()
+                        .map(booking -> {
+
+                            Map<String, Object> row =
+                                    new LinkedHashMap<>();
+
+                            row.put(
+                                    "id",
+                                    booking.getId()
+                            );
+
+                            row.put(
+                                    "bookingNo",
+                                    booking.getBookingNo()
+                            );
+
+                            row.put(
+                                    "requestedBy",
+                                    booking.getRequestedBy()
+                            );
+
+                            row.put(
+                                    "bookingDate",
+                                    booking.getBookingDate()
+                            );
+
+                            row.put(
+                                    "startTime",
+                                    booking.getStartTime()
+                            );
+
+                            row.put(
+                                    "endTime",
+                                    booking.getEndTime()
+                            );
+
+                            row.put(
+                                    "computersNeeded",
+                                    booking.getComputersNeeded()
+                            );
+
+                            row.put(
+                                    "roomName",
+                                    booking.getRoom() != null
+                                            ? booking.getRoom().getRoomName()
+                                            : ""
+                            );
+
+                            row.put(
+                                    "purpose",
+                                    booking.getPurpose()
+                            );
+
+                            row.put(
+                                    "status",
+                                    booking.getStatus() != null
+                                            ? booking.getStatus().name()
+                                            : ""
+                            );
+
+                            row.put(
+                                    "statusRemarks",
+                                    booking.getStatusRemarks()
+                            );
+
+                            return row;
+                        })
+                        .toList();
+
+
+        Map<String, Object> response =
+                new LinkedHashMap<>();
+
+        response.put(
+                "content",
+                rows
+        );
+
+        response.put(
+                "page",
+                result.getNumber()
+        );
+
+        response.put(
+                "size",
+                result.getSize()
+        );
+
+        response.put(
+                "totalElements",
+                result.getTotalElements()
+        );
+
+        response.put(
+                "totalPages",
+                result.getTotalPages()
+        );
+
+        response.put(
+                "first",
+                result.isFirst()
+        );
+
+        response.put(
+                "last",
+                result.isLast()
+        );
+
+        return response;
     }
 
     @GetMapping("/book-now")
