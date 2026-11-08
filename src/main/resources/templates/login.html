@@ -3,147 +3,596 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Aloysians Portal</title>
+    <title>Login | CBM Engineering & Construction</title>
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
     />
-    <link rel="stylesheet" th:href="@{/css/login.css}" />
+
+    <style>
+      :root {
+        --red: #c9141e;
+        --red-dark: #a80e17;
+        --ink: #171717;
+        --muted: #707070;
+        --paper: #f5f5f3;
+        --white: #fff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        background:
+          linear-gradient(135deg, rgba(24, 24, 24, 0.96), rgba(24, 24, 24, 0.82)),
+          repeating-linear-gradient(
+            135deg,
+            #222 0,
+            #222 2px,
+            #292929 2px,
+            #292929 8px
+          );
+        color: var(--ink);
+        font-family: "DM Sans", sans-serif;
+      }
+
+      .login-card {
+        width: min(100%, 1060px);
+        min-height: 650px;
+        display: grid;
+        grid-template-columns: 1fr 0.9fr;
+        overflow: hidden;
+        background: var(--white);
+        border-radius: 18px;
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+      }
+
+      .brand-panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        overflow: hidden;
+        padding: 42px;
+        color: white;
+        background:
+          linear-gradient(145deg, rgba(20, 20, 20, 0.88), rgba(20, 20, 20, 0.48)),
+          linear-gradient(135deg, #444, #171717);
+      }
+
+      .brand-panel::before,
+      .brand-panel::after {
+        position: absolute;
+        content: "";
+        pointer-events: none;
+      }
+
+      .brand-panel::before {
+        width: 440px;
+        height: 440px;
+        right: -190px;
+        top: 120px;
+        border: 28px solid rgba(255, 255, 255, 0.08);
+        border-radius: 50%;
+      }
+
+      .brand-panel::after {
+        width: 300px;
+        height: 300px;
+        right: -95px;
+        top: 190px;
+        border: 18px solid rgba(201, 20, 30, 0.75);
+        border-radius: 50%;
+      }
+
+      .brand-content,
+      .brand-footer {
+        position: relative;
+        z-index: 1;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+      }
+
+      .brand img {
+        width: 54px;
+        height: 54px;
+        object-fit: contain;
+        padding: 5px;
+        border-radius: 12px;
+        background: white;
+      }
+
+      .brand-name {
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-name span {
+        display: block;
+        margin-top: 4px;
+        color: rgba(255, 255, 255, 0.62);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+      }
+
+      .panel-copy {
+        max-width: 420px;
+        margin-top: 90px;
+      }
+
+      .panel-kicker {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 8px 12px;
+        border-left: 3px solid var(--red);
+        background: rgba(255, 255, 255, 0.1);
+        color: #f3f3f3;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .panel-copy h1 {
+        margin: 0 0 18px;
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: clamp(48px, 6vw, 76px);
+        font-weight: 900;
+        line-height: 0.94;
+        text-transform: uppercase;
+      }
+
+      .panel-copy h1 span {
+        color: #ed2933;
+      }
+
+      .panel-copy p {
+        max-width: 370px;
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .panel-line {
+        width: 72px;
+        height: 5px;
+        margin-top: 28px;
+        background: var(--red);
+      }
+
+      .brand-footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        color: rgba(255, 255, 255, 0.58);
+        font-size: 11px;
+        letter-spacing: 0.05em;
+      }
+
+      .form-panel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 58px 54px;
+        background:
+          radial-gradient(circle at top right, rgba(201, 20, 30, 0.06), transparent 34%),
+          #fff;
+      }
+
+      .form-inner {
+        width: 100%;
+        max-width: 370px;
+      }
+
+      .mobile-brand {
+        display: none;
+      }
+
+      .form-heading .eyebrow {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--red);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .form-heading h2 {
+        margin: 0 0 10px;
+        color: var(--ink);
+        font-family: "Barlow Condensed", sans-serif;
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .form-heading p {
+        margin: 0 0 30px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .message-container {
+        margin-bottom: 18px;
+      }
+
+      .message-container .alert {
+        border: 0;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .message-container .alert-success {
+        color: #17633d;
+        background: #e8f6ee;
+      }
+
+      .message-container .alert-danger {
+        color: #8d141b;
+        background: #fff0f0;
+      }
+
+      .message-container p {
+        margin: 6px 0 0;
+      }
+
+      .form-group {
+        margin-bottom: 19px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .form-control {
+        height: 48px;
+        padding: 12px 14px;
+        border: 1px solid #dedede;
+        border-radius: 9px;
+        box-shadow: none;
+        color: var(--ink);
+        font-size: 14px;
+      }
+
+      .form-control:focus {
+        border-color: var(--red);
+        box-shadow: 0 0 0 3px rgba(201, 20, 30, 0.1);
+      }
+
+      .password-container {
+        position: relative;
+      }
+
+      .password-container .form-control {
+        padding-right: 46px;
+      }
+
+      .toggle-password {
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        transform: translateY(-50%);
+        color: #777;
+        cursor: pointer;
+      }
+
+      .forgot-row {
+        margin: -2px 0 22px;
+        text-align: right;
+      }
+
+      .forgot-password-link {
+        color: var(--red);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .forgot-password-link:hover {
+        color: var(--red-dark);
+        text-decoration: underline;
+      }
+
+      .btn-login,
+      .btn-account {
+        width: 100%;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        transition: 0.2s ease;
+      }
+
+      .btn-login {
+        border: 0;
+        color: white;
+        background: var(--red);
+        box-shadow: 0 9px 20px rgba(201, 20, 30, 0.2);
+      }
+
+      .btn-login:hover,
+      .btn-login:focus {
+        color: white;
+        background: var(--red-dark);
+        transform: translateY(-1px);
+      }
+
+      .btn-account {
+        margin-top: 12px;
+        border: 1px solid #dedede;
+        color: #333;
+        background: white;
+      }
+
+      .btn-account:hover,
+      .btn-account:focus {
+        border-color: #b7b7b7;
+        color: var(--ink);
+        background: #f8f8f8;
+      }
+
+      .form-note {
+        margin-top: 25px;
+        padding-top: 17px;
+        border-top: 1px solid #ededed;
+        color: #929292;
+        font-size: 11px;
+        line-height: 1.6;
+        text-align: center;
+      }
+
+      @media (max-width: 760px) {
+        body {
+          display: block;
+          padding: 16px;
+        }
+
+        .login-card {
+          min-height: calc(100vh - 32px);
+          grid-template-columns: 1fr;
+          border-radius: 14px;
+        }
+
+        .brand-panel {
+          min-height: 220px;
+          padding: 24px;
+        }
+
+        .brand-panel::before {
+          width: 230px;
+          height: 230px;
+          top: 70px;
+          right: -90px;
+          border-width: 16px;
+        }
+
+        .brand-panel::after {
+          width: 160px;
+          height: 160px;
+          top: 105px;
+          right: -55px;
+          border-width: 11px;
+        }
+
+        .panel-copy {
+          margin-top: 28px;
+        }
+
+        .panel-copy h1 {
+          max-width: 270px;
+          font-size: 48px;
+        }
+
+        .panel-copy p,
+        .panel-line,
+        .brand-footer {
+          display: none;
+        }
+
+        .form-panel {
+          padding: 36px 26px;
+        }
+
+        .form-heading h2 {
+          font-size: 36px;
+        }
+      }
+    </style>
   </head>
+
   <body>
-    <div class="container">
-      <div class="login-wrapper">
-        <!-- Logo Section -->
-        <div class="logo-container">
-          <img
-            th:src="@{/images/logo.png}"
-            alt="Aloysians Portal Logo"
-            class="login-logo"
-          />
+    <main class="login-card">
+      <section class="brand-panel" aria-label="CBM company introduction">
+        <div class="brand-content">
+          <div class="brand">
+            <img
+              th:src="@{/images/logo.png}"
+              alt="CBM Engineering and Construction logo"
+              onerror="this.style.display='none'"
+            />
+            <div class="brand-name">
+              CBM Engineering
+              <span>Construction Services</span>
+            </div>
+          </div>
+
+          <div class="panel-copy">
+            <span class="panel-kicker">Built on trust. Driven by quality.</span>
+            <h1>Engineering<br /><span>with purpose.</span></h1>
+            <p>
+              Welcome to the CBM management portal. Sign in to manage projects,
+              services, inquiries, and company operations.
+            </p>
+            <div class="panel-line"></div>
+          </div>
         </div>
 
-        <!-- Form Section -->
-        <div class="form-container">
-          <div id="login-form">
-            <h3>Welcome Back, Aloysians!</h3>
-            <p>Please log in to continue.</p>
+        <div class="brand-footer">
+          <span>CBM ENGINEERING &amp; CONSTRUCTION</span>
+          <span>EST. QUALITY · BUILT TO LAST</span>
+        </div>
+      </section>
 
-            <!-- Message Container -->
-            <div class="message-container">
-              <!-- Error Message -->
-              <div th:if="${param.error}" class="alert alert-danger">
-                <strong>Login Failed!</strong>
-                <p
-                  th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('disabled')}"
-                >
-                  Your account is still pending approval. Please wait for admin
-                  verification.
-                </p>
-                <p
-                  th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('not found')}"
-                >
-                  No account found with that username.
-                </p>
-                <p
-                  th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('Bad credentials')}"
-                >
-                  Incorrect password. Please try again.
-                </p>
-                <p
-                  th:unless="
-                      ${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('disabled')} or
-                      ${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('not found')} or
-                      ${session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('Bad credentials')}"
-                >
-                  <span
-                    th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}"
-                  ></span>
-                </p>
-              </div>
+      <section class="form-panel" aria-label="Login">
+        <div class="form-inner">
+          <div class="mobile-brand">
+            <div class="brand-name">CBM Engineering</div>
+          </div>
 
-              <!-- Logout Message -->
-              <div th:if="${param.logout}" class="alert alert-success">
-                You have been logged out successfully.
+          <div class="form-heading">
+            <span class="eyebrow">Secure access</span>
+            <h2>Welcome back</h2>
+            <p>Enter your account details to continue to the dashboard.</p>
+          </div>
+
+          <div class="message-container">
+            <div th:if="${param.error}" class="alert alert-danger">
+              <strong>Login failed.</strong>
+              <p
+                th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null and session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('disabled')}"
+              >
+                Your account is awaiting admin approval.
+              </p>
+              <p
+                th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null and session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('not found')}"
+              >
+                No account was found with that username.
+              </p>
+              <p
+                th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] != null and session['SPRING_SECURITY_LAST_EXCEPTION'].message.contains('Bad credentials')}"
+              >
+                The username or password is incorrect.
+              </p>
+              <p
+                th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] == null}"
+              >
+                Check your username and password, then try again.
+              </p>
+            </div>
+
+            <div th:if="${param.reset}" class="alert alert-success">
+              Your password has been reset. You can now log in.
+            </div>
+
+            <div th:if="${param.logout}" class="alert alert-success">
+              You have been logged out successfully.
+            </div>
+          </div>
+
+          <form th:action="@{/login}" method="post">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                class="form-control"
+                placeholder="Enter your username"
+                autocomplete="username"
+                required
+                autofocus
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="password-container">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form-control"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                  required
+                />
+                <span
+                  class="toggle-password"
+                  role="button"
+                  tabindex="0"
+                  aria-label="Show or hide password"
+                  onclick="togglePassword()"
+                  onkeydown="if(event.key === 'Enter' || event.key === ' ') togglePassword()"
+                >
+                  <i class="glyphicon glyphicon-eye-open"></i>
+                </span>
               </div>
             </div>
 
-            <!-- Login Form -->
-            <form th:action="@{/login}" method="post">
-              <div class="form-group">
-                <label for="username">Username</label>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  class="form-control"
-                  placeholder="Enter your username"
-                  required
-                  autofocus
-                />
-              </div>
+            <div class="forgot-row">
+              <a th:href="@{/forget-password}" class="forgot-password-link">
+                Forgot password?
+              </a>
+            </div>
 
-              <div class="form-group">
-                <label for="password">Password</label>
-                <div class="password-container">
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="Enter your password"
-                    required
-                  />
-                  <span class="toggle-password" onclick="togglePassword()">
-                    <i class="glyphicon glyphicon-eye-open"></i>
-                  </span>
-                </div>
-              </div>
+            <button type="submit" class="btn btn-login">Sign In</button>
 
-              <div class="form-group text-right">
-                <a href="/forget-password" class="forgot-password-link"
-                  >Forgot Password?</a
-                >
-              </div>
+            <a
+              th:href="@{/signup}"
+              class="btn btn-account"
+              id="request-account-btn"
+            >
+              Request an Account
+            </a>
+          </form>
 
-              <button type="submit" class="btn btn-login">Login</button>
-              <a
-                href="/signup"
-                class="btn btn-secondary"
-                id="request-account-btn"
-                >Request an Account</a
-              >
-            </form>
+          <div class="form-note">
+            Authorized CBM personnel only. Your activity may be monitored.
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
-    <!-- Bootstrap & jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  </body>
+    <script>
+      function togglePassword() {
+        const field = document.getElementById("password");
+        const icon = document.querySelector(".toggle-password i");
 
-  <script>
-    function togglePassword() {
-      var passwordField = document.getElementById("password");
-      var icon = document.querySelector(".toggle-password i");
-
-      if (passwordField.type === "password") {
-        passwordField.type = "text";
-        icon.classList.remove("glyphicon-eye-open");
-        icon.classList.add("glyphicon-eye-close");
-      } else {
-        passwordField.type = "password";
-        icon.classList.remove("glyphicon-eye-close");
-        icon.classList.add("glyphicon-eye-open");
+        if (field.type === "password") {
+          field.type = "text";
+          icon.classList.replace("glyphicon-eye-open", "glyphicon-eye-close");
+        } else {
+          field.type = "password";
+          icon.classList.replace("glyphicon-eye-close", "glyphicon-eye-open");
+        }
       }
-    }
 
-    setTimeout(function () {
-      const alert = document.querySelector(".alert");
-      if (alert) alert.style.display = "none";
-    }, 5000);
-  </script>
+      setTimeout(() => {
+        document.querySelectorAll(".message-container .alert").forEach((alert) => {
+          alert.style.display = "none";
+        });
+      }, 7000);
+    </script>
+  </body>
 </html>
