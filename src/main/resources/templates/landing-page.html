@@ -1,1223 +1,523 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sisters of Mary School | Home</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --blue-dark: #153a7a;
-        --blue: #2456a6;
-        --blue-soft: #67b8ff;
-        --sky: #dff2ff;
-        --sky-2: #cfe7f7;
-        --white: #ffffff;
-        --text: #183153;
-        --muted: #5c6f86;
-        --border: #d8e5f0;
-        --card-shadow: 0 18px 40px rgba(25, 61, 116, 0.12);
-        --radius-lg: 24px;
-        --radius-md: 18px;
-        --radius-sm: 12px;
-        --container: 1180px;
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
-      body {
-        font-family: "Inter", sans-serif;
-        background: #edf7fb;
-        color: var(--text);
-        overflow-x: hidden;
-      }
-
-      img {
-        display: block;
-        max-width: 100%;
-      }
-
-      a {
-        text-decoration: none;
-        color: inherit;
-      }
-
-      .container {
-        width: min(var(--container), calc(100% - 32px));
-        margin: 0 auto;
-      }
-
-      .topbar {
-        background: #ffffff;
-        border-bottom: 1px solid #e6eef5;
-        font-size: 12px;
-        color: #5d728a;
-      }
-
-      .topbar-inner {
-        min-height: 38px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 20px;
-        flex-wrap: wrap;
-      }
-
-      .topbar-left,
-      .topbar-right {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-      }
-
-      .topbar a:hover {
-        color: var(--blue);
-      }
-
-      .site-header {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        background: rgba(255, 255, 255, 0.96);
-        backdrop-filter: blur(14px);
-        box-shadow: 0 8px 24px rgba(17, 56, 113, 0.06);
-      }
-
-      .nav {
-        min-height: 82px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 20px;
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-
-      .brand img {
-        width: 56px;
-        height: 56px;
-        object-fit: contain;
-      }
-
-      .brand-text {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.1;
-      }
-
-      .brand-title {
-        font-size: 18px;
-        font-weight: 800;
-        color: var(--blue-dark);
-      }
-
-      .brand-subtitle {
-        font-size: 12px;
-        font-weight: 600;
-        color: #6a7d95;
-      }
-
-      .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 22px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #5d7088;
-      }
-
-      .nav-links a:hover {
-        color: var(--blue);
-      }
-
-      .nav-actions {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        padding: 12px 22px;
-        font-weight: 700;
-        font-size: 14px;
-        transition: 0.25s ease;
-        border: 1px solid transparent;
-        cursor: pointer;
-      }
-
-      .btn-primary {
-        background: linear-gradient(135deg, #1f4ea6, #2c7adf);
-        color: white;
-        box-shadow: 0 10px 24px rgba(36, 86, 166, 0.22);
-      }
-
-      .btn-primary:hover {
-        transform: translateY(-2px);
-      }
-
-      .btn-outline {
-        border-color: #b4cde8;
-        color: var(--blue);
-        background: #ffffff;
-      }
-
-      .btn-outline:hover {
-        background: #f3f9ff;
-      }
-
-      .mobile-toggle {
-        display: none;
-      }
-
-      .hero {
-        position: relative;
-        overflow: hidden;
-        background: linear-gradient(180deg, #d8eeff 0%, #c4e4fb 100%);
-      }
-
-      .hero-grid {
-        min-height: 720px;
-        display: grid;
-        grid-template-columns: 1.05fr 0.95fr;
-        align-items: center;
-        gap: 30px;
-        padding: 70px 0;
-      }
-
-      .hero-copy {
-        position: relative;
-        z-index: 2;
-      }
-
-      .eyebrow {
-        display: inline-block;
-        padding: 10px 16px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.85);
-        color: var(--blue);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        margin-bottom: 18px;
-      }
-
-      .hero h1 {
-        font-size: clamp(40px, 5vw, 68px);
-        line-height: 0.98;
-        font-weight: 900;
-        color: #10366d;
-        letter-spacing: -0.04em;
-        margin-bottom: 18px;
-      }
-
-      .hero h1 span {
-        color: #2a7be1;
-      }
-
-      .hero p {
-        max-width: 640px;
-        font-size: 17px;
-        line-height: 1.8;
-        color: #4f6782;
-        margin-bottom: 28px;
-      }
-
-      .hero-buttons {
-        display: flex;
-        gap: 14px;
-        flex-wrap: wrap;
-        margin-bottom: 34px;
-      }
-
-      .hero-stats {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 14px;
-      }
-
-      .hero-stat {
-        background: rgba(255, 255, 255, 0.78);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        border-radius: 22px;
-        padding: 18px;
-        box-shadow: var(--card-shadow);
-      }
-
-      .hero-stat strong {
-        display: block;
-        color: var(--blue-dark);
-        font-size: 24px;
-        margin-bottom: 4px;
-      }
-
-      .hero-stat span {
-        font-size: 13px;
-        color: #63758d;
-        line-height: 1.5;
-      }
-
-      .hero-visual {
-        position: relative;
-      }
-
-      .slider-shell {
-        position: relative;
-        background: rgba(255, 255, 255, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 24px 60px rgba(18, 57, 111, 0.16);
-        border-radius: 34px;
-        padding: 18px;
-      }
-
-      .slider-main {
-        position: relative;
-        height: 460px;
-        border-radius: 28px;
-        overflow: hidden;
-      }
-
-      .slide {
-        position: absolute;
-        inset: 0;
-        background-size: cover;
-        background-position: center;
-        opacity: 0;
-        transition: opacity 1s ease;
-      }
-
-      .slide.active {
-        opacity: 1;
-      }
-
-      .slide::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(10, 41, 87, 0.7), rgba(10, 41, 87, 0.15));
-      }
-
-      .slide-caption {
-        position: absolute;
-        left: 28px;
-        right: 28px;
-        bottom: 28px;
-        z-index: 2;
-        color: white;
-      }
-
-      .slide-caption h3 {
-        font-size: 28px;
-        margin-bottom: 10px;
-        line-height: 1.1;
-      }
-
-      .slide-caption p {
-        font-size: 14px;
-        line-height: 1.7;
-        color: rgba(255, 255, 255, 0.88);
-      }
-
-      .slider-dots {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        margin-top: 16px;
-      }
-
-      .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #a3c7ec;
-        transition: 0.25s ease;
-      }
-
-      .dot.active {
-        width: 28px;
-        border-radius: 999px;
-        background: var(--blue);
-      }
-
-      .section {
-        padding: 90px 0;
-      }
-
-      .section-header {
-        text-align: center;
-        max-width: 820px;
-        margin: 0 auto 42px;
-      }
-
-      .section-header .tag {
-        display: inline-block;
-        color: var(--blue);
-        background: #e4f2ff;
-        border-radius: 999px;
-        padding: 10px 15px;
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 14px;
-      }
-
-      .section-header h2 {
-        font-size: clamp(30px, 4vw, 48px);
-        line-height: 1.05;
-        color: #153a7a;
-        margin-bottom: 14px;
-      }
-
-      .section-header p {
-        color: #66809a;
-        font-size: 16px;
-        line-height: 1.8;
-      }
-
-      .updates-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 20px;
-      }
-
-      .update-card,
-      .program-card,
-      .news-card,
-      .history-card,
-      .mission-card,
-      .feature-panel,
-      .contact-card {
-        background: #ffffff;
-        border: 1px solid var(--border);
-        border-radius: 26px;
-        overflow: hidden;
-        box-shadow: var(--card-shadow);
-      }
-
-      .update-card img,
-      .program-card img,
-      .news-card img {
-        width: 100%;
-        height: 210px;
-        object-fit: cover;
-      }
-
-      .update-body,
-      .program-body,
-      .news-body {
-        padding: 22px;
-      }
-
-      .update-body h3,
-      .program-body h3,
-      .news-body h3,
-      .history-card h3,
-      .feature-panel h3,
-      .mission-card h3,
-      .contact-card h3 {
-        color: var(--blue-dark);
-        font-size: 22px;
-        margin-bottom: 10px;
-      }
-
-      .update-body p,
-      .program-body p,
-      .news-body p,
-      .history-card p,
-      .feature-panel p,
-      .mission-card p,
-      .contact-card p {
-        color: #688099;
-        line-height: 1.8;
-        font-size: 14px;
-      }
-
-      .card-link {
-        display: inline-flex;
-        align-items: center;
-        margin-top: 18px;
-        color: var(--blue);
-        font-weight: 700;
-        font-size: 14px;
-      }
-
-      .statement-band {
-        background: linear-gradient(180deg, #e7f5ff 0%, #eef8fd 100%);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .statement-box {
-        max-width: 880px;
-        margin: 0 auto;
-        text-align: center;
-        background: linear-gradient(135deg, #5fb8ff, #8ccfff);
-        color: white;
-        border-radius: 28px;
-        padding: 36px 28px;
-        box-shadow: 0 20px 50px rgba(58, 129, 219, 0.18);
-      }
-
-      .statement-box h2 {
-        font-size: clamp(26px, 4vw, 42px);
-        line-height: 1.2;
-        margin-bottom: 14px;
-      }
-
-      .statement-box p {
-        font-size: 15px;
-        line-height: 1.8;
-        color: rgba(255, 255, 255, 0.92);
-      }
-
-      .mission-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 20px;
-      }
-
-      .mission-card {
-        padding: 28px;
-        min-height: 100%;
-      }
-
-      .mission-card .badge {
-        display: inline-block;
-        padding: 8px 12px;
-        background: #e7f3ff;
-        border-radius: 999px;
-        color: var(--blue);
-        font-size: 12px;
-        font-weight: 800;
-        margin-bottom: 14px;
-      }
-
-      .mission-card h3 {
-        margin-bottom: 14px;
-      }
-
-      .mission-card.dark {
-        background: linear-gradient(180deg, #143b77, #0d2e5e);
-        border-color: rgba(255, 255, 255, 0.1);
-      }
-
-      .mission-card.dark h3,
-      .mission-card.dark p,
-      .mission-card.dark .card-link,
-      .mission-card.dark .badge {
-        color: white;
-      }
-
-      .mission-card.dark .badge {
-        background: rgba(255, 255, 255, 0.12);
-      }
-
-      .programs-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 20px;
-      }
-
-      .program-card {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-
-      .program-body {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-      }
-
-      .stars {
-        color: #ffb400;
-        font-size: 18px;
-        letter-spacing: 2px;
-        margin: 12px 0;
-      }
-
-      .gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 20px;
-      }
-
-      .gallery-card {
-        position: relative;
-        border-radius: 24px;
-        overflow: hidden;
-        min-height: 280px;
-        background: #ffffff;
-        border: 1px solid var(--border);
-        box-shadow: var(--card-shadow);
-      }
-
-      .gallery-card img {
-        width: 100%;
-        height: 100%;
-        min-height: 280px;
-        object-fit: cover;
-        transition: transform 0.5s ease;
-      }
-
-      .gallery-card:hover img {
-        transform: scale(1.06);
-      }
-
-      .gallery-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(to top, rgba(11, 41, 86, 0.78), rgba(11, 41, 86, 0.12));
-        display: flex;
-        align-items: flex-end;
-        padding: 20px;
-      }
-
-      .gallery-overlay h3 {
-        color: #ffffff;
-        font-size: 20px;
-        font-weight: 800;
-        line-height: 1.2;
-        margin-bottom: 6px;
-      }
-
-      .gallery-overlay p {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 13px;
-        line-height: 1.6;
-      }
-
-      .history-section {
-        background: linear-gradient(135deg, #12386f, #1f4ea1);
-        color: white;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .history-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 26px;
-        align-items: center;
-      }
-
-      .history-copy .tag {
-        display: inline-block;
-        padding: 10px 15px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.14);
-        font-size: 12px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        margin-bottom: 16px;
-      }
-
-      .history-copy h2 {
-        font-size: clamp(30px, 4vw, 46px);
-        line-height: 1.08;
-        margin-bottom: 16px;
-      }
-
-      .history-copy p {
-        color: rgba(255, 255, 255, 0.82);
-        font-size: 15px;
-        line-height: 1.9;
-      }
-
-      .history-card {
-        padding: 34px;
-        border: none;
-      }
-
-      .news-grid {
-        display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 24px;
-      }
-
-      .news-list {
-        display: grid;
-        gap: 16px;
-      }
-
-      .news-card.horizontal {
-        display: grid;
-        grid-template-columns: 180px 1fr;
-        align-items: stretch;
-      }
-
-      .news-card.horizontal img {
-        height: 100%;
-      }
-
-      .news-meta {
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #7c90a7;
-        margin-bottom: 10px;
-      }
-
-      .subscribe-section {
-        background: linear-gradient(135deg, #14386f, #194b95);
-        color: white;
-      }
-
-      .subscribe-box {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 20px;
-      }
-
-      .subscribe-copy h2 {
-        font-size: clamp(28px, 4vw, 42px);
-        margin-bottom: 10px;
-      }
-
-      .subscribe-copy p {
-        color: rgba(255, 255, 255, 0.84);
-        line-height: 1.8;
-      }
-
-      .subscribe-form {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-        max-width: 540px;
-      }
-
-      .subscribe-form input {
-        flex: 1;
-        border: none;
-        outline: none;
-        border-radius: 999px;
-        padding: 16px 18px;
-        font-size: 14px;
-      }
-
-      .footer {
-        background: #edf7fb;
-        border-top: 1px solid #d9e7f2;
-        padding: 34px 0;
-      }
-
-      .footer-grid {
-        display: grid;
-        grid-template-columns: 1.2fr repeat(4, 1fr);
-        gap: 24px;
-      }
-
-      .footer-brand p,
-      .footer-links a {
-        color: #6d8299;
-        line-height: 1.8;
-        font-size: 14px;
-      }
-
-      .footer-links h4 {
-        color: var(--blue-dark);
-        margin-bottom: 12px;
-        font-size: 16px;
-      }
-
-      .footer-links {
-        display: grid;
-        gap: 8px;
-      }
-
-      .copyright {
-        margin-top: 26px;
-        padding-top: 18px;
-        border-top: 1px solid #d7e5f0;
-        font-size: 13px;
-        color: #7b8da4;
-        text-align: center;
-      }
-
-      @media (max-width: 1100px) {
-        .hero-grid,
-        .history-grid,
-        .news-grid,
-        .footer-grid,
-        .subscribe-box,
-        .mission-grid,
-        .programs-grid,
-        .updates-grid,
-        .gallery-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .hero-stats {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      @media (max-width: 900px) {
-        .nav-links {
-          display: none;
-        }
-
-        .mobile-toggle {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 46px;
-          height: 46px;
-          border-radius: 14px;
-          border: 1px solid #d4e4f2;
-          background: #ffffff;
-          color: var(--blue-dark);
-          font-size: 20px;
-        }
-
-        .hero-grid {
-          min-height: auto;
-          padding: 50px 0 70px;
-        }
-      }
-
-      @media (max-width: 760px) {
-        .topbar-inner,
-        .nav,
-        .subscribe-form,
-        .news-card.horizontal {
-          grid-template-columns: 1fr;
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .nav-actions {
-          width: 100%;
-        }
-
-        .nav-actions .btn {
-          display: none;
-        }
-
-        .hero h1 {
-          font-size: 40px;
-        }
-
-        .slider-main {
-          height: 360px;
-        }
-
-        .update-card img,
-        .program-card img,
-        .news-card img,
-        .news-card.horizontal img {
-          height: 220px;
-        }
-
-        .history-card,
-        .mission-card,
-        .statement-box,
-        .slider-shell,
-        .update-card,
-        .program-card,
-        .news-card,
-        .gallery-card {
-          border-radius: 20px;
-        }
-
-        .section {
-          padding: 70px 0;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container nav">
-        <a href="#home" class="brand">
-          <img src="/images/logo.png" alt="Sisters of Mary School Logo" />
-          <div class="brand-text">
-            <span class="brand-title">The Sisters of Mary School - Boystown Inc.</span>
-            <span class="brand-subtitle">Tungkop, Minglanilla, Cebu</span>
+<!doctype html>
+
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <meta name="theme-color" content="#c8151d">
+
+  <meta name="description" content="CBM Engineering Construction delivers reliable building, electrical, mechanical, and air-conditioning services in Cebu.">
+
+  <title>CBM Engineering Construction | Building with purpose</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+
+    :root{font-family:Inter,Arial,sans-serif;color:#171717;background:#fff;--red:#c8151d;--red-deep:#a80f16;--ink:#141414;--muted:#666;--line:#e6e6e6;--max:1180px}
+
+    *{box-sizing:border-box}
+
+    html{scroll-behavior:smooth}
+
+    body{margin:0;overflow-x:hidden}
+
+    a{color:inherit;text-decoration:none}
+
+    img,svg{display:block;max-width:100%}
+
+    .container{width:min(var(--max),calc(100% - 40px));margin-inline:auto}
+
+    .topline{background:#181818;color:white;font-size:.78rem}
+
+    .topline-inner{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+
+    .topline a{color:#fff}
+
+    .topline a:hover{color:#ffb7b9}
+
+    .top-meta{display:flex;gap:1.4rem;flex-wrap:wrap}
+
+    .header{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line)}
+
+    .nav{min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+
+    .brand{display:flex;align-items:center;gap:.8rem}
+
+    .mark{width:52px;height:52px;border:3px solid #171717;outline:2px solid var(--red);outline-offset:2px;border-radius:50%;display:grid;place-items:center;color:var(--red);font-weight:900;font-size:.88rem;letter-spacing:-.08em}
+
+    .brand-name{font-weight:900;line-height:1.05;letter-spacing:-.04em;font-size:1.06rem}
+
+    .brand-name span{color:var(--red)}
+
+    .brand-sub{font-size:.66rem;letter-spacing:.13em;color:#666;margin-top:.28rem;font-weight:700}
+
+    .links{display:flex;align-items:center;gap:1.6rem;color:#363636;font-size:.88rem;font-weight:650}
+
+    .links a:hover{color:var(--red)}
+
+    .button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:.75rem 1.25rem;border-radius:5px;background:var(--red);color:white;font-weight:800;font-size:.85rem;transition:background .2s,transform .2s}
+
+    .button:hover{background:var(--red-deep);transform:translateY(-1px)}
+
+    .button.outline{background:white;border:1px solid #ccc;color:#191919}
+
+    .button.outline:hover{border-color:var(--red);color:var(--red)}
+
+    .mobile-toggle{display:none;border:1px solid #ddd;background:white;border-radius:5px;padding:.65rem .85rem;font-size:1.2rem}
+
+    .hero{position:relative;overflow:hidden;min-height:650px;background:linear-gradient(115deg,#fff 0 57%,#f6f6f6 57% 100%);isolation:isolate}
+
+    .hero:before{content:"";position:absolute;inset:0 0 auto auto;width:min(47vw,600px);height:240px;z-index:-1;background:repeating-linear-gradient(132deg,transparent 0 17px,rgba(200,21,29,.8) 18px 21px,transparent 22px 33px);clip-path:polygon(50% 0,100% 0,100% 72%,0 100%)}
+
+    .hero:after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:180px;z-index:-1;opacity:.11;background:linear-gradient(to top,#171717,transparent),repeating-linear-gradient(90deg,#111 0 12px,transparent 12px 24px);clip-path:polygon(0 73%,5% 73%,5% 58%,9% 58%,9% 84%,14% 84%,14% 44%,19% 44%,19% 69%,25% 69%,25% 34%,29% 34%,29% 78%,35% 78%,35% 48%,40% 48%,40% 64%,47% 64%,47% 28%,53% 28%,53% 70%,58% 70%,58% 40%,64% 40%,64% 82%,72% 82%,72% 53%,76% 53%,76% 32%,81% 32%,81% 68%,87% 68%,87% 42%,92% 42%,92% 75%,100% 75%,100% 100%,0 100%)}
+
+    .hero-inner{min-height:650px;display:grid;grid-template-columns:1.02fr .98fr;align-items:center;gap:2rem;padding-block:5rem 7rem}
+
+    .hero-copy{max-width:630px}
+
+    .eyebrow{display:inline-flex;align-items:center;gap:.55rem;color:var(--red);font-weight:900;letter-spacing:.12em;text-transform:uppercase;font-size:.74rem;margin-bottom:1.2rem}
+
+    .eyebrow:before{content:"";width:30px;height:3px;background:var(--red)}
+
+    h1{font-size:clamp(3rem,6vw,5.7rem);letter-spacing:-.075em;line-height:.92;margin:0 0 1.3rem;font-weight:900}
+
+    h1 span{display:block;color:var(--red)}
+
+    .hero-copy>p{max-width:550px;color:#555;font-size:1.05rem;line-height:1.75;margin:0 0 1.6rem}
+
+    .hero-actions{display:flex;gap:.8rem;flex-wrap:wrap}
+
+    .quick-facts{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:2.2rem;color:#555;font-size:.82rem;font-weight:650}
+
+    .quick-facts span{display:flex;align-items:center;gap:.5rem}
+
+    .tick{width:20px;height:20px;display:grid;place-items:center;background:#fce9e9;color:var(--red);border-radius:50%;font-size:.75rem;font-weight:900}
+
+    .hero-art{position:relative;min-height:420px;display:grid;place-items:center}
+
+    .gear{width:min(100%,460px);aspect-ratio:1;display:grid;place-items:center;position:relative}
+
+    .gear:before{content:"";position:absolute;inset:5%;background:repeating-conic-gradient(#171717 0deg 9deg,transparent 9deg 15deg);clip-path:polygon(50% 0,59% 8%,72% 4%,78% 15%,91% 17%,92% 30%,100% 39%,94% 50%,100% 61%,92% 70%,91% 83%,78% 85%,72% 96%,59% 92%,50% 100%,41% 92%,28% 96%,22% 85%,9% 83%,8% 70%,0 61%,6% 50%,0 39%,8% 30%,9% 17%,22% 15%,28% 4%,41% 8%)}
+
+    .gear-ring{position:absolute;inset:13%;border-radius:50%;background:linear-gradient(135deg,#fafafa,#b9b9b9 45%,#eee 70%,#7d7d7d);border:8px solid #151515;box-shadow:0 16px 35px #0003}
+
+    .gear-core{position:absolute;inset:19%;border:12px solid var(--red);border-radius:50%;background:radial-gradient(circle,#292929 0 48%,#090909 50%);display:grid;place-items:center;color:#fff;text-align:center}
+
+    .core-text{font-weight:900;font-size:clamp(3.7rem,8vw,6.5rem);line-height:.8;letter-spacing:-.1em;text-shadow:3px 4px 0 #800a10}
+
+    .core-text small{display:block;font-size:.19em;letter-spacing:.2em;margin-top:1rem;text-shadow:none}
+
+    .art-tag{position:absolute;background:#fff;padding:.8rem 1rem;border-left:4px solid var(--red);box-shadow:0 10px 28px #0002;font-size:.78rem;font-weight:850}
+
+    .art-tag.top{top:9%;right:1%}
+
+    .art-tag.bottom{bottom:7%;left:0}
+
+    .section{padding:5.5rem 0}
+
+    .section-head{max-width:700px;margin-bottom:2.4rem}
+
+    .section-head h2{font-size:clamp(2rem,4vw,3.2rem);line-height:1.02;letter-spacing:-.06em;margin:0 0 .8rem}
+
+    .section-head h2 span{color:var(--red)}
+
+    .section-head p{margin:0;color:var(--muted);line-height:1.75}
+
+    .services{background:#f7f7f7}
+
+    .service-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+
+    .service{background:white;border:1px solid var(--line);padding:1.5rem;min-height:190px;position:relative}
+
+    .service:before{content:"";position:absolute;top:0;left:0;width:48px;height:4px;background:var(--red)}
+
+    .service-icon{font-size:1.45rem;color:var(--red);font-weight:900;margin-bottom:1.2rem}
+
+    .service h3{font-size:1.12rem;margin:0 0 .5rem}
+
+    .service p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.7}
+
+    .hiring{background:#171717;color:white;position:relative;overflow:hidden}
+
+    .hiring:after{content:"CBM";position:absolute;right:-.03em;bottom:-.33em;font-size:clamp(10rem,28vw,25rem);font-weight:900;letter-spacing:-.12em;color:#ffffff08;pointer-events:none}
+
+    .hiring .section-head{position:relative;z-index:1}
+
+    .hiring .section-head p{color:#c8c8c8}
+
+    .hiring .section-head h2{color:white}
+
+    .job-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;position:relative;z-index:1}
+
+    .job{border:1px solid #444;padding:1.4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+
+    .job strong{display:block;font-size:1.1rem}
+
+    .job span{display:block;color:#b8b8b8;font-size:.84rem;margin-top:.35rem}
+
+    .job-count{color:#ff777c!important;font-weight:850}
+
+    .contact{display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;background:#f5f5f5;border-left:6px solid var(--red);padding:2rem}
+
+    .contact h2{font-size:clamp(1.8rem,3vw,2.5rem);letter-spacing:-.05em;margin:0 0 .5rem}
+
+    .contact p{margin:0;color:var(--muted);line-height:1.65}
+
+    .contact a.email{color:var(--red);font-weight:800}
+
+    .footer{background:var(--red);color:white;padding:1.4rem 0}
+
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;font-size:.83rem}
+
+    .location{display:flex;align-items:center;gap:.6rem;font-weight:900;letter-spacing:.07em}
+
+    .location-mark{border:1px solid #ffffff90;border-radius:50%;width:38px;height:38px;display:grid;place-items:center}
+
+    :focus-visible{outline:3px solid #ef6c70;outline-offset:3px}
+
+    @media(max-width:900px){.links{gap:.9rem}.hero-inner{grid-template-columns:1fr 1fr}.hero-art{min-height:340px}.service-grid{grid-template-columns:repeat(2,1fr)}}
+
+    @media(max-width:680px){.topline-inner{padding-block:.55rem;align-items:flex-start}.top-meta{gap:.4rem 1rem}.nav{min-height:72px}.links{display:none;position:absolute;top:72px;left:0;right:0;background:white;padding:1rem 20px 1.2rem;box-shadow:0 12px 18px #0001;flex-direction:column;align-items:stretch}.links.open{display:flex}.nav .button{margin-left:auto}.mobile-toggle{display:inline-flex}.hero{background:#fff}.hero-inner{grid-template-columns:1fr;min-height:auto;padding-block:4rem 5rem}.hero-art{min-height:300px}.gear{max-width:330px}.art-tag.top{right:-1%}.service-grid,.job-grid{grid-template-columns:1fr}.section{padding:4rem 0}.contact{grid-template-columns:1fr;padding:1.4rem}.contact .button{justify-self:start}}
+
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+
+  
+    #inquiry { background: #f6f6f6; scroll-margin-top: 6rem; }
+    .inquiry-form { max-width: 900px; padding: clamp(1rem, 4vw, 2.5rem); background: #fff; border: 1px solid #ddd; border-radius: 12px; }
+    .inquiry-form fieldset { min-width: 0; border: 0; margin: 0 0 1.75rem; padding: 0; }
+    .inquiry-form legend { margin-bottom: .8rem; font-size: 1.2rem; font-weight: 800; }
+    .inquiry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 1rem; }
+    .inquiry-field { display: grid; align-content: start; gap: .35rem; font-weight: 650; }
+    .inquiry-wide { grid-column: 1 / -1; }
+    .inquiry-field input, .inquiry-field select, .inquiry-field textarea { width: 100%; min-height: 44px; padding: .65rem; border: 1px solid #888; border-radius: 5px; font: inherit; font-weight: 400; color: #171717; background: #fff; }
+    .inquiry-field textarea { resize: vertical; }
+    .inquiry-form :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+    .inquiry-option { display: flex; align-items: center; gap: .55rem; min-height: 36px; }
+    .inquiry-option input { accent-color: var(--red); width: 1.1rem; height: 1.1rem; flex: 0 0 auto; }
+    .inquiry-form .button { border: 0; cursor: pointer; font-family: inherit; }
+    .inquiry-note { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+    #inquiry-error { color: #a00; font-weight: 650; }
+    #inquiry-draft { margin-top: 1.25rem; }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="topline">
+
+    <div class="container topline-inner">
+
+      <div class="top-meta"><span>Engineering • Construction • Technical Services</span><span>Serving Cebu and nearby areas</span></div>
+
+      <a href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>
+
+    </div>
+
+  </div>
+
+  <header class="header">
+
+    <div class="container nav">
+
+      <a class="brand" href="#home" aria-label="CBM Engineering Construction home">
+
+        <span class="mark">CBM</span>
+
+        <span><span class="brand-name">CBM <span>ENGINEERING</span></span><span class="brand-sub">CONSTRUCTION</span></span>
+
+      </a>
+
+      <nav class="links" id="main-nav" aria-label="Main navigation">
+
+        <a href="#services">Services</a><a href="#careers">Careers</a><a href="#contact">Contact</a>
+
+      </nav>
+
+      <a class="button" href="/construction">WORKSPACE LOGIN</a>
+
+      <button class="mobile-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="main-nav">☰</button>
+
+    </div>
+
+  </header>
+
+
+
+  <main>
+
+    <section class="hero" id="home">
+
+      <div class="container hero-inner">
+
+        <div class="hero-copy">
+
+          <span class="eyebrow">CBM Engineering Construction</span>
+
+          <h1>Built on skill.<span>Driven by people.</span></h1>
+
+          <p>We bring engineering, construction, and technical services together to keep projects moving and workplaces running.</p>
+
+          <div class="hero-actions">
+
+            <a class="button" href="#services">EXPLORE OUR SERVICES</a>
+
+            <a class="button outline" href="#inquiry">REQUEST A QUOTE</a>
+
           </div>
-        </a>
 
-        <nav class="nav-links">
-          <a href="#about">About Us</a>
-          <a href="#programs">Programs</a>
-          <a href="#mission">Mission</a>
-          <a href="#gallery">Gallery</a>
-          <a href="#history">History</a>
-          <a href="#contact">Contact</a>
-        </nav>
+          <div class="quick-facts">
 
-        <div class="nav-actions">
-          <a href="/login" class="btn btn-outline">Login</a>
-          <a href="/signup" class="btn btn-primary">Register</a>
-          <button class="mobile-toggle" type="button">☰</button>
+            <span><i class="tick">✓</i> Skilled technical team</span>
+
+            <span><i class="tick">✓</i> Project focused</span>
+
+            <span><i class="tick">✓</i> Cebu based</span>
+
+          </div>
+
         </div>
+
+        <div class="hero-art" role="img" aria-label="CBM mark framed by an engineering gear">
+
+          <div class="gear"><div class="gear-ring"></div><div class="gear-core"><div class="core-text">CBM<small>ENGINEERING</small></div></div></div>
+
+          <span class="art-tag top">ENGINEERING<br>IN EVERY DETAIL</span>
+
+          <span class="art-tag bottom">PLAN • BUILD • MAINTAIN</span>
+
+        </div>
+
       </div>
-    </header>
 
-    <main>
-      <section class="hero" id="home">
-        <div class="container hero-grid">
-          <div class="hero-copy">
-            <span class="eyebrow">Faith • Education • Mission</span>
-            <h1>
-              Transforming lives through <span>education, service, and hope</span>
-            </h1>
-            <p>
-              The Sisters of Mary School - Boystown Inc. is a mission-driven
-              educational institution dedicated to nurturing the potential of
-              youth through holistic formation, academic excellence, and
-              compassionate service.
-            </p>
-            <div class="hero-buttons">
-              <a href="/login" class="btn btn-primary">Access Portal</a>
-              <a href="#programs" class="btn btn-outline">Explore Programs</a>
-            </div>
-            <div class="hero-stats">
-              <div class="hero-stat">
-                <strong>60+</strong>
-                <span>Years of mission-driven educational service</span>
-              </div>
-              <div class="hero-stat">
-                <strong>Global</strong>
-                <span>Meet graduates and supporters around the world</span>
-              </div>
-              <div class="hero-stat">
-                <strong>Student-Centered</strong>
-                <span>Focused on formation, excellence, and compassion</span>
-              </div>
-            </div>
-          </div>
+    </section>
 
-          <div class="hero-visual">
-            <div class="slider-shell">
-              <div class="slider-main" id="sliderMain">
-                <div class="slide active" style="background-image: url('/images/movingup.jpg');">
-                  <div class="slide-caption">
-                    <h3>Building futures with joy and purpose</h3>
-                    <p>Celebrate moments of growth, confidence, and community.</p>
-                  </div>
-                </div>
-                <div class="slide" style="background-image: url('/images/kid2.jpg');">
-                  <div class="slide-caption">
-                    <h3>Developing talents in academics and sports</h3>
-                    <p>Support every learner through meaningful opportunities.</p>
-                  </div>
-                </div>
-                <div class="slide" style="background-image: url('/images/kid3.jpg');">
-                  <div class="slide-caption">
-                    <h3>Forming values-based leaders</h3>
-                    <p>Shape character, discipline, and service through education.</p>
-                  </div>
-                </div>
-                <div class="slide" style="background-image: url('/images/kid4.jpg');">
-                  <div class="slide-caption">
-                    <h3>One mission, many lives changed</h3>
-                    <p>Witness the spirit of hope across every school experience.</p>
-                  </div>
-                </div>
-              </div>
-              <div class="slider-dots" id="sliderDots">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section class="section statement-band">
-        <div class="container">
-          <div class="statement-box">
-            <h2>
-              The Sisters of Mary Schools are a testament to a legacy of
-              educational excellence and compassionate service.
-            </h2>
-            <p>
-              Established with a deep commitment to nurturing minds and hearts,
-              the institution continues to offer quality education that not only
-              develops academic competence but also inspires students to live by
-              Christian values and social responsibility.
-            </p>
-          </div>
-        </div>
-      </section>
 
-      <section class="section" id="mission">
-        <div class="container">
-          <div class="section-header">
-            <h2>Philosophy, mission, and vision</h2>
-            <p>
-              Present your institutional foundation in a more modern three-column
-              layout that is elegant, readable, and visually strong.
-            </p>
-          </div>
+    <section class="section services" id="services">
 
-          <div class="mission-grid">
-            <article class="mission-card">
-              <span class="badge">Philosophy</span>
-              <h3>Forming lives with purpose</h3>
-              <p>
-                The Sisters of Mary believes that education is a pathway to human
-                dignity, faith formation, and personal transformation. Students
-                are guided to use their gifts for the good of others and to live
-                with compassion, discipline, and integrity.
-              </p>
-              <a href="#" class="card-link">Read more →</a>
-            </article>
-
-            <article class="mission-card dark">
-              <span class="badge">Mission</span>
-              <h3>Serving the youth through quality education</h3>
-              <p>
-                Inspired by the charism of the Sisters of Mary, the school serves
-                the poor and the youth through holistic and intensive formation,
-                equipping students with knowledge, values, and practical skills
-                for a meaningful future.
-              </p>
-              <a href="#" class="card-link">Read more →</a>
-            </article>
-
-            <article class="mission-card">
-              <span class="badge">Vision</span>
-              <h3>Excellence rooted in faith and service</h3>
-              <p>
-                The Sisters of Mary School envisions graduates who are competent,
-                value-driven, and committed to uplifting society through their
-                lives, work, and witness in the spirit of charity and humility.
-              </p>
-              <a href="#" class="card-link">Read more →</a>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="programs">
-        <div class="container">
-          <div class="section-header">
-            <h2>Discover the academic and training opportunities</h2>
-            <p>
-              Highlight the core educational programs in a visually engaging grid
-              that invites exploration and connection to the school's mission.
-            </p>
-          </div>
-
-          <div class="programs-grid">
-            <article class="program-card">
-              <img src="/images/ict.jpg" alt="Elementary School" />
-              <div class="program-body">
-                <h3>Information Communication Technology - Courses</h3>
-                <p>
-                  A comprehensive curriculum that equips students with essential
-                  digital literacy, coding, and technology skills for the modern
-                  world.
-                </p>
-                <div class="stars">★★★★★</div>
-                <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
-              </div>
-            </article>
-
-            <article class="program-card">
-              <img src="/images/insdustrial.jpg" alt="High School Programs" />
-              <div class="program-body">
-                <h3>Industrial Arts Courses</h3>
-                <p>
-                  A comprehensive high school curriculum that integrates academic
-                  excellence with character formation and practical skills.
-                </p>
-                <div class="stars">★★★★★</div>
-                <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
-              </div>
-            </article>
-
-            <article class="program-card">
-              <img src="/images/homeco.png" alt="Livelihood Training Center" />
-              <div class="program-body">
-                <h3>Home Economics Courses</h3>
-                <p>
-                  A dynamic training program that equips students with practical
-                  skills in culinary arts, hospitality, and entrepreneurship.
-                </p>
-                <div class="stars">★★★★★</div>
-                <a href="#" class="btn btn-outline" style="margin-top:auto; align-self:flex-start;">See More</a>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="gallery">
-        <div class="container">
-          <div class="section-header">
-            <span class="tag">Student Gallery</span>
-            <h2>Moments of student life, growth, and achievement</h2>
-            <p>
-              Showcase the vibrant spirit of the students through academic life,
-              campus activities, values formation, and memorable school moments.
-            </p>
-          </div>
-
-          <div class="gallery-grid">
-            <article class="gallery-card">
-              <img src="/images/kid2.jpg" alt="Students in campus activities" />
-              <div class="gallery-overlay">
-                <div>
-                  <h3>Campus Life</h3>
-                  <p>Celebrating daily life, friendship, and meaningful learning experiences.</p>
-                </div>
-              </div>
-            </article>
-
-            <article class="gallery-card">
-              <img src="/images/kid3.jpg" alt="Students in leadership and formation" />
-              <div class="gallery-overlay">
-                <div>
-                  <h3>Leadership & Formation</h3>
-                  <p>Developing character, discipline, and values-centered leadership.</p>
-                </div>
-              </div>
-            </article>
-
-            <article class="gallery-card">
-              <img src="/images/kid4.jpg" alt="Students in activities and service" />
-              <div class="gallery-overlay">
-                <div>
-                  <h3>Activities & Service</h3>
-                  <p>Engaging students in holistic programs, teamwork, and service.</p>
-                </div>
-              </div>
-            </article>
-
-            <article class="gallery-card">
-              <img src="/images/movingup.jpg" alt="Students during recognition or graduation" />
-              <div class="gallery-overlay">
-                <div>
-                  <h3>Achievements</h3>
-                  <p>Honoring milestones, graduation moments, and student success stories.</p>
-                </div>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section history-section" id="history">
-        <div class="container history-grid">
-          <div class="history-copy">
-            <span class="tag">Our History</span>
-            <h2>A mission that began with hope and continues through generations</h2>
-            <p>
-              The Sisters of Mary Schools were founded as part of the mission of
-              the Religious Congregation of the Sisters of Mary, established by
-              Venerable Aloysius Schwartz in Busan, South Korea. The mission
-              expanded to the Philippines and grew into institutions known for
-              education, formation, and service to the poor.
-            </p>
-          </div>
-
-          <div class="history-card">
-            <h3>Rooted in service and educational compassion</h3>
-            <p>
-              From its earliest years, the school has pursued an integrated form
-              of education that addresses academic development, moral formation,
-              and practical support. This legacy continues today in communities
-              where students are empowered to build better futures.
-            </p>
-            <a href="#" class="card-link">Read More →</a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer" id="contact">
       <div class="container">
-        <div class="footer-grid">
-          <div class="footer-brand">
-            <div class="brand" style="margin-bottom:14px;">
-              <img src="/images/logo.png" alt="Sisters of Mary School Logo" style="width:48px;height:48px;" />
-              <div class="brand-text">
-                <span class="brand-title" style="font-size:16px;">The Sisters of Mary School - Boystown Incorporated</span>
-              </div>
-            </div>
-          </div>
 
-          <div class="footer-links">
-            <h4>About</h4>
-            <a href="#about">Our School</a>
-            <a href="#mission">Mission & Vision</a>
-            <a href="#history">Our History</a>
-          </div>
+        <div class="section-head">
 
-          <div class="footer-links">
-            <h4>Quick Links</h4>
-            <a href="https://www.facebook.com/profile.php?id=100089779629368">News</a>
-            <a href="/login">Login</a>
-            <a href="/signup">Register</a>
-          </div>
+          <span class="eyebrow">What we do</span>
 
-          <div class="footer-links">
-            <h4>Contact</h4>
-            <a href="mailto:boystownminglanilla@onesms.edu.ph">boystownminglanilla@onesms.edu.ph</a>
-            <a href="tel:+630000000000">(032) 272 8636</a>
-          </div>
+          <h2>Practical work.<span>Professional results.</span></h2>
+
+          <p>CBM supports building projects and facilities with dependable technical services from planning through completion.</p>
+
         </div>
 
-        <div class="copyright">
-          © 2026 The Sisters of Mary Schools. Powered and Engineered by JML Digital Innovations.
+        <div class="service-grid">
+
+          <article class="service"><div class="service-icon" aria-hidden="true">01 /</div><h3>Engineering & Construction</h3><p>Project coordination and construction support for commercial and industrial needs.</p></article>
+
+          <article class="service"><div class="service-icon" aria-hidden="true">02 /</div><h3>Air Conditioning</h3><p>Installation, maintenance, and repair support for air-conditioning systems.</p></article>
+
+          <article class="service"><div class="service-icon" aria-hidden="true">03 /</div><h3>Electrical & Technical</h3><p>Technical support that helps keep building systems operating reliably.</p></article>
+
         </div>
+
       </div>
-    </footer>
 
-    <script>
-      const slides = document.querySelectorAll('.slide');
-      const dots = document.querySelectorAll('.dot');
-      let currentSlide = 0;
+    </section>
 
-      function showSlide(index) {
-        slides.forEach((slide, i) => {
-          slide.classList.toggle('active', i === index);
-        });
 
-        dots.forEach((dot, i) => {
-          dot.classList.toggle('active', i === index);
-        });
+
+    <section class="section hiring" id="careers">
+
+      <div class="container">
+
+        <div class="section-head">
+
+          <span class="eyebrow">Grow with CBM</span>
+
+          <h2>Be a part of<br>our <span>team.</span></h2>
+
+          <p>Bring your skills, reliability, and drive to a team that gets important work done. We welcome qualified applicants.</p>
+
+        </div>
+
+        <div class="job-grid">
+
+          <article class="job"><div><strong>AC Technician</strong><span>Air-conditioning services</span></div><span class="job-count">2 OPENINGS</span></article>
+
+          <article class="job"><div><strong>Company Driver</strong><span>Company transport support</span></div><span class="job-count">1 OPENING</span></article>
+
+        </div>
+
+        <div style="margin-top:1.5rem;position:relative;z-index:1">
+
+          <a class="button" href="mailto:cbmengineering.hr@gmail.com?subject=CBM%20Job%20Application">APPLY BY EMAIL</a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+
+    <section class="section" id="inquiry" aria-labelledby="inquiry-title">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Project inquiry</span>
+          <h2 id="inquiry-title">Request a <span>quote.</span></h2>
+          <p>Tell us what you need and where the work will take place. CBM will review your scope and confirm service availability.</p>
+        </div>
+        <form id="inquiry-form" class="inquiry-form" hidden>
+          <p class="inquiry-note">Fields marked * are required.</p>
+          <fieldset>
+            <legend>1. Contact information</legend>
+            <div class="inquiry-grid"><label class="inquiry-field">Full name *<input name="Name" autocomplete="name" maxlength="100" required></label> <label class="inquiry-field">Company / organization<input name="Company" autocomplete="organization" maxlength="100"></label> <label class="inquiry-field">Email address *<input name="Email" type="email" autocomplete="email" maxlength="120" required></label> <label class="inquiry-field">Phone / mobile number *<input name="Phone" type="tel" autocomplete="tel" maxlength="32" required></label> <label class="inquiry-field">Preferred contact method<select name="Preferred contact" ><option value="">Select an option</option><option>Email</option><option>Phone call</option><option>Text message</option></select></label></div>
+          </fieldset>
+          <fieldset aria-describedby="inquiry-error">
+            <legend>2. Services needed *</legend>
+            <p class="inquiry-note">Select all that apply.</p>
+            <div class="inquiry-grid"><label class="inquiry-option"><input type="checkbox" name="Services" value="Engineering &amp; construction"> Engineering &amp; construction</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Civil &amp; structural works"> Civil &amp; structural works</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Architectural &amp; fit-out works"> Architectural &amp; fit-out works</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Electrical &amp; technical services"> Electrical &amp; technical services</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Mechanical systems"> Mechanical systems</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Air conditioning &amp; ventilation (HVAC)"> Air conditioning &amp; ventilation (HVAC)</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Plumbing &amp; sanitary works"> Plumbing &amp; sanitary works</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Fire protection systems"> Fire protection systems</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Auxiliary &amp; low-voltage systems"> Auxiliary &amp; low-voltage systems</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Facilities maintenance &amp; repair"> Facilities maintenance &amp; repair</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Design, estimates &amp; technical consultation"> Design, estimates &amp; technical consultation</label>
+<label class="inquiry-option"><input type="checkbox" name="Services" value="Other / Need help choosing"> Other / Need help choosing</label></div>
+            <p id="inquiry-error" role="alert" hidden>Select at least one service.</p>
+          </fieldset>
+          <fieldset>
+            <legend>3. Project details</legend>
+            <div class="inquiry-grid"><label class="inquiry-field">Project name *<input name="Project name" maxlength="120" required></label> <label class="inquiry-field">Project location *<input name="Location" maxlength="150" placeholder="Barangay, city or municipality" required></label> <label class="inquiry-field">Property type<select name="Property type" ><option value="">Select an option</option><option>Residential</option><option>Commercial</option><option>Industrial</option><option>Institutional</option><option>Other</option></select></label> <label class="inquiry-field">Work needed<select name="Work needed" ><option value="">Select an option</option><option>New construction</option><option>Renovation / fit-out</option><option>Installation</option><option>Repair / troubleshooting</option><option>Preventive maintenance</option><option>Inspection / assessment</option><option>Design / consultation</option><option>Other</option></select></label> <label class="inquiry-field">Estimated floor area or quantity<input name="Area / quantity" maxlength="80" placeholder="e.g. 150 sq m or 4 units"></label> <label class="inquiry-field">Estimated budget (PHP)<select name="Budget" ><option value="">Select an option</option><option>Below ₱50,000</option><option>₱50,000–₱249,999</option><option>₱250,000–₱999,999</option><option>₱1,000,000 and above</option><option>To be determined</option></select></label> <label class="inquiry-field">Target start date<input name="Target start" type="date"></label> <label class="inquiry-field">Target completion date<input name="Target completion" type="date"></label> <label class="inquiry-field">Would you like a site visit?<select name="Site visit" ><option value="">Select an option</option><option>Yes</option><option>No</option><option>Please advise</option></select></label> <label class="inquiry-field inquiry-wide">Project details *<textarea name="Project details" rows="5" maxlength="1600" required placeholder="Describe the work, affected areas or equipment, and any site requirements."></textarea></label> <label class="inquiry-field inquiry-wide">Link to plans, photos, or scope of work<input name="Reference link" type="url" maxlength="350" placeholder="https://…" ></label></div>
+          </fieldset>
+          <button class="button" type="submit">PREPARE INQUIRY EMAIL</button>
+          <p class="inquiry-note">Review the draft below, then send it from your email app. You can attach plans or photos there.</p>
+          <div id="inquiry-draft" hidden>
+            <label class="inquiry-field">Email draft<textarea id="inquiry-body" rows="10" readonly></textarea></label>
+            <p><a class="button" id="inquiry-mail">OPEN EMAIL APP</a></p>
+            <p class="inquiry-note">You can also copy the draft and email it to <a href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>.</p>
+          </div>
+        </form>
+        <noscript><p>Email your project details to <a href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>.</p></noscript>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+
+      <div class="container">
+
+        <div class="contact">
+
+          <div><span class="eyebrow">Let’s get to work</span><h2>Talk with the CBM team.</h2><p>For project inquiries and applications, email <a class="email" href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>.</p></div>
+
+          <a class="button" href="mailto:cbmengineering.hr@gmail.com">CONTACT CBM</a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <footer class="footer">
+
+    <div class="container footer-inner">
+
+      <span>© 2026 CBM Engineering Construction</span>
+
+      <span class="location"><span class="location-mark" aria-hidden="true">⌖</span> ASSIGN IN MANDAUE</span>
+
+    </div>
+
+  </footer>
+
+  <script>
+
+    const toggle = document.querySelector('.mobile-toggle');
+
+    const nav = document.querySelector('#main-nav');
+
+    toggle.addEventListener('click', () => {
+
+      const open = nav.classList.toggle('open');
+
+      toggle.setAttribute('aria-expanded', String(open));
+
+    });
+
+    nav.addEventListener('click', (event) => {
+
+      if (event.target.closest('a')) {
+
+        nav.classList.remove('open');
+
+        toggle.setAttribute('aria-expanded', 'false');
+
       }
 
-      function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
+    });
+
+  
+    const inquiryForm = document.querySelector('#inquiry-form');
+    const inquiryError = document.querySelector('#inquiry-error');
+    const inquiryDraft = document.querySelector('#inquiry-draft');
+    const inquiryBody = document.querySelector('#inquiry-body');
+    const inquiryMail = document.querySelector('#inquiry-mail');
+    const startDate = inquiryForm.elements.namedItem('Target start');
+    const completionDate = inquiryForm.elements.namedItem('Target completion');
+
+    inquiryForm.addEventListener('input', (event) => {
+      inquiryDraft.hidden = true;
+      completionDate.min = startDate.value;
+      if (event.target.name === 'Services' && inquiryForm.querySelector('[name="Services"]:checked')) {
+        inquiryError.hidden = true;
+      }
+    });
+
+    inquiryForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const details = new FormData(inquiryForm);
+      const services = details.getAll('Services');
+      inquiryError.hidden = services.length > 0;
+      if (!services.length) {
+        inquiryForm.querySelector('[name="Services"]').focus();
+        return;
       }
 
-      setInterval(nextSlide, 5000);
-    </script>
-  </body>
+      const lines = ['Hello CBM Engineering Construction,', '', 'I would like to request a quote for the following project.', ''];
+      for (const [label, value] of details) {
+        if (label === 'Services') continue;
+        if (label === 'Project name') lines.push('Services: ' + services.join(', '), '');
+        if (value.trim()) lines.push(label + ': ' + value.trim());
+      }
+      const subject = 'Project inquiry: ' + details.get('Project name').trim();
+      inquiryBody.value = lines.join('\r\n');
+      inquiryMail.href = 'mailto:cbmengineering.hr@gmail.com?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(inquiryBody.value);
+      inquiryDraft.hidden = false;
+      inquiryBody.focus();
+    });
+
+    inquiryForm.hidden = false;
+
+  </script>
+
+</body>
+
 </html>
