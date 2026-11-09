@@ -446,13 +446,7 @@
   <div class="app-container">
 
     <!-- Sidebar -->
-    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage=${activePage},
-                                                 studentInfoExpanded=${studentInfoExpanded},
-                                                 asmsiExpanded=${asmsiExpanded},
-                                                 admissionExpanded=${admissionExpanded},
-                                                 attendanceExpanded=${attendanceExpanded},
-                                                 eventsExpanded=${eventsExpanded},
-                                                 familyDayExpanded=${familyDayExpanded})"></div>
+    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})"></div>
 
     <div class="main-content">
 
@@ -480,7 +474,7 @@
                 <h2>Welcome back, <span th:text="${username}">CBM Team</span></h2>
                 <p>
                   Manage your CBM operations from one place. Use the navigation
-                  menu to access company records, requests, attendance, and reports.
+                  menu to access company records, purchasing, inventory, accounting, HR, and reports.
                 </p>
               </div>
               <div class="col-md-3 text-center">
@@ -590,25 +584,7 @@
               </div>
 
               <div class="content-card-body d-grid gap-2">
-                <a th:href="@{/admission}" class="quick-action">
-                  <i class="bi bi-person-plus"></i>
-                  <span>New Admission</span>
-                </a>
-
-                <a th:href="@{/attendance}" class="quick-action">
-                  <i class="bi bi-calendar-check"></i>
-                  <span>Take Attendance</span>
-                </a>
-
-                <a th:href="@{/events}" class="quick-action">
-                  <i class="bi bi-calendar-event"></i>
-                  <span>Manage Events</span>
-                </a>
-
-                <a th:href="@{/admissionreports}" class="quick-action">
-                  <i class="bi bi-graph-up"></i>
-                  <span>View Reports</span>
-                </a>
+                <p class="text-muted mb-0">Use the sidebar to open company modules.</p>
               </div>
             </section>
 
@@ -641,7 +617,7 @@
           <i class="bi bi-info-circle-fill"></i>
           <div>
             <strong>Reminder:</strong>
-            Check your messages and review any pending company requests.
+            Use the sidebar to manage CBM company inquiries and operations.
           </div>
         </div>
       </main>

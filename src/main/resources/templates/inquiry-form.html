@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>New Inquiry | CBM Engineering &amp; Construction</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+  <link rel="stylesheet" th:href="@{/css/header.css}">
+  <style>
+    :root{--red:#c9141e;--ink:#171717;--paper:#f4f4f2;--line:#e6e6e4}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Arial,sans-serif}
+    .app-container{display:flex;min-height:100vh}.main-content{display:flex;flex:1;min-width:0;flex-direction:column;margin-left:280px;transition:margin-left .25s}
+    #sidebar.sidebar-collapsed~.main-content{margin-left:74px}.content-area{width:100%;max-width:1200px;margin:0 auto;padding:28px}
+    .page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.page-head h1{margin:0;font-size:1.8rem;font-weight:800}.page-head p{margin:4px 0 0;color:#777}
+    .form-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px;box-shadow:0 8px 24px #00000008}
+    fieldset{border:0;border-top:1px solid var(--line);padding:20px 0 0;margin:0 0 18px}legend{float:none;width:auto;padding:0;margin:0 0 14px;font-size:1.05rem;font-weight:750}
+    .form-label{font-size:.86rem;font-weight:650;margin-bottom:5px}.form-control,.form-select{min-height:42px;border-color:#d9d9d9;font-size:.9rem}
+    textarea.form-control{min-height:110px}.form-text{font-size:.78rem;color:#777}.services-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 18px}
+    .service-option{font-size:.88rem}.service-option input{accent-color:var(--red);margin-right:8px}.btn-cbm{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}.btn-cbm:hover{background:#a80e17;color:#fff}
+    @media(max-width:900px){.main-content{margin-left:74px}.content-area{padding:18px}.services-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:600px){.main-content{margin-left:0}.services-grid{grid-template-columns:1fr}.form-card{padding:18px}.page-head{align-items:flex-start;gap:12px;flex-direction:column}}
+  </style>
+</head>
+<body><div class="app-container">
+  <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})"></div>
+  <div class="main-content">
+    <div th:replace="fragments/header :: header(${username})"></div>
+    <main class="content-area">
+      <div class="page-head"><div><h1>New Inquiry</h1><p>Capture a customer's project request.</p></div><a class="btn btn-outline-dark" th:href="@{/Clients}"><i class="bi bi-arrow-left me-1"></i>Back to inquiries</a></div>
+      <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+      <form class="form-card" th:action="@{/Clients}" th:object="${inquiry}" method="post">
+        <p class="form-text mb-3">Fields marked with * are required.</p>
+        <fieldset><legend>1. Contact information</legend><div class="row g-3">
+          <div class="col-md-4"><label class="form-label">Full name *</label><input class="form-control" th:field="*{fullName}" required maxlength="180"></div>
+          <div class="col-md-4"><label class="form-label">Company / organization</label><input class="form-control" th:field="*{company}" maxlength="180"></div>
+          <div class="col-md-4"><label class="form-label">Email address *</label><input class="form-control" type="email" th:field="*{email}" required maxlength="180"></div>
+          <div class="col-md-4"><label class="form-label">Phone / mobile number *</label><input class="form-control" th:field="*{phone}" required maxlength="60"></div>
+          <div class="col-md-4"><label class="form-label">Preferred contact method</label><select class="form-select" th:field="*{preferredContactMethod}"><option value="">Select an option</option><option>Email</option><option>Phone call</option><option>SMS</option><option>Messaging app</option></select></div>
+        </div></fieldset>
+        <fieldset><legend>2. Services needed *</legend><p class="form-text mb-3">Select all that apply.</p><div class="services-grid">
+          <label class="service-option"><input type="checkbox" name="services" value="Engineering & construction">Engineering &amp; construction</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Civil & structural works">Civil &amp; structural works</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Architectural & fit-out works">Architectural &amp; fit-out works</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Electrical & technical services">Electrical &amp; technical services</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Mechanical systems">Mechanical systems</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Air conditioning & ventilation (HVAC)">Air conditioning &amp; ventilation (HVAC)</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Plumbing & sanitary works">Plumbing &amp; sanitary works</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Fire protection systems">Fire protection systems</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Auxiliary & low-voltage systems">Auxiliary &amp; low-voltage systems</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Facilities maintenance & repair">Facilities maintenance &amp; repair</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Design, estimates & technical consultation">Design, estimates &amp; technical consultation</label>
+          <label class="service-option"><input type="checkbox" name="services" value="Other / Need help choosing">Other / Need help choosing</label>
+        </div></fieldset>
+        <fieldset><legend>3. Project details</legend><div class="row g-3">
+          <div class="col-md-4"><label class="form-label">Project name *</label><input class="form-control" th:field="*{projectName}" required maxlength="200"></div>
+          <div class="col-md-4"><label class="form-label">Project location *</label><input class="form-control" th:field="*{projectLocation}" placeholder="Barangay, city or municipality" required maxlength="250"></div>
+          <div class="col-md-4"><label class="form-label">Property type</label><select class="form-select" th:field="*{propertyType}"><option value="">Select an option</option><option>Residential</option><option>Commercial</option><option>Industrial</option><option>Institutional</option><option>Other</option></select></div>
+          <div class="col-md-4"><label class="form-label">Work needed</label><select class="form-select" th:field="*{workNeeded}"><option value="">Select an option</option><option>New construction</option><option>Renovation</option><option>Repair / maintenance</option><option>Design / consultation</option><option>Supply / installation</option><option>Other</option></select></div>
+          <div class="col-md-4"><label class="form-label">Estimated floor area or quantity</label><input class="form-control" th:field="*{floorAreaOrQuantity}" placeholder="e.g. 150 sq m or 4 units" maxlength="120"></div>
+          <div class="col-md-4"><label class="form-label">Estimated budget (PHP)</label><select class="form-select" th:field="*{estimatedBudget}"><option value="">Select an option</option><option>Below ₱100,000</option><option>₱100,000 – ₱500,000</option><option>₱500,001 – ₱1,000,000</option><option>₱1,000,001 – ₱5,000,000</option><option>Above ₱5,000,000</option><option>To be discussed</option></select></div>
+          <div class="col-md-4"><label class="form-label">Target start date</label><input class="form-control" type="date" th:field="*{targetStartDate}"></div>
+          <div class="col-md-4"><label class="form-label">Target completion date</label><input class="form-control" type="date" th:field="*{targetCompletionDate}"></div>
+          <div class="col-md-4"><label class="form-label">Would you like a site visit?</label><select class="form-select" th:field="*{siteVisit}"><option value="">Select an option</option><option>Yes</option><option>No</option><option>Not sure</option></select></div>
+          <div class="col-12"><label class="form-label">Project details *</label><textarea class="form-control" th:field="*{projectDetails}" placeholder="Describe the work, affected areas or equipment, and any site requirements." required maxlength="5000"></textarea></div>
+          <div class="col-12"><label class="form-label">Link to plans, photos, or scope of work</label><input class="form-control" type="url" th:field="*{plansUrl}" placeholder="https://..." maxlength="2000"></div>
+        </div></fieldset>
+        <div class="d-flex gap-2"><button class="btn btn-cbm" type="submit"><i class="bi bi-check2-circle me-1"></i>Save Inquiry</button><a class="btn btn-light" th:href="@{/Clients}">Cancel</a></div>
+      </form>
+    </main>
+  </div>
+</div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script ></script></body>
+</html>

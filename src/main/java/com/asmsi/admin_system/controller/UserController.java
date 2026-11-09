@@ -21,6 +21,7 @@ public class UserController {
     // Show both approved and unapproved users
     @GetMapping
     public String viewUsers(Model model) {
+        model.addAttribute("activePage", "users");
         model.addAttribute("username", authUtil.getCurrentUser().getUsername());
         model.addAttribute("role", authUtil.getCurrentUser().getRole());
 

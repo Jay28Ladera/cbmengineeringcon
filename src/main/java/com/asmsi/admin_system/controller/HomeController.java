@@ -28,6 +28,7 @@ public class HomeController {
         model.addAttribute("userId", loggedInUser.getId());
         model.addAttribute("role", loggedInUser.getRole());
         model.addAttribute("name", loggedInUser.getName());
+        model.addAttribute("activePage", "home");
 
         return "home";
     }
