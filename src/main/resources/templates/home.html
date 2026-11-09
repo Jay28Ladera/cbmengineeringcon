@@ -2,46 +2,446 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home - Sisters of Mary Schools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | CBM Engineering &amp; Construction</title>
 
-  <!-- Bootstrap CSS & Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
 
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin:0; }
+    :root {
+      --cbm-red: #c9141e;
+      --cbm-red-dark: #a80e17;
+      --cbm-ink: #171717;
+      --cbm-muted: #737373;
+      --cbm-paper: #f4f4f2;
+      --cbm-border: #e6e6e4;
+    }
 
-    .app-container { display:flex; min-height:100vh; }
-    .main-content { flex:1; display:flex; flex-direction:column; margin-left:280px; transition:margin-left .3s ease; }
-    .content-area { flex:1; padding:2rem; background:#f8f9fa; }
+    * {
+      box-sizing: border-box;
+    }
 
-    /* When sidebar is collapsed (desktop) */
-    #sidebar.sidebar-collapsed ~ .main-content { margin-left:75px; }
+    body {
+      margin: 0;
+      color: var(--cbm-ink);
+      background: var(--cbm-paper);
+      font-family: "DM Sans", sans-serif;
+    }
 
-    .welcome-card{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; border:none; border-radius:15px; box-shadow:0 10px 30px rgba(102,126,234,.3); }
-    .stats-card{ border:none; border-radius:12px; box-shadow:0 2px 20px rgba(0,0,0,.08); transition:transform .2s, box-shadow .2s; overflow:hidden; }
-    .stats-card:hover{ transform:translateY(-5px); box-shadow:0 5px 30px rgba(0,0,0,.15); }
-    .stats-number{ font-size:2.5rem; font-weight:700; margin:0; }
-    .stats-label{ font-size:.9rem; opacity:.8; }
-    .activity-item{ padding:1rem; border-radius:10px; margin-bottom:.75rem; background:#fff; border-left:4px solid #667eea; transition:all .2s; }
-    .activity-item:hover{ transform:translateX(5px); box-shadow:0 3px 15px rgba(0,0,0,.1); }
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      flex-direction: column;
+      margin-left: 280px;
+      transition: margin-left 0.28s ease;
+    }
+
+    #sidebar.sidebar-collapsed ~ .main-content {
+      margin-left: 74px;
+    }
+
+    .content-area {
+      flex: 1;
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+
+    .page-heading {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .page-eyebrow {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--cbm-red);
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .page-heading h1 {
+      margin: 0;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .page-date {
+      color: var(--cbm-muted);
+      font-size: 0.82rem;
+    }
+
+    .welcome-card {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 24px;
+      border: 0;
+      border-radius: 16px;
+      color: #fff;
+      background:
+        linear-gradient(100deg, rgba(20, 20, 20, 0.98) 0%, rgba(28, 28, 28, 0.96) 60%, rgba(110, 12, 18, 0.92) 100%);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.14);
+    }
+
+    .welcome-card::after {
+      position: absolute;
+      top: -90px;
+      right: -55px;
+      width: 300px;
+      height: 300px;
+      border: 25px solid rgba(255, 255, 255, 0.07);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .welcome-card .card-body {
+      position: relative;
+      z-index: 1;
+      padding: 34px;
+    }
+
+    .welcome-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      color: #ffb8bb;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .welcome-kicker::before {
+      width: 22px;
+      height: 3px;
+      background: var(--cbm-red);
+      content: "";
+    }
+
+    .welcome-card h2 {
+      margin: 0 0 10px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      line-height: 0.98;
+      text-transform: uppercase;
+    }
+
+    .welcome-card p {
+      max-width: 650px;
+      margin: 0;
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.92rem;
+      line-height: 1.75;
+    }
+
+    .welcome-icon {
+      color: rgba(255, 255, 255, 0.14);
+      font-size: 5.5rem;
+      line-height: 1;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 16px;
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 1.45rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .section-title i {
+      color: var(--cbm-red);
+      font-size: 1.05rem;
+    }
+
+    .overview-card {
+      height: 100%;
+      min-height: 140px;
+      overflow: hidden;
+      border: 1px solid var(--cbm-border);
+      border-radius: 13px;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.035);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .overview-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.09);
+    }
+
+    .overview-card .card-body {
+      position: relative;
+      padding: 20px;
+    }
+
+    .overview-icon {
+      width: 42px;
+      height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      border-radius: 11px;
+      color: var(--cbm-red);
+      background: #fff0f0;
+      font-size: 1.2rem;
+    }
+
+    .overview-number {
+      margin: 0;
+      color: var(--cbm-ink);
+      font-family: "Barlow Condensed", sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .overview-label {
+      margin: 6px 0 0;
+      color: var(--cbm-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .content-card {
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid var(--cbm-border);
+      border-radius: 13px;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.035);
+    }
+
+    .content-card-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid #eeeeec;
+      background: #fff;
+    }
+
+    .content-card-header .section-title {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .content-card-body {
+      padding: 20px;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 13px;
+      padding: 15px 0;
+      border-bottom: 1px solid #eeeeec;
+    }
+
+    .activity-item:first-child {
+      padding-top: 0;
+    }
+
+    .activity-item:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .activity-icon {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      color: var(--cbm-red);
+      background: #fff0f0;
+      font-size: 1rem;
+    }
+
+    .activity-item h3 {
+      margin: 1px 0 4px;
+      color: #242424;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .activity-item p {
+      margin: 0;
+      color: var(--cbm-muted);
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+
+    .quick-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 13px;
+      border: 1px solid var(--cbm-border);
+      border-radius: 9px;
+      color: #292929;
+      background: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: 0.18s ease;
+    }
+
+    .quick-action i {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: var(--cbm-red);
+      background: #fff0f0;
+      font-size: 0.95rem;
+    }
+
+    .quick-action:hover {
+      border-color: rgba(201, 20, 30, 0.35);
+      color: var(--cbm-red-dark);
+      background: #fffafa;
+      transform: translateX(2px);
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid #eeeeec;
+    }
+
+    .system-status:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+
+    .status-label {
+      color: var(--cbm-muted);
+      font-size: 0.8rem;
+    }
+
+    .status-value {
+      color: #252525;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .status-online {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #287a4b;
+    }
+
+    .status-online i {
+      font-size: 0.55rem;
+    }
+
+    .reminder {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-top: 22px;
+      padding: 15px 17px;
+      border: 1px solid #f1d7d8;
+      border-left: 4px solid var(--cbm-red);
+      border-radius: 10px;
+      color: #575757;
+      background: #fff;
+      font-size: 0.82rem;
+      line-height: 1.65;
+    }
+
+    .reminder > i {
+      margin-top: 2px;
+      color: var(--cbm-red);
+      font-size: 1.1rem;
+    }
+
+    .reminder strong {
+      color: #242424;
+    }
 
     @media (max-width: 768px) {
-      .main-content { margin-left:0 !important; padding-top:70px; }
-      .content-area{ padding:1rem; }
-      .stats-number{ font-size:2rem; }
-      .col-md-3{ margin-bottom:1rem; }
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: 64px;
+      }
+
+      .content-area {
+        padding: 20px 16px;
+      }
+
+      .page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .welcome-card .card-body {
+        padding: 25px;
+      }
+
+      .welcome-icon {
+        font-size: 3.8rem;
+      }
     }
+
     @media (max-width: 576px) {
-      .content-area{ padding:.75rem; }
-      .stats-number{ font-size:1.8rem; }
-      .welcome-card .card-body{ padding:1.5rem; }
+      .content-area {
+        padding: 16px 12px;
+      }
+
+      .welcome-card .card-body {
+        padding: 22px 19px;
+      }
+
+      .welcome-icon {
+        display: none;
+      }
+
+      .overview-card {
+        min-height: 122px;
+      }
+
+      .overview-card .card-body {
+        padding: 16px;
+      }
+
+      .overview-number {
+        font-size: 1.75rem;
+      }
     }
   </style>
 </head>
+
 <body>
   <div class="app-container">
 
@@ -54,167 +454,205 @@
                                                  eventsExpanded=${eventsExpanded},
                                                  familyDayExpanded=${familyDayExpanded})"></div>
 
-    <!-- Main Content -->
     <div class="main-content">
 
       <!-- Header -->
       <div th:replace="fragments/header :: header(${username})"></div>
 
-      <!-- Page Body -->
       <main class="content-area">
+        <header class="page-heading">
+          <div>
+            <span class="page-eyebrow">CBM Engineering &amp; Construction</span>
+            <h1>Dashboard</h1>
+          </div>
+          <div class="page-date">
+            <i class="bi bi-calendar3 me-1"></i>
+            Company overview
+          </div>
+        </header>
+
         <!-- Welcome -->
-        <div class="welcome-card card mb-4">
+        <section class="welcome-card card">
           <div class="card-body">
             <div class="row align-items-center">
-              <div class="col-md-8">
-                <h2 class="card-title mb-3"><i class="bi bi-house-door me-2"></i>Welcome Back!</h2>
-                <p class="mb-0">You're logged into the Sisters of Mary Schools Administrative Management System. Navigate through the system using the sidebar menu to access different sections.</p>
+              <div class="col-md-9">
+                <span class="welcome-kicker">Management portal</span>
+                <h2>Welcome back, <span th:text="${username}">CBM Team</span></h2>
+                <p>
+                  Manage your CBM operations from one place. Use the navigation
+                  menu to access company records, requests, attendance, and reports.
+                </p>
               </div>
-              <div class="col-md-4 text-center">
-                <i class="bi bi-speedometer2" style="font-size:4rem; opacity:.3;"></i>
+              <div class="col-md-3 text-center">
+                <i class="bi bi-buildings welcome-icon" aria-hidden="true"></i>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Stats -->
-        <div class="row mb-4">
-          <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card card text-center">
-              <div class="card-body">
-                <div class="text-primary mb-2"><i class="bi bi-people" style="font-size:2rem;"></i></div>
-                <h3 class="stats-number text-primary" th:text="${totalStudents ?: '1,234'}">1,234</h3>
-                <p class="stats-label text-muted mb-0">Total Students</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card card text-center">
-              <div class="card-body">
-                <div class="text-success mb-2"><i class="bi bi-person-badge" style="font-size:2rem;"></i></div>
-                <h3 class="stats-number text-success" th:text="${totalFaculty ?: '87'}">87</h3>
-                <p class="stats-label text-muted mb-0">Active Faculty</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card card text-center">
-              <div class="card-body">
-                <div class="text-warning mb-2"><i class="bi bi-clock-history" style="font-size:2rem;"></i></div>
-                <h3 class="stats-number text-warning" th:text="${pendingApplications ?: '23'}">23</h3>
-                <p class="stats-label text-muted mb-0">Pending Applications</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stats-card card text-center">
-              <div class="card-body">
-                <div class="text-info mb-2"><i class="bi bi-calendar-event" style="font-size:2rem;"></i></div>
-                <h3 class="stats-number text-info" th:text="${upcomingEvents ?: '5'}">5</h3>
-                <p class="stats-label text-muted mb-0">Upcoming Events</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Overview -->
+        <section class="mb-4">
+          <h2 class="section-title">
+            <i class="bi bi-grid-1x2"></i>
+            Overview
+          </h2>
 
-        <div class="row">
+          <div class="row g-3">
+            <div class="col-xl-3 col-md-6">
+              <article class="overview-card">
+                <div class="card-body">
+                  <div class="overview-icon"><i class="bi bi-building"></i></div>
+                  <h3 class="overview-number" th:text="${totalProjects ?: '—'}">—</h3>
+                  <p class="overview-label">Projects</p>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+              <article class="overview-card">
+                <div class="card-body">
+                  <div class="overview-icon"><i class="bi bi-people"></i></div>
+                  <h3 class="overview-number" th:text="${totalEmployees ?: '—'}">—</h3>
+                  <p class="overview-label">Team Members</p>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+              <article class="overview-card">
+                <div class="card-body">
+                  <div class="overview-icon"><i class="bi bi-inbox"></i></div>
+                  <h3 class="overview-number" th:text="${pendingInquiries ?: '—'}">—</h3>
+                  <p class="overview-label">Pending Inquiries</p>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+              <article class="overview-card">
+                <div class="card-body">
+                  <div class="overview-icon"><i class="bi bi-calendar-check"></i></div>
+                  <h3 class="overview-number" th:text="${upcomingTasks ?: '—'}">—</h3>
+                  <p class="overview-label">Upcoming Tasks</p>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <div class="row g-3">
           <!-- Recent Activities -->
-          <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white border-0 py-3">
-                <h5 class="card-title mb-0"><i class="bi bi-activity me-2 text-primary"></i>Recent Activities</h5>
+          <section class="col-lg-8">
+            <div class="content-card">
+              <div class="content-card-header">
+                <h2 class="section-title">
+                  <i class="bi bi-activity"></i>
+                  Recent Activity
+                </h2>
               </div>
-              <div class="card-body">
-                <div class="activity-item">
-                  <div class="d-flex align-items-center">
-                    <div class="bg-success rounded-circle p-2 me-3"><i class="bi bi-person-plus text-white"></i></div>
-                    <div>
-                      <h6 class="mb-1">New Student Registration</h6>
-                      <p class="text-muted mb-1">Maria Santos registered for Grade 7</p>
-                      <small class="text-muted">2 hours ago</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="d-flex align-items-center">
-                    <div class="bg-info rounded-circle p-2 me-3"><i class="bi bi-calendar-check text-white"></i></div>
-                    <div>
-                      <h6 class="mb-1">Event Scheduled</h6>
-                      <p class="text-muted mb-1">Family Day event scheduled for next month</p>
-                      <small class="text-muted">4 hours ago</small>
-                    </div>
-                  </div>
-                </div>
-                <div class="activity-item">
-                  <div class="d-flex align-items-center">
-                    <div class="bg-warning rounded-circle p-2 me-3"><i class="bi bi-file-earmark-text text-white"></i></div>
-                    <div>
-                      <h6 class="mb-1">Report Generated</h6>
-                      <p class="text-muted mb-1">Monthly attendance report created</p>
-                      <small class="text-muted">1 day ago</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Quick Actions -->
-          <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm">
-              <div class="card-header bg-white border-0 py-3">
-                <h5 class="card-title mb-0"><i class="bi bi-lightning me-2 text-primary"></i>Quick Actions</h5>
-              </div>
-              <div class="card-body">
-                <div class="d-grid gap-2">
-                  <a href="/admission" class="btn btn-outline-primary"><i class="bi bi-person-plus me-2"></i>New Admission</a>
-                  <a href="/attendance" class="btn btn-outline-success"><i class="bi bi-calendar-check me-2"></i>Take Attendance</a>
-                  <a href="/events" class="btn btn-outline-info"><i class="bi bi-calendar-event me-2"></i>Manage Events</a>
-                  <a href="/admissionreports" class="btn btn-outline-warning"><i class="bi bi-graph-up me-2"></i>View Reports</a>
+              <div class="content-card-body">
+                <div class="activity-item">
+                  <div class="activity-icon"><i class="bi bi-clipboard-check"></i></div>
+                  <div>
+                    <h3>Project updates</h3>
+                    <p>Recent project activity will appear here.</p>
+                  </div>
                 </div>
-              </div>
-            </div>
 
-            <!-- System Status -->
-            <div class="card border-0 shadow-sm mt-3">
-              <div class="card-header bg-white border-0 py-3">
-                <h6 class="card-title mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>System Status</h6>
-              </div>
-              <div class="card-body">
-                <div class="row text-center">
-                  <div class="col-6">
-                    <div class="text-success mb-1"><i class="bi bi-circle-fill" style="font-size:.8rem;"></i></div>
-                    <small class="text-muted">Online</small>
+                <div class="activity-item">
+                  <div class="activity-icon"><i class="bi bi-chat-square-text"></i></div>
+                  <div>
+                    <h3>New inquiries</h3>
+                    <p>Keep track of customer and project inquiries.</p>
                   </div>
-                  <div class="col-6">
-                    <div class="text-primary mb-1"><strong>v2.1.0</strong></div>
-                    <small class="text-muted">Version</small>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
+                  <div>
+                    <h3>Reports and records</h3>
+                    <p>Company reports and recent records will appear here.</p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </section>
+
+          <!-- Quick Actions and Status -->
+          <aside class="col-lg-4">
+            <section class="content-card mb-3">
+              <div class="content-card-header">
+                <h2 class="section-title">
+                  <i class="bi bi-lightning-charge"></i>
+                  Quick Actions
+                </h2>
+              </div>
+
+              <div class="content-card-body d-grid gap-2">
+                <a th:href="@{/admission}" class="quick-action">
+                  <i class="bi bi-person-plus"></i>
+                  <span>New Admission</span>
+                </a>
+
+                <a th:href="@{/attendance}" class="quick-action">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>Take Attendance</span>
+                </a>
+
+                <a th:href="@{/events}" class="quick-action">
+                  <i class="bi bi-calendar-event"></i>
+                  <span>Manage Events</span>
+                </a>
+
+                <a th:href="@{/admissionreports}" class="quick-action">
+                  <i class="bi bi-graph-up"></i>
+                  <span>View Reports</span>
+                </a>
+              </div>
+            </section>
+
+            <section class="content-card">
+              <div class="content-card-header">
+                <h2 class="section-title">
+                  <i class="bi bi-hdd-network"></i>
+                  System Status
+                </h2>
+              </div>
+
+              <div class="content-card-body">
+                <div class="system-status">
+                  <span class="status-label">Application</span>
+                  <span class="status-value status-online">
+                    <i class="bi bi-circle-fill"></i> Online
+                  </span>
+                </div>
+
+                <div class="system-status">
+                  <span class="status-label">Version</span>
+                  <span class="status-value">CBM Portal</span>
+                </div>
+              </div>
+            </section>
+          </aside>
         </div>
 
-        <!-- Alert -->
-        <div class="alert alert-info border-0 shadow-sm" style="border-left:4px solid #0dcaf0!important;">
-          <div class="d-flex align-items-center">
-            <i class="bi bi-info-circle-fill me-3" style="font-size:1.5rem;"></i>
-            <div><strong>Reminder:</strong> Don't forget to check your messages and review pending applications.</div>
+        <div class="reminder">
+          <i class="bi bi-info-circle-fill"></i>
+          <div>
+            <strong>Reminder:</strong>
+            Check your messages and review any pending company requests.
           </div>
         </div>
       </main>
     </div>
   </div>
 
-  <!-- Bootstrap JS (bundle includes Popper & Collapse) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Page level demo (optional)
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('Home page loaded');
-      setInterval(() => console.log('Refreshing dashboard stats...'), 300000);
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("CBM dashboard loaded");
     });
   </script>
 </body>
