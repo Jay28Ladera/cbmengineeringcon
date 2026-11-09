@@ -3,1047 +3,486 @@
                           studentInfoExpanded, asmsiExpanded, admissionExpanded,
                           attendanceExpanded, eventsExpanded, familyDayExpanded)"
      id="sidebar"
-     class="d-flex flex-column flex-shrink-0 bg-dark text-white sidebar sidebar-expanded">
+     class="sidebar d-flex flex-column flex-shrink-0 sidebar-expanded">
 
-  <!-- Header with Toggle -->
-  <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
-    <a href="/home" class="text-white text-decoration-none d-flex align-items-center">
-      <i class="bi bi-speedometer2 me-2 text-primary"></i>
-      <span class="fw-semibold sidebar-text">Dashboard</span>
+  <!-- CBM brand strip -->
+  <div class="sidebar-brand d-flex align-items-center justify-content-between">
+    <a th:href="@{/home}" class="sidebar-brand-link d-flex align-items-center text-decoration-none">
+      <img th:src="@{/images/logo.png}" src="/images/logo.png"
+           alt="CBM Engineering and Construction" class="sidebar-brand-logo" />
+      <span class="sidebar-brand-title sidebar-text">Management</span>
     </a>
-    <button id="sidebarToggle" class="btn btn-sm btn-outline-light rounded-pill" type="button" title="Toggle sidebar">
+    <button id="sidebarToggle" class="sidebar-toggle" type="button"
+            title="Toggle sidebar" aria-label="Toggle sidebar">
       <i class="bi bi-list"></i>
     </button>
   </div>
 
-  <!-- Nav -->
-  <ul class="nav nav-pills flex-column mb-auto px-2 pt-3">
-
-    <!-- Home (visible to all) -->
-    <li class="nav-item mb-1">
-      <a th:href="@{/home}"
-         class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
-         th:classappend="${activePage} == 'home' ? 'active bg-primary'">
-        <i class="bi bi-house-door"></i><span class="sidebar-text">Home</span>
+  <!-- Navigation -->
+  <ul class="nav flex-column sidebar-nav">
+    <li class="nav-item">
+      <a th:href="@{/home}" class="nav-link sidebar-link"
+         th:classappend="${activePage == 'home'} ? ' active'">
+        <i class="bi bi-house-door-fill"></i><span class="sidebar-text">Home</span>
       </a>
     </li>
 
-    <!-- Messages (visible to all) -->
-    <li class="nav-item mb-1">
-  <a th:href="@{/messages}"
-     class="nav-link text-white d-flex align-items-center justify-content-between gap-2 rounded-3"
-     th:classappend="${activePage} == 'messages' ? 'active bg-primary'">
-
-    <span class="d-flex align-items-center gap-2">
-      <i class="bi bi-envelope"></i>
-      <span class="sidebar-text">Messages</span>
-    </span>
-
-    <span id="sidebarMessageBadge"
-          class="badge rounded-pill bg-danger d-none sidebar-text sidebar-message-badge"
-          style="font-size:.65rem;">
-      0
-    </span>
-  </a>
-</li>
-
-    <!-- E Library -->
-    <li class="mb-1">
-  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-     data-bs-toggle="collapse"
-     data-bs-target="#elibrarySettings"
-     role="button"
-     aria-controls="elibrarySettings">
-    <span class="d-flex align-items-center gap-2">
-      <i class="bi bi-journal-bookmark"></i>
-      <span class="sidebar-text">E Library</span>
-    </span>
-    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-  </a>
-
-  <div id="elibrarySettings"
-       class="collapse ps-4 mt-1"
-       th:classappend="${#arrays.contains({'elibrary-pending','elibrary-approved','elibrary-mybooking','elibrary-booknow','elibrary-settings','elibrary-myreport'}, activePage)} ? ' show'">
-    <ul class="nav flex-column">
-
-      <!-- ADMIN ONLY -->
-      <th:block th:if="${role == 'admin'}">
-
-        <li class="nav-item mb-1">
-          <a th:href="@{/pending}"
-             class="nav-link text-white-50 rounded-2 py-2"
-             th:classappend="${activePage} == 'elibrary-pending' ? 'active bg-primary text-white'">
-            <i class="bi bi-dot me-1"></i>Pending
-          </a>
-        </li>
-
-        <li class="nav-item mb-1">
-          <a th:href="@{/approved}"
-             class="nav-link text-white-50 rounded-2 py-2"
-             th:classappend="${activePage} == 'elibrary-approved' ? 'active bg-primary text-white'">
-            <i class="bi bi-dot me-1"></i>Approved
-          </a>
-        </li>
-
-      </th:block>
-
-      <!-- VISIBLE TO ALL -->
-      <li class="nav-item mb-1">
-        <a th:href="@{/my-booking}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'elibrary-mybooking' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>My Booking
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/book-now}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'elibrary-booknow' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Book Now
-        </a>
-      </li>
-
-      <!-- ADMIN ONLY -->
-      <th:block th:if="${role == 'admin'}">
-
-        <li class="nav-item mb-1">
-          <a th:href="@{/settings}"
-             class="nav-link text-white-50 rounded-2 py-2"
-             th:classappend="${activePage} == 'elibrary-settings' ? 'active bg-primary text-white'">
-            <i class="bi bi-dot me-1"></i>Settings
-          </a>
-        </li>
-
-        <li class="nav-item mb-1">
-          <a th:href="@{/elibrary/report}"
-             class="nav-link text-white-50 rounded-2 py-2"
-             th:classappend="${activePage} == 'elibrary-myreport' ? 'active bg-primary text-white'">
-            <i class="bi bi-dot me-1"></i>My Report
-          </a>
-        </li>
-
-      </th:block>
-
-    </ul>
-  </div>
-</li>
-
-    <!-- ===================== ADMIN-ONLY NAV ===================== -->
-    <th:block th:if="${role == 'admin'}">
-
-      <!-- Student Information -->
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse"
-           data-bs-target="#studentSettings"
-           role="button"
-           aria-controls="studentSettings">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-person-lines-fill"></i><span class="sidebar-text">Student Information</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-        </a>
-        <div id="studentSettings" class="collapse ps-4 mt-1" th:classappend="${studentInfoExpanded} ? ' show'">
-          <ul class="nav flex-column">
-            <li class="nav-item mb-1">
-              <a th:href="@{/student-info}" class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'student-info' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Student Information
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/via-settings}" class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'via-settings' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>VIA Settings
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/student-statistics}" class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'student-statistics' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Student Statistics
-              </a>
-            </li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- NTS Profile -->
-      <li class="nav-item mb-1">
-        <a th:href="@{/ntsmanager}" class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
-           th:classappend="${activePage} == 'ntsmanager' ? 'active bg-primary'">
-          <i class="bi bi-person-badge"></i><span class="sidebar-text">NTS Profile</span>
-        </a>
-      </li>
-
-      <!-- Faculty Profile -->
-      <li class="nav-item mb-1">
-        <a th:href="@{/facultymanager}" class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
-           th:classappend="${activePage} == 'facultymanager' ? 'active bg-primary'">
-          <i class="bi bi-people-fill"></i><span class="sidebar-text">Faculty Profile</span>
-        </a>
-      </li>
-
-      <!-- ASMSI Management -->
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse" data-bs-target="#asmsiMgmt" role="button" aria-controls="asmsiMgmt">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-building-gear"></i><span class="sidebar-text">ASMSI Management</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-        </a>
-        <div id="asmsiMgmt" class="collapse ps-4 mt-1" th:classappend="${asmsiExpanded} ? ' show'">
-          <ul class="nav flex-column">
-            <li class="nav-item mb-1">
-              <a th:href="@{/asmsimanager}" class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'asmsimanager' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Masterlist
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/asmsistatistics}" class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'asmsistatistics' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Alumni Statistics
-              </a>
-            </li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Admission -->
-<li class="mb-1">
-  <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-     data-bs-toggle="collapse" data-bs-target="#admissionSettings" role="button" aria-controls="admissionSettings">
-    <span class="d-flex align-items-center gap-2">
-      <i class="bi bi-person-plus"></i><span class="sidebar-text">Admission</span>
-    </span>
-    <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-  </a>
-
-  <div id="admissionSettings" class="collapse ps-4 mt-1" th:classappend="${admissionExpanded} ? ' show'">
-    <ul class="nav flex-column">
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/studentpasser}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'studentpasser' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Student Passer
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/admission/passer-health}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'passer-health' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Passer Health
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/admission}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'admission' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Admission Form
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/upload-database}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'upload-database' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Upload Database
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/admission-settings/view}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'admission-settings' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Admission Settings
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/admissionreports}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'admissionreports' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Reports
-        </a>
-      </li>
-
-      <li class="nav-item mb-1">
-        <a th:href="@{/senthome}"
-           class="nav-link text-white-50 rounded-2 py-2"
-           th:classappend="${activePage} == 'senthome' ? 'active bg-primary text-white'">
-          <i class="bi bi-dot me-1"></i>Send Home
-        </a>
-      </li>
-
-    </ul>
-  </div>
-</li>
-
-      <!-- Inventory (ADMIN: full) -->
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse"
-           data-bs-target="#inventorySettings"
-           role="button"
-           aria-controls="inventorySettings">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-box-seam"></i>
-            <span class="sidebar-text">Inventory</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-        </a>
-
-        <div id="inventorySettings"
-             class="collapse ps-4 mt-1"
-             th:classappend="${#arrays.contains({'inventory-shops','inventory-school-items','inventory-report','inventory-requests'}, activePage)} ? ' show'">
-          <ul class="nav flex-column">
-
-            <!-- My Shops -->
-            <li class="nav-item mb-1">
-              <a th:href="@{/schoolshops}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'inventory-shops' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>My Shops
-              </a>
-            </li>
-
-            <!-- School Items -->
-            <li class="nav-item mb-1">
-              <a th:href="@{/schoolitems}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'inventory-school-items' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>School Items
-              </a>
-            </li>
-
-            <!-- Inventory Report -->
-            <li class="nav-item mb-1">
-              <a th:href="@{/schoolitems/inventory/report}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'inventory-report' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Inventory Report
-              </a>
-            </li>
-
-            <!-- Item Requests -->
-            <li class="nav-item mb-1">
-              <a th:href="@{/inventory/requests}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'inventory-requests' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Item Requests
-              </a>
-            </li>
-
-          </ul>
-        </div>
-      </li>
-
-      <!-- Vacation Day -->
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse"
-           data-bs-target="#vacationDaySettings"
-           role="button"
-           aria-controls="vacationDaySettings">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-sun"></i><span class="sidebar-text">Vacation Day</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-        </a>
-        <div id="vacationDaySettings"
-             class="collapse ps-4 mt-1"
-             th:classappend="${#arrays.contains({'vacation-attendance','vacation-report','vacation-schedule','vacation-display'}, activePage)} ? ' show'">
-          <ul class="nav flex-column">
-            <li class="nav-item mb-1">
-              <a th:href="@{/vacationportal}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'vacation-attendance' ? 'active bg-primary text-white'">
-                <i class="bi bi-calendar-check me-1"></i>Vacation Day Attendance
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/vacationdayreport}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'vacation-report' ? 'active bg-primary text-white'">
-                <i class="bi bi-graph-up-arrow me-1"></i>Vacation Day Report
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/vacationdayschedule}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'vacation-schedule' ? 'active bg-primary text-white'">
-                <i class="bi bi-calendar-range me-1"></i>Vacation Day Schedule
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/vacationdaydisplay}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'vacation-display' ? 'active bg-primary text-white'">
-                <i class="bi bi-display me-1"></i>Vacation Day Display of Trips
-              </a>
-            </li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Family Day -->
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse" data-bs-target="#familyDaySettings" role="button" aria-controls="familyDaySettings">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-people"></i><span class="sidebar-text">Family Day</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-        </a>
-        <div id="familyDaySettings" class="collapse ps-4 mt-1" th:classappend="${familyDayExpanded} ? ' show'">
-          <ul class="nav flex-column">
-            <li class="nav-item mb-1">
-              <a th:href="@{/visitingday}" 
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'visitingday' ? 'active bg-primary text-white'">
-                <i class="bi bi-calendar-check me-1"></i>Visiting Day Portal
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/visitingdayreport}" 
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'visitingdayreport' ? 'active bg-primary text-white'">
-                <i class="bi bi-graph-up-arrow me-1"></i>Visiting Day Report
-              </a>
-            </li>
-            <li class="nav-item mb-1">
-              <a th:href="@{/display}" 
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'display' ? 'active bg-primary text-white'">
-                <i class="bi bi-display me-1"></i>Display
-              </a>
-            </li>
-          </ul>
-        </div>
-      </li>
-
-      <!-- Admin Users -->
-      <li class="nav-item mb-1">
-        <a th:href="@{/users}" class="nav-link text-white d-flex align-items-center gap-2 rounded-3"
-           th:classappend="${activePage} == 'users' ? 'active bg-primary'">
-          <i class="bi bi-shield-check"></i><span class="sidebar-text">Users</span>
-        </a>
-      </li>
-
-    </th:block>
-
-    <!-- POS / Merchandise -->
-    <li class="mb-1">
-      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-         data-bs-toggle="collapse"
-         data-bs-target="#posSettings"
-         role="button"
-         aria-controls="posSettings">
-        <span class="d-flex align-items-center gap-2">
-          <i class="bi bi-cart"></i>
-          <span class="sidebar-text">POS / Merchandise</span>
-        </span>
+    <!-- Inquiry -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmInquiry" role="button" aria-controls="cbmInquiry">
+        <i class="bi bi-file-earmark-text-fill"></i>
+        <span class="sidebar-text">Inquiry</span>
         <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
       </a>
-
-      <div id="posSettings"
-           class="collapse ps-4 mt-1"
-           th:classappend="${#arrays.contains({'pos-terminal','pos-inventory','merch-report','pos-logs','pos-display'}, activePage)} ? ' show'">
+      <div id="cbmInquiry" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'clients','quotations'}, activePage)} ? ' show'">
         <ul class="nav flex-column">
-          <li class="nav-item mb-1">
-            <a th:href="@{/pos}"
-               class="nav-link text-white-50 rounded-2 py-2"
-               th:classappend="${activePage} == 'pos-terminal' ? 'active bg-primary text-white'">
-              <i class="bi bi-dot me-1"></i>POS Terminal
-            </a>
-          </li>
-
-          <li class="nav-item mb-1">
-            <a th:href="@{/inventory}"
-               class="nav-link text-white-50 rounded-2 py-2"
-               th:classappend="${activePage} == 'pos-inventory' ? 'active bg-primary text-white'">
-              <i class="bi bi-dot me-1"></i>Merch Inventory
-            </a>
-          </li>
-
-          <li class="nav-item mb-1">
-            <a th:href="@{/merch-report}"
-               class="nav-link text-white-50 rounded-2 py-2"
-               th:classappend="${activePage} == 'merch-report' ? 'active bg-primary text-white'">
-              <i class="bi bi-dot me-1"></i>Sales Report
-            </a>
-          </li>
-
-          <li class="nav-item mb-1">
-            <a th:href="@{/customers}"
-               class="nav-link text-white-50 rounded-2 py-2"
-               th:classappend="${activePage} == 'pos-logs' ? 'active bg-primary text-white'">
-              <i class="bi bi-dot me-1"></i>Customer Display
-            </a>
-          </li>
+          <li><a th:href="@{/Clients}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'clients'} ? ' active'"><i class="bi bi-dot"></i><span>Clients</span></a></li>
+          <li><a th:href="@{/Quotations}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'quotations'} ? ' active'"><i class="bi bi-dot"></i><span>Quotations</span></a></li>
         </ul>
       </div>
     </li>
 
-    <!-- LRC Attendance (visible to ALL roles) -->
-    <li class="mb-1">
-      <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-         data-bs-toggle="collapse"
-         data-bs-target="#attendanceSettings"
-         role="button"
-         aria-controls="attendanceSettings"
-         th:aria-expanded="${attendanceExpanded} ? true : false">
-        <span class="d-flex align-items-center gap-2">
-          <i class="bi bi-calendar-check"></i>
-          <span class="sidebar-text">School Attendance</span>
-        </span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"
-           th:classappend="${attendanceExpanded} ? ' rotated'"></i>
+    <!-- Implementation -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmImplementation" role="button" aria-controls="cbmImplementation">
+        <i class="bi bi-diagram-3-fill"></i>
+        <span class="sidebar-text">Implementation</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
       </a>
-
-      <div id="attendanceSettings"
-           class="collapse ps-4 mt-1"
-           th:classappend="${attendanceExpanded} ? ' show'">
+      <div id="cbmImplementation" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'subcontractors','job-orders'}, activePage)} ? ' show'">
         <ul class="nav flex-column">
-          <li class="nav-item mb-1">
-            <a th:href="@{/attendance}"
-               class="nav-link text-white-50 rounded-2 py-2"
-               th:classappend="${activePage} == 'attendance' ? ' active bg-primary text-white'">
-              <i class="bi bi-dot me-1"></i>Attendance Portal
-            </a>
-          </li>
-
-          <li class="nav-item mb-1">
-            <a th:href="@{/attendance-report}"
-               class="nav-link text-white-50 rounded-2 py-2"
-               th:classappend="${activePage} == 'attendance-report' ? ' active bg-primary text-white'">
-              <i class="bi bi-dot me-1"></i>Attendance Reports
-            </a>
-          </li>
+          <li><a th:href="@{/Subcontractors}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'subcontractors'} ? ' active'"><i class="bi bi-dot"></i><span>Subcontractors</span></a></li>
+          <li><a th:href="@{/JobOrders}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'job-orders'} ? ' active'"><i class="bi bi-dot"></i><span>Job Orders</span></a></li>
         </ul>
       </div>
     </li>
 
-    <!-- Inventory (USER: only My Shops + Item Requests) -->
-    <th:block th:if="${role != 'admin'}">
-      <li class="mb-1">
-        <a class="nav-link text-white d-flex align-items-center justify-content-between rounded-3"
-           data-bs-toggle="collapse"
-           data-bs-target="#inventorySettings"
-           role="button"
-           aria-controls="inventorySettings">
-          <span class="d-flex align-items-center gap-2">
-            <i class="bi bi-box-seam"></i>
-            <span class="sidebar-text">Inventory</span>
-          </span>
-          <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-        </a>
+    <!-- Purchasing -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmPurchasing" role="button" aria-controls="cbmPurchasing">
+        <i class="bi bi-cart-fill"></i>
+        <span class="sidebar-text">Purchasing</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="cbmPurchasing" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'suppliers','canvasses','procurements','market-prices'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li><a th:href="@{/Purchasing/Suppliers}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'suppliers'} ? ' active'"><i class="bi bi-dot"></i><span>Suppliers</span></a></li>
+          <li><a th:href="@{/Purchasing/Canvasses}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'canvasses'} ? ' active'"><i class="bi bi-dot"></i><span>Canvasses</span></a></li>
+          <li><a th:href="@{/Purchasing/Procurements}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'procurements'} ? ' active'"><i class="bi bi-dot"></i><span>Procurements</span></a></li>
+          <li><a th:href="@{/Purchasing/MarketPrices}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'market-prices'} ? ' active'"><i class="bi bi-dot"></i><span>Market Prices</span></a></li>
+        </ul>
+      </div>
+    </li>
 
-        <div id="inventorySettings"
-             class="collapse ps-4 mt-1"
-             th:classappend="${#arrays.contains({'inventory-shops','inventory-requests'}, activePage)} ? ' show'">
-          <ul class="nav flex-column">
+    <!-- Inventory -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmInventory" role="button" aria-controls="cbmInventory">
+        <i class="bi bi-boxes"></i>
+        <span class="sidebar-text">Inventory</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="cbmInventory" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'inventory-categories','materials','stock-receiving','stock-adjustment','tools-equipment'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li><a th:href="@{/Inventory/Categories}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'inventory-categories'} ? ' active'"><i class="bi bi-dot"></i><span>Categories</span></a></li>
+          <li><a th:href="@{/Inventory/Materials}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'materials'} ? ' active'"><i class="bi bi-dot"></i><span>Materials</span></a></li>
+          <li><a th:href="@{/Inventory/StockReceiving}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'stock-receiving'} ? ' active'"><i class="bi bi-dot"></i><span>Stock Receiving</span></a></li>
+          <li><a th:href="@{/Inventory/StockAdjustment}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'stock-adjustment'} ? ' active'"><i class="bi bi-dot"></i><span>Stock Adjustment</span></a></li>
+          <li><a th:href="@{/Inventory/ToolsAndEquipments}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'tools-equipment'} ? ' active'"><i class="bi bi-dot"></i><span>Tools &amp; Equipment</span></a></li>
+        </ul>
+      </div>
+    </li>
 
-            <!-- My Shops -->
-            <li class="nav-item mb-1">
-              <a th:href="@{/schoolshops}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'inventory-shops' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>My Shops
-              </a>
-            </li>
+    <!-- Accounting -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmAccounting" role="button" aria-controls="cbmAccounting">
+        <i class="bi bi-calculator-fill"></i>
+        <span class="sidebar-text">Accounting</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="cbmAccounting" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'payments','subcon-billings','admin-expenses'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li><a th:href="@{/Accounting/Payments}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'payments'} ? ' active'"><i class="bi bi-dot"></i><span>Payments</span></a></li>
+          <li><a th:href="@{/Accounting/SubconBillings}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'subcon-billings'} ? ' active'"><i class="bi bi-dot"></i><span>Subcon Billings</span></a></li>
+          <li><a th:href="@{/Accounting/AdminExpenses}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'admin-expenses'} ? ' active'"><i class="bi bi-dot"></i><span>Admin Expenses</span></a></li>
+        </ul>
+      </div>
+    </li>
 
-            <!-- Item Requests -->
-            <li class="nav-item mb-1">
-              <a th:href="@{/inventory/requests}"
-                 class="nav-link text-white-50 rounded-2 py-2"
-                 th:classappend="${activePage} == 'inventory-requests' ? 'active bg-primary text-white'">
-                <i class="bi bi-dot me-1"></i>Item Requests
-              </a>
-            </li>
+    <!-- Human Resources -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmHr" role="button" aria-controls="cbmHr">
+        <i class="bi bi-people-fill"></i>
+        <span class="sidebar-text">HR</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="cbmHr" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'employees','holidays','biometric-device','time-logs','payroll-periods','timesheets','paysheets'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li><a th:href="@{/HR/Employees}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'employees'} ? ' active'"><i class="bi bi-dot"></i><span>Employees</span></a></li>
+          <li><a th:href="@{/HR/Holidays}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'holidays'} ? ' active'"><i class="bi bi-dot"></i><span>Holidays</span></a></li>
+          <li><a th:href="@{/HR/BiometricDevice}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'biometric-device'} ? ' active'"><i class="bi bi-dot"></i><span>Biometric Device</span></a></li>
+          <li><a th:href="@{/HR/TimeLogs}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'time-logs'} ? ' active'"><i class="bi bi-dot"></i><span>Time Logs</span></a></li>
+          <li><a th:href="@{/HR/PayrollPeriod}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'payroll-periods'} ? ' active'"><i class="bi bi-dot"></i><span>Payroll Periods</span></a></li>
+          <li><a th:href="@{/HR/TimeSheets}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'timesheets'} ? ' active'"><i class="bi bi-dot"></i><span>Time Sheets</span></a></li>
+          <li><a th:href="@{/HR/PaySheets}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'paysheets'} ? ' active'"><i class="bi bi-dot"></i><span>Pay Sheets</span></a></li>
+        </ul>
+      </div>
+    </li>
 
-          </ul>
-        </div>
-      </li>
-    </th:block>
+    <!-- Admin -->
+    <li class="nav-item sidebar-group" th:if="${role == 'admin' or role == 'CEO' or role == 'ceo'}">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmAdmin" role="button" aria-controls="cbmAdmin">
+        <i class="bi bi-person-lock"></i>
+        <span class="sidebar-text">Admin</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="cbmAdmin" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'users','settings','trails'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li><a th:href="@{/Admin/Users}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'users'} ? ' active'"><i class="bi bi-dot"></i><span>Users</span></a></li>
+          <li><a th:href="@{/Admin/Settings}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'settings'} ? ' active'"><i class="bi bi-dot"></i><span>Settings</span></a></li>
+          <li><a th:href="@{/Admin/Trails}" class="nav-link sidebar-link"
+                 th:classappend="${activePage == 'trails'} ? ' active'"><i class="bi bi-dot"></i><span>Trails (Delete)</span></a></li>
+        </ul>
+      </div>
+    </li>
 
+    <!-- Reports -->
+    <li class="nav-item sidebar-group">
+      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
+         data-bs-target="#cbmReports" role="button" aria-controls="cbmReports">
+        <i class="bi bi-file-earmark-bar-graph-fill"></i>
+        <span class="sidebar-text">Reports</span>
+        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+      </a>
+      <div id="cbmReports" class="collapse sidebar-submenu"
+           th:classappend="${#arrays.contains({'report-quotations','report-job-orders','report-payments','report-subcon-billings','report-admin-expenses','report-inventory-summary','report-inventory-movement','report-project-salary-cost','report-billing-monitoring','report-project-profitability','report-project-expenses','report-project-monthly'}, activePage)} ? ' show'">
+        <ul class="nav flex-column">
+          <li><a th:href="@{/Reports/QuotationListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-quotations'} ? ' active'"><i class="bi bi-dot"></i><span>Quotation Listing</span></a></li>
+          <li><a th:href="@{/Reports/JobOrderListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-job-orders'} ? ' active'"><i class="bi bi-dot"></i><span>Job Order Listing</span></a></li>
+          <li><a th:href="@{/Reports/PaymentListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-payments'} ? ' active'"><i class="bi bi-dot"></i><span>Payment Listing</span></a></li>
+          <li><a th:href="@{/Reports/SubconBillingListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-subcon-billings'} ? ' active'"><i class="bi bi-dot"></i><span>Subcon Billing Listing</span></a></li>
+          <li><a th:href="@{/Reports/AdminExpenseListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-admin-expenses'} ? ' active'"><i class="bi bi-dot"></i><span>Admin Expense Listing</span></a></li>
+          <li><a th:href="@{/Reports/InventorySummary}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-inventory-summary'} ? ' active'"><i class="bi bi-dot"></i><span>Inventory Summary</span></a></li>
+          <li><a th:href="@{/Reports/InventoryMovement}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-inventory-movement'} ? ' active'"><i class="bi bi-dot"></i><span>Inventory Movement</span></a></li>
+          <li><a th:href="@{/Reports/ProjectSalaryCost}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-salary-cost'} ? ' active'"><i class="bi bi-dot"></i><span>Project Salary Cost</span></a></li>
+          <li><a th:href="@{/Reports/BillingMonitoring}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-billing-monitoring'} ? ' active'"><i class="bi bi-dot"></i><span>Billing Monitoring</span></a></li>
+          <li><a th:href="@{/Reports/ProjectProfitability}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-profitability'} ? ' active'"><i class="bi bi-dot"></i><span>Project Profitability Report</span></a></li>
+          <li><a th:href="@{/Reports/ProjectExpenseBreakdown}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-expenses'} ? ' active'"><i class="bi bi-dot"></i><span>Project Expense Breakdown</span></a></li>
+          <li><a th:href="@{/Reports/ProjectMonthlySummary}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-monthly'} ? ' active'"><i class="bi bi-dot"></i><span>Project Monthly Summary</span></a></li>
+        </ul>
+      </div>
+    </li>
   </ul>
 
-  <!-- Footer -->
-  <div class="mt-auto p-3 text-center border-top border-secondary border-opacity-25">
-    <small class="text-secondary sidebar-text"><i class="bi bi-heart-fill text-danger me-1"></i>&copy;2025 Engr. Jay M Ladera</small>
+  <div class="sidebar-footer mt-auto">
+    <small class="sidebar-text">&copy; CBM Engineering &amp; Construction</small>
   </div>
 
-
-  <!-- Messages unread badge script -->
-  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-
-  <script th:inline="javascript">
-    (function () {
-      const currentUser = /*[[${username}]]*/ null;
-      const badge = document.getElementById('sidebarMessageBadge');
-
-      if (!badge) return;
-
-      function setUnread(count) {
-        const unread = Number(count) || 0;
-
-        if (unread > 0) {
-          badge.textContent = unread > 99 ? '99+' : unread;
-          badge.classList.remove('d-none');
-        } else {
-          badge.textContent = '0';
-          badge.classList.add('d-none');
-        }
-      }
-
-      function refreshUnreadCount() {
-        fetch(/*[[@{/messages/unread-count}]]*/ '/messages/unread-count')
-          .then(response => {
-            if (!response.ok) return 0;
-            return response.json();
-          })
-          .then(count => setUnread(count))
-          .catch(() => setUnread(0));
-      }
-
-      refreshUnreadCount();
-
-      if (!currentUser || typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
-        return;
-      }
-
-      const socket = new SockJS(/*[[@{/chat-websocket}]]*/ '/chat-websocket');
-      const client = Stomp.over(socket);
-      client.debug = null;
-
-      client.connect({}, function () {
-        client.subscribe('/user/' + currentUser + '/queue/messages', function () {
-          refreshUnreadCount();
-        });
-      }, function () {
-        // REST badge still works even if WebSocket fails
-      });
-    })();
-  </script>
-
-  <!-- Sidebar Script -->
+  <!-- Mobile overlay and responsive navigation -->
   <script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function () {
       const sidebar = document.getElementById('sidebar');
       const toggleBtn = document.getElementById('sidebarToggle');
       if (!sidebar || !toggleBtn) return;
 
-      // Role-based collapse state so admin and user do not affect each other
-      const currentRole = /*[[${role}]]*/ 'user';
-      const sidebarStorageKey = 'sidebar-collapsed-' + currentRole;
-
-      // Mobile helpers
+      const roleName = /*[[${role}]]*/ 'user';
+      const storageKey = 'cbm-sidebar-collapsed-' + roleName;
       let isMobile = window.innerWidth <= 768;
 
       const mobileMenuBtn = document.createElement('button');
-      mobileMenuBtn.className = 'mobile-menu-btn btn';
+      mobileMenuBtn.className = 'mobile-menu-btn';
+      mobileMenuBtn.type = 'button';
       mobileMenuBtn.innerHTML = '<i class="bi bi-list"></i>';
-      mobileMenuBtn.setAttribute('aria-label', 'Toggle mobile menu');
+      mobileMenuBtn.setAttribute('aria-label', 'Open navigation menu');
       document.body.appendChild(mobileMenuBtn);
 
       const overlay = document.createElement('div');
       overlay.className = 'sidebar-overlay';
       document.body.appendChild(overlay);
 
-      function checkMobile() {
-        const prev = isMobile;
-        isMobile = window.innerWidth <= 768;
-        if (isMobile !== prev) {
-          if (isMobile) {
-            sidebar.classList.remove('sidebar-collapsed');
-            sidebar.classList.add('sidebar-mobile-hidden');
-            overlay.classList.remove('show');
-          } else {
-            sidebar.classList.remove('sidebar-mobile-hidden');
-            overlay.classList.remove('show');
-            const wasCollapsed = localStorage.getItem(sidebarStorageKey) === 'true';
-            if (wasCollapsed) {
-              sidebar.classList.add('sidebar-collapsed');
-            } else {
-              sidebar.classList.remove('sidebar-collapsed');
-            }
-          }
-        }
-      }
-      checkMobile();
-
-      // Restore desktop collapsed state
-      if (!isMobile && localStorage.getItem(sidebarStorageKey) === 'true') {
-        sidebar.classList.add('sidebar-collapsed');
-      } else if (isMobile) {
+      function closeMobileMenu() {
         sidebar.classList.add('sidebar-mobile-hidden');
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+        document.body.style.overflow = '';
       }
 
-      // Desktop toggle
-      toggleBtn.addEventListener('click', () => {
-        if (isMobile) {
+      function syncArrows() {
+        document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(function (trigger) {
+          const target = document.querySelector(trigger.getAttribute('data-bs-target'));
+          const arrow = trigger.querySelector('.toggle-arrow');
+          if (!target || !arrow) return;
+          const expanded = target.classList.contains('show');
+          trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+          arrow.classList.toggle('bi-chevron-up', expanded);
+          arrow.classList.toggle('bi-chevron-down', !expanded);
+        });
+      }
+
+      function checkScreenSize() {
+        const wasMobile = isMobile;
+        isMobile = window.innerWidth <= 768;
+        if (isMobile && !wasMobile) {
+          sidebar.classList.remove('sidebar-collapsed');
           sidebar.classList.add('sidebar-mobile-hidden');
           overlay.classList.remove('show');
+        } else if (!isMobile && wasMobile) {
+          sidebar.classList.remove('sidebar-mobile-hidden', 'show');
+          overlay.classList.remove('show');
+          sidebar.classList.toggle('sidebar-collapsed', localStorage.getItem(storageKey) === 'true');
           document.body.style.overflow = '';
-        } else {
-          const isCollapsing = !sidebar.classList.contains('sidebar-collapsed');
-          if (isCollapsing) {
-            document.querySelectorAll('#sidebar .collapse.show').forEach(el => bootstrap.Collapse.getOrCreateInstance(el).hide());
-          }
-          sidebar.classList.toggle('sidebar-collapsed');
-          localStorage.setItem(sidebarStorageKey, sidebar.classList.contains('sidebar-collapsed'));
         }
+      }
+
+      if (isMobile) {
+        sidebar.classList.add('sidebar-mobile-hidden');
+      } else {
+        sidebar.classList.toggle('sidebar-collapsed', localStorage.getItem(storageKey) === 'true');
+      }
+      syncArrows();
+
+      toggleBtn.addEventListener('click', function () {
+        if (isMobile) {
+          closeMobileMenu();
+          return;
+        }
+        if (!sidebar.classList.contains('sidebar-collapsed')) {
+          document.querySelectorAll('#sidebar .collapse.show').forEach(function (submenu) {
+            bootstrap.Collapse.getOrCreateInstance(submenu).hide();
+          });
+        }
+        sidebar.classList.toggle('sidebar-collapsed');
+        localStorage.setItem(storageKey, sidebar.classList.contains('sidebar-collapsed'));
       });
 
-      // Mobile menu button
-      mobileMenuBtn.addEventListener('click', () => {
-        if (sidebar.classList.contains('sidebar-mobile-hidden')) {
+      mobileMenuBtn.addEventListener('click', function () {
+        const opening = sidebar.classList.contains('sidebar-mobile-hidden');
+        if (opening) {
           sidebar.classList.remove('sidebar-mobile-hidden');
           sidebar.classList.add('show');
           overlay.classList.add('show');
           document.body.style.overflow = 'hidden';
         } else {
-          sidebar.classList.add('sidebar-mobile-hidden');
-          sidebar.classList.remove('show');
-          overlay.classList.remove('show');
-          document.body.style.overflow = '';
+          closeMobileMenu();
         }
       });
 
-      overlay.addEventListener('click', () => {
-        sidebar.classList.add('sidebar-mobile-hidden');
-        sidebar.classList.remove('show');
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
-      });
+      overlay.addEventListener('click', closeMobileMenu);
 
-      // Close on link click (mobile)
-      document.querySelectorAll('#sidebar .nav-link').forEach(link => {
+      document.querySelectorAll('#sidebar .sidebar-link').forEach(function (link) {
         link.addEventListener('click', function () {
           if (this.getAttribute('data-bs-toggle') === 'collapse') return;
-          if (isMobile) {
-            setTimeout(() => {
-              sidebar.classList.add('sidebar-mobile-hidden');
-              sidebar.classList.remove('show');
-              overlay.classList.remove('show');
-              document.body.style.overflow = '';
-            }, 150);
-          }
+          if (isMobile) setTimeout(closeMobileMenu, 120);
         });
       });
 
-      /* Collapse chevrons sync */
-      function setArrow(trigger, expanded) {
-        const icon = trigger.querySelector('.toggle-arrow');
-        if (!icon) return;
-        trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        icon.classList.toggle('bi-chevron-up', expanded);
-        icon.classList.toggle('bi-chevron-down', !expanded);
-      }
-
-      document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(trigger => {
-        const targetSelector = trigger.getAttribute('data-bs-target');
-        const target = document.querySelector(targetSelector);
+      document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(function (trigger) {
+        const target = document.querySelector(trigger.getAttribute('data-bs-target'));
         if (!target) return;
-        setArrow(trigger, target.classList.contains('show'));
-        target.addEventListener('show.bs.collapse', () => setArrow(trigger, true));
-        target.addEventListener('hide.bs.collapse', () => setArrow(trigger, false));
+        target.addEventListener('shown.bs.collapse', syncArrows);
+        target.addEventListener('hidden.bs.collapse', syncArrows);
       });
+
+      window.addEventListener('resize', checkScreenSize);
     });
   </script>
 
   <style>
-  #sidebar {
-    --cbm-red: #c9141e;
-    --cbm-red-dark: #a80e17;
-    --cbm-side: #191919;
-    --cbm-side-light: #242424;
-    --cbm-text: #e8e8e8;
-    --cbm-muted: #a7a7a7;
-
-    width: 280px;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    color: var(--cbm-text) !important;
-    background: linear-gradient(180deg, #202020 0%, #151515 100%) !important;
-    box-shadow: 5px 0 24px rgba(0, 0, 0, 0.24);
-    transition: width 0.28s ease, transform 0.28s ease;
-    z-index: 1030;
-    transform: translateX(0);
-  }
-
-  #sidebar::-webkit-scrollbar { width: 6px; }
-  #sidebar::-webkit-scrollbar-track { background: #171717; }
-  #sidebar::-webkit-scrollbar-thumb { border-radius: 10px; background: #464646; }
-  #sidebar::-webkit-scrollbar-thumb:hover { background: var(--cbm-red); }
-
-  #sidebar > div:first-child {
-    min-height: 70px;
-    padding: 14px 16px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
-    background: rgba(255, 255, 255, 0.025);
-  }
-
-  #sidebar > div:first-child a {
-    min-width: 0;
-    gap: 10px;
-    color: #fff !important;
-    font-size: 0.94rem;
-    letter-spacing: 0.01em;
-  }
-
-  #sidebar > div:first-child a i {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 9px;
-    background: var(--cbm-red);
-    color: #fff !important;
-    font-size: 1rem;
-  }
-
-  #sidebarToggle {
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 9px !important;
-    color: #eee !important;
-    background: rgba(255, 255, 255, 0.06) !important;
-    transition: 0.2s ease;
-  }
-
-  #sidebarToggle:hover {
-    border-color: var(--cbm-red) !important;
-    color: #fff !important;
-    background: var(--cbm-red) !important;
-    transform: translateY(-1px);
-  }
-
-  #sidebar > .nav { padding: 16px 11px 24px !important; }
-
-  #sidebar .nav-link {
-    position: relative;
-    min-height: 43px;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    margin: 3px 0;
-    padding: 10px 13px !important;
-    overflow: hidden;
-    border: 1px solid transparent;
-    border-radius: 9px !important;
-    color: var(--cbm-muted) !important;
-    background: transparent !important;
-    font-size: 0.86rem;
-    font-weight: 500;
-    text-decoration: none;
-    transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
-  }
-
-  #sidebar .nav-link > span,
-  #sidebar .nav-link > i { flex-shrink: 0; }
-
-  #sidebar .nav-link > i:first-child,
-  #sidebar .nav-link span > i:first-child {
-    width: 21px;
-    color: #aaa;
-    font-size: 1rem;
-    text-align: center;
-    transition: color 0.18s ease;
-  }
-
-  #sidebar .nav-link:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.065) !important;
-    transform: translateX(2px);
-  }
-
-  #sidebar .nav-link:hover > i:first-child,
-  #sidebar .nav-link:hover span > i:first-child { color: #fff; }
-
-  #sidebar .nav-link.active,
-  #sidebar .nav-link.active.bg-primary {
-    border-color: rgba(255, 255, 255, 0.08);
-    color: #fff !important;
-    background: linear-gradient(100deg, var(--cbm-red), var(--cbm-red-dark)) !important;
-    box-shadow: 0 5px 14px rgba(201, 20, 30, 0.22);
-  }
-
-  #sidebar .nav-link.active > i:first-child,
-  #sidebar .nav-link.active span > i:first-child { color: #fff; }
-
-  #sidebar .nav-link.active::before {
-    position: absolute;
-    top: 8px;
-    bottom: 8px;
-    left: 0;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: #fff;
-    content: "";
-  }
-
-  #sidebar .toggle-arrow {
-    margin-left: auto;
-    color: #888;
-    font-size: 0.68rem;
-    transition: color 0.18s ease, transform 0.18s ease;
-  }
-
-  #sidebar .nav-link:hover .toggle-arrow,
-  #sidebar .nav-link[aria-expanded="true"] .toggle-arrow { color: #fff; }
-
-  #sidebar .nav-link[aria-expanded="true"] .toggle-arrow { transform: rotate(180deg); }
-
-  #sidebar .collapse {
-    margin: 4px 0 8px 14px;
-    padding-left: 10px !important;
-    border-left: 1px solid rgba(255, 255, 255, 0.12);
-  }
-
-  #sidebar .collapse .nav-link {
-    min-height: 36px;
-    margin: 2px 0;
-    padding: 8px 10px !important;
-    border-radius: 7px !important;
-    color: #aaa !important;
-    font-size: 0.81rem;
-  }
-
-  #sidebar .collapse .nav-link > i { width: 16px; color: #777; }
-
-  #sidebar .collapse .nav-link:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.06) !important;
-  }
-
-  #sidebar .collapse .nav-link.active,
-  #sidebar .collapse .nav-link.active.bg-primary {
-    color: #fff !important;
-    background: rgba(201, 20, 30, 0.2) !important;
-    box-shadow: inset 2px 0 0 var(--cbm-red);
-  }
-
-  #sidebar .collapse .nav-link.active::before { display: none; }
-
-  #sidebar .sidebar-message-badge {
-    min-width: 20px;
-    height: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 6px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    background: var(--cbm-red) !important;
-    box-shadow: 0 2px 8px rgba(201, 20, 30, 0.28);
-    font-size: 0.65rem;
-  }
-
-  #sidebar.sidebar-collapsed { width: 74px !important; }
-  #sidebar.sidebar-collapsed .sidebar-text { display: none !important; }
-
-  #sidebar.sidebar-collapsed .nav-link {
-    justify-content: center !important;
-    padding-right: 8px !important;
-    padding-left: 8px !important;
-  }
-
-  #sidebar.sidebar-collapsed .nav-link > i:first-child,
-  #sidebar.sidebar-collapsed .nav-link span > i:first-child {
-    width: 22px;
-    font-size: 1.12rem;
-  }
-
-  #sidebar.sidebar-collapsed .collapse.show { display: none !important; }
-
-  #sidebar.sidebar-collapsed .toggle-arrow,
-  #sidebar.sidebar-collapsed .sidebar-message-badge { display: none !important; }
-
-  #sidebar.sidebar-mobile-hidden { transform: translateX(-100%) !important; }
-
-  .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1025;
-    visibility: hidden;
-    background: rgba(0, 0, 0, 0.58);
-    opacity: 0;
-    transition: opacity 0.25s ease, visibility 0.25s ease;
-  }
-
-  .sidebar-overlay.show { visibility: visible; opacity: 1; }
-
-  .mobile-menu-btn {
-    position: fixed;
-    top: 14px;
-    left: 14px;
-    z-index: 1035;
-    display: none;
-    padding: 9px 11px;
-    border: 0;
-    border-radius: 9px;
-    color: #fff;
-    background: #c9141e;
-    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.24);
-    font-size: 1.15rem;
-  }
-
-  .mobile-menu-btn:hover,
-  .mobile-menu-btn:focus { color: #fff; background: #a80e17; }
-
-  #sidebar > .mt-auto {
-    border-top: 1px solid rgba(255, 255, 255, 0.09) !important;
-    background: rgba(0, 0, 0, 0.12);
-  }
-
-  #sidebar > .mt-auto small { color: #969696 !important; }
-
-  @media (max-width: 768px) {
-    #sidebar,
-    #sidebar.sidebar-collapsed {
-      width: 280px !important;
-      transform: translateX(-100%);
+    #sidebar {
+      --cbm-red: #c9141e;
+      --cbm-red-dark: #a80e17;
+      width: 280px;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1030;
+      overflow-x: hidden;
+      overflow-y: auto;
+      color: #f4f4f4 !important;
+      background: linear-gradient(180deg, #20272e 0%, #14181c 100%) !important;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+      transform: translateX(0);
+      transition: width 0.28s ease, transform 0.28s ease;
     }
 
-    #sidebar.show { transform: translateX(0); }
-    #sidebar.sidebar-collapsed .sidebar-text { display: inline !important; }
+    #sidebar::-webkit-scrollbar { width: 6px; }
+    #sidebar::-webkit-scrollbar-track { background: #191d21; }
+    #sidebar::-webkit-scrollbar-thumb { border-radius: 8px; background: #59616a; }
+    #sidebar::-webkit-scrollbar-thumb:hover { background: #858d94; }
 
-    #sidebar.sidebar-collapsed .nav-link {
-      justify-content: flex-start !important;
-      padding: 10px 13px !important;
+    #sidebar .sidebar-brand {
+      min-height: 76px;
+      flex: 0 0 auto;
+      padding: 11px 14px;
+      background: linear-gradient(110deg, #b50e18, #df1722);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
     }
 
-    #sidebar.sidebar-collapsed .toggle-arrow { display: inline-block !important; }
+    #sidebar .sidebar-brand-link {
+      min-width: 0;
+      gap: 10px;
+      color: #fff !important;
+      font-size: 1.08rem;
+      letter-spacing: 0.015em;
+      white-space: nowrap;
+    }
 
-    .mobile-menu-btn {
+    #sidebar .sidebar-brand-logo {
+      width: 43px;
+      height: 43px;
+      flex: 0 0 43px;
+      padding: 2px;
+      object-fit: contain;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    #sidebar .sidebar-toggle {
+      width: 37px;
+      height: 37px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      flex: 0 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.27);
+      border-radius: 7px;
+      color: #fff;
+      background: rgba(24, 24, 24, 0.22);
+      transition: 0.18s ease;
     }
-  }
 
-  @media (max-width: 576px) {
-    #sidebar,
-    #sidebar.sidebar-collapsed { width: min(86vw, 320px) !important; }
+    #sidebar .sidebar-toggle:hover { background: rgba(24, 24, 24, 0.42); transform: scale(1.04); }
+    #sidebar .sidebar-nav { padding: 12px 10px 18px; }
 
-    .mobile-menu-btn { top: 10px; left: 10px; padding: 8px 10px; }
-  }
-</style>
+    #sidebar .sidebar-link {
+      position: relative;
+      min-height: 47px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 3px 0;
+      padding: 11px 13px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.035);
+      border-radius: 7px;
+      color: #f4f4f4 !important;
+      background: rgba(177, 188, 199, 0.19);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: 0.18s ease;
+    }
+
+    #sidebar .sidebar-link > span,
+    #sidebar .sidebar-link > i { flex-shrink: 0; }
+
+    #sidebar .sidebar-link > i:first-child,
+    #sidebar .sidebar-link span > i:first-child {
+      width: 22px;
+      color: #f2f2f2;
+      font-size: 1.06rem;
+      text-align: center;
+    }
+
+    #sidebar .sidebar-link:hover { border-color: rgba(255,255,255,.12); color: #fff !important; background: rgba(190,199,207,.3); }
+
+    #sidebar .sidebar-link.active {
+      border-color: rgba(255,255,255,.8);
+      color: #22272b !important;
+      background: #f3f3f1 !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,.16);
+    }
+
+    #sidebar .sidebar-link.active > i:first-child,
+    #sidebar .sidebar-link.active span > i:first-child { color: #363b40; }
+
+    #sidebar .toggle-arrow { margin-left: auto; color: rgba(255,255,255,.85); font-size: .8rem; }
+    #sidebar .sidebar-submenu { margin: 2px 0 8px 12px; padding: 2px 0 2px 10px; border-left: 1px solid rgba(255,255,255,.2); }
+    #sidebar .sidebar-submenu .sidebar-link { min-height: 42px; margin: 2px 0; padding: 9px 11px; border-color: transparent; color: #d0d3d6 !important; background: transparent; font-size: .86rem; font-weight: 500; }
+    #sidebar .sidebar-submenu .sidebar-link > i { width: 17px; flex: 0 0 17px; color: #e3e5e7; font-size: 0; text-align: center; }
+    #sidebar .sidebar-submenu .sidebar-link > i.bi-dot::before { width: 13px; height: 13px; display: inline-block; border: 2px solid #e3e5e7; border-radius: 50%; content: ""; vertical-align: -1px; }
+    #sidebar .sidebar-submenu .sidebar-link > i:not(.bi-dot) { font-size: .9rem; }
+    #sidebar .sidebar-submenu .sidebar-link:hover { color: #fff !important; background: rgba(255,255,255,.1); }
+    #sidebar .sidebar-submenu .sidebar-link.active { border-color: rgba(255,255,255,.82); color: #262a2e !important; background: #f5f5f3 !important; box-shadow: none; }
+    #sidebar .sidebar-submenu .sidebar-link.active > i.bi-dot::before { border-color: #343a40; background: #343a40; }
+
+    #sidebar.sidebar-collapsed { width: 76px !important; }
+    #sidebar.sidebar-collapsed .sidebar-text { display: none !important; }
+    #sidebar.sidebar-collapsed .sidebar-brand { justify-content: center !important; padding: 10px 8px; }
+    #sidebar.sidebar-collapsed .sidebar-brand-link { display: none !important; }
+    #sidebar.sidebar-collapsed .sidebar-link { justify-content: center !important; padding-right: 8px; padding-left: 8px; }
+    #sidebar.sidebar-collapsed .sidebar-link > i:first-child,
+    #sidebar.sidebar-collapsed .sidebar-link span > i:first-child { width: 24px; font-size: 1.12rem; }
+    #sidebar.sidebar-collapsed .collapse.show,
+    #sidebar.sidebar-collapsed .toggle-arrow { display: none !important; }
+    #sidebar.sidebar-mobile-hidden { transform: translateX(-100%) !important; }
+
+    #sidebar .sidebar-footer {
+      flex: 0 0 auto;
+      padding: 16px 8px;
+      border-top: 1px solid rgba(255,255,255,.12);
+      color: #c4c7ca;
+      background: rgba(0,0,0,.17);
+      text-align: center;
+    }
+
+    .sidebar-overlay { position: fixed; inset: 0; z-index: 1025; visibility: hidden; background: rgba(0,0,0,.58); opacity: 0; transition: opacity .25s ease, visibility .25s ease; }
+    .sidebar-overlay.show { visibility: visible; opacity: 1; }
+    .mobile-menu-btn { position: fixed; top: 14px; left: 14px; z-index: 1035; display: none; padding: 9px 11px; border: 0; border-radius: 7px; color: #fff; background: #c9141e; box-shadow: 0 4px 14px rgba(0,0,0,.25); font-size: 1.15rem; }
+    .mobile-menu-btn:hover, .mobile-menu-btn:focus { color: #fff; background: #a80e17; }
+
+    @media (max-width: 768px) {
+      #sidebar, #sidebar.sidebar-collapsed { width: 280px !important; transform: translateX(-100%); }
+      #sidebar.show { transform: translateX(0); }
+      #sidebar.sidebar-collapsed .sidebar-text { display: inline !important; }
+      #sidebar.sidebar-collapsed .sidebar-brand-link { display: flex !important; }
+      #sidebar.sidebar-collapsed .sidebar-link { justify-content: flex-start !important; padding: 11px 13px; }
+      #sidebar.sidebar-collapsed .toggle-arrow { display: inline-block !important; }
+      .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
+    }
+
+    @media (max-width: 576px) {
+      #sidebar, #sidebar.sidebar-collapsed { width: min(86vw, 320px) !important; }
+      .mobile-menu-btn { top: 10px; left: 10px; padding: 8px 10px; }
+    }
+  </style>
 </div>
