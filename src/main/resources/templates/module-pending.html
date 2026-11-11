@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${module.title})}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <!-- Placeholder for sidebar modules that are not built yet (see ModuleController). -->
+    <main class="content-area content-narrow" th:fragment="page" th:attr="data-section=${module.group}, data-title=${module.title}">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow" th:text="${module.group}">Group</div>
+          <h1 class="page-title" th:text="${module.title}">Module</h1>
+          <p class="page-sub" th:text="${module.summary}">Summary</p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="module-hero">
+          <div class="module-icon blueprint"><i class="bi" th:classappend="${module.icon}"></i></div>
+          <div>
+            <span class="status status-pending">In preparation</span>
+            <h2 class="h5 fw-semibold mt-3 mb-1">This module is being set up</h2>
+            <p class="text-muted mb-0">It is part of the CBM workspace plan but is not available yet. Planned features:</p>
+            <ul class="check-list">
+              <li th:each="item : ${module.planned}" th:text="${item}">Feature</li>
+            </ul>
+          </div>
+        </div>
+        <div class="panel-footer d-flex flex-wrap gap-2 justify-content-between align-items-center">
+          <span class="text-muted small">Available now: client inquiries, quotations and job orders.</span>
+          <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline" th:href="@{/home}">Dashboard</a>
+            <a class="btn btn-sm btn-dark" th:href="@{/Clients}">Client inquiries</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

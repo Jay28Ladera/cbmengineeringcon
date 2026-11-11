@@ -1,635 +1,109 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | CBM Engineering &amp; Construction</title>
-
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet" />
-
-  <style>
-    :root {
-      --cbm-red: #c9141e;
-      --cbm-red-dark: #a80e17;
-      --cbm-ink: #171717;
-      --cbm-muted: #737373;
-      --cbm-paper: #f4f4f2;
-      --cbm-border: #e6e6e4;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      color: var(--cbm-ink);
-      background: var(--cbm-paper);
-      font-family: "DM Sans", sans-serif;
-    }
-
-    .app-container {
-      display: flex;
-      min-height: 100vh;
-    }
-
-    .main-content {
-      display: flex;
-      flex: 1;
-      min-width: 0;
-      flex-direction: column;
-      margin-left: 280px;
-      transition: margin-left 0.28s ease;
-    }
-
-    #sidebar.sidebar-collapsed ~ .main-content {
-      margin-left: 74px;
-    }
-
-    .content-area {
-      flex: 1;
-      width: 100%;
-      max-width: 1600px;
-      margin: 0 auto;
-      padding: 30px;
-    }
-
-    .page-heading {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 24px;
-    }
-
-    .page-eyebrow {
-      display: block;
-      margin-bottom: 6px;
-      color: var(--cbm-red);
-      font-size: 0.7rem;
-      font-weight: 800;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-
-    .page-heading h1 {
-      margin: 0;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: clamp(2rem, 4vw, 2.8rem);
-      font-weight: 800;
-      line-height: 1;
-      text-transform: uppercase;
-    }
-
-    .page-date {
-      color: var(--cbm-muted);
-      font-size: 0.82rem;
-    }
-
-    .welcome-card {
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 24px;
-      border: 0;
-      border-radius: 16px;
-      color: #fff;
-      background:
-        linear-gradient(100deg, rgba(20, 20, 20, 0.98) 0%, rgba(28, 28, 28, 0.96) 60%, rgba(110, 12, 18, 0.92) 100%);
-      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.14);
-    }
-
-    .welcome-card::after {
-      position: absolute;
-      top: -90px;
-      right: -55px;
-      width: 300px;
-      height: 300px;
-      border: 25px solid rgba(255, 255, 255, 0.07);
-      border-radius: 50%;
-      content: "";
-      pointer-events: none;
-    }
-
-    .welcome-card .card-body {
-      position: relative;
-      z-index: 1;
-      padding: 34px;
-    }
-
-    .welcome-kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-      color: #ffb8bb;
-      font-size: 0.68rem;
-      font-weight: 800;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-    }
-
-    .welcome-kicker::before {
-      width: 22px;
-      height: 3px;
-      background: var(--cbm-red);
-      content: "";
-    }
-
-    .welcome-card h2 {
-      margin: 0 0 10px;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 800;
-      line-height: 0.98;
-      text-transform: uppercase;
-    }
-
-    .welcome-card p {
-      max-width: 650px;
-      margin: 0;
-      color: rgba(255, 255, 255, 0.75);
-      font-size: 0.92rem;
-      line-height: 1.75;
-    }
-
-    .welcome-icon {
-      color: rgba(255, 255, 255, 0.14);
-      font-size: 5.5rem;
-      line-height: 1;
-    }
-
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 16px;
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 1.45rem;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .section-title i {
-      color: var(--cbm-red);
-      font-size: 1.05rem;
-    }
-
-    .overview-card {
-      height: 100%;
-      min-height: 140px;
-      overflow: hidden;
-      border: 1px solid var(--cbm-border);
-      border-radius: 13px;
-      background: #fff;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.035);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .overview-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.09);
-    }
-
-    .overview-card .card-body {
-      position: relative;
-      padding: 20px;
-    }
-
-    .overview-icon {
-      width: 42px;
-      height: 42px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-      border-radius: 11px;
-      color: var(--cbm-red);
-      background: #fff0f0;
-      font-size: 1.2rem;
-    }
-
-    .overview-number {
-      margin: 0;
-      color: var(--cbm-ink);
-      font-family: "Barlow Condensed", sans-serif;
-      font-size: 2rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .overview-label {
-      margin: 6px 0 0;
-      color: var(--cbm-muted);
-      font-size: 0.78rem;
-      font-weight: 600;
-    }
-
-    .content-card {
-      height: 100%;
-      overflow: hidden;
-      border: 1px solid var(--cbm-border);
-      border-radius: 13px;
-      background: #fff;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.035);
-    }
-
-    .content-card-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid #eeeeec;
-      background: #fff;
-    }
-
-    .content-card-header .section-title {
-      margin: 0;
-      font-size: 1.3rem;
-    }
-
-    .content-card-body {
-      padding: 20px;
-    }
-
-    .activity-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 13px;
-      padding: 15px 0;
-      border-bottom: 1px solid #eeeeec;
-    }
-
-    .activity-item:first-child {
-      padding-top: 0;
-    }
-
-    .activity-item:last-child {
-      padding-bottom: 0;
-      border-bottom: 0;
-    }
-
-    .activity-icon {
-      width: 38px;
-      height: 38px;
-      flex: 0 0 38px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      color: var(--cbm-red);
-      background: #fff0f0;
-      font-size: 1rem;
-    }
-
-    .activity-item h3 {
-      margin: 1px 0 4px;
-      color: #242424;
-      font-size: 0.88rem;
-      font-weight: 700;
-    }
-
-    .activity-item p {
-      margin: 0;
-      color: var(--cbm-muted);
-      font-size: 0.78rem;
-      line-height: 1.6;
-    }
-
-    .quick-action {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 13px;
-      border: 1px solid var(--cbm-border);
-      border-radius: 9px;
-      color: #292929;
-      background: #fff;
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-decoration: none;
-      transition: 0.18s ease;
-    }
-
-    .quick-action i {
-      width: 30px;
-      height: 30px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      color: var(--cbm-red);
-      background: #fff0f0;
-      font-size: 0.95rem;
-    }
-
-    .quick-action:hover {
-      border-color: rgba(201, 20, 30, 0.35);
-      color: var(--cbm-red-dark);
-      background: #fffafa;
-      transform: translateX(2px);
-    }
-
-    .system-status {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 13px 0;
-      border-bottom: 1px solid #eeeeec;
-    }
-
-    .system-status:last-child {
-      padding-bottom: 0;
-      border-bottom: 0;
-    }
-
-    .status-label {
-      color: var(--cbm-muted);
-      font-size: 0.8rem;
-    }
-
-    .status-value {
-      color: #252525;
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .status-online {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      color: #287a4b;
-    }
-
-    .status-online i {
-      font-size: 0.55rem;
-    }
-
-    .reminder {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      margin-top: 22px;
-      padding: 15px 17px;
-      border: 1px solid #f1d7d8;
-      border-left: 4px solid var(--cbm-red);
-      border-radius: 10px;
-      color: #575757;
-      background: #fff;
-      font-size: 0.82rem;
-      line-height: 1.65;
-    }
-
-    .reminder > i {
-      margin-top: 2px;
-      color: var(--cbm-red);
-      font-size: 1.1rem;
-    }
-
-    .reminder strong {
-      color: #242424;
-    }
-
-    @media (max-width: 768px) {
-      .main-content {
-        margin-left: 0 !important;
-        padding-top: 64px;
-      }
-
-      .content-area {
-        padding: 20px 16px;
-      }
-
-      .page-heading {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 7px;
-      }
-
-      .welcome-card .card-body {
-        padding: 25px;
-      }
-
-      .welcome-icon {
-        font-size: 3.8rem;
-      }
-    }
-
-    @media (max-width: 576px) {
-      .content-area {
-        padding: 16px 12px;
-      }
-
-      .welcome-card .card-body {
-        padding: 22px 19px;
-      }
-
-      .welcome-icon {
-        display: none;
-      }
-
-      .overview-card {
-        min-height: 122px;
-      }
-
-      .overview-card .card-body {
-        padding: 16px;
-      }
-
-      .overview-number {
-        font-size: 1.75rem;
-      }
-    }
-  </style>
-</head>
-
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
 <body>
-  <div class="app-container">
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
 
-    <!-- Sidebar -->
-    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})"></div>
+    <main class="content-area" th:fragment="page" data-section="" data-title="Dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Operations overview</div>
+          <h1 class="page-title">Good day, <span th:text="${displayName ?: username}">Team</span></h1>
+          <p class="page-sub">Where every inquiry, quotation and job order stands today.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Quotations}"><i class="bi bi-file-earmark-text"></i>Quotations</a>
+          <a class="btn btn-primary" th:href="@{/Clients(openInquiry=1)}"><i class="bi bi-plus-lg"></i>New inquiry</a>
+        </div>
+      </div>
 
-    <div class="main-content">
+      <div th:if="${isAdmin and pendingApprovals > 0}" class="alert alert-warning mb-4">
+        <div>
+          <strong th:text="${pendingApprovals}">1</strong>
+          <span th:text="${pendingApprovals == 1} ? ' account request is waiting for approval.' : ' account requests are waiting for approval.'"></span>
+          <a th:href="@{/users#pending}" class="ms-1 fw-semibold">Review requests</a>
+        </div>
+      </div>
 
-      <!-- Header -->
-      <div th:replace="fragments/header :: header(${username})"></div>
+      <section class="kpi-grid" aria-label="Key figures">
+        <a class="kpi accent" th:href="@{/Clients}">
+          <div class="kpi-label">New inquiries <i class="bi bi-inboxes"></i></div>
+          <div class="kpi-value" th:text="${newInquiries}">0</div>
+          <div class="kpi-note">Not yet quoted</div>
+        </a>
+        <a class="kpi" th:href="@{/Quotations}">
+          <div class="kpi-label">Draft quotations <i class="bi bi-pencil-square"></i></div>
+          <div class="kpi-value" th:text="${draftQuotations}">0</div>
+          <div class="kpi-note">Being priced</div>
+        </a>
+        <a class="kpi" th:href="@{/Quotations}">
+          <div class="kpi-label">Awaiting client <i class="bi bi-hourglass-split"></i></div>
+          <div class="kpi-value" th:text="${awaitingDecision}">0</div>
+          <div class="kpi-note">Sent, no decision yet</div>
+        </a>
+        <a class="kpi" th:href="@{/JobOrders}">
+          <div class="kpi-label">Active job orders <i class="bi bi-cone-striped"></i></div>
+          <div class="kpi-value" th:text="${activeJobOrders}">0</div>
+          <div class="kpi-note"><span th:text="${inProgressJobs}">0</span> in progress · <span th:text="${completedJobs}">0</span> completed</div>
+        </a>
+      </section>
 
-      <main class="content-area">
-        <header class="page-heading">
-          <div>
-            <span class="page-eyebrow">CBM Engineering &amp; Construction</span>
-            <h1>Dashboard</h1>
-          </div>
-          <div class="page-date">
-            <i class="bi bi-calendar3 me-1"></i>
-            Company overview
-          </div>
-        </header>
+      <section class="panel mb-4" aria-label="Sales pipeline">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-diagram-3"></i>Project pipeline</h2>
+          <span class="text-muted small">Inquiry → quotation → client decision → job order</span>
+        </div>
+        <div class="pipeline">
+          <div class="pipeline-step"><div class="step-no">01</div><div class="step-name">Inquiry received</div><div class="step-count" th:text="${newInquiries}">0</div><div class="step-desc">Waiting for a quotation</div></div>
+          <div class="pipeline-step"><div class="step-no">02</div><div class="step-name">Quotation drafted</div><div class="step-count" th:text="${draftQuotations}">0</div><div class="step-desc">Pricing in progress</div></div>
+          <div class="pipeline-step"><div class="step-no">03</div><div class="step-name">Sent to client</div><div class="step-count" th:text="${awaitingDecision}">0</div><div class="step-desc"><span th:text="${acceptedQuotations}">0</span> accepted so far</div></div>
+          <div class="pipeline-step"><div class="step-no">04</div><div class="step-name">Job order</div><div class="step-count" th:text="${activeJobOrders}">0</div><div class="step-desc">Planned, ongoing or on hold</div></div>
+        </div>
+      </section>
 
-        <!-- Welcome -->
-        <section class="welcome-card card">
-          <div class="card-body">
-            <div class="row align-items-center">
-              <div class="col-md-9">
-                <span class="welcome-kicker">Management portal</span>
-                <h2>Welcome back, <span th:text="${username}">CBM Team</span></h2>
-                <p>
-                  Manage your CBM operations from one place. Use the navigation
-                  menu to access company records, purchasing, inventory, accounting, HR, and reports.
-                </p>
-              </div>
-              <div class="col-md-3 text-center">
-                <i class="bi bi-buildings welcome-icon" aria-hidden="true"></i>
-              </div>
+      <div class="row g-4">
+        <div class="col-xl-8">
+          <section class="panel h-100">
+            <div class="panel-header">
+              <h2 class="panel-title"><i class="bi bi-clock-history"></i>Latest inquiries</h2>
+              <a th:href="@{/Clients}" class="small fw-semibold">View all</a>
             </div>
-          </div>
-        </section>
-
-        <!-- Overview -->
-        <section class="mb-4">
-          <h2 class="section-title">
-            <i class="bi bi-grid-1x2"></i>
-            Overview
-          </h2>
-
-          <div class="row g-3">
-            <div class="col-xl-3 col-md-6">
-              <article class="overview-card">
-                <div class="card-body">
-                  <div class="overview-icon"><i class="bi bi-building"></i></div>
-                  <h3 class="overview-number" th:text="${totalProjects ?: '—'}">—</h3>
-                  <p class="overview-label">Projects</p>
+            <ul class="list-rows" th:unless="${#lists.isEmpty(recentInquiries)}">
+              <li th:each="inq : ${recentInquiries}">
+                <div class="grow">
+                  <div class="title" th:text="${inq.projectName}">Project</div>
+                  <div class="sub"><span th:text="${inq.fullName}"></span> · <span th:text="${inq.projectLocation}"></span></div>
                 </div>
-              </article>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-              <article class="overview-card">
-                <div class="card-body">
-                  <div class="overview-icon"><i class="bi bi-people"></i></div>
-                  <h3 class="overview-number" th:text="${totalEmployees ?: '—'}">—</h3>
-                  <p class="overview-label">Team Members</p>
-                </div>
-              </article>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-              <article class="overview-card">
-                <div class="card-body">
-                  <div class="overview-icon"><i class="bi bi-inbox"></i></div>
-                  <h3 class="overview-number" th:text="${pendingInquiries ?: '—'}">—</h3>
-                  <p class="overview-label">Pending Inquiries</p>
-                </div>
-              </article>
-            </div>
-
-            <div class="col-xl-3 col-md-6">
-              <article class="overview-card">
-                <div class="card-body">
-                  <div class="overview-icon"><i class="bi bi-calendar-check"></i></div>
-                  <h3 class="overview-number" th:text="${upcomingTasks ?: '—'}">—</h3>
-                  <p class="overview-label">Upcoming Tasks</p>
-                </div>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <div class="row g-3">
-          <!-- Recent Activities -->
-          <section class="col-lg-8">
-            <div class="content-card">
-              <div class="content-card-header">
-                <h2 class="section-title">
-                  <i class="bi bi-activity"></i>
-                  Recent Activity
-                </h2>
-              </div>
-
-              <div class="content-card-body">
-                <div class="activity-item">
-                  <div class="activity-icon"><i class="bi bi-clipboard-check"></i></div>
-                  <div>
-                    <h3>Project updates</h3>
-                    <p>Recent project activity will appear here.</p>
-                  </div>
-                </div>
-
-                <div class="activity-item">
-                  <div class="activity-icon"><i class="bi bi-chat-square-text"></i></div>
-                  <div>
-                    <h3>New inquiries</h3>
-                    <p>Keep track of customer and project inquiries.</p>
-                  </div>
-                </div>
-
-                <div class="activity-item">
-                  <div class="activity-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
-                  <div>
-                    <h3>Reports and records</h3>
-                    <p>Company reports and recent records will appear here.</p>
-                  </div>
-                </div>
-              </div>
+                <span class="status" th:classappend="${'status-' + #strings.toLowerCase(inq.status)}" th:text="${#strings.replace(inq.status, '_', ' ')}">NEW</span>
+                <span class="text-muted small text-nowrap d-none d-md-inline" th:text="${#temporals.format(inq.createdAt, 'MMM d')}"></span>
+              </li>
+            </ul>
+            <div class="empty-state" th:if="${#lists.isEmpty(recentInquiries)}">
+              <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+              <h3>No inquiries yet</h3>
+              <p>Requests from the website quote form and inquiries you add appear here.</p>
             </div>
           </section>
-
-          <!-- Quick Actions and Status -->
-          <aside class="col-lg-4">
-            <section class="content-card mb-3">
-              <div class="content-card-header">
-                <h2 class="section-title">
-                  <i class="bi bi-lightning-charge"></i>
-                  Quick Actions
-                </h2>
-              </div>
-
-              <div class="content-card-body d-grid gap-2">
-                <p class="text-muted mb-0">Use the sidebar to open company modules.</p>
-              </div>
-            </section>
-
-            <section class="content-card">
-              <div class="content-card-header">
-                <h2 class="section-title">
-                  <i class="bi bi-hdd-network"></i>
-                  System Status
-                </h2>
-              </div>
-
-              <div class="content-card-body">
-                <div class="system-status">
-                  <span class="status-label">Application</span>
-                  <span class="status-value status-online">
-                    <i class="bi bi-circle-fill"></i> Online
-                  </span>
-                </div>
-
-                <div class="system-status">
-                  <span class="status-label">Version</span>
-                  <span class="status-value">CBM Portal</span>
-                </div>
-              </div>
-            </section>
-          </aside>
         </div>
-
-        <div class="reminder">
-          <i class="bi bi-info-circle-fill"></i>
-          <div>
-            <strong>Reminder:</strong>
-            Use the sidebar to manage CBM company inquiries and operations.
-          </div>
+        <div class="col-xl-4">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-lightning-charge"></i>Quick actions</h2></div>
+            <div class="panel-body quick-links">
+              <a class="quick-link" th:href="@{/Clients(openInquiry=1)}"><i class="bi bi-person-plus"></i>Record a client inquiry<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:href="@{/Quotations}"><i class="bi bi-calculator"></i>Price a quotation<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:href="@{/JobOrders}"><i class="bi bi-clipboard-check"></i>Update job order status<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:if="${isAdmin}" th:href="@{/users}"><i class="bi bi-people"></i>Manage users<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:href="@{/profile}"><i class="bi bi-person-gear"></i>My profile<i class="bi bi-chevron-right"></i></a>
+            </div>
+          </section>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      console.log("CBM dashboard loaded");
-    });
-  </script>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

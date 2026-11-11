@@ -6,4 +6,7 @@ import java.util.List;
 
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     List<Inquiry> findAllByOrderByCreatedAtDesc();
+    List<Inquiry> findTop5ByOrderByCreatedAtDesc();
+    long countByStatus(String status);
+    boolean existsByEmailIgnoreCaseAndProjectNameIgnoreCase(String email, String projectName);
 }

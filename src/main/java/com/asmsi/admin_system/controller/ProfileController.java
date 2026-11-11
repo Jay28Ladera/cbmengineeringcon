@@ -11,6 +11,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.security.Principal;
@@ -39,6 +46,8 @@ public class ProfileController {
             model.addAttribute("fullName", user.getName());
             model.addAttribute("email", user.getEmail());
             model.addAttribute("profileImageUrl", user.getProfileImageUrl());
+            model.addAttribute("role", user.getRole());
+            model.addAttribute("activePage", "profile");
             // you don't have phone in User, but HTML expects it
             model.addAttribute("phone", ""); // or store in a separate table later
         }
@@ -57,7 +66,7 @@ public class ProfileController {
 
         User user = optionalUser.get();
         setCommon(model, user);
-        return "profile";   // loads profile.html
+        return "profile";
     }
 
     @GetMapping("/my-profile")
@@ -76,7 +85,9 @@ public class ProfileController {
             @RequestParam(required = false) String currentPassword,
             @RequestParam(required = false) String newPassword,
             @RequestParam(required = false) String confirmPassword,
-            @RequestParam(required = false) MultipartFile profileImage
+            @RequestParam(required = false) MultipartFile profileImage,
+            HttpServletRequest httpRequest,
+            RedirectAttributes redirect
     ) {
         if (principal == null) {
             return "redirect:/login";
@@ -171,7 +182,6 @@ public class ProfileController {
                 user.setProfileImageUrl(imageUrl);
 
             } catch (IOException e) {
-                e.printStackTrace();
                 model.addAttribute("error", "Failed to upload profile image. Please try again.");
                 setCommon(model, user);
                 return "profile";
@@ -179,11 +189,18 @@ public class ProfileController {
         }
 
         // Save user to DB
-        userRepository.save(user);
+        User saved = userRepository.save(user);
 
-        model.addAttribute("success", "Profile updated successfully.");
-        setCommon(model, user);
+        // Refresh the signed-in session so the header and a changed username take effect at once.
+        Authentication current = SecurityContextHolder.getContext().getAuthentication();
+        UsernamePasswordAuthenticationToken refreshed =
+                new UsernamePasswordAuthenticationToken(saved, null, saved.getAuthorities());
+        refreshed.setDetails(current == null ? null : current.getDetails());
+        SecurityContextHolder.getContext().setAuthentication(refreshed);
+        httpRequest.getSession().setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
 
-        return "profile";
+        redirect.addFlashAttribute("success", "Profile updated successfully.");
+        return "redirect:/profile";
     }
 }

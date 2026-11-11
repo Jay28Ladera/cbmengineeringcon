@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Job Orders')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Implementation" data-title="Job Orders">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Implementation</div>
+          <h1 class="page-title">Job orders</h1>
+          <p class="page-sub">Accepted quotations in project delivery. Open a job order to update its status.</p>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-clipboard-check"></i>All job orders <span class="count-badge" th:text="${#lists.size(jobOrders)}">0</span></h2>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(jobOrders)}">
+          <table class="data-table">
+            <thead><tr><th>Job order</th><th>Client</th><th>Project</th><th>Quotation</th><th class="money">Contract amount</th><th>Status</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="jo : ${jobOrders}" class="row-link" th:attr="data-href=@{/JobOrders/{id}(id=${jo.id})}" th:with="q=${jo.quotation}">
+                <td><span class="doc-no fw-semibold" th:text="${jo.jobOrderNumber}"></span><div class="cell-sub" th:text="${#temporals.format(jo.createdAt, 'MMM d, yyyy')}"></div></td>
+                <td><div class="cell-main" th:text="${q.inquiry.fullName}"></div><div class="cell-sub" th:text="${q.inquiry.company ?: q.inquiry.phone}"></div></td>
+                <td><div class="cell-main" th:text="${q.inquiry.projectName}"></div><div class="cell-sub" th:text="${q.inquiry.projectLocation}"></div></td>
+                <td><a class="mono" th:href="@{/Quotations/{id}(id=${q.id})}" th:text="${q.quotationNumber}"></a></td>
+                <td class="money" th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td><span class="status" th:classappend="${'status-' + #strings.toLowerCase(jo.status)}" th:text="${#strings.replace(jo.status, '_', ' ')}"></span></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" th:href="@{/JobOrders/{id}(id=${jo.id})}">Open</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(jobOrders)}">
+          <div class="empty-icon"><i class="bi bi-clipboard"></i></div>
+          <h3>No job orders yet</h3>
+          <p>When a client accepts a quotation, create the job order from that quotation's page.</p>
+          <a class="btn btn-outline mt-3" th:href="@{/Quotations}">View quotations</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

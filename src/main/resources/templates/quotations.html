@@ -1,2 +1,57 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quotations | CBM Engineering</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"><link rel="stylesheet" th:href="@{/css/sidebar.css}"><link rel="stylesheet" th:href="@{/css/header.css}"><style>body{margin:0;background:#f4f4f2;font-family:Arial,sans-serif}.app-container{display:flex;min-height:100vh}.main-content{display:flex;flex:1;min-width:0;flex-direction:column;margin-left:280px}.content-area{padding:28px;max-width:1400px;width:100%;margin:auto}.card{border-radius:14px;border:1px solid #e6e6e4}.table td{vertical-align:middle}@media(max-width:900px){.main-content{margin-left:74px}}@media(max-width:600px){.main-content{margin-left:0}}</style></head><body><div class="app-container"><div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})"></div><div class="main-content"><div th:replace="fragments/header :: header(${username})"></div><main class="content-area"><h1 class="fw-bold mb-1">Quotation List</h1><p class="text-muted mb-4">Draft quotations generated from customer inquiries.</p><div class="card"><div class="table-responsive" th:if="${!#lists.isEmpty(quotations)}"><table class="table table-hover mb-0"><thead><tr><th>Quotation No.</th><th>Client</th><th>Project</th><th>Date Created</th><th>Status</th><th></th></tr></thead><tbody><tr th:each="q : ${quotations}"><td th:text="${q.quotationNumber}"></td><td th:text="${q.inquiry.fullName}"></td><td th:text="${q.inquiry.projectName}"></td><td th:text="${#temporals.format(q.createdAt, 'MMM d, yyyy')}"></td><td><span class="badge text-bg-warning" th:text="${q.status}"></span></td><td><a class="btn btn-sm btn-outline-dark" th:href="@{/Quotations/{id}(id=${q.id})}">View Draft</a></td></tr></tbody></table></div><div class="p-5 text-center text-muted" th:if="${#lists.isEmpty(quotations)}">No quotations yet. Create one from an inquiry row.</div></div></main></div></div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script ></script></body></html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Quotations')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Inquiry" data-title="Quotations">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Inquiry pipeline</div>
+          <h1 class="page-title">Quotations</h1>
+          <p class="page-sub">Price each request, send it to the client, record the decision, and turn accepted quotations into job orders.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Clients}"><i class="bi bi-inboxes"></i>Go to inquiries</a>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-file-earmark-text"></i>All quotations <span class="count-badge" th:text="${#lists.size(quotations)}">0</span></h2>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(quotations)}">
+          <table class="data-table">
+            <thead><tr><th>Quotation no.</th><th>Client</th><th>Project</th><th>Created</th><th class="money">Total</th><th>Status</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="q : ${quotations}" class="row-link" th:attr="data-href=@{/Quotations/{id}(id=${q.id})}">
+                <td><span class="doc-no fw-semibold" th:text="${q.quotationNumber}"></span></td>
+                <td><div class="cell-main" th:text="${q.inquiry.fullName}"></div><div class="cell-sub" th:text="${q.inquiry.company ?: q.inquiry.email}"></div></td>
+                <td><div class="cell-main" th:text="${q.inquiry.projectName}"></div><div class="cell-sub" th:text="${q.inquiry.projectLocation}"></div></td>
+                <td class="text-muted text-nowrap" th:text="${#temporals.format(q.createdAt, 'MMM d, yyyy')}"></td>
+                <td class="money" th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td><span class="status" th:classappend="${'status-' + #strings.toLowerCase(q.status)}" th:text="${q.status}"></span></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" th:href="@{/Quotations/{id}(id=${q.id})}">Open</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(quotations)}">
+          <div class="empty-icon"><i class="bi bi-file-earmark-text"></i></div>
+          <h3>No quotations yet</h3>
+          <p>Open a client inquiry and choose “Create quotation” to start one.</p>
+          <a class="btn btn-primary mt-3" th:href="@{/Clients}">Go to inquiries</a>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

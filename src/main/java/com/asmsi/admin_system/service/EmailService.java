@@ -1,15 +1,17 @@
 package com.asmsi.admin_system.service;
 
 import com.resend.Resend;
-import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
-import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Service
-@RequiredArgsConstructor
 public class EmailService {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     @Value("${resend.api.key}")
     private String resendApiKey;
@@ -17,127 +19,67 @@ public class EmailService {
     @Value("${resend.from.email}")
     private String fromEmail;
 
+    /** Public address of the app, e.g. https://portal.cbm.com. Blank = use the address of the current request. */
+    @Value("${app.base-url:}")
+    private String baseUrl;
+
     public void sendApprovalEmail(String toEmail, String fullName) {
-        String subject = "Account Approved - Sisters of Mary School Portal";
+        String subject = "Your CBM portal account is approved";
         String body =
                 "Dear " + safe(fullName) + ",\n\n" +
-                "Your account has been approved. You may now log in to the portal.\n\n" +
-                "Regards,\nSMS Team";
-
+                "Your account on the CBM Engineering & Construction management portal has been approved.\n" +
+                "You can now sign in at " + appUrl("/login") + "\n\n" +
+                "Regards,\nCBM Engineering & Construction";
         sendPlainText(toEmail, subject, body);
     }
 
-    public void sendPasswordResetEmail(String toEmail, String token) {
-        String resetLink = "https://sistersofmaryschool.online/reset-password?token=" + token;
-        // If still local:
-        // String resetLink = "http://localhost:8080/reset-password?token=" + token;
-
-        String subject = "Password Reset Request - SMS Portal";
+    public boolean sendPasswordResetEmail(String toEmail, String token) {
+        String resetLink = appUrl("/reset-password?token=" + token);
+        String subject = "Reset your CBM portal password";
         String body =
-                "Dear user,\n\n" +
-                "You have requested to reset your password.\n" +
-                "Click the link below to set a new password (valid for 15 minutes):\n\n" +
+                "Hello,\n\n" +
+                "We received a request to reset the password for your CBM portal account.\n" +
+                "Open the link below to choose a new password (valid for 15 minutes):\n\n" +
                 resetLink + "\n\n" +
-                "If you did not request this, please ignore this email.\n\n" +
-                "Regards,\nSMS Team";
-
-        sendPlainText(toEmail, subject, body);
+                "If you did not request this, you can ignore this email.\n\n" +
+                "Regards,\nCBM Engineering & Construction";
+        return sendPlainText(toEmail, subject, body);
     }
 
-    public void sendElibraryBookingApprovedEmail(String toEmail,
-                                                 String fullName,
-                                                 String bookingNo,
-                                                 String bookingDate,
-                                                 String startTime,
-                                                 String endTime,
-                                                 String roomName,
-                                                 String computersNeeded,
-                                                 String sectionName,
-                                                 String purpose) {
-
-        String subject = "Elibrary Booking Approved - " + safe(bookingNo);
-        String body =
-                "Dear " + safe(fullName) + ",\n\n" +
-                "Your Elibrary booking request has been APPROVED.\n\n" +
-                "Booking Details:\n" +
-                "Request No.: " + safe(bookingNo) + "\n" +
-                "Booking Date: " + safe(bookingDate) + "\n" +
-                "Time: " + safe(startTime) + " - " + safe(endTime) + "\n" +
-                "Room: " + safe(roomName) + "\n" +
-                "Computers Needed: " + safe(computersNeeded) + "\n" +
-                "Section / Department: " + safe(sectionName) + "\n" +
-                "Purpose: " + safe(purpose) + "\n\n" +
-                "Please be guided accordingly.\n\n" +
-                "Regards,\nSMS Team";
-
-        sendPlainText(toEmail, subject, body);
-    }
-
-    public void sendElibraryBookingRejectedEmail(String toEmail,
-                                                 String fullName,
-                                                 String bookingNo,
-                                                 String bookingDate,
-                                                 String startTime,
-                                                 String endTime,
-                                                 String roomName,
-                                                 String computersNeeded,
-                                                 String sectionName,
-                                                 String purpose,
-                                                 String remarks) {
-
-        String subject = "Elibrary Booking Rejected - " + safe(bookingNo);
-        String body =
-                "Dear " + safe(fullName) + ",\n\n" +
-                "Your Elibrary booking request has been REJECTED.\n\n" +
-                "Booking Details:\n" +
-                "Request No.: " + safe(bookingNo) + "\n" +
-                "Booking Date: " + safe(bookingDate) + "\n" +
-                "Time: " + safe(startTime) + " - " + safe(endTime) + "\n" +
-                "Room: " + safe(roomName) + "\n" +
-                "Computers Needed: " + safe(computersNeeded) + "\n" +
-                "Section / Department: " + safe(sectionName) + "\n" +
-                "Purpose: " + safe(purpose) + "\n\n" +
-                "Remarks:\n" + safe(remarks) + "\n\n" +
-                "You may submit a new request if needed.\n\n" +
-                "Regards,\nSMS Team";
-
-        sendPlainText(toEmail, subject, body);
-    }
-
-    public void sendPlainText(String toEmail, String subject, String body) {
-        if (toEmail == null || toEmail.trim().isEmpty()) {
-            System.out.println("Email skipped: recipient is blank.");
-            return;
+    /**
+     * Sends a plain-text email. Returns false instead of throwing, so a mail outage never
+     * blocks the action that triggered it (approving a user used to fail completely).
+     */
+    public boolean sendPlainText(String toEmail, String subject, String body) {
+        if (toEmail == null || toEmail.isBlank()) return false;
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            log.warn("Email not sent to {}: resend.api.key is not set", toEmail);
+            return false;
         }
-
         try {
-            System.out.println("Sending email to: " + toEmail);
-            System.out.println("Subject: " + subject);
-
-            Resend resend = new Resend(resendApiKey);
-
             CreateEmailOptions params = CreateEmailOptions.builder()
                     .from(fromEmail)
                     .to(toEmail.trim())
                     .subject(subject)
                     .text(body)
                     .build();
-
-            resend.emails().send(params);
-
-            System.out.println("Email sent successfully to: " + toEmail);
-        } catch (ResendException e) {
-            System.out.println("Email sending failed to: " + toEmail);
-            e.printStackTrace();
-            throw new RuntimeException("Failed to send email via Resend: " + e.getMessage(), e);
+            new Resend(resendApiKey).emails().send(params);
+            log.info("Email sent to {}: {}", toEmail, subject);
+            return true;
         } catch (Exception e) {
-            System.out.println("Email sending failed to: " + toEmail);
-            e.printStackTrace();
-            throw new RuntimeException("Unexpected email error: " + e.getMessage(), e);
+            log.error("Email to {} failed: {}", toEmail, e.getMessage());
+            return false;
         }
     }
 
-    private String safe(String value) {
+    private String appUrl(String path) {
+        String root = (baseUrl == null || baseUrl.isBlank())
+                ? ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
+                : baseUrl.replaceAll("/+$", "");
+        return root + path;
+    }
+
+    private static String safe(String value) {
         return value == null ? "" : value;
     }
 }

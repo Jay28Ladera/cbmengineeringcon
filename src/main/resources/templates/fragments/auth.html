@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Left-hand brand panel shared by the sign-in pages. -->
+<section th:fragment="brand" class="auth-brand blueprint">
+  <a class="auth-logo" th:href="@{/}">
+    <img th:src="@{/images/logo-cbm.webp}" width="360" height="208" alt="CBM" />
+    <span><strong>CBM</strong>Engineering &amp; Construction</span>
+  </a>
+  <a class="auth-back" th:href="@{/}"><i class="bi bi-arrow-left me-1"></i>Website</a>
+  <div class="auth-pitch">
+    <div class="page-eyebrow">Project management workspace</div>
+    <h1>From inquiry to<br />job order.</h1>
+    <p>One place for CBM's client requests, quotations and project delivery.</p>
+    <ul class="auth-points">
+      <li><i class="bi bi-inboxes"></i>Website quote requests arrive automatically</li>
+      <li><i class="bi bi-calculator"></i>Priced quotations with tax, discount and terms</li>
+      <li><i class="bi bi-clipboard-check"></i>Job orders tracked from planning to completion</li>
+    </ul>
+  </div>
+  <div class="auth-foot">
+    <span>&copy; CBM Engineering &amp; Construction</span>
+    <a th:href="@{/}">Public website</a>
+  </div>
+</section>
+</body>
+</html>

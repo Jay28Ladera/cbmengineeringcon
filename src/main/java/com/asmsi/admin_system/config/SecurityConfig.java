@@ -28,22 +28,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF for API endpoints and specific paths
-                .csrf(csrf -> csrf.ignoringRequestMatchers(
-                        "/admission/**",
-                        "/submit",
-                        "/api/**" // This will cover all API endpoints
-                ))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
+                        // Public website, sign-in pages and static files
                         .requestMatchers(
-                                "/", "/login", "/signup", "/request-account","/attendance-report",
+                                "/", "/login", "/signup", "/request-account",
                                 "/forget-password", "/forgot-password", "/reset-password",
-                                "/css/**", "/js/**", "/images/**", "/upload-csv", "/home",
-                                "/api/attendance/**", // Include all attendance API endpoints
-                                "/family-saint-settings/api","/schoolitems/import", "/schoolitems/import/**", "/schoolitems/export/**","/api/schoolitems/inventory-wizard/**")
+                                "/inquiries/public", "/Clients/public",
+                                "/css/**", "/js/**", "/images/**", "/vendor/**", "/webjars/**",
+                                "/favicon.ico", "/error")
                         .permitAll()
-                        .requestMatchers("/admission/**", "/submit")
-                        .hasRole("ADMIN")
+                        // User approval and administration: admins only
+                        .requestMatchers("/users/**", "/Admin/**").hasAnyRole("ADMIN", "CEO")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")

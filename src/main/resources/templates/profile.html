@@ -1,198 +1,68 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Profile | Sisters of Mary Admin</title>
-
-  <!-- Bootstrap CSS -->
-  <link rel="stylesheet" 
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-
-  <!-- Bootstrap Icons -->
-  <link rel="stylesheet" 
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-
-  <!-- Inter Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" 
-        rel="stylesheet" />
-
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f3f4f6;
-    }
-    .content-area {
-      padding: 2rem;
-    }
-    .profile-card {
-      border-radius: 16px;
-      border: 0;
-      box-shadow: 0 10px 40px rgba(0,0,0,.05);
-    }
-    .section-title {
-      font-size: .8rem;
-      font-weight: 700;
-      color: #6b7280;
-      letter-spacing: .05rem;
-      text-transform: uppercase;
-    }
-  </style>
-</head>
-
+<head th:replace="~{fragments/layout :: head('My Profile')}"></head>
 <body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage='profile')}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
 
-<!-- HEADER -->
-<div th:replace="fragments/header :: header(${username})"></div>
-
-<!-- MAIN CONTENT -->
-<main class="content-area">
-  <div class="container">
-
-    <!-- Page Title -->
-    <div class="mb-4">
-      <h2 class="fw-bold mb-0">My Profile</h2>
-      <div class="text-muted">Manage your account information and security</div>
-    </div>
-
-    <!-- Status Messages -->
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
-    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-
-    <!-- Profile Card -->
-    <div class="card profile-card mb-4">
-      <div class="card-body p-4">
-
-        <form th:action="@{/profile/update}" enctype="multipart/form-data" method="post">
-          <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-
-          <div class="row g-4">
-
-            <!-- LEFT PANEL: Avatar -->
-            <div class="col-md-4 border-end">
-              <div class="d-flex flex-column align-items-center text-center">
-
-                <!-- Profile Image -->
-                <div class="position-relative mb-3">
-                 <img id="profileImagePreview"
-     th:src="${profileImageUrl != null} ? ${profileImageUrl} : '/images/logo.png'"
-     src="/images/logo.png"
-     class="rounded-circle border"
-     style="width:140px;height:140px;object-fit:cover;border:4px solid #e5e7eb;"
-     alt="Profile Picture">
-
-                  <label for="profileImage"
-                         class="btn btn-sm btn-primary position-absolute bottom-0 end-0 rounded-pill shadow"
-                         style="font-size:.75rem;">
-                    <i class="bi bi-camera"></i>
-                  </label>
-                </div>
-
-                <input type="file" id="profileImage" name="profileImage" accept="image/*"
-                       class="d-none" onchange="previewProfileImage(event)" />
-
-                <p class="fw-semibold mb-0" th:text="${displayName}">John Doe</p>
-                <small class="text-muted" th:text="${username}">@johndoe</small>
-                <small class="text-muted mt-2">JPG or PNG • Max 2 MB</small>
-              </div>
-            </div>
-
-            <!-- RIGHT PANEL -->
-            <div class="col-md-8">
-
-              <!-- Profile Information -->
-              <div class="mb-3"><span class="section-title">Profile Information</span></div>
-
-              <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                  <label class="text-muted small">Full Name</label>
-                  <input type="text" class="form-control form-control-sm"
-                         name="fullName" th:value="${fullName}" placeholder="Full Name">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="text-muted small">Username</label>
-                  <input type="text" class="form-control form-control-sm"
-                         name="username" th:value="${username}" placeholder="Username">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="text-muted small">Email</label>
-                  <input type="email" class="form-control form-control-sm"
-                         name="email" th:value="${email}" placeholder="Email Address">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="text-muted small">Phone</label>
-                  <input type="text" class="form-control form-control-sm"
-                         name="phone" th:value="${phone}" placeholder="Phone Number">
-                </div>
-              </div>
-
-              <hr class="my-4">
-
-              <!-- Security -->
-              <div class="mb-3"><span class="section-title">Security</span></div>
-
-              <div class="row g-3 mb-4">
-                <div class="col-12">
-                  <label class="text-muted small">Current Password</label>
-                  <input type="password" class="form-control form-control-sm"
-                         name="currentPassword" placeholder="Enter current password">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="text-muted small">New Password</label>
-                  <input type="password" class="form-control form-control-sm"
-                         name="newPassword" placeholder="Enter new password">
-                </div>
-
-                <div class="col-md-6">
-                  <label class="text-muted small">Confirm Password</label>
-                  <input type="password" class="form-control form-control-sm"
-                         name="confirmPassword" placeholder="Confirm new password">
-                </div>
-
-                <small class="text-muted mt-2">
-                  Leave password fields blank if you do not want to change it.
-                </small>
-              </div>
-
-              <!-- Buttons -->
-              <div class="d-flex justify-content-end gap-2 mt-4">
-                <a th:href="@{/home}" class="btn btn-outline-secondary btn-sm">Cancel</a>
-                <button type="submit" class="btn btn-primary btn-sm">
-                  <i class="bi bi-save me-1"></i>Save Changes
-                </button>
-              </div>
-
-            </div>
-
-          </div>
-        </form>
-
+    <main class="content-area content-narrow" th:fragment="page" data-section="Account" data-title="My Profile">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Account</div>
+          <h1 class="page-title">My profile</h1>
+          <p class="page-sub">Your sign-in details and photo. Leave the password fields blank to keep your current password.</p>
+        </div>
       </div>
-    </div>
 
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+
+      <form class="panel profile-card" th:action="@{/profile/update}" enctype="multipart/form-data" method="post">
+        <div class="profile-side">
+          <div class="profile-photo">
+            <img id="profileImagePreview" th:if="${profileImageUrl != null}" th:src="${profileImageUrl}" alt="Profile photo" />
+            <span id="profileInitials" class="avatar" th:if="${profileImageUrl == null}" th:text="${userInitials}">CB</span>
+            <label for="profileImage" title="Change photo"><i class="bi bi-camera"></i></label>
+          </div>
+          <input type="file" id="profileImage" name="profileImage" accept="image/png,image/jpeg,image/webp" class="d-none"
+                 onchange="(function(i){var f=i.files&&i.files[0];if(!f)return;var r=new FileReader();r.onload=function(e){var p=document.getElementById('profileImagePreview');if(!p){p=document.createElement('img');p.id='profileImagePreview';p.alt='Profile photo';var s=document.getElementById('profileInitials');s.replaceWith(p);}p.src=e.target.result;};r.readAsDataURL(f);})(this)" />
+          <div class="fw-semibold" th:text="${displayName}">Name</div>
+          <div class="text-muted small mono" th:text="${'@' + username}">@user</div>
+          <div class="mt-2"><span class="status" th:text="${role}">user</span></div>
+          <div class="form-hint mt-3">JPG, PNG or WebP · up to 2 MB</div>
+        </div>
+
+        <div class="panel-body p-4">
+          <section class="form-section">
+            <h2 class="form-section-title"><span class="no">01</span>Profile information</h2>
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label" for="fullName">Full name</label><input id="fullName" type="text" class="form-control" name="fullName" th:value="${fullName}" required maxlength="180" /></div>
+              <div class="col-md-6"><label class="form-label" for="username">Username</label><input id="username" type="text" class="form-control" name="username" th:value="${username}" required maxlength="80" autocomplete="username" /></div>
+              <div class="col-md-6"><label class="form-label" for="email">Email</label><input id="email" type="email" class="form-control" name="email" th:value="${email}" required maxlength="180" /></div>
+              <div class="col-md-6"><label class="form-label" for="phone">Phone</label><input id="phone" type="tel" class="form-control" name="phone" th:value="${phone}" maxlength="40" /></div>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h2 class="form-section-title"><span class="no">02</span>Change password</h2>
+            <div class="row g-3">
+              <div class="col-12"><label class="form-label" for="currentPassword">Current password</label><input id="currentPassword" type="password" class="form-control" name="currentPassword" autocomplete="current-password" /></div>
+              <div class="col-md-6"><label class="form-label" for="newPassword">New password</label><input id="newPassword" type="password" class="form-control" name="newPassword" minlength="8" autocomplete="new-password" /></div>
+              <div class="col-md-6"><label class="form-label" for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" class="form-control" name="confirmPassword" minlength="8" autocomplete="new-password" /></div>
+            </div>
+          </section>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a th:href="@{/home}" class="btn btn-ghost">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save changes</button>
+          </div>
+        </div>
+      </form>
+    </main>
   </div>
-</main>
-
-<!-- Bootstrap Bundle (JS + Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Image preview script -->
-<script>
-  function previewProfileImage(event) {
-    const input = event.target;
-    if (input.files && input.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        document.getElementById('profileImagePreview').src = e.target.result;
-      };
-      reader.readAsDataURL(input.files[0]);
-    }
-  }
-</script>
-
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

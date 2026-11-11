@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${'Job Order ' + jobOrder.jobOrderNumber})}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area content-narrow" th:fragment="page" data-section="Job Orders" th:attr="data-title=${jobOrder.jobOrderNumber}"
+          th:with="q=${jobOrder.quotation}, inq=${jobOrder.quotation.inquiry}, st=${jobOrder.status}">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Job order</div>
+          <h1 class="page-title mono" th:text="${jobOrder.jobOrderNumber}">JO-000001</h1>
+          <p class="page-sub"><span th:text="${inq.projectName}"></span> · <span th:text="${inq.projectLocation}"></span></p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-ghost" th:href="@{/JobOrders}"><i class="bi bi-arrow-left"></i>All job orders</a>
+          <button type="button" class="btn btn-outline" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <ol class="stepper" aria-label="Job order status">
+        <li th:classappend="${st == 'PLANNED'} ? 'current' : 'done'"><span class="dot">1</span>Planned</li>
+        <li th:classappend="${st == 'IN_PROGRESS'} ? 'current' : (${st == 'COMPLETED'} ? 'done' : (${st == 'ON_HOLD'} ? 'stopped' : ''))">
+          <span class="dot" th:text="${st == 'ON_HOLD'} ? '‖' : '2'">2</span><span th:text="${st == 'ON_HOLD'} ? 'On hold' : 'In progress'">In progress</span></li>
+        <li th:classappend="${st == 'COMPLETED'} ? 'done' : ''"><span class="dot">3</span>Completed</li>
+      </ol>
+
+      <div class="next-step" th:unless="${#lists.isEmpty(nextStatuses)}">
+        <div><div class="label">Update status</div><div class="text">Current status: <span class="status" th:classappend="${'status-' + #strings.toLowerCase(st)}" th:text="${#strings.replace(st, '_', ' ')}"></span></div></div>
+        <div class="doc-actions">
+          <form th:each="next : ${nextStatuses}" th:action="@{/JobOrders/{id}/status(id=${jobOrder.id})}" method="post"
+                th:attr="data-confirm=${next == 'COMPLETED'} ? 'Mark this job order as completed? This is the final status.' : null,
+                         data-confirm-title=${next == 'COMPLETED'} ? 'Complete job order' : null,
+                         data-confirm-ok=${next == 'COMPLETED'} ? 'Mark completed' : null,
+                         data-confirm-tone=${next == 'COMPLETED'} ? 'success' : null">
+            <input type="hidden" name="status" th:value="${next}" />
+            <button type="submit" class="btn"
+                    th:classappend="${next == 'COMPLETED'} ? 'btn-success' : (${next == 'IN_PROGRESS'} ? 'btn-dark' : 'btn-outline')">
+              <i class="bi" th:classappend="${next == 'COMPLETED'} ? 'bi-check2-circle' : (${next == 'IN_PROGRESS'} ? 'bi-play-fill' : (${next == 'ON_HOLD'} ? 'bi-pause-fill' : 'bi-arrow-counterclockwise'))"></i>
+              <span th:text="${next == 'IN_PROGRESS'} ? 'Start / resume work' : (${next == 'ON_HOLD'} ? 'Put on hold' : (${next == 'PLANNED'} ? 'Back to planned' : 'Mark completed'))"></span>
+            </button>
+          </form>
+        </div>
+      </div>
+      <div class="alert alert-success mb-3" th:if="${st == 'COMPLETED'}">This job order is completed.</div>
+
+      <article class="doc">
+        <header class="doc-head">
+          <div class="doc-brand">
+            <img th:src="@{/images/logo-cbm.webp}" width="360" height="208" alt="CBM" />
+            <div><div class="name">CBM Engineering<br />&amp; Construction</div><div class="kind">Job order</div></div>
+          </div>
+          <div class="doc-meta">
+            <div class="doc-no" th:text="${jobOrder.jobOrderNumber}"></div>
+            <div class="date">Issued: <span th:text="${#temporals.format(jobOrder.createdAt, 'MMMM d, yyyy')}"></span></div>
+            <div class="mt-2"><span class="status" th:classappend="${'status-' + #strings.toLowerCase(st)}" th:text="${#strings.replace(st, '_', ' ')}"></span></div>
+          </div>
+        </header>
+        <section class="doc-section">
+          <div class="party-grid">
+            <div class="party">
+              <h2>Client</h2>
+              <div class="name" th:text="${inq.fullName}"></div>
+              <div th:if="${inq.company}" th:text="${inq.company}"></div>
+              <div th:text="${inq.email}"></div>
+              <div th:text="${inq.phone}"></div>
+            </div>
+            <div class="party">
+              <h2>Contract</h2>
+              <div>Quotation <a class="mono" th:href="@{/Quotations/{id}(id=${q.id})}" th:text="${q.quotationNumber}"></a></div>
+              <div class="name mono fs-5 mt-1" th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></div>
+              <div class="text-muted small" th:if="${q.decidedAt}">Accepted <span th:text="${#temporals.format(q.decidedAt, 'MMM d, yyyy')}"></span></div>
+            </div>
+          </div>
+        </section>
+        <section class="doc-section">
+          <h2>Scope of work</h2>
+          <div class="fw-semibold mb-1" th:text="${inq.servicesNeeded}"></div>
+          <p class="pre-line text-muted mb-2" th:text="${inq.projectDetails}"></p>
+          <div class="small text-muted">
+            Site: <span th:text="${inq.projectLocation}"></span> ·
+            Target start: <span th:text="${inq.targetStartDate != null} ? ${#temporals.format(inq.targetStartDate, 'MMM d, yyyy')} : '—'"></span> ·
+            Target completion: <span th:text="${inq.targetCompletionDate != null} ? ${#temporals.format(inq.targetCompletionDate, 'MMM d, yyyy')} : '—'"></span>
+          </div>
+        </section>
+        <section class="doc-section" th:unless="${#lists.isEmpty(q.lineItems)}">
+          <h2>Contracted items</h2>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Description</th><th class="money">Qty</th><th>Unit</th><th class="money">Amount</th></tr></thead>
+              <tbody>
+                <tr th:each="item : ${q.lineItems}">
+                  <td th:text="${item.description}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(item.quantity, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td th:text="${item.unit}"></td>
+                  <td class="money" th:text="${'₱' + #numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </article>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

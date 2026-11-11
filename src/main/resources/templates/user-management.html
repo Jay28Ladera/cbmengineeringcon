@@ -1,915 +1,132 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Management | CBM Engineering &amp; Construction</title>
-
-  <!-- Bootstrap CSS & Icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <style>
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-      margin: 0;
-      color: #334155;
-    }
-
-    .app-container { 
-      display: flex; 
-      min-height: 100vh; 
-    }
-    .main-content { 
-      flex: 1; 
-      display: flex; 
-      flex-direction: column; 
-      margin-left: 280px; 
-      transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .content-area { 
-      flex: 1; 
-      padding: 2.5rem; 
-      background: transparent;
-      position: relative;
-    }
-    .content-area::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle at 20% 20%, rgba(102, 126, 234, 0.03) 0%, transparent 50%);
-      pointer-events: none;
-    }
-
-    /* When sidebar is collapsed (desktop) */
-    #sidebar.sidebar-collapsed ~ .main-content { margin-left: 75px; }
-
-    .page-title { 
-      font-weight: 800; 
-      letter-spacing: -.02em; 
-      color: #1e293b;
-      font-size: 2.25rem;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 2rem;
-      position: relative;
-    }
-
-    /* Enhanced Cards */
-    .card { 
-      border: none; 
-      border-radius: 16px; 
-      box-shadow: 0 4px 25px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.05); 
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: #ffffff;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-      opacity: 0;
-      transition: opacity .3s ease;
-    }
-    .card:hover { 
-      transform: translateY(-4px) scale(1.002); 
-      box-shadow: 0 12px 40px rgba(0,0,0,.12), 0 4px 16px rgba(102, 126, 234, 0.1);
-    }
-    .card:hover::before {
-      opacity: 1;
-    }
-
-    /* Tabs styling */
-    .tabs-wrap { 
-      background: #fff;
-      border-radius: 16px; 
-      padding: 0.5rem; 
-      margin-bottom: 2rem; 
-      box-shadow: 0 6px 30px rgba(0,0,0,.08);
-      border: 1px solid #f1f5f9;
-      position: relative;
-      overflow: hidden;
-    }
-    .tabs-wrap::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    }
-    .nav-tabs {
-      background: #fff;
-      border-radius: 16px; 
-      padding: 0.5rem; 
-      margin-bottom: 2rem; 
-      box-shadow: 0 6px 30px rgba(0,0,0,.08);
-      border: 1px solid #f1f5f9;
-      position: relative;
-      overflow: hidden;
-    }
-    .nav-tabs::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    }
-    .nav-tabs .nav-link { 
-      font-weight: 600; 
-      border-radius: 12px;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      color: #64748b;
-      margin: 0.25rem;
-      padding: 0.75rem 1.25rem;
-      border: 2px solid transparent;
-      position: relative;
-      overflow: hidden;
-    }
-    .nav-tabs .nav-link::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-      transition: left 0.5s ease;
-    }
-    .nav-tabs .nav-link:hover {
-      background: #f8fafc;
-      color: #667eea;
-      border-color: #e2e8f0;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-    }
-    .nav-tabs .nav-link:hover::before {
-      left: 100%;
-    }
-    .nav-tabs .nav-link.active { 
-      background: #667eea;
-      color: #fff;
-      border-color: #667eea;
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4), 0 2px 8px rgba(0,0,0,.1);
-      transform: translateY(-2px);
-    }
-
-    /* Table styling */
-    .table-responsive {
-      border-radius: 16px;
-      box-shadow: 0 6px 30px rgba(0,0,0,.08);
-      border: 1px solid #e2e8f0;
-      background: #fff;
-      overflow: hidden;
-    }
-    .table {
-      min-width: 1000px;
-      margin-bottom: 0;
-      border-radius: 16px;
-    }
-    .table thead th { 
-      position: sticky; 
-      top: 0; 
-      background: #f8fafc;
-      color: #475569;
-      z-index: 10; 
-      box-shadow: 0 2px 4px rgba(0,0,0,.06);
-      font-weight: 700;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 2px solid #667eea;
-      vertical-align: middle;
-      padding: 1rem 0.75rem;
-    }
-    .table-dark thead th {
-      background: #334155 !important;
-      color: #f8fafc !important;
-      border-bottom: 2px solid #667eea;
-    }
-    .table-warning thead th {
-      background: #fef3c7 !important;
-      color: #92400e !important;
-      border-bottom: 2px solid #f59e0b;
-    }
-    .table th,
-    .table td {
-      vertical-align: middle;
-      border-color: #f1f5f9;
-      padding: 0.85rem 0.75rem;
-    }
-    .table-striped > tbody > tr:nth-of-type(odd) > td {
-      background-color: #f8fafc;
-    }
-    .table tbody tr {
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .table tbody tr:hover {
-      background-color: #f0f4f8 !important;
-      transform: scale(1.002);
-      box-shadow: 0 4px 15px rgba(0,0,0,.08);
-    }
-
-    /* Badge styling */
-    .badge {
-      font-size: 0.75rem;
-      padding: 0.6em 0.8em;
-      font-weight: 600;
-      border-radius: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .badge.bg-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    }
-    .badge.bg-secondary {
-      background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
-      box-shadow: 0 2px 8px rgba(108, 117, 125, 0.3);
-    }
-
-    /* Button styling */
-    .btn {
-      font-weight: 600;
-      border-radius: 10px;
-      padding: 0.5rem 0.75rem;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      letter-spacing: 0.2px;
-      border-width: 2px;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,.15);
-    }
-    .btn-sm {
-      padding: 0.4rem 0.6rem;
-      font-size: 0.8rem;
-      border-radius: 8px;
-    }
-    .btn-outline-warning:hover {
-      background: #f59e0b;
-      border-color: #f59e0b;
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-    }
-    .btn-outline-danger:hover {
-      background: #ef4444;
-      border-color: #ef4444;
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-    }
-    .btn-outline-success:hover {
-      background: #22c55e;
-      border-color: #22c55e;
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
-    }
-    .btn-outline-secondary:hover {
-      background: #6b7280;
-      border-color: #6b7280;
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(107, 114, 128, 0.4);
-    }
-    .table-action-buttons .btn {
-      margin-right: 6px;
-    }
-
-    /* Modal enhancements */
-    .modal-content {
-      border-radius: 20px;
-      border: 1px solid #e2e8f0;
-      box-shadow: 0 25px 80px rgba(0,0,0,.15);
-      overflow: hidden;
-    }
-    .modal-header {
-      padding: 1.5rem 2rem;
-      border-bottom: 1px solid #e2e8f0;
-      font-weight: 700;
-    }
-    .modal-body {
-      padding: 2rem;
-    }
-    .modal-footer {
-      padding: 1.5rem 2rem;
-      border-top: 1px solid #e2e8f0;
-    }
-    .modal-header.bg-warning {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-    }
-    .modal-header.bg-success {
-      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-    }
-    .modal-header.bg-secondary {
-      background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%) !important;
-    }
-    .modal-header.bg-danger {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-    }
-
-    /* Form controls */
-    .form-control, .form-select {
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 0.75rem 1rem;
-      font-size: 0.95rem;
-      transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,.02);
-    }
-    .form-control:focus, .form-select:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(102, 126, 234, 0.15);
-      transform: translateY(-1px);
-    }
-    .form-label {
-      font-weight: 700;
-      color: #334155;
-      margin-bottom: 0.75rem;
-      font-size: 0.95rem;
-      letter-spacing: 0.3px;
-    }
-
-    /* Enhanced visual elements */
-    .fw-bold {
-      font-weight: 700;
-      color: #1e293b;
-      letter-spacing: -.01em;
-    }
-    
-    .text-muted {
-      color: #64748b !important;
-      font-weight: 500;
-    }
-
-    /* Better button styling */
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-    }
-
-    /* Loading animations */
-    @keyframes shimmer {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(100%); }
-    }
-    
-    @keyframes pulse-success {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
-    }
-
-    /* Enhanced icons */
-    .bi {
-      transition: all .2s ease;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-      .main-content { margin-left: 0 !important; padding-top: 70px; }
-      .content-area { padding: 1.5rem; }
-      .page-title { font-size: 1.75rem; }
-      .table-action-buttons .btn { margin-bottom: 0.25rem; }
-    }
-    @media (max-width: 576px) {
-      .content-area { padding: 1rem; }
-      .page-title { font-size: 1.5rem; }
-      .modal-body, .modal-header, .modal-footer { padding: 1rem; }
-    }
-  </style>
-</head>
+<head th:replace="~{fragments/layout :: head('Users')}"></head>
 <body>
-  <div class="app-container">
-    <!-- Sidebar -->
-    <div th:replace="fragments/sidebar :: sidebar(role=${role}, activePage='users')"></div>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage='users')}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-      <!-- Header -->
-      <div th:replace="fragments/header :: header(${username})"></div>
+    <main class="content-area" th:fragment="page" data-section="Administration" data-title="Users">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Administration</div>
+          <h1 class="page-title">User management</h1>
+          <p class="page-sub">Approve account requests and manage who can sign in to the CBM workspace.</p>
+        </div>
+      </div>
 
-      <!-- Page Body -->
-      <main class="content-area">
-        <h2 class="page-title">
-          <i class="bi bi-people-fill me-3"></i>User Management
-        </h2>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
 
-        <ul class="nav nav-tabs" id="userTabs" role="tablist">
-          <li class="nav-item">
-            <button
-              class="nav-link active"
-              id="approved-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#approved"
-              type="button"
-            >
-              <i class="bi bi-check-circle me-2"></i>Approved Users
+      <section class="panel">
+        <ul class="nav nav-tabs app-tabs" id="userTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab" aria-controls="approved" aria-selected="true">
+              Active users <span class="count-badge" th:text="${#lists.size(approvedUsers)}">0</span>
             </button>
           </li>
-          <li class="nav-item">
-            <button
-              class="nav-link"
-              id="pending-tab"
-              data-bs-toggle="tab"
-              data-bs-target="#pending"
-              type="button"
-            >
-              <i class="bi bi-clock-history me-2"></i>Pending Approval
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">
+              Pending requests <span class="count-badge" th:classappend="${!#lists.isEmpty(unapprovedUsers)} ? 'hot'" th:text="${#lists.size(unapprovedUsers)}">0</span>
             </button>
           </li>
         </ul>
 
-        <div class="tab-content" id="userTabsContent">
-          <!-- Approved Users -->
-          <div class="tab-pane fade show active" id="approved" role="tabpanel">
-            <div class="card">
-              <div class="card-body p-0">
-                <div class="table-responsive">
-                  <table class="table table-bordered table-hover mb-0">
-                    <thead class="table-dark sticky-top">
-                      <tr>
-                        <th><i class="bi bi-person me-1"></i>Name</th>
-                        <th><i class="bi bi-envelope me-1"></i>Email</th>
-                        <th><i class="bi bi-person-badge me-1"></i>Username</th>
-                        <th><i class="bi bi-shield me-1"></i>Role</th>
-                        <th class="text-center"><i class="bi bi-gear me-1"></i>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr th:if="${#lists.isEmpty(approvedUsers)}">
-                        <td colspan="5" class="text-center text-muted py-4">
-                          <i class="bi bi-inbox d-block mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                          No approved users found.
-                        </td>
-                      </tr>
-                      <tr
-                        th:each="user : ${approvedUsers}"
-                        th:if="${user.username != 'admin'}"
-                      >
-                        <td th:text="${user.name}" class="fw-semibold"></td>
-                        <td th:text="${user.email}" class="text-muted"></td>
-                        <td th:text="${user.username}" class="fw-medium"></td>
-                        <td>
-                          <span
-                            th:text="${user.role}"
-                            class="badge bg-primary text-uppercase"
-                          ></span>
-                        </td>
-                        <td class="text-center table-action-buttons">
-                          <a
-                            th:if="${user.role != 'admin'}"
-                            href="#"
-                            class="btn btn-sm btn-outline-warning"
-                            th:attr="onclick=|openEditModal('${user.id}', '${user.name}', '${user.email}', '${user.username}', '${user.role}')|"
-                            title="Edit User"
-                            data-bs-toggle="tooltip"
-                          >
-                            <i class="bi bi-pencil-square"></i>
-                          </a>
-                          <form
-                            th:id="'deleteForm-' + ${user.id}"
-                            th:action="@{/users/delete}"
-                            method="post"
-                            class="d-none"
-                          >
-                            <input
-                              type="hidden"
-                              name="_csrf"
-                              th:value="${_csrf.token}"
-                            />
-                            <input
-                              type="hidden"
-                              name="id"
-                              th:value="${user.id}"
-                            />
-                          </form>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-outline-danger"
-                            th:attr="data-user-id=${user.id}"
-                            onclick="openDeleteModal(this)"
-                            title="Delete User"
-                            data-bs-toggle="tooltip"
-                          >
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="approved" role="tabpanel" aria-labelledby="approved-tab">
+            <div class="table-wrap" th:unless="${#lists.isEmpty(approvedUsers)}">
+              <table class="data-table">
+                <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Approved</th><th class="actions">Actions</th></tr></thead>
+                <tbody>
+                  <tr th:each="u : ${approvedUsers}">
+                    <td><div class="cell-main" th:text="${u.name}"></div><div class="cell-sub" th:text="${u.email}"></div></td>
+                    <td class="mono" th:text="${u.username}"></td>
+                    <td><span class="status" th:classappend="${#strings.equalsIgnoreCase(u.role, 'admin')} ? 'status-quotation_created' : ''" th:text="${u.role}"></span></td>
+                    <td class="text-muted" th:text="${u.dateApproved != null} ? ${#temporals.format(u.dateApproved, 'MMM d, yyyy')} : '—'"></td>
+                    <td class="actions">
+                      <span class="text-muted small me-2" th:if="${u.id == currentUserId}">You</span>
+                      <button type="button" class="btn btn-sm btn-outline js-edit-user"
+                              th:attr="data-id=${u.id}, data-name=${u.name}, data-email=${u.email}, data-username=${u.username}, data-role=${u.role}">
+                        <i class="bi bi-pencil"></i>Edit
+                      </button>
+                      <form th:if="${u.id != currentUserId}" class="d-inline" th:action="@{/users/delete}" method="post"
+                            th:attr="data-confirm=${'Delete the account for ' + u.name + '? This cannot be undone.'}"
+                            data-confirm-title="Delete user" data-confirm-ok="Delete user" data-confirm-tone="danger">
+                        <input type="hidden" name="id" th:value="${u.id}" />
+                        <button type="submit" class="btn btn-sm btn-danger-outline btn-icon" title="Delete user" aria-label="Delete user"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(approvedUsers)}"><h3>No active users</h3></div>
           </div>
 
-          <!-- Pending Users -->
-          <div class="tab-pane fade" id="pending" role="tabpanel">
-            <div class="card">
-              <div class="card-body p-0">
-                <div class="table-responsive">
-                  <table class="table table-bordered table-hover mb-0">
-                    <thead class="table-warning sticky-top">
-                      <tr>
-                        <th><i class="bi bi-person me-1"></i>Name</th>
-                        <th><i class="bi bi-envelope me-1"></i>Email</th>
-                        <th><i class="bi bi-person-badge me-1"></i>Username</th>
-                        <th><i class="bi bi-shield me-1"></i>Role</th>
-                        <th class="text-center"><i class="bi bi-gear me-1"></i>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr th:if="${#lists.isEmpty(unapprovedUsers)}">
-                        <td colspan="5" class="text-center text-muted py-4">
-                          <i class="bi bi-hourglass d-block mb-2" style="font-size: 2rem; opacity: 0.5;"></i>
-                          No pending request for approval.
-                        </td>
-                      </tr>
-                      <tr
-                        th:each="user : ${unapprovedUsers}"
-                        th:if="${user.username != 'admin'}"
-                      >
-                        <td th:text="${user.name}" class="fw-semibold"></td>
-                        <td th:text="${user.email}" class="text-muted"></td>
-                        <td th:text="${user.username}" class="fw-medium"></td>
-                        <td>
-                          <span
-                            th:text="${user.role}"
-                            class="badge bg-secondary text-uppercase"
-                          ></span>
-                        </td>
-                        <td class="text-center table-action-buttons">
-                          <form
-                            th:id="'approveForm-' + ${user.id}"
-                            th:action="@{/users/approve}"
-                            method="post"
-                            class="d-none"
-                          >
-                            <input
-                              type="hidden"
-                              name="_csrf"
-                              th:value="${_csrf.token}"
-                            />
-                            <input
-                              type="hidden"
-                              name="id"
-                              th:value="${user.id}"
-                            />
-                          </form>
-                          <form
-                            th:id="'rejectForm-' + ${user.id}"
-                            th:action="@{/users/reject}"
-                            method="post"
-                            class="d-none"
-                          >
-                            <input
-                              type="hidden"
-                              name="_csrf"
-                              th:value="${_csrf.token}"
-                            />
-                            <input
-                              type="hidden"
-                              name="id"
-                              th:value="${user.id}"
-                            />
-                          </form>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-outline-success"
-                            th:attr="data-user-id=${user.id}"
-                            onclick="openConfirmModal(this)"
-                            title="Approve User"
-                            data-bs-toggle="tooltip"
-                          >
-                            <i class="bi bi-check-circle"></i>
-                          </button>
-                          <button
-                            type="button"
-                            class="btn btn-sm btn-outline-secondary"
-                            th:attr="data-user-id=${user.id}"
-                            onclick="openRejectModal(this)"
-                            title="Reject User"
-                            data-bs-toggle="tooltip"
-                          >
-                            <i class="bi bi-x-circle"></i>
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+          <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+            <div class="table-wrap" th:unless="${#lists.isEmpty(unapprovedUsers)}">
+              <table class="data-table">
+                <thead><tr><th>Name</th><th>Username</th><th>Requested role</th><th class="actions">Decision</th></tr></thead>
+                <tbody>
+                  <tr th:each="u : ${unapprovedUsers}">
+                    <td><div class="cell-main" th:text="${u.name}"></div><div class="cell-sub" th:text="${u.email}"></div></td>
+                    <td class="mono" th:text="${u.username}"></td>
+                    <td><span class="status status-pending" th:text="${u.role}"></span></td>
+                    <td class="actions">
+                      <form class="d-inline" th:action="@{/users/reject}" method="post"
+                            th:attr="data-confirm=${'Reject the account request from ' + u.name + '? The request will be removed.'}"
+                            data-confirm-title="Reject request" data-confirm-ok="Reject" data-confirm-tone="danger">
+                        <input type="hidden" name="id" th:value="${u.id}" />
+                        <button type="submit" class="btn btn-sm btn-outline"><i class="bi bi-x-lg"></i>Reject</button>
+                      </form>
+                      <form class="d-inline" th:action="@{/users/approve}" method="post"
+                            th:attr="data-confirm=${'Approve ' + u.name + ' as ' + u.role + '? They will be able to sign in and will receive an email.'}"
+                            data-confirm-title="Approve user" data-confirm-ok="Approve" data-confirm-tone="success">
+                        <input type="hidden" name="id" th:value="${u.id}" />
+                        <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check2"></i>Approve</button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(unapprovedUsers)}">
+              <div class="empty-icon"><i class="bi bi-check2-all"></i></div>
+              <h3>No pending requests</h3>
+              <p>New sign-up requests will appear here for approval.</p>
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <!-- Edit user -->
+      <dialog class="app-dialog app-dialog-md" id="editUserDialog" aria-labelledby="editUserTitle">
+        <form th:action="@{/users/edit}" method="post">
+          <header class="dialog-header">
+            <div><h2 id="editUserTitle">Edit user</h2><p>Change account details or access level.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="editUserDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <input type="hidden" name="id" id="editUserId" />
+            <div class="row g-3">
+              <div class="col-12"><label class="form-label" for="editName">Full name</label><input type="text" class="form-control" name="name" id="editName" required maxlength="180" /></div>
+              <div class="col-12"><label class="form-label" for="editEmail">Email</label><input type="email" class="form-control" name="email" id="editEmail" required maxlength="180" /></div>
+              <div class="col-md-6"><label class="form-label" for="editUsername">Username</label><input type="text" class="form-control" name="username" id="editUsername" required maxlength="80" /></div>
+              <div class="col-md-6"><label class="form-label" for="editRole">Role</label>
+                <select class="form-select" name="role" id="editRole"><option value="user">User</option><option value="manager">Manager</option><option value="admin">Admin</option></select>
+              </div>
+            </div>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="editUserDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save changes</button>
+          </footer>
+        </form>
+      </dialog>
+    </main>
   </div>
-
-  <!-- Modals -->
-  <!-- Edit Modal -->
-  <div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-      <form
-        id="editUserForm"
-        method="post"
-        th:action="@{/users/edit}"
-        class="modal-content"
-      >
-        <div class="modal-header bg-warning text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-pencil-square me-2"></i>Edit User
-          </h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-          <input type="hidden" name="id" id="editUserId" />
-          <div class="mb-3">
-            <label for="editName" class="form-label">
-              <i class="bi bi-person me-1"></i>Name
-            </label>
-            <input
-              type="text"
-              class="form-control"
-              name="name"
-              id="editName"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="editEmail" class="form-label">
-              <i class="bi bi-envelope me-1"></i>Email
-            </label>
-            <input
-              type="email"
-              class="form-control"
-              name="email"
-              id="editEmail"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="editUsername" class="form-label">
-              <i class="bi bi-person-badge me-1"></i>Username
-            </label>
-            <input
-              type="text"
-              class="form-control"
-              name="username"
-              id="editUsername"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="editRole" class="form-label">
-              <i class="bi bi-shield me-1"></i>Role
-            </label>
-            <select class="form-select" name="role" id="editRole">
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-            <i class="bi bi-x-lg me-1"></i>Cancel
-          </button>
-          <button class="btn btn-primary">
-            <i class="bi bi-check-lg me-1"></i>Save Changes
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Confirm Approve Modal -->
-  <div
-    class="modal fade"
-    id="confirmApproveModal"
-    tabindex="-1"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-success">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-check-circle me-2"></i>Approve User
-          </h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <div class="text-center">
-            <i class="bi bi-question-circle text-success mb-3" style="font-size: 3rem;"></i>
-            <p class="mb-0">Are you sure you want to approve this user?</p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            data-bs-dismiss="modal"
-          >
-            <i class="bi bi-x-lg me-1"></i>Cancel
-          </button>
-          <button id="confirmApproveBtn" class="btn btn-success">
-            <span
-              id="loadingSpinner"
-              class="spinner-border spinner-border-sm d-none me-1"
-            ></span>
-            <i class="bi bi-check-lg me-1"></i>Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Confirm Reject Modal -->
-  <div
-    class="modal fade"
-    id="confirmRejectModal"
-    tabindex="-1"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-secondary">
-        <div class="modal-header bg-secondary text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-x-circle me-2"></i>Reject User
-          </h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <div class="text-center">
-            <i class="bi bi-question-circle text-warning mb-3" style="font-size: 3rem;"></i>
-            <p class="mb-0">Are you sure you want to reject this user?</p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
-            <i class="bi bi-x-lg me-1"></i>Cancel
-          </button>
-          <button id="confirmRejectBtn" class="btn btn-secondary">
-            <span
-              id="rejectSpinner"
-              class="spinner-border spinner-border-sm d-none me-1"
-            ></span>
-            <i class="bi bi-x-lg me-1"></i>Confirm
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Confirm Delete Modal -->
-  <div
-    class="modal fade"
-    id="confirmDeleteModal"
-    tabindex="-1"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content border-danger">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title">
-            <i class="bi bi-trash me-2"></i>Delete User
-          </h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-          ></button>
-        </div>
-        <div class="modal-body">
-          <div class="text-center">
-            <i class="bi bi-exclamation-triangle text-danger mb-3" style="font-size: 3rem;"></i>
-            <p class="mb-0">Are you sure you want to delete this user? This action cannot be undone.</p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-            <i class="bi bi-x-lg me-1"></i>Cancel
-          </button>
-          <button id="confirmDeleteBtn" class="btn btn-danger">
-            <span
-              id="deleteSpinner"
-              class="spinner-border spinner-border-sm d-none me-1"
-            ></span>
-            <i class="bi bi-trash me-1"></i>Delete
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bootstrap JS (bundle includes Popper & Collapse) -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script>
-    // Initialize tooltips
-    document
-      .querySelectorAll('[data-bs-toggle="tooltip"]')
-      .forEach((el) => new bootstrap.Tooltip(el));
-
-    let deleteUserId = null;
-
-    function openDeleteModal(button) {
-      deleteUserId = button.getAttribute('data-user-id');
-      const modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
-      modal.show();
-    }
-
-    function openEditModal(id, name, email, username, role) {
-      document.getElementById('editUserId').value = id;
-      document.getElementById('editName').value = name;
-      document.getElementById('editEmail').value = email;
-      document.getElementById('editUsername').value = username;
-      document.getElementById('editRole').value = role;
-      const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
-      modal.show();
-    }
-
-    function openConfirmModal(button) {
-      const userId = button.getAttribute('data-user-id');
-      document.getElementById('confirmApproveBtn').setAttribute('data-user-id', userId);
-      const modal = new bootstrap.Modal(document.getElementById('confirmApproveModal'));
-      modal.show();
-    }
-
-    function openRejectModal(button) {
-      const userId = button.getAttribute('data-user-id');
-      document.getElementById('confirmRejectBtn').setAttribute('data-user-id', userId);
-      const modal = new bootstrap.Modal(document.getElementById('confirmRejectModal'));
-      modal.show();
-    }
-
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function () {
-      if (deleteUserId) {
-        const form = document.getElementById('deleteForm-' + deleteUserId);
-        if (form) {
-          document.getElementById('deleteSpinner').classList.remove('d-none');
-          form.submit();
-        }
-      }
-    });
-
-    document.getElementById('confirmApproveBtn').addEventListener('click', function () {
-      const userId = this.getAttribute('data-user-id');
-      if (userId) {
-        const form = document.getElementById('approveForm-' + userId);
-        if (form) {
-          document.getElementById('loadingSpinner').classList.remove('d-none');
-          form.submit();
-        }
-      }
-    });
-
-    document.getElementById('confirmRejectBtn').addEventListener('click', function () {
-      const userId = this.getAttribute('data-user-id');
-      if (userId) {
-        const form = document.getElementById('rejectForm-' + userId);
-        if (form) {
-          document.getElementById('rejectSpinner').classList.remove('d-none');
-          form.submit();
-        }
-      }
-    });
-
-    // Page level initialization
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('User Management page loaded');
-    });
-  </script>
-  </body>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
 </html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Shared page parts for the signed-in app.
+
+  Every app page uses:
+    <head th:replace="~{fragments/layout :: head('Page title')}"></head>
+    ... sidebar + header ...
+    <main class="content-area" th:fragment="page" data-section="Group" data-title="Page"> ... </main>
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+  All styling lives in /css/app.css and all behaviour in /js/*.js, loaded once. The sidebar
+  navigation swaps only <main>, so a page must not rely on its own <style> or <script> tags:
+  they would be missing when the page is reached through the sidebar.
+-->
+<head th:fragment="head(title)">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1524" />
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}" />
+  <title th:text="${title} + ' | CBM Engineering & Construction'">CBM Engineering &amp; Construction</title>
+  <link rel="icon" type="image/png" th:href="@{/images/favicon.png}" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin th:href="@{/vendor/fonts/ibm-plex-sans-latin-400-normal.woff2}" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin th:href="@{/vendor/fonts/ibm-plex-sans-latin-600-normal.woff2}" />
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}" />
+  <link rel="stylesheet" th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}" />
+  <link rel="stylesheet" th:href="@{/css/app.css}" />
+</head>
+
+<body>
+<th:block th:fragment="scripts">
+  <!-- Shared confirmation dialog, used by any form with data-confirm="…" -->
+  <dialog class="app-dialog app-dialog-sm" id="confirmDialog" aria-labelledby="confirmDialogTitle">
+    <form method="dialog">
+      <header class="dialog-header">
+        <div><h2 id="confirmDialogTitle">Please confirm</h2></div>
+        <button class="dialog-close" value="cancel" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+      </header>
+      <div class="dialog-body"><p id="confirmDialogMessage" class="mb-0"></p></div>
+      <footer class="dialog-footer">
+        <button class="btn btn-ghost" value="cancel">Cancel</button>
+        <button class="btn btn-primary" value="ok" id="confirmDialogOk">Confirm</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="nav-progress" id="navProgress" aria-hidden="true"></div>
+
+  <script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}" defer></script>
+  <script th:src="@{/js/ui.js}" defer></script>
+  <script th:src="@{/js/app-navigation.js}" defer></script>
+  <script th:src="@{/js/inquiries.js}" defer></script>
+  <script th:src="@{/js/quotation.js}" defer></script>
+  <script th:src="@{/js/users.js}" defer></script>
+</th:block>
+</body>
+</html>

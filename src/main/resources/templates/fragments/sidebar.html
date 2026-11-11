@@ -1,486 +1,160 @@
-<!-- fragments/sidebar.html -->
-<div th:fragment="sidebar(role, activePage)"
-     id="sidebar"
-     class="sidebar d-flex flex-column flex-shrink-0 sidebar-expanded">
-
-  <!-- CBM brand strip -->
-  <div class="sidebar-brand d-flex align-items-center justify-content-between">
-    <a th:href="@{/home}" class="sidebar-brand-link d-flex align-items-center text-decoration-none">
-      <img th:src="@{/images/logo.png}" src="/images/logo.png"
-           alt="CBM Engineering and Construction" class="sidebar-brand-logo" />
-      <span class="sidebar-brand-title sidebar-text">Management</span>
+<!-- fragments/sidebar.html: main navigation. Links marked "Soon" open a placeholder page (ModuleController) until the module is built. -->
+<aside th:fragment="sidebar(role, activePage)" id="sidebar" class="sidebar" aria-label="Main navigation">
+  <div class="sidebar-brand">
+    <a th:href="@{/home}" class="sidebar-brand-link" title="Dashboard">
+      <img th:src="@{/images/logo-cbm.webp}" src="/images/logo-cbm.webp" width="360" height="208" alt="CBM" class="sidebar-logo" />
+      <span class="sidebar-brand-text sidebar-text"><strong>CBM</strong><span>Engineering &amp;<br />Construction</span></span>
     </a>
-    <button id="sidebarToggle" class="sidebar-toggle" type="button"
-            title="Toggle sidebar" aria-label="Toggle sidebar">
-      <i class="bi bi-list"></i>
+    <button id="sidebarToggle" class="sidebar-toggle" type="button" title="Collapse menu" aria-label="Collapse menu">
+      <i class="bi bi-layout-sidebar-inset"></i>
     </button>
   </div>
 
-  <!-- Navigation -->
-  <ul class="nav flex-column sidebar-nav">
-    <li class="nav-item">
-      <a th:href="@{/home}" class="nav-link sidebar-link"
-         th:classappend="${activePage == 'home'} ? ' active'">
-        <i class="bi bi-house-door-fill"></i><span class="sidebar-text">Home</span>
-      </a>
-    </li>
+  <nav class="sidebar-scroll">
+    <ul class="sidebar-nav">
+      <li>
+        <a th:href="@{/home}" class="sidebar-link" title="Dashboard" th:classappend="${activePage == 'home'} ? ' active'">
+          <i class="bi bi-speedometer2"></i><span class="sidebar-text">Dashboard</span>
+        </a>
+      </li>
 
-    <!-- Inquiry -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmInquiry" role="button" aria-controls="cbmInquiry">
-        <i class="bi bi-file-earmark-text-fill"></i>
-        <span class="sidebar-text">Inquiry</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmInquiry" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'clients','quotations'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Clients}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'clients'} ? ' active'"><i class="bi bi-dot"></i><span>Clients</span></a></li>
-          <li><a th:href="@{/Quotations}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'quotations'} ? ' active'"><i class="bi bi-dot"></i><span>Quotations</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmInquiry"
+                title="Inquiry" aria-controls="cbmInquiry"
+                th:attr="aria-expanded=${#arrays.contains({'clients','quotations'}, activePage)}">
+          <i class="bi bi-inboxes"></i><span class="sidebar-text">Inquiry</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmInquiry" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'clients','quotations'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/Clients}" class="sidebar-link" th:classappend="${activePage == 'clients'} ? ' active'"><span class="sidebar-text">Clients</span></a></li>
+            <li><a th:href="@{/Quotations}" class="sidebar-link" th:classappend="${activePage == 'quotations'} ? ' active'"><span class="sidebar-text">Quotations</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Implementation -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmImplementation" role="button" aria-controls="cbmImplementation">
-        <i class="bi bi-diagram-3-fill"></i>
-        <span class="sidebar-text">Implementation</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmImplementation" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'subcontractors','job-orders'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Subcontractors}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'subcontractors'} ? ' active'"><i class="bi bi-dot"></i><span>Subcontractors</span></a></li>
-          <li><a th:href="@{/JobOrders}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'job-orders'} ? ' active'"><i class="bi bi-dot"></i><span>Job Orders</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmImplementation"
+                title="Implementation" aria-controls="cbmImplementation"
+                th:attr="aria-expanded=${#arrays.contains({'job-orders','subcontractors'}, activePage)}">
+          <i class="bi bi-diagram-3"></i><span class="sidebar-text">Implementation</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmImplementation" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'job-orders','subcontractors'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/JobOrders}" class="sidebar-link" th:classappend="${activePage == 'job-orders'} ? ' active'"><span class="sidebar-text">Job Orders</span></a></li>
+            <li><a th:href="@{/Subcontractors}" class="sidebar-link" th:classappend="${activePage == 'subcontractors'} ? ' active'"><span class="sidebar-text">Subcontractors</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Purchasing -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmPurchasing" role="button" aria-controls="cbmPurchasing">
-        <i class="bi bi-cart-fill"></i>
-        <span class="sidebar-text">Purchasing</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmPurchasing" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'suppliers','canvasses','procurements','market-prices'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Purchasing/Suppliers}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'suppliers'} ? ' active'"><i class="bi bi-dot"></i><span>Suppliers</span></a></li>
-          <li><a th:href="@{/Purchasing/Canvasses}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'canvasses'} ? ' active'"><i class="bi bi-dot"></i><span>Canvasses</span></a></li>
-          <li><a th:href="@{/Purchasing/Procurements}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'procurements'} ? ' active'"><i class="bi bi-dot"></i><span>Procurements</span></a></li>
-          <li><a th:href="@{/Purchasing/MarketPrices}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'market-prices'} ? ' active'"><i class="bi bi-dot"></i><span>Market Prices</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmPurchasing"
+                title="Purchasing" aria-controls="cbmPurchasing"
+                th:attr="aria-expanded=${#arrays.contains({'suppliers','canvasses','procurements','market-prices'}, activePage)}">
+          <i class="bi bi-cart3"></i><span class="sidebar-text">Purchasing</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmPurchasing" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'suppliers','canvasses','procurements','market-prices'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/Purchasing/Suppliers}" class="sidebar-link" th:classappend="${activePage == 'suppliers'} ? ' active'"><span class="sidebar-text">Suppliers</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Purchasing/Canvasses}" class="sidebar-link" th:classappend="${activePage == 'canvasses'} ? ' active'"><span class="sidebar-text">Canvasses</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Purchasing/Procurements}" class="sidebar-link" th:classappend="${activePage == 'procurements'} ? ' active'"><span class="sidebar-text">Procurements</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Purchasing/MarketPrices}" class="sidebar-link" th:classappend="${activePage == 'market-prices'} ? ' active'"><span class="sidebar-text">Market Prices</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Inventory -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmInventory" role="button" aria-controls="cbmInventory">
-        <i class="bi bi-boxes"></i>
-        <span class="sidebar-text">Inventory</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmInventory" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'inventory-categories','materials','stock-receiving','stock-adjustment','tools-equipment'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Inventory/Categories}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'inventory-categories'} ? ' active'"><i class="bi bi-dot"></i><span>Categories</span></a></li>
-          <li><a th:href="@{/Inventory/Materials}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'materials'} ? ' active'"><i class="bi bi-dot"></i><span>Materials</span></a></li>
-          <li><a th:href="@{/Inventory/StockReceiving}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'stock-receiving'} ? ' active'"><i class="bi bi-dot"></i><span>Stock Receiving</span></a></li>
-          <li><a th:href="@{/Inventory/StockAdjustment}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'stock-adjustment'} ? ' active'"><i class="bi bi-dot"></i><span>Stock Adjustment</span></a></li>
-          <li><a th:href="@{/Inventory/ToolsAndEquipments}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'tools-equipment'} ? ' active'"><i class="bi bi-dot"></i><span>Tools &amp; Equipment</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmInventory"
+                title="Inventory" aria-controls="cbmInventory"
+                th:attr="aria-expanded=${#arrays.contains({'inventory-categories','materials','stock-receiving','stock-adjustment','tools-equipment'}, activePage)}">
+          <i class="bi bi-boxes"></i><span class="sidebar-text">Inventory</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmInventory" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'inventory-categories','materials','stock-receiving','stock-adjustment','tools-equipment'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/Inventory/Categories}" class="sidebar-link" th:classappend="${activePage == 'inventory-categories'} ? ' active'"><span class="sidebar-text">Categories</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Inventory/Materials}" class="sidebar-link" th:classappend="${activePage == 'materials'} ? ' active'"><span class="sidebar-text">Materials</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Inventory/StockReceiving}" class="sidebar-link" th:classappend="${activePage == 'stock-receiving'} ? ' active'"><span class="sidebar-text">Stock Receiving</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Inventory/StockAdjustment}" class="sidebar-link" th:classappend="${activePage == 'stock-adjustment'} ? ' active'"><span class="sidebar-text">Stock Adjustment</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Inventory/ToolsAndEquipments}" class="sidebar-link" th:classappend="${activePage == 'tools-equipment'} ? ' active'"><span class="sidebar-text">Tools &amp; Equipment</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Accounting -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmAccounting" role="button" aria-controls="cbmAccounting">
-        <i class="bi bi-calculator-fill"></i>
-        <span class="sidebar-text">Accounting</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmAccounting" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'payments','subcon-billings','admin-expenses'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Accounting/Payments}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'payments'} ? ' active'"><i class="bi bi-dot"></i><span>Payments</span></a></li>
-          <li><a th:href="@{/Accounting/SubconBillings}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'subcon-billings'} ? ' active'"><i class="bi bi-dot"></i><span>Subcon Billings</span></a></li>
-          <li><a th:href="@{/Accounting/AdminExpenses}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'admin-expenses'} ? ' active'"><i class="bi bi-dot"></i><span>Admin Expenses</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmAccounting"
+                title="Accounting" aria-controls="cbmAccounting"
+                th:attr="aria-expanded=${#arrays.contains({'payments','subcon-billings','admin-expenses'}, activePage)}">
+          <i class="bi bi-calculator"></i><span class="sidebar-text">Accounting</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmAccounting" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'payments','subcon-billings','admin-expenses'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/Accounting/Payments}" class="sidebar-link" th:classappend="${activePage == 'payments'} ? ' active'"><span class="sidebar-text">Payments</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Accounting/SubconBillings}" class="sidebar-link" th:classappend="${activePage == 'subcon-billings'} ? ' active'"><span class="sidebar-text">Subcon Billings</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Accounting/AdminExpenses}" class="sidebar-link" th:classappend="${activePage == 'admin-expenses'} ? ' active'"><span class="sidebar-text">Admin Expenses</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Human Resources -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmHr" role="button" aria-controls="cbmHr">
-        <i class="bi bi-people-fill"></i>
-        <span class="sidebar-text">HR</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmHr" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'employees','holidays','biometric-device','time-logs','payroll-periods','timesheets','paysheets'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/HR/Employees}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'employees'} ? ' active'"><i class="bi bi-dot"></i><span>Employees</span></a></li>
-          <li><a th:href="@{/HR/Holidays}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'holidays'} ? ' active'"><i class="bi bi-dot"></i><span>Holidays</span></a></li>
-          <li><a th:href="@{/HR/BiometricDevice}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'biometric-device'} ? ' active'"><i class="bi bi-dot"></i><span>Biometric Device</span></a></li>
-          <li><a th:href="@{/HR/TimeLogs}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'time-logs'} ? ' active'"><i class="bi bi-dot"></i><span>Time Logs</span></a></li>
-          <li><a th:href="@{/HR/PayrollPeriod}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'payroll-periods'} ? ' active'"><i class="bi bi-dot"></i><span>Payroll Periods</span></a></li>
-          <li><a th:href="@{/HR/TimeSheets}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'timesheets'} ? ' active'"><i class="bi bi-dot"></i><span>Time Sheets</span></a></li>
-          <li><a th:href="@{/HR/PaySheets}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'paysheets'} ? ' active'"><i class="bi bi-dot"></i><span>Pay Sheets</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmHr"
+                title="Human Resources" aria-controls="cbmHr"
+                th:attr="aria-expanded=${#arrays.contains({'employees','holidays','biometric-device','time-logs','payroll-periods','timesheets','paysheets'}, activePage)}">
+          <i class="bi bi-people"></i><span class="sidebar-text">Human Resources</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmHr" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'employees','holidays','biometric-device','time-logs','payroll-periods','timesheets','paysheets'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/HR/Employees}" class="sidebar-link" th:classappend="${activePage == 'employees'} ? ' active'"><span class="sidebar-text">Employees</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/HR/Holidays}" class="sidebar-link" th:classappend="${activePage == 'holidays'} ? ' active'"><span class="sidebar-text">Holidays</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/HR/BiometricDevice}" class="sidebar-link" th:classappend="${activePage == 'biometric-device'} ? ' active'"><span class="sidebar-text">Biometric Device</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/HR/TimeLogs}" class="sidebar-link" th:classappend="${activePage == 'time-logs'} ? ' active'"><span class="sidebar-text">Time Logs</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/HR/PayrollPeriod}" class="sidebar-link" th:classappend="${activePage == 'payroll-periods'} ? ' active'"><span class="sidebar-text">Payroll Periods</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/HR/TimeSheets}" class="sidebar-link" th:classappend="${activePage == 'timesheets'} ? ' active'"><span class="sidebar-text">Time Sheets</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/HR/PaySheets}" class="sidebar-link" th:classappend="${activePage == 'paysheets'} ? ' active'"><span class="sidebar-text">Pay Sheets</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Admin -->
-    <li class="nav-item sidebar-group" th:if="${role == 'admin' or role == 'CEO' or role == 'ceo'}">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmAdmin" role="button" aria-controls="cbmAdmin">
-        <i class="bi bi-person-lock"></i>
-        <span class="sidebar-text">Admin</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmAdmin" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'users','settings','trails'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Admin/Users}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'users'} ? ' active'"><i class="bi bi-dot"></i><span>Users</span></a></li>
-          <li><a th:href="@{/Admin/Settings}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'settings'} ? ' active'"><i class="bi bi-dot"></i><span>Settings</span></a></li>
-          <li><a th:href="@{/Admin/Trails}" class="nav-link sidebar-link"
-                 th:classappend="${activePage == 'trails'} ? ' active'"><i class="bi bi-dot"></i><span>Trails (Delete)</span></a></li>
-        </ul>
-      </div>
-    </li>
+      <li class="sidebar-group">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmReports"
+                title="Reports" aria-controls="cbmReports"
+                th:attr="aria-expanded=${#arrays.contains({'report-quotations','report-job-orders','report-payments','report-subcon-billings','report-admin-expenses','report-inventory-summary','report-inventory-movement','report-project-salary-cost','report-billing-monitoring','report-project-profitability','report-project-expenses','report-project-monthly'}, activePage)}">
+          <i class="bi bi-bar-chart-line"></i><span class="sidebar-text">Reports</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmReports" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'report-quotations','report-job-orders','report-payments','report-subcon-billings','report-admin-expenses','report-inventory-summary','report-inventory-movement','report-project-salary-cost','report-billing-monitoring','report-project-profitability','report-project-expenses','report-project-monthly'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/Reports/QuotationListing}" class="sidebar-link" th:classappend="${activePage == 'report-quotations'} ? ' active'"><span class="sidebar-text">Quotation Listing</span></a></li>
+            <li><a th:href="@{/Reports/JobOrderListing}" class="sidebar-link" th:classappend="${activePage == 'report-job-orders'} ? ' active'"><span class="sidebar-text">Job Order Listing</span></a></li>
+            <li><a th:href="@{/Reports/PaymentListing}" class="sidebar-link" th:classappend="${activePage == 'report-payments'} ? ' active'"><span class="sidebar-text">Payment Listing</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/SubconBillingListing}" class="sidebar-link" th:classappend="${activePage == 'report-subcon-billings'} ? ' active'"><span class="sidebar-text">Subcon Billing Listing</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/AdminExpenseListing}" class="sidebar-link" th:classappend="${activePage == 'report-admin-expenses'} ? ' active'"><span class="sidebar-text">Admin Expense Listing</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/InventorySummary}" class="sidebar-link" th:classappend="${activePage == 'report-inventory-summary'} ? ' active'"><span class="sidebar-text">Inventory Summary</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/InventoryMovement}" class="sidebar-link" th:classappend="${activePage == 'report-inventory-movement'} ? ' active'"><span class="sidebar-text">Inventory Movement</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/ProjectSalaryCost}" class="sidebar-link" th:classappend="${activePage == 'report-project-salary-cost'} ? ' active'"><span class="sidebar-text">Project Salary Cost</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/BillingMonitoring}" class="sidebar-link" th:classappend="${activePage == 'report-billing-monitoring'} ? ' active'"><span class="sidebar-text">Billing Monitoring</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/ProjectProfitability}" class="sidebar-link" th:classappend="${activePage == 'report-project-profitability'} ? ' active'"><span class="sidebar-text">Project Profitability</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/ProjectExpenseBreakdown}" class="sidebar-link" th:classappend="${activePage == 'report-project-expenses'} ? ' active'"><span class="sidebar-text">Project Expense Breakdown</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/ProjectMonthlySummary}" class="sidebar-link" th:classappend="${activePage == 'report-project-monthly'} ? ' active'"><span class="sidebar-text">Project Monthly Summary</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
 
-    <!-- Reports -->
-    <li class="nav-item sidebar-group">
-      <a class="nav-link sidebar-link sidebar-group-toggle" data-bs-toggle="collapse"
-         data-bs-target="#cbmReports" role="button" aria-controls="cbmReports">
-        <i class="bi bi-file-earmark-bar-graph-fill"></i>
-        <span class="sidebar-text">Reports</span>
-        <i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
-      </a>
-      <div id="cbmReports" class="collapse sidebar-submenu"
-           th:classappend="${#arrays.contains({'report-quotations','report-job-orders','report-payments','report-subcon-billings','report-admin-expenses','report-inventory-summary','report-inventory-movement','report-project-salary-cost','report-billing-monitoring','report-project-profitability','report-project-expenses','report-project-monthly'}, activePage)} ? ' show'">
-        <ul class="nav flex-column">
-          <li><a th:href="@{/Reports/QuotationListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-quotations'} ? ' active'"><i class="bi bi-dot"></i><span>Quotation Listing</span></a></li>
-          <li><a th:href="@{/Reports/JobOrderListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-job-orders'} ? ' active'"><i class="bi bi-dot"></i><span>Job Order Listing</span></a></li>
-          <li><a th:href="@{/Reports/PaymentListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-payments'} ? ' active'"><i class="bi bi-dot"></i><span>Payment Listing</span></a></li>
-          <li><a th:href="@{/Reports/SubconBillingListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-subcon-billings'} ? ' active'"><i class="bi bi-dot"></i><span>Subcon Billing Listing</span></a></li>
-          <li><a th:href="@{/Reports/AdminExpenseListing}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-admin-expenses'} ? ' active'"><i class="bi bi-dot"></i><span>Admin Expense Listing</span></a></li>
-          <li><a th:href="@{/Reports/InventorySummary}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-inventory-summary'} ? ' active'"><i class="bi bi-dot"></i><span>Inventory Summary</span></a></li>
-          <li><a th:href="@{/Reports/InventoryMovement}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-inventory-movement'} ? ' active'"><i class="bi bi-dot"></i><span>Inventory Movement</span></a></li>
-          <li><a th:href="@{/Reports/ProjectSalaryCost}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-salary-cost'} ? ' active'"><i class="bi bi-dot"></i><span>Project Salary Cost</span></a></li>
-          <li><a th:href="@{/Reports/BillingMonitoring}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-billing-monitoring'} ? ' active'"><i class="bi bi-dot"></i><span>Billing Monitoring</span></a></li>
-          <li><a th:href="@{/Reports/ProjectProfitability}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-profitability'} ? ' active'"><i class="bi bi-dot"></i><span>Project Profitability Report</span></a></li>
-          <li><a th:href="@{/Reports/ProjectExpenseBreakdown}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-expenses'} ? ' active'"><i class="bi bi-dot"></i><span>Project Expense Breakdown</span></a></li>
-          <li><a th:href="@{/Reports/ProjectMonthlySummary}" class="nav-link sidebar-link" th:classappend="${activePage == 'report-project-monthly'} ? ' active'"><i class="bi bi-dot"></i><span>Project Monthly Summary</span></a></li>
-        </ul>
-      </div>
-    </li>
-  </ul>
+      <li class="sidebar-group" th:if="${isAdmin}">
+        <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmAdmin"
+                title="Administration" aria-controls="cbmAdmin"
+                th:attr="aria-expanded=${#arrays.contains({'users','settings','trails'}, activePage)}">
+          <i class="bi bi-shield-lock"></i><span class="sidebar-text">Administration</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
+        </button>
+        <div id="cbmAdmin" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'users','settings','trails'}, activePage)} ? ' show'">
+          <ul>
+            <li><a th:href="@{/users}" class="sidebar-link" th:classappend="${activePage == 'users'} ? ' active'"><span class="sidebar-text">Users</span></a></li>
+            <li><a th:href="@{/Admin/Settings}" class="sidebar-link" th:classappend="${activePage == 'settings'} ? ' active'"><span class="sidebar-text">Settings</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Admin/Trails}" class="sidebar-link" th:classappend="${activePage == 'trails'} ? ' active'"><span class="sidebar-text">Audit Trail</span><span class="soon sidebar-text">Soon</span></a></li>
+          </ul>
+        </div>
+      </li>
+    </ul>
+  </nav>
 
-  <div class="sidebar-footer mt-auto">
-    <small class="sidebar-text">&copy; CBM Engineering &amp; Construction</small>
+  <div class="sidebar-footer sidebar-text">
+    <span>&copy; CBM Engineering &amp; Construction</span>
   </div>
-
-  <!-- Mobile overlay and responsive navigation -->
-  <script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-      const sidebar = document.getElementById('sidebar');
-      const toggleBtn = document.getElementById('sidebarToggle');
-      if (!sidebar || !toggleBtn) return;
-
-      const roleName = /*[[${role}]]*/ 'user';
-      const storageKey = 'cbm-sidebar-collapsed-' + roleName;
-      let isMobile = window.innerWidth <= 768;
-
-      const mobileMenuBtn = document.createElement('button');
-      mobileMenuBtn.className = 'mobile-menu-btn';
-      mobileMenuBtn.type = 'button';
-      mobileMenuBtn.innerHTML = '<i class="bi bi-list"></i>';
-      mobileMenuBtn.setAttribute('aria-label', 'Open navigation menu');
-      document.body.appendChild(mobileMenuBtn);
-
-      const overlay = document.createElement('div');
-      overlay.className = 'sidebar-overlay';
-      document.body.appendChild(overlay);
-
-      function closeMobileMenu() {
-        sidebar.classList.add('sidebar-mobile-hidden');
-        sidebar.classList.remove('show');
-        overlay.classList.remove('show');
-        document.body.style.overflow = '';
-      }
-
-      function syncArrows() {
-        document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(function (trigger) {
-          const target = document.querySelector(trigger.getAttribute('data-bs-target'));
-          const arrow = trigger.querySelector('.toggle-arrow');
-          if (!target || !arrow) return;
-          const expanded = target.classList.contains('show');
-          trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-          arrow.classList.toggle('bi-chevron-up', expanded);
-          arrow.classList.toggle('bi-chevron-down', !expanded);
-        });
-      }
-
-      function checkScreenSize() {
-        const wasMobile = isMobile;
-        isMobile = window.innerWidth <= 768;
-        if (isMobile && !wasMobile) {
-          sidebar.classList.remove('sidebar-collapsed');
-          sidebar.classList.add('sidebar-mobile-hidden');
-          overlay.classList.remove('show');
-        } else if (!isMobile && wasMobile) {
-          sidebar.classList.remove('sidebar-mobile-hidden', 'show');
-          overlay.classList.remove('show');
-          sidebar.classList.toggle('sidebar-collapsed', localStorage.getItem(storageKey) === 'true');
-          document.body.style.overflow = '';
-        }
-      }
-
-      if (isMobile) {
-        sidebar.classList.add('sidebar-mobile-hidden');
-      } else {
-        sidebar.classList.toggle('sidebar-collapsed', localStorage.getItem(storageKey) === 'true');
-      }
-      syncArrows();
-
-      toggleBtn.addEventListener('click', function () {
-        if (isMobile) {
-          closeMobileMenu();
-          return;
-        }
-        if (!sidebar.classList.contains('sidebar-collapsed')) {
-          document.querySelectorAll('#sidebar .collapse.show').forEach(function (submenu) {
-            bootstrap.Collapse.getOrCreateInstance(submenu).hide();
-          });
-        }
-        sidebar.classList.toggle('sidebar-collapsed');
-        localStorage.setItem(storageKey, sidebar.classList.contains('sidebar-collapsed'));
-      });
-
-      mobileMenuBtn.addEventListener('click', function () {
-        const opening = sidebar.classList.contains('sidebar-mobile-hidden');
-        if (opening) {
-          sidebar.classList.remove('sidebar-mobile-hidden');
-          sidebar.classList.add('show');
-          overlay.classList.add('show');
-          document.body.style.overflow = 'hidden';
-        } else {
-          closeMobileMenu();
-        }
-      });
-
-      overlay.addEventListener('click', closeMobileMenu);
-
-      document.querySelectorAll('#sidebar .sidebar-link').forEach(function (link) {
-        link.addEventListener('click', function () {
-          if (this.getAttribute('data-bs-toggle') === 'collapse') return;
-          if (isMobile) setTimeout(closeMobileMenu, 120);
-        });
-      });
-
-      document.querySelectorAll('#sidebar [data-bs-toggle="collapse"]').forEach(function (trigger) {
-        const target = document.querySelector(trigger.getAttribute('data-bs-target'));
-        if (!target) return;
-        target.addEventListener('shown.bs.collapse', syncArrows);
-        target.addEventListener('hidden.bs.collapse', syncArrows);
-      });
-
-      window.addEventListener('resize', checkScreenSize);
-    });
-  </script>
-
-  <style>
-    #sidebar {
-      --cbm-red: #c9141e;
-      --cbm-red-dark: #a80e17;
-      width: 280px;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 1030;
-      overflow-x: hidden;
-      overflow-y: auto;
-      color: #f4f4f4 !important;
-      background: linear-gradient(180deg, #20272e 0%, #14181c 100%) !important;
-      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
-      transform: translateX(0);
-      transition: width 0.28s ease, transform 0.28s ease;
-    }
-
-    #sidebar::-webkit-scrollbar { width: 6px; }
-    #sidebar::-webkit-scrollbar-track { background: #191d21; }
-    #sidebar::-webkit-scrollbar-thumb { border-radius: 8px; background: #59616a; }
-    #sidebar::-webkit-scrollbar-thumb:hover { background: #858d94; }
-
-    #sidebar .sidebar-brand {
-      min-height: 76px;
-      flex: 0 0 auto;
-      padding: 11px 14px;
-      background: linear-gradient(110deg, #b50e18, #df1722);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
-    }
-
-    #sidebar .sidebar-brand-link {
-      min-width: 0;
-      gap: 10px;
-      color: #fff !important;
-      font-size: 1.08rem;
-      letter-spacing: 0.015em;
-      white-space: nowrap;
-    }
-
-    #sidebar .sidebar-brand-logo {
-      width: 43px;
-      height: 43px;
-      flex: 0 0 43px;
-      padding: 2px;
-      object-fit: contain;
-      border-radius: 50%;
-      background: #fff;
-    }
-
-    #sidebar .sidebar-toggle {
-      width: 37px;
-      height: 37px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto;
-      border: 1px solid rgba(255, 255, 255, 0.27);
-      border-radius: 7px;
-      color: #fff;
-      background: rgba(24, 24, 24, 0.22);
-      transition: 0.18s ease;
-    }
-
-    #sidebar .sidebar-toggle:hover { background: rgba(24, 24, 24, 0.42); transform: scale(1.04); }
-    #sidebar .sidebar-nav { padding: 12px 10px 18px; }
-
-    #sidebar .sidebar-link {
-      position: relative;
-      min-height: 47px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 3px 0;
-      padding: 11px 13px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.035);
-      border-radius: 7px;
-      color: #f4f4f4 !important;
-      background: rgba(177, 188, 199, 0.19);
-      font-size: 0.9rem;
-      font-weight: 600;
-      text-decoration: none;
-      transition: 0.18s ease;
-    }
-
-    #sidebar .sidebar-link > span,
-    #sidebar .sidebar-link > i { flex-shrink: 0; }
-
-    #sidebar .sidebar-link > i:first-child,
-    #sidebar .sidebar-link span > i:first-child {
-      width: 22px;
-      color: #f2f2f2;
-      font-size: 1.06rem;
-      text-align: center;
-    }
-
-    #sidebar .sidebar-link:hover { border-color: rgba(255,255,255,.12); color: #fff !important; background: rgba(190,199,207,.3); }
-
-    #sidebar .sidebar-link.active {
-      border-color: rgba(255,255,255,.8);
-      color: #22272b !important;
-      background: #f3f3f1 !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,.16);
-    }
-
-    #sidebar .sidebar-link.active > i:first-child,
-    #sidebar .sidebar-link.active span > i:first-child { color: #363b40; }
-
-    #sidebar .toggle-arrow { margin-left: auto; color: rgba(255,255,255,.85); font-size: .8rem; }
-    #sidebar .sidebar-submenu { margin: 2px 0 8px 12px; padding: 2px 0 2px 10px; border-left: 1px solid rgba(255,255,255,.2); }
-    #sidebar .sidebar-submenu .sidebar-link { min-height: 42px; margin: 2px 0; padding: 9px 11px; border-color: transparent; color: #d0d3d6 !important; background: transparent; font-size: .86rem; font-weight: 500; }
-    #sidebar .sidebar-submenu .sidebar-link > i { width: 17px; flex: 0 0 17px; color: #e3e5e7; font-size: 0; text-align: center; }
-    #sidebar .sidebar-submenu .sidebar-link > i.bi-dot::before { width: 13px; height: 13px; display: inline-block; border: 2px solid #e3e5e7; border-radius: 50%; content: ""; vertical-align: -1px; }
-    #sidebar .sidebar-submenu .sidebar-link > i:not(.bi-dot) { font-size: .9rem; }
-    #sidebar .sidebar-submenu .sidebar-link:hover { color: #fff !important; background: rgba(255,255,255,.1); }
-    #sidebar .sidebar-submenu .sidebar-link.active { border-color: rgba(255,255,255,.82); color: #262a2e !important; background: #f5f5f3 !important; box-shadow: none; }
-    #sidebar .sidebar-submenu .sidebar-link.active > i.bi-dot::before { border-color: #343a40; background: #343a40; }
-
-    #sidebar.sidebar-collapsed { width: 76px !important; }
-    #sidebar.sidebar-collapsed .sidebar-text { display: none !important; }
-    #sidebar.sidebar-collapsed .sidebar-brand { justify-content: center !important; padding: 10px 8px; }
-    #sidebar.sidebar-collapsed .sidebar-brand-link { display: none !important; }
-    #sidebar.sidebar-collapsed .sidebar-link { justify-content: center !important; padding-right: 8px; padding-left: 8px; }
-    #sidebar.sidebar-collapsed .sidebar-link > i:first-child,
-    #sidebar.sidebar-collapsed .sidebar-link span > i:first-child { width: 24px; font-size: 1.12rem; }
-    #sidebar.sidebar-collapsed .collapse.show,
-    #sidebar.sidebar-collapsed .toggle-arrow { display: none !important; }
-    #sidebar.sidebar-mobile-hidden { transform: translateX(-100%) !important; }
-
-    #sidebar .sidebar-footer {
-      flex: 0 0 auto;
-      padding: 16px 8px;
-      border-top: 1px solid rgba(255,255,255,.12);
-      color: #c4c7ca;
-      background: rgba(0,0,0,.17);
-      text-align: center;
-    }
-
-    .sidebar-overlay { position: fixed; inset: 0; z-index: 1025; visibility: hidden; background: rgba(0,0,0,.58); opacity: 0; transition: opacity .25s ease, visibility .25s ease; }
-    .sidebar-overlay.show { visibility: visible; opacity: 1; }
-    .mobile-menu-btn { position: fixed; top: 14px; left: 14px; z-index: 1035; display: none; padding: 9px 11px; border: 0; border-radius: 7px; color: #fff; background: #c9141e; box-shadow: 0 4px 14px rgba(0,0,0,.25); font-size: 1.15rem; }
-    .mobile-menu-btn:hover, .mobile-menu-btn:focus { color: #fff; background: #a80e17; }
-
-    @media (max-width: 768px) {
-      #sidebar, #sidebar.sidebar-collapsed { width: 280px !important; transform: translateX(-100%); }
-      #sidebar.show { transform: translateX(0); }
-      #sidebar.sidebar-collapsed .sidebar-text { display: inline !important; }
-      #sidebar.sidebar-collapsed .sidebar-brand-link { display: flex !important; }
-      #sidebar.sidebar-collapsed .sidebar-link { justify-content: flex-start !important; padding: 11px 13px; }
-      #sidebar.sidebar-collapsed .toggle-arrow { display: inline-block !important; }
-      .mobile-menu-btn { display: inline-flex; align-items: center; justify-content: center; }
-    }
-
-    @media (max-width: 576px) {
-      #sidebar, #sidebar.sidebar-collapsed { width: min(86vw, 320px) !important; }
-      .mobile-menu-btn { top: 10px; left: 10px; padding: 8px 10px; }
-    }
-  </style>
-</div>
+</aside>

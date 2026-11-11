@@ -1,314 +1,48 @@
-<!-- fragments/header.html -->
-<div
-  th:fragment="header(username)"
-  class="header-container navbar navbar-expand-lg px-3"
->
-  <a class="navbar-brand d-flex align-items-center text-decoration-none" th:href="@{/home}">
-    <img
-      th:src="@{/images/logo.png}"
-      src="/images/logo.png"
-      alt="CBM Engineering and Construction logo"
-      class="brand-logo me-3"
-    />
-    <div class="brand-copy d-flex flex-column">
-      <span class="brand-title">CBM Engineering &amp; Construction</span>
-      <span class="brand-subtitle">PROJECT MANAGEMENT SYSTEM</span>
-    </div>
-  </a>
+<!-- fragments/header.html: top bar of the signed-in app. Styles are in /css/app.css. -->
+<header th:fragment="header(username)" class="topbar">
+  <button class="topbar-menu" type="button" id="mobileMenuButton" aria-label="Open menu" aria-controls="sidebar">
+    <i class="bi bi-list"></i>
+  </button>
 
-  <div class="ms-auto d-flex align-items-center">
+  <nav class="topbar-crumbs" aria-label="Breadcrumb">
+    <span class="crumb-root">CBM Workspace</span>
+    <i class="bi bi-chevron-right"></i>
+    <span class="crumb-section" id="crumbSection"></span>
+    <i class="bi bi-chevron-right crumb-sep" id="crumbSep"></i>
+    <span class="crumb-title" id="crumbTitle"></span>
+  </nav>
+
+  <div class="topbar-actions">
+    <a class="btn btn-primary btn-sm topbar-cta" th:href="@{/Clients(openInquiry=1)}">
+      <i class="bi bi-plus-lg"></i><span>New inquiry</span>
+    </a>
+
     <div class="dropdown">
-      <button
-        class="user-menu dropdown-toggle"
-        type="button"
-        id="userDropdown"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        <span class="user-name" th:text="${username}">CBM User</span>
-
-        <img
-          th:src="${profileImageUrl != null and !#strings.isEmpty(profileImageUrl)} ? ${profileImageUrl} : @{/images/logo.png}"
-          src="/images/logo.png"
-          alt="User profile"
-          class="user-avatar"
-        />
-
-        <i class="bi bi-chevron-down dropdown-chevron" aria-hidden="true"></i>
+      <button class="user-menu" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="avatar" th:if="${profileImageUrl == null}" th:text="${userInitials}">CB</span>
+        <img class="avatar" th:if="${profileImageUrl != null}" th:src="${profileImageUrl}" alt="" />
+        <span class="user-meta">
+          <span class="user-name" th:text="${displayName ?: username}">CBM User</span>
+          <span class="user-role" th:text="${role}">user</span>
+        </span>
+        <i class="bi bi-chevron-down"></i>
       </button>
-
-      <ul
-        class="dropdown-menu dropdown-menu-end"
-        aria-labelledby="userDropdown"
-      >
+      <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
         <li class="dropdown-heading">
-          <span class="dropdown-label">ACCOUNT</span>
-          <span class="dropdown-user" th:text="${username}">CBM User</span>
+          <span class="dropdown-label">Signed in as</span>
+          <span class="dropdown-user" th:text="${username}">user</span>
         </li>
-
         <li><hr class="dropdown-divider" /></li>
-
-        <li>
-          <a class="dropdown-item" th:href="@{/profile}">
-            <i class="bi bi-person"></i>
-            <span>My Profile</span>
-          </a>
-        </li>
-
-        <li>
-          <a class="dropdown-item" th:href="@{/settings}">
-            <i class="bi bi-gear"></i>
-            <span>Settings</span>
-          </a>
-        </li>
-
+        <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person"></i>My profile</a></li>
+        <li th:if="${isAdmin}"><a class="dropdown-item" th:href="@{/users}"><i class="bi bi-people"></i>User management</a></li>
+        <li><a class="dropdown-item" th:href="@{/}" target="_blank" rel="noopener"><i class="bi bi-globe2"></i>Public website</a></li>
         <li><hr class="dropdown-divider" /></li>
-
         <li>
           <form th:action="@{/logout}" method="post" class="m-0">
-            <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
-            <button type="submit" class="dropdown-item logout-item">
-              <i class="bi bi-box-arrow-right"></i>
-              <span>Log Out</span>
-            </button>
+            <button type="submit" class="dropdown-item logout-item"><i class="bi bi-box-arrow-right"></i>Sign out</button>
           </form>
         </li>
       </ul>
     </div>
   </div>
-
-  <style>
-    .header-container {
-      position: sticky;
-      top: 0;
-      z-index: 1020;
-      min-height: 76px;
-      background: rgba(24, 24, 24, 0.97);
-      border-bottom: 3px solid #c9141e;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-      font-family: "Inter", sans-serif;
-    }
-
-    .header-container .navbar-brand {
-      min-width: 0;
-      color: #fff;
-    }
-
-    .brand-logo {
-      width: 48px;
-      height: 48px;
-      flex: 0 0 auto;
-      padding: 3px;
-      object-fit: contain;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 10px;
-      background: #fff;
-    }
-
-    .brand-copy {
-      min-width: 0;
-      line-height: 1.2;
-    }
-
-    .brand-title {
-      overflow: hidden;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: 0.01em;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .brand-subtitle {
-      margin-top: 5px;
-      color: #c9c9c9;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-    }
-
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      padding: 6px 8px 6px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #fff;
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .user-menu:hover,
-    .user-menu[aria-expanded="true"] {
-      border-color: rgba(255, 255, 255, 0.32);
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .user-menu::after {
-      display: none;
-    }
-
-    .user-name {
-      max-width: 180px;
-      overflow: hidden;
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      flex: 0 0 auto;
-      object-fit: cover;
-      border: 2px solid rgba(255, 255, 255, 0.62);
-      border-radius: 50%;
-      background: #fff;
-    }
-
-    .dropdown-chevron {
-      color: #bcbcbc;
-      font-size: 0.7rem;
-    }
-
-    .header-container .dropdown-menu {
-      min-width: 220px;
-      margin-top: 12px;
-      padding: 8px;
-      border: 1px solid #e9e9e9;
-      border-radius: 12px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-    }
-
-    .dropdown-heading {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      padding: 10px 12px 8px;
-    }
-
-    .dropdown-label {
-      color: #999;
-      font-size: 0.62rem;
-      font-weight: 800;
-      letter-spacing: 0.14em;
-    }
-
-    .dropdown-user {
-      overflow: hidden;
-      color: #222;
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .header-container .dropdown-item {
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      margin: 2px 0;
-      padding: 10px 12px;
-      border-radius: 8px;
-      color: #303030;
-      font-size: 0.85rem;
-      transition: background 0.18s ease, color 0.18s ease;
-    }
-
-    .header-container .dropdown-item i {
-      width: 17px;
-      color: #777;
-      font-size: 1rem;
-      text-align: center;
-    }
-
-    .header-container .dropdown-item:hover {
-      background: #f5f5f5;
-      color: #111;
-    }
-
-    .header-container .dropdown-item:hover i {
-      color: #c9141e;
-    }
-
-    .header-container .logout-item {
-      width: 100%;
-      border: 0;
-      background: transparent;
-      color: #b30f18;
-      text-align: left;
-    }
-
-    .header-container .logout-item i {
-      color: #c9141e;
-    }
-
-    .header-container .logout-item:hover {
-      background: #fff0f0;
-      color: #a80e17;
-    }
-
-    @media (max-width: 768px) {
-      .header-container {
-        min-height: 64px;
-        padding: 0.4rem 0.75rem !important;
-      }
-
-      .brand-logo {
-        width: 38px;
-        height: 38px;
-        margin-right: 9px !important;
-      }
-
-      .brand-title {
-        max-width: 52vw;
-        font-size: 0.82rem;
-      }
-
-      .brand-subtitle {
-        font-size: 0.55rem;
-      }
-
-      .user-menu {
-        gap: 0;
-        padding: 3px;
-        border: 0;
-        background: transparent;
-      }
-
-      .user-name,
-      .dropdown-chevron {
-        display: none;
-      }
-
-      .user-avatar {
-        width: 36px;
-        height: 36px;
-      }
-    }
-
-    @media (max-width: 420px) {
-      .header-container {
-        min-height: 58px;
-        padding: 0.25rem 0.5rem !important;
-      }
-
-      .brand-logo {
-        width: 34px;
-        height: 34px;
-      }
-
-      .brand-title {
-        max-width: 58vw;
-        font-size: 0.74rem;
-      }
-
-      .brand-subtitle {
-        display: none;
-      }
-    }
-  </style>
-</div>
+</header>
