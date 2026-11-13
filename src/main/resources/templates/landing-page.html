@@ -2,6 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8" />
+  <script>document.documentElement.classList.add('js');</script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b1524" />
   <!-- Requesting the CSRF token here (top of the page) makes Spring create it before any HTML is sent;
@@ -45,82 +46,82 @@
     <section class="hero" id="home">
       <div class="container hero-inner">
         <div>
-          <span class="eyebrow">CBM Engineering &amp; Construction</span>
-          <h1>Built on skill.<br /><em>Driven by people.</em></h1>
-          <p class="lede">Engineering, construction and technical services under one team — so your project keeps moving and your building keeps running.</p>
-          <div class="hero-actions">
+          <span class="eyebrow rv" style="--d:.05s">CBM Engineering &amp; Construction</span>
+          <h1 class="rv-lines"><span class="ln"><span style="--d:.15s">Built on skill.</span></span><span class="ln"><em style="--d:.3s">Driven by people.</em></span></h1>
+          <p class="lede rv" style="--d:.5s">Engineering, construction and technical services under one team — so your project keeps moving and your building keeps running.</p>
+          <div class="hero-actions rv" style="--d:.62s">
             <a class="btn btn-red" href="#inquiry">Request a quotation <span class="arrow">→</span></a>
             <a class="btn btn-line" href="#services">Explore our services</a>
           </div>
-          <div class="hero-facts">
+          <div class="hero-facts rv" style="--d:.75s">
             <span>Skilled technical team</span>
             <span>Project-focused delivery</span>
             <span>Based in Mandaue, Cebu</span>
           </div>
         </div>
-        <aside class="spec-card" aria-label="Company summary">
+        <aside class="spec-card rv rv-right" style="--d:.35s" aria-label="Company summary">
           <img th:src="@{/images/logo-cbm.webp}" width="360" height="208" alt="CBM logo" />
           <div class="spec-title">Company sheet</div>
-          <div class="spec-row"><span>Disciplines</span><span>Civil · Electrical · Mechanical · HVAC</span></div>
-          <div class="spec-row"><span>Services</span><span>Plan · Build · Maintain</span></div>
-          <div class="spec-row"><span>Coverage</span><span>Cebu and nearby areas</span></div>
-          <div class="spec-row"><span>Quotations</span><span>Request online below</span></div>
+          <div class="spec-row" style="--i:0"><span>Disciplines</span><span>Civil · Electrical · Mechanical · HVAC</span></div>
+          <div class="spec-row" style="--i:1"><span>Services</span><span>Plan · Build · Maintain</span></div>
+          <div class="spec-row" style="--i:2"><span>Coverage</span><span>Cebu and nearby areas</span></div>
+          <div class="spec-row" style="--i:3"><span>Quotations</span><span>Request online below</span></div>
         </aside>
       </div>
     </section>
 
     <div class="strip" aria-hidden="true">
       <div class="container">
-        <div><small>01</small>Plan</div>
-        <div><small>02</small>Engineer</div>
-        <div><small>03</small>Build</div>
-        <div><small>04</small>Maintain</div>
+        <div style="--i:0"><small>01</small>Plan</div>
+        <div style="--i:1"><small>02</small>Engineer</div>
+        <div style="--i:2"><small>03</small>Build</div>
+        <div style="--i:3"><small>04</small>Maintain</div>
       </div>
     </div>
 
     <section class="section" id="services">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head rv-group">
           <div>
-            <span class="eyebrow">What we do</span>
-            <h2>Practical work.<br />Professional results.</h2>
+            <span class="eyebrow rv">What we do</span>
+            <h2 class="rv" style="--d:.1s">Practical work.<br />Professional results.</h2>
           </div>
-          <p class="lede">From a single repair to a full fit-out, CBM supports building projects and facilities with dependable technical services from planning through completion.</p>
+          <p class="lede rv" style="--d:.2s">From a single repair to a full fit-out, CBM supports building projects and facilities with dependable technical services from planning through completion.</p>
         </div>
         <div class="service-grid">
-          <article class="service">
+          <article class="service rv" style="--d:0.00s">
             <div class="no">01</div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/><path d="M12 5V2"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M3 21h18M5 21V10l7-5 7 5v11"/><path pathLength="1" d="M9 21v-6h6v6"/><path pathLength="1" d="M12 5V2"/></svg>
             <h3>Engineering &amp; construction</h3>
             <p>Civil, structural and architectural works for commercial, industrial and residential projects, from site preparation to turnover.</p>
           </article>
-          <article class="service">
+          <article class="service rv" style="--d:0.08s">
             <div class="no">02</div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="1.6"/><path d="M12 10.4c0-3 1-5.4 3.4-5.4M13.6 12c3 0 5.4 1 5.4 3.4M12 13.6c0 3-1 5.4-3.4 5.4M10.4 12c-3 0-5.4-1-5.4-3.4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle pathLength="1" cx="12" cy="12" r="9"/><circle pathLength="1" cx="12" cy="12" r="1.6"/><path pathLength="1" d="M12 10.4c0-3 1-5.4 3.4-5.4M13.6 12c3 0 5.4 1 5.4 3.4M12 13.6c0 3-1 5.4-3.4 5.4M10.4 12c-3 0-5.4-1-5.4-3.4"/></svg>
             <h3>Air conditioning &amp; ventilation</h3>
             <p>Supply, installation and servicing of split, packaged and central HVAC systems, plus ventilation and exhaust.</p>
           </article>
-          <article class="service">
+          <article class="service rv" style="--d:0.16s">
             <div class="no">03</div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg>
             <h3>Electrical &amp; technical services</h3>
             <p>Power distribution, lighting, panel upgrades, auxiliary and low-voltage systems, tested and documented.</p>
           </article>
-          <article class="service">
+          <article class="service rv" style="--d:0.24s">
             <div class="no">04</div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h7a3 3 0 0 1 3 3v10"/><path d="M4 4v6M10 20h8M14 14h6"/><circle cx="18" cy="6" r="2.4"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M4 7h7a3 3 0 0 1 3 3v10"/><path pathLength="1" d="M4 4v6M10 20h8M14 14h6"/><circle pathLength="1" cx="18" cy="6" r="2.4"/></svg>
             <h3>Mechanical, plumbing &amp; sanitary</h3>
             <p>Mechanical systems, water supply, drainage and sanitary lines for new builds and renovations.</p>
           </article>
-          <article class="service">
+          <article class="service rv" style="--d:0.32s">
             <div class="no">05</div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3s5 4.5 5 9.5A5 5 0 0 1 7 12.5C7 10 8.5 8.6 9.5 7.8 9.6 10 11 11 12 11c0-3 0-5 0-8z"/><path d="M5 21h14"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M12 3s5 4.5 5 9.5A5 5 0 0 1 7 12.5C7 10 8.5 8.6 9.5 7.8 9.6 10 11 11 12 11c0-3 0-5 0-8z"/><path pathLength="1" d="M5 21h14"/></svg>
             <h3>Fire protection systems</h3>
             <p>Fire detection and alarm, sprinkler and suppression works built to code and inspection requirements.</p>
           </article>
-          <article class="service">
+          <article class="service rv" style="--d:0.40s">
             <div class="no">06</div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z"/></svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4 2.5-2.5z"/></svg>
             <h3>Maintenance, design &amp; consultation</h3>
             <p>Preventive maintenance contracts, repairs, estimates and technical consultation for facility owners.</p>
           </article>
@@ -130,36 +131,36 @@
 
     <section class="section process" id="process">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head rv-group">
           <div>
-            <span class="eyebrow">How we work</span>
-            <h2>A clear path<br />to the finished job.</h2>
+            <span class="eyebrow rv">How we work</span>
+            <h2 class="rv" style="--d:.1s">A clear path<br />to the finished job.</h2>
           </div>
-          <p class="lede">Every project follows the same accountable steps, so you always know what happens next.</p>
+          <p class="lede rv" style="--d:.2s">Every project follows the same accountable steps, so you always know what happens next.</p>
         </div>
-        <div class="steps">
-          <div class="step"><h3>Inquiry</h3><p>Send your scope through the form below. We review it and confirm what's needed.</p></div>
-          <div class="step"><h3>Site visit &amp; assessment</h3><p>Where useful, our team inspects the site and takes measurements.</p></div>
-          <div class="step"><h3>Quotation</h3><p>You receive an itemized quotation with clear terms.</p></div>
-          <div class="step"><h3>Job order &amp; delivery</h3><p>Once approved, the work is scheduled, executed and turned over.</p></div>
+        <div class="steps rv-steps">
+          <div class="step" style="--i:0"><h3>Inquiry</h3><p>Send your scope through the form below. We review it and confirm what's needed.</p></div>
+          <div class="step" style="--i:1"><h3>Site visit &amp; assessment</h3><p>Where useful, our team inspects the site and takes measurements.</p></div>
+          <div class="step" style="--i:2"><h3>Quotation</h3><p>You receive an itemized quotation with clear terms.</p></div>
+          <div class="step" style="--i:3"><h3>Job order &amp; delivery</h3><p>Once approved, the work is scheduled, executed and turned over.</p></div>
         </div>
       </div>
     </section>
 
     <section class="section careers" id="careers">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head rv-group">
           <div>
-            <span class="eyebrow">Grow with CBM</span>
-            <h2>Be part of<br />our team.</h2>
+            <span class="eyebrow rv">Grow with CBM</span>
+            <h2 class="rv" style="--d:.1s">Be part of<br />our team.</h2>
           </div>
-          <p class="lede">Bring your skills, reliability and drive to a team that gets important work done. Qualified applicants are welcome.</p>
+          <p class="lede rv" style="--d:.2s">Bring your skills, reliability and drive to a team that gets important work done. Qualified applicants are welcome.</p>
         </div>
         <div class="jobs">
-          <article class="job"><div><strong>AC Technician</strong><span>Air-conditioning services</span></div><span class="count">2 openings</span></article>
-          <article class="job"><div><strong>Company Driver</strong><span>Company transport support</span></div><span class="count">1 opening</span></article>
+          <article class="job rv" style="--d:.05s"><div><strong>AC Technician</strong><span>Air-conditioning services</span></div><span class="count">2 openings</span></article>
+          <article class="job rv" style="--d:.15s"><div><strong>Company Driver</strong><span>Company transport support</span></div><span class="count">1 opening</span></article>
         </div>
-        <div class="careers-cta">
+        <div class="careers-cta rv" style="--d:.25s">
           <a class="btn btn-red" href="mailto:cbmengineering.hr@gmail.com?subject=CBM%20Job%20Application">Apply by email <span class="arrow">→</span></a>
           <span>Send your résumé and the position you're applying for.</span>
         </div>
@@ -169,17 +170,17 @@
     <section class="section" id="inquiry" aria-labelledby="inquiry-title">
       <div class="container quote-wrap">
         <div class="quote-aside">
-          <span class="eyebrow">Project inquiry</span>
-          <h2 id="inquiry-title">Request<br />a quote.</h2>
-          <p class="lede">Tell us what you need and where the work will take place. Our team will review your scope and get back to you.</p>
+          <span class="eyebrow rv">Project inquiry</span>
+          <h2 id="inquiry-title" class="rv" style="--d:.1s">Request<br />a quote.</h2>
+          <p class="lede rv" style="--d:.2s">Tell us what you need and where the work will take place. Our team will review your scope and get back to you.</p>
           <ul>
-            <li><b>1</b>Describe the work and the site location.</li>
-            <li><b>2</b>We review the scope and contact you, or arrange a site visit.</li>
-            <li><b>3</b>You receive an itemized quotation.</li>
+            <li class="rv" style="--d:0.30s"><b>1</b>Describe the work and the site location.</li>
+            <li class="rv" style="--d:0.40s"><b>2</b>We review the scope and contact you, or arrange a site visit.</li>
+            <li class="rv" style="--d:0.50s"><b>3</b>You receive an itemized quotation.</li>
           </ul>
         </div>
 
-        <form class="quote-form" id="quoteForm" th:action="@{/inquiries/public}" method="post">
+        <form class="quote-form rv rv-up-lg" style="--d:.15s" id="quoteForm" th:action="@{/inquiries/public}" method="post">
           <div class="notice notice-ok" role="status" th:if="${param.inquirySubmitted}">
             <div><strong>Thank you — your inquiry was received.</strong>Our team will review it and contact you using the details you provided.</div>
           </div>
@@ -249,12 +250,12 @@
 
     <section class="contact-band" id="contact">
       <div class="container">
-        <div>
+        <div class="rv">
           <span class="eyebrow">Let's get to work</span>
           <h2>Talk with the CBM team.</h2>
           <p>For project inquiries and job applications, email <a class="mail" href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>.</p>
         </div>
-        <a class="btn btn-red" href="mailto:cbmengineering.hr@gmail.com">Email CBM <span class="arrow">→</span></a>
+        <a class="btn btn-red rv" style="--d:.15s" href="mailto:cbmengineering.hr@gmail.com">Email CBM <span class="arrow">→</span></a>
       </div>
     </section>
   </main>
@@ -267,6 +268,31 @@
   </footer>
 
   <script>
+    // Entrance animations: elements marked .rv / .rv-lines / .rv-steps get .is-in when scrolled into view.
+    (function () {
+      var root = document.documentElement;
+      var targets = document.querySelectorAll('.rv, .rv-lines, .rv-steps');
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce || !('IntersectionObserver' in window)) {
+        targets.forEach(function (el) { el.classList.add('is-in'); });
+      } else {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            e.target.classList.add('is-in');
+            io.unobserve(e.target);
+          });
+        }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+        targets.forEach(function (el) { io.observe(el); });
+      }
+      // Header gets a firmer look once the page scrolls.
+      var header = document.querySelector('.header');
+      var onScroll = function () { header.classList.toggle('is-scrolled', window.scrollY > 24); };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      requestAnimationFrame(function () { root.classList.add('is-ready'); });
+    })();
+
     (function () {
       var toggle = document.querySelector('.menu-toggle');
       var nav = document.getElementById('main-nav');
