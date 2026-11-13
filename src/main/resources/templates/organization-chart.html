@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Organizational Chart')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area content-wide" th:fragment="page" data-section="Human Resources" data-title="Organizational Chart">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Organizational chart</h1>
+          <p class="page-sub">Who leads each team and who reports to whom. Click a box for contact details and licences.</p>
+        </div>
+        <div class="page-actions">
+          <button th:if="${adminMode and !#lists.isEmpty(resigned)}" type="button" class="btn btn-ghost" data-open-dialog="ocResignedDialog">
+            <i class="bi bi-person-dash"></i>Resigned <span class="count-badge" th:text="${#lists.size(resigned)}">0</span>
+          </button>
+          <button type="button" class="btn btn-outline" data-oc-action="print"><i class="bi bi-printer"></i>Print</button>
+          <button th:if="${adminMode}" type="button" class="btn btn-primary" data-oc-action="add"><i class="bi bi-plus-lg"></i>Add position</button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:replace="~{fragments/invite-result :: box}"></div>
+
+      <section class="panel oc-panel" id="orgChart" th:attr="data-admin=${adminMode}">
+        <div class="oc-toolbar">
+          <div class="search-input">
+            <i class="bi bi-search"></i>
+            <input type="search" class="form-control" id="ocSearch" placeholder="Find a person, position or trade…" aria-label="Search the chart" />
+          </div>
+          <span class="oc-search-count" id="ocSearchCount" aria-live="polite"></span>
+
+          <div class="oc-tools">
+            <label class="oc-switch" th:if="${adminMode}" title="When on, dragging a supervisor also moves everyone under them">
+              <input type="checkbox" id="ocMoveBranch" checked /><span></span>Move with branch
+            </label>
+            <span class="oc-save-state" id="ocSaveState" aria-live="polite"></span>
+            <div class="oc-zoom" role="group" aria-label="Zoom">
+              <button type="button" class="btn btn-ghost btn-icon" data-oc-action="zoom-out" title="Zoom out"><i class="bi bi-dash-lg"></i></button>
+              <button type="button" class="oc-zoom-level" data-oc-action="zoom-reset" id="ocZoomLevel" title="Reset to 100%">100%</button>
+              <button type="button" class="btn btn-ghost btn-icon" data-oc-action="zoom-in" title="Zoom in"><i class="bi bi-plus-lg"></i></button>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" data-oc-action="fit" title="Fit the whole chart on screen"><i class="bi bi-arrows-fullscreen"></i>Fit</button>
+            <button type="button" class="btn btn-outline btn-sm" data-oc-action="reset-layout"
+                    th:title="${adminMode} ? 'Put every box back in its automatic position (for everyone)' : 'Undo your dragging'"><i class="bi bi-arrow-counterclockwise"></i>Reset layout</button>
+          </div>
+        </div>
+
+        <div class="oc-legend" id="ocLegend" aria-label="Departments"></div>
+
+        <div class="oc-viewport" id="ocViewport" tabindex="-1">
+          <div class="oc-stage" id="ocStage">
+            <svg class="oc-lines" id="ocLines" aria-hidden="true"></svg>
+            <div class="oc-nodes" id="ocNodes"></div>
+          </div>
+          <div class="oc-hint"><i class="bi bi-arrows-move"></i>Drag empty space to move · Ctrl + scroll to zoom</div>
+          <div class="empty-state oc-empty" th:if="${positionCount == 0}">
+            <div class="empty-icon"><i class="bi bi-diagram-3"></i></div>
+            <h3>No positions yet</h3>
+            <p th:if="${adminMode}">Start with the top position, for example the General Manager, then add the people who report to them.</p>
+            <p th:unless="${adminMode}">The chart hasn't been published yet.</p>
+            <button th:if="${adminMode}" type="button" class="btn btn-primary mt-3" data-oc-action="add"><i class="bi bi-plus-lg"></i>Add the first position</button>
+          </div>
+        </div>
+
+        <div class="oc-footer">
+          <span th:if="${adminMode}"><i class="bi bi-info-circle"></i>
+            Drag boxes to arrange the chart; the layout saves automatically for everyone.
+            Select a box and use <kbd>Alt</kbd> + arrow keys to nudge it.
+            <th:block th:if="${draftCount > 0}"> <strong th:text="${draftCount}">0</strong> draft position(s) are only visible to admins.</th:block>
+          </span>
+          <span th:unless="${adminMode}"><i class="bi bi-info-circle"></i>
+            Click a box for details. You can drag boxes to look around; your changes aren't saved.</span>
+        </div>
+      </section>
+
+      <script type="application/json" id="ocData" th:utext="${chartJson}">[]</script>
+      <script type="application/json" id="ocAccounts" th:utext="${accountsJson}">[]</script>
+
+      <!-- Staff profile -->
+      <dialog class="app-dialog app-dialog-md" id="ocProfileDialog" aria-labelledby="ocProfileName">
+        <header class="dialog-header oc-profile-head">
+          <div class="oc-profile-top">
+            <div class="oc-avatar oc-avatar-lg" id="ocProfileAvatar"></div>
+            <div>
+              <h2 id="ocProfileName">Name</h2>
+              <p id="ocProfileTitle"></p>
+              <div id="ocProfileDept"></div>
+            </div>
+          </div>
+          <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="ocProfileDialog"><i class="bi bi-x-lg"></i></button>
+        </header>
+        <div class="dialog-body">
+          <dl class="dl-grid oc-profile-grid" id="ocProfileDetails"></dl>
+          <div class="oc-account" id="ocProfileAccount" th:if="${adminMode}" hidden></div>
+          <div class="oc-people" id="ocProfilePeople"></div>
+        </div>
+        <footer class="dialog-footer">
+          <button class="btn btn-ghost me-auto" type="button" data-oc-action="locate"><i class="bi bi-crosshair"></i>Show on chart</button>
+          <button th:if="${adminMode}" class="btn btn-outline" type="button" data-oc-action="add-under"><i class="bi bi-diagram-2"></i>Add position under</button>
+          <button th:if="${adminMode}" class="btn btn-dark" type="button" data-oc-action="edit"><i class="bi bi-pencil"></i>Edit</button>
+        </footer>
+      </dialog>
+
+      <!-- Add / edit (admins) -->
+      <dialog th:if="${adminMode}" class="app-dialog" id="ocEditDialog" aria-labelledby="ocEditTitle">
+        <form th:action="@{/organization-chart/save}" method="post" enctype="multipart/form-data" id="ocEditForm">
+          <header class="dialog-header">
+            <div><h2 id="ocEditTitle">Add position</h2><p>Positions can be vacant: leave the person's name blank.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="ocEditDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <input type="hidden" name="id" id="ocId" />
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">01</span>Position</h3>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label" for="ocTitle">Position title <span class="req">*</span></label><input class="form-control" name="title" id="ocTitle" required maxlength="160" placeholder="e.g. Project Engineer" /></div>
+                <div class="col-md-6"><label class="form-label" for="ocDepartment">Department</label><input class="form-control" name="department" id="ocDepartment" list="ocDepartments" maxlength="120" placeholder="e.g. Engineering &amp; Projects" /></div>
+                <div class="col-md-6"><label class="form-label" for="ocParent">Reports to</label><select class="form-select" name="parentId" id="ocParent"></select></div>
+                <div class="col-md-6"><label class="form-label" for="ocSite">Office / site assignment</label><input class="form-control" name="siteAssignment" id="ocSite" list="ocSites" maxlength="160" placeholder="e.g. Main office, Mandaue" /></div>
+                <div class="col-12">
+                  <details class="oc-also">
+                    <summary>Also reports to (dotted line) <span id="ocAlsoCount" class="text-muted"></span></summary>
+                    <div class="oc-also-list" id="ocAlsoList"></div>
+                  </details>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">02</span>Person</h3>
+              <div class="row g-3">
+                <div class="col-md-8">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label" for="ocName">Full name</label><input class="form-control" name="personName" id="ocName" maxlength="160" placeholder="Leave blank if vacant" /></div>
+                    <div class="col-md-6"><label class="form-label" for="ocEmployeeId">Employee ID</label><input class="form-control" name="employeeId" id="ocEmployeeId" maxlength="64" /></div>
+                    <div class="col-md-6"><label class="form-label" for="ocEmail">Email</label><input class="form-control" type="email" name="emailAddress" id="ocEmail" maxlength="180" /></div>
+                    <div class="col-md-6"><label class="form-label" for="ocPhone">Contact number</label><input class="form-control" type="tel" name="contactNumber" id="ocPhone" maxlength="60" /></div>
+                    <div class="col-md-6"><label class="form-label" for="ocHired">Date hired</label><input class="form-control" type="date" name="dateHired" id="ocHired" /></div>
+                    <div class="col-md-6"><label class="form-label" for="ocAccount">Login account</label><select class="form-select" name="accountUserId" id="ocAccount"></select><div class="form-hint">Uses their profile photo if no photo is uploaded here.</div></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Photo</label>
+                  <div class="oc-photo-field">
+                    <div class="oc-avatar oc-avatar-lg" id="ocPhotoPreview"></div>
+                    <div>
+                      <label class="btn btn-outline btn-sm" for="ocPhoto"><i class="bi bi-upload"></i>Upload</label>
+                      <input type="file" class="d-none" name="photo" id="ocPhoto" accept="image/jpeg,image/png,image/webp" />
+                      <label class="oc-check mt-2" id="ocRemovePhotoWrap"><input type="checkbox" name="removePhoto" value="true" id="ocRemovePhoto" />Remove photo</label>
+                      <div class="form-hint">JPG, PNG or WebP, up to 3 MB.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">03</span>Qualifications</h3>
+              <div class="row g-3">
+                <div class="col-md-4"><label class="form-label" for="ocProfession">Profession / trade</label><input class="form-control" name="profession" id="ocProfession" list="ocProfessions" maxlength="160" placeholder="e.g. Civil Engineer" /></div>
+                <div class="col-md-4"><label class="form-label" for="ocLicense">PRC licence / TESDA cert. no.</label><input class="form-control" name="licenseNumber" id="ocLicense" maxlength="80" /></div>
+                <div class="col-md-4"><label class="form-label" for="ocLicenseExpiry">Licence valid until</label><input class="form-control" type="date" name="licenseExpiry" id="ocLicenseExpiry" /></div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">04</span>Visibility</h3>
+              <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                  <label class="oc-switch oc-switch-lg"><input type="checkbox" name="published" value="true" id="ocPublished" /><span></span>Published</label>
+                  <div class="form-hint">Drafts are only visible to admins.</div>
+                </div>
+                <div class="col-md-3"><label class="form-label" for="ocSort">Order among siblings</label><input class="form-control" type="number" name="sortOrder" id="ocSort" value="0" step="1" /></div>
+                <div class="col-md-5">
+                  <label class="oc-check"><input type="checkbox" name="resigned" value="true" id="ocResigned" />Resigned / no longer with CBM</label>
+                  <input class="form-control mt-2" type="date" name="dateResigned" id="ocResignedDate" aria-label="Date resigned" hidden />
+                </div>
+              </div>
+            </section>
+
+            <datalist id="ocDepartments"></datalist>
+            <datalist id="ocSites"></datalist>
+            <datalist id="ocProfessions"></datalist>
+          </div>
+          <footer class="dialog-footer">
+            <button class="btn btn-danger-outline me-auto" type="button" id="ocDeleteButton" data-oc-action="delete"><i class="bi bi-trash"></i>Delete</button>
+            <button class="btn btn-ghost" type="button" data-close-dialog="ocEditDialog">Cancel</button>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Save</button>
+          </footer>
+        </form>
+        <form method="post" id="ocInviteForm" th:action="@{/organization-chart/0/invite}" hidden></form>
+        <form method="post" id="ocDeleteForm" th:action="@{/organization-chart/delete/0}" hidden
+              data-confirm="Delete this position from the chart? This cannot be undone." data-confirm-title="Delete position" data-confirm-ok="Delete" data-confirm-tone="danger"></form>
+      </dialog>
+
+      <!-- Resigned staff (admins) -->
+      <dialog th:if="${adminMode and !#lists.isEmpty(resigned)}" class="app-dialog app-dialog-md" id="ocResignedDialog" aria-labelledby="ocResignedTitle">
+        <header class="dialog-header">
+          <div><h2 id="ocResignedTitle">Resigned staff</h2><p>Kept for records. Restore someone to put them back on the chart.</p></div>
+          <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="ocResignedDialog"><i class="bi bi-x-lg"></i></button>
+        </header>
+        <div class="dialog-body p-0">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Position</th><th>Resigned</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${resigned}">
+                <td class="cell-main" th:text="${r.personName ?: 'Vacant'}"></td>
+                <td><div th:text="${r.title}"></div><div class="cell-sub" th:text="${r.department}"></div></td>
+                <td class="text-muted" th:text="${r.dateResigned != null} ? ${#temporals.format(r.dateResigned, 'MMM d, yyyy')} : '—'"></td>
+                <td class="actions">
+                  <form th:action="@{/organization-chart/restore/{id}(id=${r.id})}" method="post" class="d-inline">
+                    <button class="btn btn-sm btn-outline" type="submit"><i class="bi bi-arrow-counterclockwise"></i>Restore</button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

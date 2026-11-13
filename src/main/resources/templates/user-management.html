@@ -12,46 +12,72 @@
         <div>
           <div class="page-eyebrow">Administration</div>
           <h1 class="page-title">User management</h1>
-          <p class="page-sub">Approve account requests and manage who can sign in to the CBM workspace.</p>
+          <p class="page-sub">Who can sign in and what they can open. Access follows each person's department on the
+            <a th:href="@{/organization-chart}">org chart</a> unless you set it here.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Admin/DepartmentAccess}"><i class="bi bi-diagram-3"></i>Department access</a>
         </div>
       </div>
 
       <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
       <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:replace="~{fragments/invite-result :: box}"></div>
 
       <section class="panel">
         <ul class="nav nav-tabs app-tabs" id="userTabs" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link active" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved" type="button" role="tab" aria-controls="approved" aria-selected="true">
-              Active users <span class="count-badge" th:text="${#lists.size(approvedUsers)}">0</span>
+              Active users <span class="count-badge" th:text="${#lists.size(rows)}">0</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="staff-tab" data-bs-toggle="tab" data-bs-target="#staff" type="button" role="tab" aria-controls="staff" aria-selected="false">
+              Staff from org chart <span class="count-badge" th:classappend="${staffWithoutAccount > 0} ? 'hot'" th:text="${#lists.size(staff)}">0</span>
             </button>
           </li>
           <li class="nav-item" role="presentation">
             <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab" aria-controls="pending" aria-selected="false">
-              Pending requests <span class="count-badge" th:classappend="${!#lists.isEmpty(unapprovedUsers)} ? 'hot'" th:text="${#lists.size(unapprovedUsers)}">0</span>
+              Requests &amp; disabled <span class="count-badge" th:classappend="${!#lists.isEmpty(unapprovedUsers)} ? 'hot'" th:text="${#lists.size(unapprovedUsers)}">0</span>
             </button>
           </li>
         </ul>
 
         <div class="tab-content">
+          <!-- Active users -->
           <div class="tab-pane fade show active" id="approved" role="tabpanel" aria-labelledby="approved-tab">
-            <div class="table-wrap" th:unless="${#lists.isEmpty(approvedUsers)}">
+            <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
               <table class="data-table">
-                <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Approved</th><th class="actions">Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Org chart</th><th>Access</th><th class="actions">Actions</th></tr></thead>
                 <tbody>
-                  <tr th:each="u : ${approvedUsers}">
-                    <td><div class="cell-main" th:text="${u.name}"></div><div class="cell-sub" th:text="${u.email}"></div></td>
-                    <td class="mono" th:text="${u.username}"></td>
-                    <td><span class="status" th:classappend="${#strings.equalsIgnoreCase(u.role, 'admin')} ? 'status-quotation_created' : ''" th:text="${u.role}"></span></td>
-                    <td class="text-muted" th:text="${u.dateApproved != null} ? ${#temporals.format(u.dateApproved, 'MMM d, yyyy')} : '—'"></td>
+                  <tr th:each="r : ${rows}" th:with="u=${r.user}, a=${r.access}" th:id="${'user-' + u.id}">
+                    <td>
+                      <div class="cell-main"><span th:text="${u.name}"></span>
+                        <span class="oc-badge-admin" th:if="${a.admin}">Admin</span>
+                        <span class="text-muted small fw-normal" th:if="${u.id == currentUserId}">(you)</span></div>
+                      <div class="cell-sub"><span class="mono" th:text="${'@' + u.username}"></span> · <span th:text="${u.email}"></span></div>
+                    </td>
+                    <td>
+                      <th:block th:if="${r.linked}">
+                        <div th:text="${r.position}"></div>
+                        <div class="cell-sub" th:text="${r.department ?: 'No department on their box'}"></div>
+                      </th:block>
+                      <span th:unless="${r.linked}" class="status status-pending" title="Link them from their box on the org chart (Edit → Login account)">Not on chart</span>
+                    </td>
+                    <td class="cell-wrap">
+                      <div th:text="${a.summary()}">Access</div>
+                      <div class="cell-sub" th:switch="${a.source}">
+                        <span th:case="'Admin'">Administrator</span>
+                        <span th:case="'Custom'">Set for this person</span>
+                        <span th:case="'Department'" th:text="${'From department: ' + a.department}"></span>
+                        <span th:case="'No department'">Add a department to their box</span>
+                        <span th:case="*">Default for accounts not on the org chart</span>
+                      </div>
+                    </td>
                     <td class="actions">
-                      <span class="text-muted small me-2" th:if="${u.id == currentUserId}">You</span>
-                      <button type="button" class="btn btn-sm btn-outline js-edit-user"
-                              th:attr="data-id=${u.id}, data-name=${u.name}, data-email=${u.email}, data-username=${u.username}, data-role=${u.role}">
-                        <i class="bi bi-pencil"></i>Edit
-                      </button>
+                      <button type="button" class="btn btn-sm btn-outline js-edit-user" th:attr="data-id=${u.id}"><i class="bi bi-pencil"></i>Edit</button>
                       <form th:if="${u.id != currentUserId}" class="d-inline" th:action="@{/users/delete}" method="post"
-                            th:attr="data-confirm=${'Delete the account for ' + u.name + '? This cannot be undone.'}"
+                            th:attr="data-confirm=${'Delete the account for ' + u.name + '? Their box on the org chart stays. This cannot be undone.'}"
                             data-confirm-title="Delete user" data-confirm-ok="Delete user" data-confirm-tone="danger">
                         <input type="hidden" name="id" th:value="${u.id}" />
                         <button type="submit" class="btn btn-sm btn-danger-outline btn-icon" title="Delete user" aria-label="Delete user"><i class="bi bi-trash"></i></button>
@@ -61,18 +87,67 @@
                 </tbody>
               </table>
             </div>
-            <div class="empty-state" th:if="${#lists.isEmpty(approvedUsers)}"><h3>No active users</h3></div>
+            <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><h3>No active users</h3></div>
           </div>
 
+          <!-- Staff on the org chart without an active account -->
+          <div class="tab-pane fade" id="staff" role="tabpanel" aria-labelledby="staff-tab">
+            <div class="table-wrap" th:unless="${#lists.isEmpty(staff)}">
+              <table class="data-table">
+                <thead><tr><th>Name</th><th>Position</th><th>Email</th><th>Account</th><th class="actions"></th></tr></thead>
+                <tbody>
+                  <tr th:each="s : ${staff}" th:with="n=${s.node}">
+                    <td class="cell-main" th:text="${n.personName}"></td>
+                    <td><div th:text="${n.title}"></div><div class="cell-sub" th:text="${n.department}"></div></td>
+                    <td th:text="${n.emailAddress ?: '—'}" th:classappend="${n.emailAddress == null} ? 'text-muted'"></td>
+                    <td>
+                      <span th:if="${s.state == 'none'}" class="status">No account</span>
+                      <span th:if="${s.state == 'invited'}" class="status status-pending" th:text="${'Invited · @' + s.username}"></span>
+                      <span th:if="${s.state == 'disabled'}" class="status status-rejected" th:text="${'Disabled · @' + s.username}"></span>
+                    </td>
+                    <td class="actions">
+                      <form th:if="${s.state != 'disabled' and n.emailAddress != null}" class="d-inline" th:action="@{/users/invite/{id}(id=${n.id})}" method="post"
+                            th:attr="data-confirm=${s.state == 'none'
+                                ? 'Create a login account for ' + n.personName + ' and email the activation link to ' + n.emailAddress + '?'
+                                : 'Send another activation link to ' + n.emailAddress + '? The previous link stops working.'}"
+                            th:data-confirm-title="${s.state == 'none'} ? 'Create login account' : 'Resend activation link'"
+                            th:data-confirm-ok="${s.state == 'none'} ? 'Create account' : 'Send link'" data-confirm-tone="dark">
+                        <button type="submit" class="btn btn-sm" th:classappend="${s.state == 'none'} ? 'btn-dark' : 'btn-outline'">
+                          <i class="bi" th:classappend="${s.state == 'none'} ? 'bi-person-plus' : 'bi-envelope'"></i>
+                          <span th:text="${s.state == 'none'} ? 'Create account' : 'Resend link'"></span>
+                        </button>
+                      </form>
+                      <a th:if="${n.emailAddress == null}" class="small" th:href="@{'/organization-chart#person-' + ${n.id}}">Add email on org chart</a>
+                      <form th:if="${s.state == 'disabled'}" class="d-inline" th:action="@{/users/approve}" method="post"
+                            th:attr="data-confirm=${'Let ' + n.personName + ' sign in again?'}" data-confirm-title="Re-enable account" data-confirm-ok="Re-enable" data-confirm-tone="success">
+                        <input type="hidden" name="id" th:value="${n.accountUserId}" />
+                        <button class="btn btn-sm btn-outline" type="submit"><i class="bi bi-unlock"></i>Re-enable</button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(staff)}">
+              <div class="empty-icon"><i class="bi bi-check2-all"></i></div>
+              <h3>Everyone on the org chart has an account</h3>
+              <p>People added to the <a th:href="@{/organization-chart}">organizational chart</a> appear here until they have a login account.</p>
+            </div>
+          </div>
+
+          <!-- Sign-up requests -->
           <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
             <div class="table-wrap" th:unless="${#lists.isEmpty(unapprovedUsers)}">
               <table class="data-table">
-                <thead><tr><th>Name</th><th>Username</th><th>Requested role</th><th class="actions">Decision</th></tr></thead>
+                <thead><tr><th>Name</th><th>Username</th><th>Requested</th><th class="actions">Decision</th></tr></thead>
                 <tbody>
                   <tr th:each="u : ${unapprovedUsers}">
                     <td><div class="cell-main" th:text="${u.name}"></div><div class="cell-sub" th:text="${u.email}"></div></td>
                     <td class="mono" th:text="${u.username}"></td>
-                    <td><span class="status status-pending" th:text="${u.role}"></span></td>
+                    <td>
+                      <span th:if="${disabledIds.contains(u.id)}" class="status status-rejected">Disabled</span>
+                      <span th:unless="${disabledIds.contains(u.id)}" class="status status-pending" th:text="${u.role}"></span>
+                    </td>
                     <td class="actions">
                       <form class="d-inline" th:action="@{/users/reject}" method="post"
                             th:attr="data-confirm=${'Reject the account request from ' + u.name + '? The request will be removed.'}"
@@ -81,10 +156,13 @@
                         <button type="submit" class="btn btn-sm btn-outline"><i class="bi bi-x-lg"></i>Reject</button>
                       </form>
                       <form class="d-inline" th:action="@{/users/approve}" method="post"
-                            th:attr="data-confirm=${'Approve ' + u.name + ' as ' + u.role + '? They will be able to sign in and will receive an email.'}"
-                            data-confirm-title="Approve user" data-confirm-ok="Approve" data-confirm-tone="success">
+                            th:attr="data-confirm=${disabledIds.contains(u.id)
+                                ? 'Let ' + u.name + ' sign in again?'
+                                : 'Approve ' + u.name + '? They can sign in right away. Link them to their box on the org chart so their access follows their department.'}"
+                            th:data-confirm-title="${disabledIds.contains(u.id)} ? 'Re-enable account' : 'Approve user'"
+                            th:data-confirm-ok="${disabledIds.contains(u.id)} ? 'Re-enable' : 'Approve'" data-confirm-tone="success">
                         <input type="hidden" name="id" th:value="${u.id}" />
-                        <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check2"></i>Approve</button>
+                        <button type="submit" class="btn btn-sm btn-success"><i class="bi" th:classappend="${disabledIds.contains(u.id)} ? 'bi-unlock' : 'bi-check2'"></i><span th:text="${disabledIds.contains(u.id)} ? 'Re-enable' : 'Approve'">Approve</span></button>
                       </form>
                     </td>
                   </tr>
@@ -93,34 +171,66 @@
             </div>
             <div class="empty-state" th:if="${#lists.isEmpty(unapprovedUsers)}">
               <div class="empty-icon"><i class="bi bi-check2-all"></i></div>
-              <h3>No pending requests</h3>
-              <p>New sign-up requests will appear here for approval.</p>
+              <h3>Nothing waiting</h3>
+              <p>Sign-up requests from the sign-in page, and disabled accounts, appear here.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Edit user -->
-      <dialog class="app-dialog app-dialog-md" id="editUserDialog" aria-labelledby="editUserTitle">
-        <form th:action="@{/users/edit}" method="post">
+      <script type="application/json" id="usersData" th:utext="${usersJson}">{}</script>
+
+      <!-- Edit user + access -->
+      <dialog class="app-dialog" id="editUserDialog" aria-labelledby="editUserTitle">
+        <form th:action="@{/users/edit}" method="post" id="editUserForm">
           <header class="dialog-header">
-            <div><h2 id="editUserTitle">Edit user</h2><p>Change account details or access level.</p></div>
+            <div><h2 id="editUserTitle">Edit user</h2><p id="editUserSub">Account details and access.</p></div>
             <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="editUserDialog"><i class="bi bi-x-lg"></i></button>
           </header>
           <div class="dialog-body">
             <input type="hidden" name="id" id="editUserId" />
-            <div class="row g-3">
-              <div class="col-12"><label class="form-label" for="editName">Full name</label><input type="text" class="form-control" name="name" id="editName" required maxlength="180" /></div>
-              <div class="col-12"><label class="form-label" for="editEmail">Email</label><input type="email" class="form-control" name="email" id="editEmail" required maxlength="180" /></div>
-              <div class="col-md-6"><label class="form-label" for="editUsername">Username</label><input type="text" class="form-control" name="username" id="editUsername" required maxlength="80" /></div>
-              <div class="col-md-6"><label class="form-label" for="editRole">Role</label>
-                <select class="form-select" name="role" id="editRole"><option value="user">User</option><option value="manager">Manager</option><option value="admin">Admin</option></select>
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">01</span>Account</h3>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label" for="editName">Full name</label><input type="text" class="form-control" name="name" id="editName" required maxlength="180" /></div>
+                <div class="col-md-6"><label class="form-label" for="editEmail">Email</label><input type="email" class="form-control" name="email" id="editEmail" required maxlength="180" /></div>
+                <div class="col-md-6"><label class="form-label" for="editUsername">Username</label><input type="text" class="form-control" name="username" id="editUsername" required maxlength="80" /></div>
               </div>
-            </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">02</span>Access</h3>
+              <label class="access-admin">
+                <input type="checkbox" name="admin" value="true" id="editAdmin" />
+                <span>
+                  <strong>Administrator</strong>
+                  <small>Full access to everything, including Users, Department Access and editing the org chart.</small>
+                </span>
+              </label>
+              <div class="form-hint text-danger mt-1" id="editAdminSelfNote" hidden>You can't remove your own admin rights.</div>
+
+              <div id="editAccessModules" class="access-modules">
+                <label class="access-choice">
+                  <input type="radio" name="followDepartment" value="true" id="editFollow" />
+                  <span><strong id="editFollowLabel">Follow department</strong><small id="editFollowHint"></small></span>
+                </label>
+                <label class="access-choice">
+                  <input type="radio" name="followDepartment" value="false" id="editCustom" />
+                  <span><strong>Choose modules for this person</strong><small>Starts from their department's modules; tick or untick any.</small></span>
+                </label>
+                <div class="access-grid" id="editModuleGrid">
+                  <label class="check-tile" th:each="m : ${modules}">
+                    <input type="checkbox" name="modules" th:value="${m.key}" />
+                    <span><i class="bi" th:classappend="${m.icon}"></i> <strong th:text="${m.label}"></strong><br /><small class="text-muted" th:text="${m.description}"></small></span>
+                  </label>
+                </div>
+                <p class="form-hint mb-0">Everyone can always open the Dashboard, the Organizational Chart and their own profile.</p>
+              </div>
+            </section>
           </div>
           <footer class="dialog-footer">
             <button type="button" class="btn btn-ghost" data-close-dialog="editUserDialog">Cancel</button>
-            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save changes</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button>
           </footer>
         </form>
       </dialog>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Result of creating a staff login account (StaffAccountService.InviteResult in flash "invite"). -->
+<div th:fragment="box" th:if="${invite != null}" class="invite-box" th:classappend="${invite.link == null or invite.emailSent} ? 'is-ok' : 'is-warn'">
+  <div class="invite-head">
+    <i class="bi" th:classappend="${invite.link == null or invite.emailSent} ? 'bi-person-check' : 'bi-envelope-exclamation'"></i>
+    <div>
+      <strong th:if="${invite.link == null}" th:text="${'Linked ' + invite.name + '’s existing account (@' + invite.username + ').'}">Linked</strong>
+      <strong th:if="${invite.link != null and invite.emailSent}" th:text="${(invite.resent ? 'Sent a new activation link to ' : 'Account created for ' + invite.name + '. Activation link sent to ') + invite.email + '.'}">Sent</strong>
+      <strong th:if="${invite.link != null and !invite.emailSent}" th:text="${'Account ready for ' + invite.name + ', but the email to ' + invite.email + ' could not be sent.'}">Not sent</strong>
+      <div class="small" th:if="${invite.link != null}">
+        Username: <span class="mono" th:text="${invite.username}">user</span>.
+        <span th:if="${invite.emailSent}">You can also send the link yourself (Messenger, SMS). It works once.</span>
+        <span th:unless="${invite.emailSent}">Copy the link below and send it by Messenger, SMS or a printed note. It works once.</span>
+      </div>
+      <div class="small" th:if="${invite.link == null}">Their access now follows their department.</div>
+    </div>
+  </div>
+  <div class="invite-link" th:if="${invite.link != null}">
+    <input type="text" class="form-control mono" th:value="${invite.link}" readonly aria-label="Activation link" onclick="this.select()" />
+    <button type="button" class="btn btn-dark btn-sm"
+            onclick="(function(b){var i=b.previousElementSibling;i.select();(navigator.clipboard?navigator.clipboard.writeText(i.value):Promise.reject()).catch(function(){document.execCommand('copy');}).finally(function(){b.innerHTML='<i class=&quot;bi bi-check2&quot;></i>Copied';});})(this)"><i class="bi bi-clipboard"></i>Copy link</button>
+  </div>
+</div>
+</body>
+</html>
