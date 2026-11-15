@@ -36,9 +36,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Reload a signed-in person's account after an admin changes it (see PrincipalRefreshFilter).
-                .addFilterBefore(new PrincipalRefreshFilter(userRepository, accessService), AnonymousAuthenticationFilter.class)
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/iclock/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
                         // Public website, sign-in pages and static files
                         .requestMatchers(

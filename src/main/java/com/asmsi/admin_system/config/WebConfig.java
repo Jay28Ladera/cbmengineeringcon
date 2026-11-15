@@ -48,6 +48,10 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(accessInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns("/css/**", "/js/**", "/images/**", "/vendor/**", "/webjars/**", "/uploads/**", "/error");
+        // Department / per-person module access (see AccessService).
+        registry.addInterceptor(accessInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/vendor/**", "/webjars/**", "/uploads/**", "/error");
         registry.addInterceptor(new HandlerInterceptor() {
             @Override
             public void postHandle(HttpServletRequest request, HttpServletResponse response,
