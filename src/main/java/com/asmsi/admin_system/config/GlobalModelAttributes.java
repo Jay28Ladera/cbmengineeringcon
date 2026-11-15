@@ -3,8 +3,6 @@ package com.asmsi.admin_system.config;
 import com.asmsi.admin_system.entity.User;
 import com.asmsi.admin_system.service.AccessService;
 import jakarta.servlet.http.HttpServletRequest;
-import com.asmsi.admin_system.service.AccessService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.Model;
@@ -33,12 +31,9 @@ public class GlobalModelAttributes {
     @ModelAttribute
     public void addUserAttributes(Model model, HttpServletRequest request) {
         model.addAttribute("allModules", com.asmsi.admin_system.entity.AccessModule.values());
-    public void addUserAttributes(Model model, HttpServletRequest request) {
-        model.addAttribute("allModules", com.asmsi.admin_system.entity.AccessModule.values());
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User user)) {
             model.addAttribute("role", "user");
-            model.addAttribute("access", java.util.Set.of());
             model.addAttribute("access", java.util.Set.of());
             return;
         }

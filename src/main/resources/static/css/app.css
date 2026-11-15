@@ -259,7 +259,6 @@ a.kpi:hover { border-color: var(--steel-300); box-shadow: var(--shadow); color: 
 .form-label { margin-bottom: 5px; font-size: .78rem; font-weight: 600; color: var(--steel-700); }
 .form-control, .form-select { min-height: 38px; background-color: #fff; border: 1px solid var(--steel-300); border-radius: var(--radius-sm); font-size: .86rem; color: var(--ink); }
 .form-control:focus, .form-select:focus { background-color: #fff; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(29,95,191,.14); }
-.form-control:focus, .form-select:focus { background-color: #fff; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(29,95,191,.14); }
 .form-control::placeholder { color: var(--steel-400); }
 textarea.form-control { min-height: 96px; }
 .form-hint { margin-top: 4px; font-size: .75rem; color: var(--steel-500); }

@@ -40,7 +40,6 @@
       </li>
 
       <li class="sidebar-group" th:if="${access.contains('IMPLEMENTATION')}">
-      <li class="sidebar-group" th:if="${access.contains('IMPLEMENTATION')}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmImplementation"
                 title="Implementation" aria-controls="cbmImplementation"
                 th:attr="aria-expanded=${#arrays.contains({'job-orders','subcontractors'}, activePage)}">
@@ -54,7 +53,6 @@
         </div>
       </li>
 
-      <li class="sidebar-group" th:if="${access.contains('PURCHASING')}">
       <li class="sidebar-group" th:if="${access.contains('PURCHASING')}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmPurchasing"
                 title="Purchasing" aria-controls="cbmPurchasing"
@@ -71,7 +69,6 @@
         </div>
       </li>
 
-      <li class="sidebar-group" th:if="${access.contains('INVENTORY')}">
       <li class="sidebar-group" th:if="${access.contains('INVENTORY')}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmInventory"
                 title="Inventory" aria-controls="cbmInventory"
@@ -90,7 +87,6 @@
         </div>
       </li>
 
-      <li class="sidebar-group" th:if="${access.contains('ACCOUNTING')}">
       <li class="sidebar-group" th:if="${access.contains('ACCOUNTING')}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmAccounting"
                 title="Accounting" aria-controls="cbmAccounting"
@@ -140,7 +136,6 @@
       </li>
 
       <li class="sidebar-group" th:if="${access.contains('REPORTS')}">
-      <li class="sidebar-group" th:if="${access.contains('REPORTS')}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmReports"
                 title="Reports" aria-controls="cbmReports"
                 th:attr="aria-expanded=${#arrays.contains({'report-quotations','report-job-orders','report-payments','report-subcon-billings','report-admin-expenses','report-inventory-summary','report-inventory-movement','report-project-salary-cost','report-billing-monitoring','report-project-profitability','report-project-expenses','report-project-monthly'}, activePage)}">
@@ -168,14 +163,11 @@
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmAdmin"
                 title="Administration" aria-controls="cbmAdmin"
                 th:attr="aria-expanded=${#arrays.contains({'users','department-access','settings','trails'}, activePage)}">
-                th:attr="aria-expanded=${#arrays.contains({'users','department-access','settings','trails'}, activePage)}">
           <i class="bi bi-shield-lock"></i><span class="sidebar-text">Administration</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
         </button>
         <div id="cbmAdmin" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'users','department-access','settings','trails'}, activePage)} ? ' show'">
-        <div id="cbmAdmin" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'users','department-access','settings','trails'}, activePage)} ? ' show'">
           <ul>
             <li><a th:href="@{/users}" class="sidebar-link" th:classappend="${activePage == 'users'} ? ' active'"><span class="sidebar-text">Users</span></a></li>
-            <li><a th:href="@{/Admin/DepartmentAccess}" class="sidebar-link" th:classappend="${activePage == 'department-access'} ? ' active'"><span class="sidebar-text">Department Access</span></a></li>
             <li><a th:href="@{/Admin/DepartmentAccess}" class="sidebar-link" th:classappend="${activePage == 'department-access'} ? ' active'"><span class="sidebar-text">Department Access</span></a></li>
             <li><a th:href="@{/Admin/Settings}" class="sidebar-link" th:classappend="${activePage == 'settings'} ? ' active'"><span class="sidebar-text">Settings</span><span class="soon sidebar-text">Soon</span></a></li>
             <li><a th:href="@{/Admin/Trails}" class="sidebar-link" th:classappend="${activePage == 'trails'} ? ' active'"><span class="sidebar-text">Audit Trail</span><span class="soon sidebar-text">Soon</span></a></li>

@@ -2,43 +2,28 @@ package com.asmsi.admin_system.controller;
 
 import com.asmsi.admin_system.entity.AccessModule;
 import com.asmsi.admin_system.entity.OrganizationNode;
-import com.asmsi.admin_system.entity.AccessModule;
-import com.asmsi.admin_system.entity.OrganizationNode;
 import com.asmsi.admin_system.entity.User;
-import com.asmsi.admin_system.entity.UserAccess;
-import com.asmsi.admin_system.repository.OrganizationNodeRepository;
-import com.asmsi.admin_system.repository.StaffActivationRepository;
-import com.asmsi.admin_system.repository.UserAccessRepository;
 import com.asmsi.admin_system.entity.UserAccess;
 import com.asmsi.admin_system.repository.OrganizationNodeRepository;
 import com.asmsi.admin_system.repository.StaffActivationRepository;
 import com.asmsi.admin_system.repository.UserAccessRepository;
 import com.asmsi.admin_system.repository.UserRepository;
 import com.asmsi.admin_system.service.AccessService;
-import com.asmsi.admin_system.service.AccessService;
 import com.asmsi.admin_system.service.AuthUtil;
-import com.asmsi.admin_system.service.StaffAccountService;
 import com.asmsi.admin_system.service.StaffAccountService;
 import com.asmsi.admin_system.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.*;
-import java.util.*;
 
-/** User accounts, approval and access. Admin-only (see SecurityConfig). */
 /** User accounts, approval and access. Admin-only (see SecurityConfig). */
 @Controller
 @RequestMapping("/users")
@@ -67,37 +52,9 @@ public class UserController {
                           AccessService accessService, UserAccessRepository userAccess,
                           OrganizationNodeRepository nodes, StaffActivationRepository activations,
                           StaffAccountService staffAccounts, ObjectMapper json) {
-    private final AccessService accessService;
-    private final UserAccessRepository userAccess;
-    private final OrganizationNodeRepository nodes;
-    private final StaffActivationRepository activations;
-    private final StaffAccountService staffAccounts;
-    private final ObjectMapper json;
-
-    @Value("${app.base-url:}")
-    private String baseUrl;
-
-    public UserController(UserService userService, UserRepository userRepository, AuthUtil authUtil,
-                          AccessService accessService, UserAccessRepository userAccess,
-                          OrganizationNodeRepository nodes, StaffActivationRepository activations,
-                          StaffAccountService staffAccounts, ObjectMapper json) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.authUtil = authUtil;
-        this.accessService = accessService;
-        this.userAccess = userAccess;
-        this.nodes = nodes;
-        this.activations = activations;
-        this.staffAccounts = staffAccounts;
-        this.json = json;
-    }
-
-    /** One row in the Active users table. */
-    public record UserRow(User user, String department, String position, AccessService.Access access,
-                          boolean followDepartment, boolean linked) {}
-
-    /** Someone on the org chart, with or without an account. */
-    public record StaffRow(OrganizationNode node, String state, String username) {}
         this.accessService = accessService;
         this.userAccess = userAccess;
         this.nodes = nodes;
@@ -193,17 +150,6 @@ public class UserController {
         model.addAttribute("staffWithoutAccount", staff.stream().filter(s -> "none".equals(s.state())).count());
         model.addAttribute("modules", AccessModule.values());
         model.addAttribute("usersJson", json.writeValueAsString(editData).replace("<", "\\u003c"));
-        model.addAttribute("currentUserId", me);
-        model.addAttribute("rows", rows);
-        model.addAttribute("unapprovedUsers", requests);
-        // Accounts that were active before and got disabled (e.g. marked resigned on the org chart).
-        Set<Long> disabledIds = new HashSet<>();
-        for (User u : requests) if (u.getDateApproved() != null || !nodes.findByAccountUserId(u.getId()).isEmpty()) disabledIds.add(u.getId());
-        model.addAttribute("disabledIds", disabledIds);
-        model.addAttribute("staff", staff);
-        model.addAttribute("staffWithoutAccount", staff.stream().filter(s -> "none".equals(s.state())).count());
-        model.addAttribute("modules", AccessModule.values());
-        model.addAttribute("usersJson", json.writeValueAsString(editData).replace("<", "\\u003c"));
         return "user-management";
     }
 
@@ -211,16 +157,13 @@ public class UserController {
     public String approveUser(@RequestParam("id") Long id, RedirectAttributes redirect) {
         userService.approveUser(id, authUtil.getCurrentUserId());
         accessService.changed();
-        accessService.changed();
         redirect.addFlashAttribute("success", "User approved. They can now sign in.");
         return "redirect:/users";
     }
 
     @PostMapping("/reject")
     @Transactional
-    @Transactional
     public String rejectUser(@RequestParam("id") Long id, RedirectAttributes redirect) {
-        cleanUp(id);
         cleanUp(id);
         userService.deleteUser(id);
         redirect.addFlashAttribute("success", "Account request rejected.");
@@ -228,7 +171,6 @@ public class UserController {
     }
 
     @PostMapping("/delete")
-    @Transactional
     @Transactional
     public String deleteUser(@RequestParam("id") Long id, RedirectAttributes redirect) {
         if (id.equals(authUtil.getCurrentUserId())) {
@@ -241,14 +183,7 @@ public class UserController {
             return "redirect:/users";
         }
         cleanUp(id);
-        User target = userRepository.findById(id).orElse(null);
-        if (target != null && AccessService.isAdminRole(target.getRole()) && adminCount() <= 1) {
-            redirect.addFlashAttribute("error", "You can't delete the last administrator.");
-            return "redirect:/users";
-        }
-        cleanUp(id);
         userService.deleteUser(id);
-        redirect.addFlashAttribute("success", "User deleted. Their box on the org chart stays, without a login account.");
         redirect.addFlashAttribute("success", "User deleted. Their box on the org chart stays, without a login account.");
         return "redirect:/users";
     }
@@ -261,16 +196,7 @@ public class UserController {
         accessService.changed();
     }
 
-    /** Unlink from the org chart and remove access settings and activation links. */
-    private void cleanUp(Long userId) {
-        for (OrganizationNode n : nodes.findByAccountUserId(userId)) { n.setAccountUserId(null); nodes.save(n); }
-        userAccess.findById(userId).ifPresent(userAccess::delete);
-        activations.deleteByUserId(userId);
-        accessService.changed();
-    }
-
     @PostMapping("/edit")
-    @Transactional
     @Transactional
     public String updateUserFromModal(
             @RequestParam("id") Long id,
@@ -289,11 +215,9 @@ public class UserController {
 
         User existing = userService.getUserById(id);
         if (!username.trim().equals(existing.getUsername()) && userRepository.existsByUsername(username.trim())) {
-        if (!username.trim().equals(existing.getUsername()) && userRepository.existsByUsername(username.trim())) {
             redirect.addFlashAttribute("error", "That username is already taken.");
             return "redirect:/users";
         }
-        if (!email.trim().equalsIgnoreCase(existing.getEmail()) && userRepository.existsByEmail(email.trim())) {
         if (!email.trim().equalsIgnoreCase(existing.getEmail()) && userRepository.existsByEmail(email.trim())) {
             redirect.addFlashAttribute("error", "That email address is already in use.");
             return "redirect:/users";
@@ -311,24 +235,10 @@ public class UserController {
         }
 
         String role = admin ? "admin" : (wasAdmin ? "user" : existing.getRole());
-        boolean wasAdmin = AccessService.isAdminRole(existing.getRole());
-        if (wasAdmin && !admin) {
-            if (id.equals(authUtil.getCurrentUserId())) {
-                redirect.addFlashAttribute("error", "You can't remove your own admin rights. Ask another admin to do it.");
-                return "redirect:/users";
-            }
-            if (adminCount() <= 1) {
-                redirect.addFlashAttribute("error", "There must be at least one administrator.");
-                return "redirect:/users";
-            }
-        }
-
-        String role = admin ? "admin" : (wasAdmin ? "user" : existing.getRole());
         User updatedUser = new User();
         updatedUser.setName(name.trim());
         updatedUser.setEmail(email.trim());
         updatedUser.setUsername(username.trim());
-        updatedUser.setRole(role == null || role.isBlank() ? "user" : role);
         updatedUser.setRole(role == null || role.isBlank() ? "user" : role);
         userService.updateUser(id, updatedUser);
         if (quoteApprover) { if (!quoteApprovers.existsById(id)) quoteApprovers.save(new com.asmsi.admin_system.entity.QuoteApprover(id)); }
