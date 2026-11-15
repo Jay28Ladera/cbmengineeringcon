@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payables')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Payables">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Accounting</div>
+          <h1 class="page-title">Payables</h1>
+          <p class="page-sub">What CBM owes suppliers. Bills come from purchase orders (or are entered for other expenses) and are paid through payment vouchers.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Accounting/Payments}"><i class="bi bi-cash-coin"></i>Payments<span class="count-badge ms-1" th:if="${forApproval > 0}" th:text="${forApproval}"></span></a>
+          <a class="btn btn-primary" th:href="@{/Accounting/Payables/new}"><i class="bi bi-plus-lg"></i>Enter bill</a>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Owed to suppliers<i class="bi bi-receipt"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(totalOpen, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${#lists.size(open) + ' open bill(s)'}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Overdue<i class="bi bi-exclamation-triangle"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(overdue, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Past the due date</div></div>
+        <div class="kpi"><div class="kpi-label">Due in 7 days<i class="bi bi-calendar-week"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(dueWeek, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Plan the cheques</div></div>
+        <div class="kpi"><div class="kpi-label">Waiting to be billed<i class="bi bi-hourglass-split"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${#lists.size(toBill)}"></div><div class="kpi-note">Purchase orders</div></div>
+      </div>
+
+      <section class="panel mb-4" th:unless="${#lists.isEmpty(toBill)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-hourglass-split"></i>Purchase orders to bill <span class="count-badge" th:text="${#lists.size(toBill)}"></span></h2></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>PO</th><th>Supplier</th><th>Why</th><th class="money">Amount</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="t : ${toBill}">
+                <td><a class="mono" th:href="@{/Purchasing/Procurements/{id}(id=${t.po().id})}" th:text="${t.po().number}"></a></td>
+                <td th:text="${t.supplier() != null ? t.supplier().name : '—'}"></td>
+                <td><span th:if="${t.payFirst()}" class="status status-pending">Pay before ordering</span><span th:unless="${t.payFirst()}" th:text="${'Delivered · ' + t.po().termsLabel()}"></span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="actions"><a class="btn btn-sm btn-primary" th:href="@{/Accounting/Payables/new(po=${t.po().id})}" th:text="${t.payFirst() ? 'Request payment' : 'Record bill'}"></a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel mb-4">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-receipt"></i>Open bills <span class="count-badge" th:text="${#lists.size(open)}"></span></h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="billTable" aria-label="Search bills" /></div></div>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(open)}">
+          <table class="data-table" id="billTable">
+            <thead><tr><th>Bill</th><th>Supplier</th><th>Invoice</th><th>Due</th><th class="money">Amount</th><th class="money">Paid</th><th class="money">Balance</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="b : ${open}" class="row-link" th:attr="data-href=@{/Accounting/Payables/{id}(id=${b.id})}">
+                <td><a class="mono" th:href="@{/Accounting/Payables/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${'status-bill-' + #strings.toLowerCase(b.status)}" th:text="${b.status}"></span></td>
+                <td th:text="${supplierMap.get(b.supplierId) != null ? supplierMap.get(b.supplierId).name : '—'}"></td>
+                <td th:text="${b.invoiceNo ?: '—'}"></td>
+                <td th:classappend="${b.overdue} ? ' overdue'"><span th:text="${#temporals.format(b.dueDate, 'MMM d, yyyy')}"></span>
+                  <div class="cell-sub" th:text="${b.overdue ? (-b.dueInDays) + ' day(s) overdue' : (b.dueInDays == 0 ? 'Due today' : 'in ' + b.dueInDays + ' day(s)')}"></div></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.paid, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money fw-semibold" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="actions"><a class="btn btn-sm btn-outline" th:href="@{/Accounting/Payments/new(bill=${b.id})}">Pay</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(open)}"><div class="empty-icon"><i class="bi bi-check2-circle"></i></div><h3>No open bills</h3><p>Bills appear here when a purchase order is billed or an expense is entered.</p></div>
+      </section>
+
+      <section class="panel" th:unless="${#lists.isEmpty(closed)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-archive"></i>Paid &amp; voided</h2></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Bill</th><th>Supplier</th><th>Bill date</th><th class="money">Amount</th></tr></thead>
+            <tbody>
+              <tr th:each="b : ${closed}" class="row-link" th:classappend="${b.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/Payables/{id}(id=${b.id})}">
+                <td><a class="mono" th:href="@{/Accounting/Payables/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${'status-bill-' + #strings.toLowerCase(b.status)}" th:text="${b.status}"></span></td>
+                <td th:text="${supplierMap.get(b.supplierId) != null ? supplierMap.get(b.supplierId).name : '—'}"></td>
+                <td th:text="${#temporals.format(b.billDate, 'MMM d, yyyy')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

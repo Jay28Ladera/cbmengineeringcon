@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Stock Adjustment')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Stock Adjustment">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Inventory</div><h1 class="page-title">Stock adjustments</h1><p class="page-sub">Corrections with a reason: opening balances, recounts, damage, losses and returns from site. Each one is kept on the material's stock card.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" type="button" data-open-dialog="adjDialog"><i class="bi bi-plus-lg"></i>New adjustment</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Date</th><th>Material</th><th>Reason</th><th class="num">Qty</th><th class="money">Value</th><th>Note</th><th>By</th></tr></thead>
+            <tbody><tr th:each="r : ${rows}" th:with="a=${r.adj()}">
+              <td class="mono text-nowrap" th:text="${a.number}"></td>
+              <td th:text="${#temporals.format(a.adjustedOn, 'MMM d, yyyy')}"></td>
+              <td><a th:if="${r.material()}" th:href="@{/Inventory/Materials/{id}(id=${a.materialId})}" th:text="${r.material().code + ' · ' + r.material().name}"></a></td>
+              <td><span class="status" th:classappend="${a.qty.signum() > 0} ? ' status-accepted' : ' status-rejected'" th:text="${a.reason}"></span><div class="cell-sub" th:if="${r.job()}" th:text="${'from ' + r.job().label}"></div></td>
+              <td class="num fw-semibold" th:classappend="${a.qty.signum() > 0} ? ' text-success' : ' text-danger'" th:text="${(a.qty.signum() > 0 ? '+' : '') + a.qty.stripTrailingZeros().toPlainString()}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(a.qty.multiply(a.unitCost), 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="cell-wrap" th:text="${a.note}"></td>
+              <td class="small" th:text="${a.createdBy}"></td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-sliders"></i></div><h3>No adjustments</h3><p>Use one after a physical count, or when stock is damaged, lost or returned from a site.</p></div>
+      </section>
+      <dialog class="app-dialog app-dialog-sm" id="adjDialog" aria-labelledby="adTitle">
+        <form th:action="@{/Inventory/StockAdjustment}" method="post">
+          <header class="dialog-header"><div><h2 id="adTitle">New adjustment</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="adjDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="mb-3"><label class="form-label" for="d1">Material <span class="req">*</span></label><select id="d1" name="materialId" class="form-select" required><option value="">Choose…</option><option th:each="m : ${materials}" th:value="${m.id}" th:text="${m.code + ' · ' + m.name + '  (' + m.onHand.stripTrailingZeros().toPlainString() + ' ' + m.unit + ')'}"></option></select></div>
+            <div class="mb-3"><span class="form-label d-block">Reason</span>
+              <select name="reason" class="form-select" id="adjReason">
+                <option value="RECOUNT" data-dir="">Physical count difference</option>
+                <option value="DAMAGED" data-dir="out">Damaged / unusable</option>
+                <option value="LOST" data-dir="out">Lost or missing</option>
+                <option value="RETURNED" data-dir="in">Returned from a job site</option>
+                <option value="OPENING" data-dir="in">Opening balance</option>
+                <option value="OTHER" data-dir="">Other</option>
+              </select></div>
+            <div class="row g-3 mb-3">
+              <div class="col-6"><span class="form-label d-block">Direction</span><div class="seg"><label><input type="radio" name="direction" value="in" /><span>Add</span></label><label><input type="radio" name="direction" value="out" checked /><span>Remove</span></label></div></div>
+              <div class="col-6"><label class="form-label" for="d2">Quantity <span class="req">*</span></label><input id="d2" name="qty" class="form-control" inputmode="decimal" required /></div>
+              <div class="col-6" data-show-dir="in"><label class="form-label" for="d3">Unit cost (₱)</label><input id="d3" name="unitCost" class="form-control" inputmode="decimal" placeholder="Average cost" /></div>
+              <div class="col-6"><label class="form-label" for="d4">Date</label><input id="d4" type="date" name="adjustedOn" class="form-control" th:value="${today}" /></div>
+              <div class="col-12" data-show-reason="RETURNED"><label class="form-label" for="d5">Returned from job order</label><select id="d5" name="jobOrderId" class="form-select"><option value="">—</option><option th:each="j : ${jobOrders}" th:value="${j.id()}" th:text="${j.label}"></option></select><div class="form-hint">Its material cost goes down by the returned value.</div></div>
+            </div>
+            <div><label class="form-label" for="d6">Note</label><input id="d6" name="note" class="form-control" maxlength="300" placeholder="What happened" /></div>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="adjDialog">Cancel</button><button type="submit" class="btn btn-primary">Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

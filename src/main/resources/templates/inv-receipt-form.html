@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Receive Delivery')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area content-wide" th:fragment="page" data-section="Inventory" data-title="Receive Delivery">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Inventory/StockReceiving}">Stock receiving</a> › New</div>
+          <h1 class="page-title" th:text="${po != null ? 'Receive ' + po.number : 'Receive delivery'}">Receive</h1>
+          <p class="page-sub" th:if="${po}" th:text="${(supplier != null ? supplier.name : '') + (job != null ? ' · for ' + job.label : ' · warehouse stock')}"></p>
+          <p class="page-sub" th:unless="${po}">A delivery without a purchase order (cash purchase, supplier sample, transfer). Every item must be a material so it can be stocked.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <form th:action="@{/Inventory/StockReceiving}" method="post" class="panel">
+        <input type="hidden" name="poId" th:value="${po != null ? po.id : ''}" />
+        <div class="panel-body">
+          <div class="row g-3">
+            <div class="col-md-3" th:unless="${po}"><label class="form-label" for="r0">Supplier</label><select id="r0" name="supplierId" class="form-select"><option value="">—</option><option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option></select></div>
+            <div class="col-md-2"><label class="form-label" for="r1">Received on</label><input id="r1" type="date" name="receivedOn" class="form-control" th:value="${today}" /></div>
+            <div class="col-md-2"><label class="form-label" for="r2">DR no.</label><input id="r2" name="drNumber" class="form-control" maxlength="60" placeholder="Delivery receipt" /></div>
+            <div class="col-md-2"><label class="form-label" for="r3">Invoice no.</label><input id="r3" name="invoiceNumber" class="form-control" maxlength="60" /></div>
+            <div class="col-md-3"><label class="form-label" for="r4">Received by</label><input id="r4" name="receivedBy" class="form-control" maxlength="120" th:value="${username}" /></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table line-table" th:attr="data-lines=${po == null ? '' : null}">
+            <thead><tr><th>Material</th><th th:if="${po}">PO item</th><th th:if="${po}" class="num">Still due</th><th style="width:120px" class="num">Qty received</th><th style="width:140px" class="num">Unit cost (₱)</th><th style="width:130px" class="money">Amount</th><th th:unless="${po}" style="width:44px"></th></tr></thead>
+            <tbody>
+              <tr th:each="l : ${poLines}" th:if="${l.remaining.signum() > 0}">
+                <td><input type="hidden" name="line_poline" th:value="${l.id}" />
+                  <select name="line_material" class="form-select form-select-sm material-pick"><option value="">Choose material…</option>
+                    <option th:each="m : ${materials}" th:value="${m.id}" th:selected="${m.id == l.materialId}" th:attr="data-unit=${m.unit},data-name=${m.name},data-cost=${m.lastCost}" th:text="${m.code + ' · ' + m.name}"></option></select>
+                  <div class="form-hint" th:if="${l.materialId == null}">Free-text PO item: choose the material it goes into.</div></td>
+                <td th:text="${l.description}"></td>
+                <td class="num text-nowrap" th:text="${l.remaining.stripTrailingZeros().toPlainString() + ' ' + l.unit}"></td>
+                <td><input name="line_qty" class="form-control form-control-sm num q" th:value="${l.remaining.stripTrailingZeros().toPlainString()}" inputmode="decimal" /></td>
+                <td><input name="line_cost" class="form-control form-control-sm num p" th:value="${l.unitPrice.toPlainString()}" inputmode="decimal" /></td>
+                <td class="money amt"></td>
+              </tr>
+              <tr th:unless="${po}">
+                <td><input type="hidden" name="line_poline" value="" /><select name="line_material" class="form-select form-select-sm material-pick"><option value="">Choose material…</option><option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-name=${m.name},data-cost=${m.lastCost}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                <td><input name="line_cost" class="form-control form-control-sm num p" inputmode="decimal" /></td>
+                <td class="money amt"></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+              </tr>
+            </tbody>
+            <template th:unless="${po}">
+              <tr>
+                <td><input type="hidden" name="line_poline" value="" /><select name="line_material" class="form-select form-select-sm material-pick"><option value="">Choose material…</option><option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-name=${m.name},data-cost=${m.lastCost}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                <td><input name="line_cost" class="form-control form-control-sm num p" inputmode="decimal" /></td>
+                <td class="money amt"></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+              </tr>
+            </template>
+            <tfoot><tr>
+              <td th:attr="colspan=${po != null ? 5 : 3}"><button th:unless="${po}" type="button" class="btn btn-sm btn-outline" data-add-line><i class="bi bi-plus-lg"></i>Add item</button><span th:if="${po}" class="small text-muted">Set a quantity to 0 for items that didn't arrive.</span></td>
+              <td class="money"><b data-lines-total>0.00</b></td><td th:unless="${po}"></td>
+            </tr></tfoot>
+          </table>
+        </div>
+        <div class="panel-body">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-8"><label class="form-label" for="r5">Notes</label><input id="r5" name="notes" class="form-control" maxlength="600" placeholder="e.g. 2 pcs dented, supplier to replace" /></div>
+            <div class="col-md-4" th:if="${job}"><label class="oc-switch"><input type="checkbox" name="issueToJob" value="true" /><span></span>Delivered to site: issue straight to the job order</label></div>
+          </div>
+        </div>
+        <div class="panel-footer d-flex justify-content-between">
+          <a class="btn btn-ghost" th:href="@{/Inventory/StockReceiving}">Cancel</a>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-down"></i>Receive into stock</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

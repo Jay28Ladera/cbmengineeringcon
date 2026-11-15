@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Subcon billing listing')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Subcon billing listing">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Subcon billing listing</h1>
+          <p class="page-sub">Subcontractor billings posted in the period.</p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <div><label class="form-label small mb-0" for="rf">From</label><input id="rf" type="date" name="from" class="form-control form-control-sm" th:value="${from}" /></div>
+          <div><label class="form-label small mb-0" for="rt">To</label><input id="rt" type="date" name="to" class="form-control form-control-sm" th:value="${to}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Date</th><th>Billing</th><th>Subcontractor</th><th>Job order</th><th>Subcontract</th><th class="money">Work / amount</th><th class="money">Amount due</th></tr></thead>
+          <tbody><tr th:each="b : ${rows}" class="row-link" th:classappend="${b.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/SubconBillings/{id}(id=${b.id})}">
+            <td th:text="${#temporals.format(b.billingDate, 'MMM d, yyyy')}"></td>
+            <td><a class="mono" th:href="@{/Accounting/SubconBillings/{id}(id=${b.id})}" th:text="${b.number}"></a><div class="cell-sub" th:text="${b.title + (b.invoiceNo != null ? ' · ' + b.invoiceNo : '')}"></div></td>
+            <td th:text="${supplierMap.get(b.supplierId) != null ? supplierMap.get(b.supplierId).name : ''}"></td>
+            <td th:text="${jobMap.get(b.jobOrderId) != null ? jobMap.get(b.jobOrderId).number() : ''}"></td>
+            <td class="small" th:text="${contractMap.get(b.contractId) != null ? contractMap.get(b.contractId).number : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+          <tfoot><tr class="tb-total"><td colspan="5">Total (excluding voided)</td><td class="money" th:text="${#numbers.formatDecimal(gross, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(due, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(rows)}">No subcontractor billings in this period.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Trial balance')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Trial balance">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Trial balance</h1>
+          <p class="page-sub">Every account with a balance. Total debits must equal total credits.</p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <div><label class="form-label small mb-0" for="ta">As of</label><input id="ta" type="date" name="asOf" class="form-control form-control-sm" th:value="${asOf}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <div class="alert mb-3" th:classappend="${balanced} ? 'alert-success' : 'alert-danger'" th:text="${balanced ? 'In balance as of ' + #temporals.format(asOf, 'MMMM d, yyyy') + '.' : 'Out of balance — tell the developer; every posting is checked, so this should never happen.'}"></div>
+      <section class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th style="width:90px">Code</th><th>Account</th><th>Type</th><th class="money">Debit</th><th class="money">Credit</th></tr></thead>
+            <tbody>
+              <tr th:each="b : ${rows}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${b.account().id},to=${asOf})}">
+                <td class="mono" th:text="${b.account().code}"></td>
+                <td><a th:href="@{/Accounting/Accounts/{id}(id=${b.account().id},to=${asOf})}" th:text="${b.account().name}"></a></td>
+                <td class="small" th:text="${b.account().typeLabel}"></td>
+                <td class="money" th:text="${b.debitBalance.signum() > 0 ? #numbers.formatDecimal(b.debitBalance, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+                <td class="money" th:text="${b.creditBalance.signum() > 0 ? #numbers.formatDecimal(b.creditBalance, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+              </tr>
+            </tbody>
+            <tfoot><tr class="tb-total"><td colspan="3">Total</td><td class="money" th:text="${#numbers.formatDecimal(totalDr, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(totalCr, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+          </table>
+        </div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(rows)}">Nothing posted yet.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

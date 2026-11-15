@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payroll posting')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Payroll posting">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Payroll}">Payroll</a></div><h1 class="page-title" th:text="${'Payroll ' + p.label}"></h1>
+          <p class="page-sub" th:text="${x == null ? 'Choose where each person’s pay is charged, then post.' : 'Posted by ' + x.postedBy + ' · ' + #temporals.format(x.postedAt, 'MMM d, h:mm a')}"></p></div>
+        <div class="page-actions">
+          <button th:if="${x != null and x.status == 'POSTED'}" class="btn btn-primary" type="button" data-open-dialog="prRelease"><i class="bi bi-cash-stack"></i>Release net pay</button>
+          <button th:if="${x != null}" class="btn btn-ghost" type="button" data-open-dialog="prUnpost"><i class="bi bi-arrow-counterclockwise"></i>Unpost</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:unless="${p.locked}" class="alert alert-info mb-3">HR has not locked this period yet; amounts can still change. Lock it in HR › Pay sheets, then post here.</div>
+      <div th:if="${x != null and x.status == 'RELEASED'}" class="alert alert-success mb-3" th:text="${'Net pay released ' + #temporals.format(x.releaseDate, 'MMM d, yyyy') + ' from ' + (bankMap.get(x.releaseBankId) != null ? bankMap.get(x.releaseBankId).name : '') + (x.releaseRef != null ? ' · ' + x.releaseRef : '') + '.'}"></div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Pay earned<i class="bi bi-people"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(earned, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${#lists.size(lines) + ' employee(s)'}"></div></div>
+        <div class="kpi"><div class="kpi-label">Deductions<i class="bi bi-dash-circle"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(earned.subtract(net), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note"><span th:each="d, st : ${ded}" th:text="${d.key + ' ₱' + #numbers.formatDecimal(d.value, 1, 'COMMA', 2, 'POINT') + (st.last ? '' : ' · ')}"></span></div></div>
+        <div class="kpi accent"><div class="kpi-label">Net pay<i class="bi bi-cash"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(net, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">To release</div></div>
+        <div class="kpi"><div class="kpi-label">Charged to jobs<i class="bi bi-briefcase"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${x != null ? '₱' + #numbers.formatDecimal(x.toJobs, 1, 'COMMA', 2, 'POINT') : '—'}"></div><div class="kpi-note">Direct labor</div></div>
+      </div>
+
+      <form th:action="@{/Accounting/Payroll/{id}/post(id=${p.id})}" method="post" class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-people"></i>Employees</h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="prTable" aria-label="Search employees" /></div></div></div>
+        <div class="table-wrap"><table class="data-table" id="prTable">
+          <thead><tr><th>Employee</th><th>Group</th><th class="money">Earned</th><th class="money">Deductions</th><th class="money">Net pay</th><th style="width:300px">Charge to</th></tr></thead>
+          <tbody><tr th:each="e : ${lines}" th:with="l=${e.line()}">
+            <td><span th:text="${l.name}"></span><div class="cell-sub" th:text="${l.position}"></div></td>
+            <td class="small" th:text="${l.payGroup}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(e.earned(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(e.earned().subtract(l.netPay), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(l.netPay, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><select class="form-select form-select-sm" th:name="${'job_' + l.employeeId}" th:disabled="${x != null}" th:attr="aria-label=${'Charge ' + l.name + ' to'}">
+              <option value="">Office (salaries 6010)</option>
+              <option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}" th:selected="${e.jobId() == j.id()}"></option></select></td></tr></tbody>
+        </table></div>
+        <div class="panel-body border-top d-flex justify-content-between align-items-center" th:if="${x == null}">
+          <span class="small text-muted">The choice per employee is remembered for the next period. Employer shares of SSS, PhilHealth and Pag-IBIG are not in the HR pay sheet; record them with a journal entry (6020) until they are.</span>
+          <div class="d-flex gap-2 align-items-end">
+            <div><label class="form-label small mb-0" for="pd">Post on</label><input id="pd" type="date" name="date" class="form-control form-control-sm" th:value="${p.endDate}" /></div>
+            <button class="btn btn-primary" type="submit" th:disabled="${!p.locked or #lists.isEmpty(lines)}"><i class="bi bi-check2-circle"></i>Post payroll</button></div>
+        </div>
+      </form>
+      <dialog class="app-dialog" id="prRelease">
+        <form th:action="@{/Accounting/Payroll/{id}/release(id=${p.id})}" method="post">
+          <header class="dialog-header"><div><h2>Release net pay</h2><p th:text="${'₱' + #numbers.formatDecimal(net, 1, 'COMMA', 2, 'POINT')}"></p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="prRelease"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="pr1">From</label><select id="pr1" name="bankId" class="form-select" required><option th:each="b : ${banks}" th:value="${b.id}" th:text="${b.label}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="pr2">Date</label><input id="pr2" type="date" name="date" class="form-control" th:value="${today}" /></div>
+            <div class="col-12"><label class="form-label" for="pr3">Reference</label><input id="pr3" name="ref" class="form-control" maxlength="60" placeholder="Payroll account credit, cheque no., cash…" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="prRelease">Cancel</button><button type="submit" class="btn btn-primary">Release</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="prUnpost">
+        <form th:action="@{/Accounting/Payroll/{id}/unpost(id=${p.id})}" method="post">
+          <header class="dialog-header"><div><h2>Unpost payroll</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="prUnpost"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><p>The posting (and the release, if any) is reversed so HR can unlock and correct the period.</p><label class="form-label" for="pu">Reason</label><input id="pu" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="prUnpost">Keep</button><button type="submit" class="btn btn-danger">Unpost</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

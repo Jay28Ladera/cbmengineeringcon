@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Opening balances')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Opening balances">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Opening balances</h1>
+          <p class="page-sub">Bring in what CBM already had before using this system. Each posts against 3900 Opening Balance Equity; your accountant later closes that to Owner's capital. For unpaid supplier invoices from before, use <a th:href="@{/Accounting/Payables/new}">Enter bill</a> instead.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-box-seam"></i>Inventory</h2></div>
+        <div class="panel-body">
+          <dl class="meta-grid">
+            <div><dt>Stock on hand (Inventory module)</dt><dd th:text="${'₱' + #numbers.formatDecimal(stockValue, 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>1200 Inventory in the ledger</dt><dd th:text="${'₱' + #numbers.formatDecimal(glInventory, 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Difference</dt><dd th:classappend="${diff.signum() != 0} ? ' overdue'" th:text="${'₱' + #numbers.formatDecimal(diff, 1, 'COMMA', 2, 'POINT')}"></dd></div>
+          </dl>
+          <form th:if="${diff.signum() != 0}" th:action="@{/Accounting/Opening/inventory}" method="post" class="d-flex gap-2 align-items-end mt-3" data-confirm="Post the difference as opening inventory?" data-confirm-ok="Post">
+            <div><label class="form-label small mb-0" for="od">Entry date</label><input id="od" type="date" name="date" class="form-control form-control-sm" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" /></div>
+            <button class="btn btn-sm btn-primary" type="submit">Bring stock into the ledger</button>
+          </form>
+          <p class="small text-muted mt-2 mb-0" th:if="${diff.signum() == 0}">The ledger matches the stock on hand. From here on every receipt, issue and adjustment posts by itself.</p>
+          <p class="small text-muted mt-2 mb-0" th:if="${diff.signum() != 0}">Stock received or adjusted before accounting was set up was never posted. Do this once, at go-live.</p>
+        </div>
+      </section>
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-bank"></i>Cash and bank</h2></div>
+        <form th:action="@{/Accounting/Opening/cash}" method="post">
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Account</th><th class="money">In the ledger now</th><th class="money" style="width:200px">Add starting balance</th></tr></thead>
+              <tbody>
+                <tr th:each="r : ${banks}">
+                  <td th:text="${r.bank().name}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(r.balance(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td><input class="form-control text-end" inputmode="decimal" th:name="${'amt_' + r.bank().id}" placeholder="0.00" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-body d-flex gap-2 align-items-end justify-content-end">
+            <div><label class="form-label small mb-0" for="oc">Entry date</label><input id="oc" type="date" name="date" class="form-control form-control-sm" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" /></div>
+            <button class="btn btn-sm btn-primary" type="submit">Post starting balances</button>
+          </div>
+        </form>
+      </section>
+      <section class="panel" th:unless="${#lists.isEmpty(openingEntries)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-journal-text"></i>Opening entries posted</h2></div>
+        <div class="table-wrap"><table class="data-table"><tbody>
+          <tr th:each="e : ${openingEntries}" class="row-link" th:classappend="${e.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/Journal/{id}(id=${e.id})}">
+            <td th:text="${#temporals.format(e.entryDate, 'MMM d, yyyy')}"></td><td><a class="mono" th:href="@{/Accounting/Journal/{id}(id=${e.id})}" th:text="${e.number}"></a></td><td th:text="${e.memo}"></td></tr>
+        </tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

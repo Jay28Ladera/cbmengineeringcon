@@ -7,16 +7,17 @@
   <div class="main-content">
     <div th:replace="~{fragments/header :: header(${username})}"></div>
 
-    <main class="content-area" th:fragment="page" data-section="" data-title="Dashboard">
+    <main class="content-area" th:fragment="page" data-section="" data-title="Dashboard"
+          th:with="canQ=${access.contains('INQUIRY')}, canJ=${access.contains('IMPLEMENTATION')}, biz=${access.contains('INQUIRY') or access.contains('IMPLEMENTATION')}">
       <div class="page-header">
         <div>
           <div class="page-eyebrow">Operations overview</div>
           <h1 class="page-title">Good day, <span th:text="${displayName ?: username}">Team</span></h1>
-          <p class="page-sub">Where every inquiry, quotation and job order stands today.</p>
+          <p class="page-sub" th:text="${biz} ? 'Where every inquiry, quotation and job order stands today.' : 'Your CBM workspace.'">Where every inquiry, quotation and job order stands today.</p>
         </div>
         <div class="page-actions">
-          <a class="btn btn-outline" th:href="@{/Quotations}"><i class="bi bi-file-earmark-text"></i>Quotations</a>
-          <a class="btn btn-primary" th:href="@{/Clients(openInquiry=1)}"><i class="bi bi-plus-lg"></i>New inquiry</a>
+          <a class="btn btn-outline" th:if="${canQ}" th:href="@{/Quotations}"><i class="bi bi-file-earmark-text"></i>Quotations</a>
+          <a class="btn btn-primary" th:if="${canQ}" th:href="@{/Clients(openInquiry=1)}"><i class="bi bi-plus-lg"></i>New inquiry</a>
         </div>
       </div>
 
@@ -28,7 +29,7 @@
         </div>
       </div>
 
-      <section class="kpi-grid" aria-label="Key figures">
+      <section class="kpi-grid" aria-label="Key figures" th:if="${biz}">
         <a class="kpi accent" th:href="@{/Clients}">
           <div class="kpi-label">New inquiries <i class="bi bi-inboxes"></i></div>
           <div class="kpi-value" th:text="${newInquiries}">0</div>
@@ -51,7 +52,7 @@
         </a>
       </section>
 
-      <section class="panel mb-4" aria-label="Sales pipeline">
+      <section class="panel mb-4" aria-label="Sales pipeline" th:if="${biz}">
         <div class="panel-header">
           <h2 class="panel-title"><i class="bi bi-diagram-3"></i>Project pipeline</h2>
           <span class="text-muted small">Inquiry → quotation → client decision → job order</span>
@@ -65,7 +66,7 @@
       </section>
 
       <div class="row g-4">
-        <div class="col-xl-8">
+        <div class="col-xl-8" th:if="${canQ}">
           <section class="panel h-100">
             <div class="panel-header">
               <h2 class="panel-title"><i class="bi bi-clock-history"></i>Latest inquiries</h2>
@@ -88,15 +89,27 @@
             </div>
           </section>
         </div>
-        <div class="col-xl-4">
+        <div th:class="${canQ} ? 'col-xl-4' : 'col-xl-6'">
           <section class="panel h-100">
             <div class="panel-header"><h2 class="panel-title"><i class="bi bi-lightning-charge"></i>Quick actions</h2></div>
             <div class="panel-body quick-links">
-              <a class="quick-link" th:href="@{/Clients(openInquiry=1)}"><i class="bi bi-person-plus"></i>Record a client inquiry<i class="bi bi-chevron-right"></i></a>
-              <a class="quick-link" th:href="@{/Quotations}"><i class="bi bi-calculator"></i>Price a quotation<i class="bi bi-chevron-right"></i></a>
-              <a class="quick-link" th:href="@{/JobOrders}"><i class="bi bi-clipboard-check"></i>Update job order status<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:if="${canQ}" th:href="@{/Clients(openInquiry=1)}"><i class="bi bi-person-plus"></i>Record a client inquiry<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:if="${canQ}" th:href="@{/Quotations}"><i class="bi bi-calculator"></i>Price a quotation<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:if="${canJ}" th:href="@{/JobOrders}"><i class="bi bi-clipboard-check"></i>Update job order status<i class="bi bi-chevron-right"></i></a>
               <a class="quick-link" th:if="${isAdmin}" th:href="@{/users}"><i class="bi bi-people"></i>Manage users<i class="bi bi-chevron-right"></i></a>
+              <a class="quick-link" th:href="@{/organization-chart}"><i class="bi bi-diagram-3"></i>Organizational chart<i class="bi bi-chevron-right"></i></a>
               <a class="quick-link" th:href="@{/profile}"><i class="bi bi-person-gear"></i>My profile<i class="bi bi-chevron-right"></i></a>
+            </div>
+          </section>
+        </div>
+        <div th:unless="${canQ}" class="col-xl-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-shield-check"></i>Your access</h2></div>
+            <div class="panel-body">
+              <p class="text-muted small mb-3" th:if="${#sets.isEmpty(access)}">Your account can open the dashboard, the organizational chart and your profile. Ask an administrator if you need more.</p>
+              <ul class="check-list mt-0" th:unless="${#sets.isEmpty(access)}">
+                <li th:each="m : ${allModules}" th:if="${access.contains(m.name())}" th:text="${m.label + ' — ' + m.description}">Module</li>
+              </ul>
             </div>
           </section>
         </div>

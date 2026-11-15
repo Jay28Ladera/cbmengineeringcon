@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Remittances')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Remittances">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Remittances</h1>
+          <p class="page-sub">Taxes and contributions CBM holds for the government, from bills, payments, collections and payroll. Record each payment to BIR, SSS, PhilHealth or Pag-IBIG here.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel mb-4">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>What</th><th>To</th><th>Form</th><th class="money">Owed now</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="k : ${kinds}">
+            <td th:text="${k.label()}"></td><td th:text="${k.agency()}"></td><td class="small" th:text="${k.form()}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(owed.get(k.key()), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="actions"><button type="button" class="btn btn-sm btn-outline" data-fill="rmDialog" th:attr="data-title=${'Remit ' + k.label()},data-f-kind=${k.key()},data-f-amount=${owed.get(k.key()).signum() > 0 ? owed.get(k.key()) : ''}">Remit</button></td></tr></tbody>
+        </table></div>
+        <div class="panel-body small text-muted">VAT: output VAT on billings less input VAT on purchases; a negative figure is excess input VAT carried over. Creditable tax withheld by clients (1310) is claimed on the income tax return, not here.</div>
+      </section>
+      <section class="panel" th:unless="${#lists.isEmpty(rows)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-bank"></i>Paid</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>No.</th><th>Date</th><th>What</th><th>Period</th><th>Reference</th><th>From</th><th class="money">Paid</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="r : ${rows}" th:classappend="${r.status == 'VOID'} ? ' row-void'">
+            <td class="mono" th:text="${r.number}"></td><td th:text="${#temporals.format(r.remitDate, 'MMM d, yyyy')}"></td>
+            <td th:text="${r.kind}"></td><td th:text="${r.periodLabel ?: '—'}"></td><td th:text="${r.reference ?: '—'}"></td>
+            <td th:text="${bankMap.get(r.bankId) != null ? bankMap.get(r.bankId).name : ''}"></td>
+            <td class="money"><span th:text="${#numbers.formatDecimal(r.amount, 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:if="${r.creditUsed.signum() > 0}" th:text="${'+ input VAT ₱' + #numbers.formatDecimal(r.creditUsed, 1, 'COMMA', 2, 'POINT')}"></div></td>
+            <td class="actions"><button th:if="${r.status == 'POSTED'}" type="button" class="btn btn-sm btn-ghost" data-fill="rmVoid" th:attr="data-action=@{/Accounting/Remittances/{id}/void(id=${r.id})},data-title=${'Void ' + r.number}">Void</button></td></tr></tbody>
+        </table></div>
+      </section>
+      <dialog class="app-dialog" id="rmDialog">
+        <form th:action="@{/Accounting/Remittances}" method="post">
+          <header class="dialog-header"><div><h2 data-dialog-title>Remit</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="rmDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="m1">What</label><select id="m1" name="kind" class="form-select"><option th:each="k : ${kinds}" th:value="${k.key()}" th:text="${k.label()}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="m2">Amount paid</label><input id="m2" name="amount" class="form-control text-end" inputmode="decimal" required /></div>
+            <div class="col-md-6"><label class="form-label" for="m3">For the period</label><input id="m3" name="periodLabel" class="form-control" maxlength="60" placeholder="e.g. October 2026, Q3 2026" /></div>
+            <div class="col-md-6"><label class="form-label" for="m4">Reference / PRN / eFPS no.</label><input id="m4" name="reference" class="form-control" maxlength="60" /></div>
+            <div class="col-md-6"><label class="form-label" for="m5">Paid from</label><select id="m5" name="bankId" class="form-select" required><option th:each="b : ${banks}" th:value="${b.id}" th:text="${b.label}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="m6">Date</label><input id="m6" type="date" name="date" class="form-control" th:value="${today}" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="rmDialog">Cancel</button><button type="submit" class="btn btn-primary">Record payment</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="rmVoid">
+        <form th:action="@{/Accounting/Remittances}" method="post">
+          <header class="dialog-header"><div><h2 data-dialog-title>Void</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="rmVoid"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><label class="form-label" for="mv">Reason</label><input id="mv" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="rmVoid">Keep</button><button type="submit" class="btn btn-danger">Void</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

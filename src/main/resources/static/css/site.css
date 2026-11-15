@@ -167,6 +167,75 @@ h2 { font-size: clamp(2.2rem, 4.4vw, 3.4rem); color: var(--navy-900); }
 .footer .container { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 24px 0; border-top: 1px solid rgba(255,255,255,.07); }
 .footer a:hover { color: #fff; }
 
+
+/* =====================================================================
+   Motion. Subtle entrance animations, only when JavaScript runs (html.js)
+   and the visitor hasn't asked for reduced motion.
+   ===================================================================== */
+:root { --ease-out: cubic-bezier(.22, .9, .3, 1); }
+
+/* Header firms up after scrolling */
+.header { transition: background .3s ease, box-shadow .3s ease; }
+.header .nav { transition: height .3s var(--ease-out); }
+.header.is-scrolled { background: rgba(11,21,36,.97); box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+.header.is-scrolled .nav { height: 64px; }
+.header .brand img { transition: width .3s var(--ease-out); }
+.header.is-scrolled .brand img { width: 62px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Fade + rise */
+  .js .rv { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease-out), transform .8s var(--ease-out); transition-delay: var(--d, 0s); }
+  .js .rv.rv-right { transform: translateX(36px); }
+  .js .rv.rv-up-lg { transform: translateY(40px); }
+  .js .rv.is-in { opacity: 1; transform: none; }
+
+  /* Headline lines slide up from behind a mask */
+  .rv-lines .ln { display: block; overflow: hidden; padding-bottom: .04em; }
+  .js .rv-lines .ln > * { display: inline-block; transform: translateY(105%); transition: transform .9s var(--ease-out); transition-delay: var(--d, 0s); }
+  .js .rv-lines.is-in .ln > * { transform: none; }
+
+  /* Eyebrow rule draws in */
+  .js .rv.eyebrow::before, .js .rv .eyebrow::before { width: 0; transition: width .6s var(--ease-out) calc(var(--d, 0s) + .2s); }
+  .js .rv.eyebrow.is-in::before, .js .rv.is-in .eyebrow::before { width: 26px; }
+
+  /* Company sheet rows appear one after another */
+  .js .spec-card .spec-row { opacity: 0; transform: translateX(10px); transition: opacity .5s ease, transform .5s var(--ease-out); transition-delay: calc(.7s + var(--i) * .12s); }
+  .js .spec-card.is-in .spec-row { opacity: 1; transform: none; }
+
+  /* Hero: slow drifting blueprint grid and breathing glow */
+  .hero { animation: grid-drift 60s linear infinite; }
+  .hero::before { animation: glow 9s ease-in-out infinite alternate; }
+
+  /* Service icons draw themselves */
+  .js .service.rv svg * { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.3s var(--ease-out); transition-delay: calc(var(--d, 0s) + .25s); }
+  .js .service.rv.is-in svg * { stroke-dashoffset: 0; }
+  .service svg { transition: transform .3s var(--ease-out), color .3s ease; }
+  .service:hover svg { transform: translateY(-3px); color: var(--red); }
+
+  /* Plan → Engineer → Build → Maintain: a highlight travels across the strip */
+  .strip .container > div { position: relative; overflow: hidden; }
+  .strip .container > div::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: #fff; transform: scaleX(0); transform-origin: left; animation: strip-step 8s var(--ease-out) infinite; animation-delay: calc(var(--i) * 2s); }
+  .strip .container > div small { animation: strip-num 8s ease infinite; animation-delay: calc(var(--i) * 2s); }
+
+  /* How we work: line draws 01 → 04, each circle fills as the line reaches it */
+  .js .rv-steps .step::after { transform: scaleX(0); transform-origin: left; transition: transform .7s var(--ease-out); transition-delay: calc(.35s + var(--i) * .55s); }
+  .js .rv-steps.is-in .step::after { transform: scaleX(1); }
+  .js .rv-steps .step::before { transform: scale(.6); opacity: 0; transition: transform .5s cubic-bezier(.34,1.56,.64,1), opacity .4s ease, background .4s ease, color .4s ease, border-color .4s ease; transition-delay: calc(var(--i) * .55s); }
+  .js .rv-steps.is-in .step::before { transform: none; opacity: 1; background: var(--navy-900); color: #fff; }
+  .js .rv-steps .step h3, .js .rv-steps .step p { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s var(--ease-out); transition-delay: calc(.15s + var(--i) * .55s); }
+  .js .rv-steps.is-in .step h3, .js .rv-steps.is-in .step p { opacity: 1; transform: none; }
+  .rv-steps .step:hover::before { background: var(--red) !important; border-color: var(--red); }
+
+  /* Buttons lift slightly on hover */
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: none; }
+}
+
+@keyframes grid-drift { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 96px 96px, 96px 96px, 24px 24px, 24px 24px; } }
+@keyframes glow { from { opacity: .75; } to { opacity: 1; } }
+@keyframes strip-step { 0% { transform: scaleX(0); } 10%, 22% { transform: scaleX(1); transform-origin: left; } 23% { transform-origin: right; } 32%, 100% { transform: scaleX(0); transform-origin: right; } }
+@keyframes strip-num { 0%, 100% { opacity: .75; } 8%, 24% { opacity: 1; } }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .hero-inner { grid-template-columns: 1fr; padding: 80px 0 88px; }

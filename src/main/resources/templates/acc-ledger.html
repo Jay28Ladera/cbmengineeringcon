@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Account ledger')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Account ledger">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Accounts}">Chart of accounts</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${account.code}"></span> <span th:text="${account.name}"></span></h1>
+          <p class="page-sub" th:text="${account.typeLabel + (account.groupName != null ? ' · ' + account.groupName : '') + ' · balance shown on its normal side (' + (account.debitNormal ? 'debit' : 'credit') + ')'}"></p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <div><label class="form-label small mb-0" for="lf">From</label><input id="lf" type="date" name="from" class="form-control form-control-sm" th:value="${from}" /></div>
+          <div><label class="form-label small mb-0" for="lt">To</label><input id="lt" type="date" name="to" class="form-control form-control-sm" th:value="${to}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+        </form>
+      </div>
+      <section class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Entry</th><th>Description</th><th>Job / supplier</th><th class="money">Debit</th><th class="money">Credit</th><th class="money">Balance</th></tr></thead>
+            <tbody>
+              <tr class="acc-type-head"><td colspan="6" th:text="${'Opening balance ' + #temporals.format(from, 'MMM d, yyyy')}"></td><td class="money" th:text="${#numbers.formatDecimal(opening, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr th:each="r : ${rows}" class="row-link" th:attr="data-href=@{/Accounting/Journal/{id}(id=${r.entry().id})}">
+                <td class="text-nowrap" th:text="${#temporals.format(r.entry().entryDate, 'MMM d, yyyy')}"></td>
+                <td><a class="mono" th:href="@{/Accounting/Journal/{id}(id=${r.entry().id})}" th:text="${r.entry().number}"></a><div class="cell-sub" th:text="${r.entry().sourceRef}"></div></td>
+                <td class="cell-wrap"><span th:text="${r.entry().memo}"></span><div class="cell-sub" th:if="${r.line().memo}" th:text="${r.line().memo}"></div></td>
+                <td class="small"><span th:if="${r.line().jobOrderId != null and jobMap.get(r.line().jobOrderId) != null}" th:text="${jobMap.get(r.line().jobOrderId).number()}"></span>
+                  <span th:if="${r.line().supplierId != null and supplierMap.get(r.line().supplierId) != null}" th:text="${supplierMap.get(r.line().supplierId).name}"></span></td>
+                <td class="money" th:text="${r.line().debit.signum() > 0 ? #numbers.formatDecimal(r.line().debit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+                <td class="money" th:text="${r.line().credit.signum() > 0 ? #numbers.formatDecimal(r.line().credit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(r.running(), 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+            <tfoot><tr class="tb-total"><td colspan="4" th:text="${'Closing balance ' + #temporals.format(to, 'MMM d, yyyy')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(totalDr, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(totalCr, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(closing, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+          </table>
+        </div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(rows)}">No movements in this period.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

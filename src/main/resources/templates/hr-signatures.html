@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="'Signature sheet · ' + ${period.label}">Signature sheet</title>
+  <link rel="icon" type="image/png" th:href="@{/images/favicon.png}" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 12px/1.4 "IBM Plex Sans", "Segoe UI", Arial, sans-serif; color: #142033; background: #e9ecf1; }
+    .bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 16px; background: #0b1524; color: #fff; font-size: 13px; }
+    .bar span { opacity: .7; }
+    .bar button { margin-left: auto; padding: 7px 16px; border: 0; border-radius: 6px; background: #c8151d; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .sheet { width: 210mm; margin: 16px auto; padding: 12mm; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+    h1 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: .03em; }
+    .sub { margin: 2px 0 8mm; color: #526176; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; background: #22385a; color: #fff; padding: 5px 6px; }
+    td { padding: 0 6px; height: 9mm; border-bottom: 1px solid #c2cad5; }
+    td.n { width: 10mm; color: #6b7a8f; }
+    td.a { text-align: right; width: 32mm; font-variant-numeric: tabular-nums; font-weight: 600; }
+    td.s { width: 60mm; }
+    tr.g td { height: auto; padding: 6px; background: #eceff3; font-weight: 700; text-transform: uppercase; font-size: 10.5px; letter-spacing: .05em; }
+    tr.t td { height: auto; padding: 5px 6px; font-weight: 700; border-bottom: 2px solid #142033; }
+    tfoot td { height: auto; padding: 8px 6px; font-weight: 700; font-size: 13px; border-top: 2px solid #142033; border-bottom: 0; }
+    .foot { display: flex; gap: 14mm; margin-top: 16mm; }
+    .foot div { flex: 1; border-top: 1px solid #142033; padding-top: 3px; text-align: center; color: #526176; font-size: 11px; }
+    @media print { @page { size: A4; margin: 10mm; } body { background: #fff; } .bar { display: none; } .sheet { margin: 0; padding: 0; width: auto; box-shadow: none; } tr { page-break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <div class="bar"><b th:text="${'Signature sheet · ' + period.label}"></b><span th:unless="${period.locked}">· Draft — lock the payroll to make it final</span><button type="button" onclick="window.print()">Print</button></div>
+  <div class="sheet">
+    <h1 th:text="${settings.companyName + ' — Payroll'}">Payroll</h1>
+    <div class="sub" th:text="${'Date covered: ' + period.label}"></div>
+    <table>
+      <thead><tr><th>No.</th><th>Name</th><th style="text-align:right">Net pay</th><th>Signature</th></tr></thead>
+      <tbody th:each="b : ${blocks}">
+        <tr class="g"><td colspan="4" th:text="${b.name()}"></td></tr>
+        <tr th:each="l, st : ${b.lines()}">
+          <td class="n" th:text="${st.count}"></td>
+          <td th:text="${l.name}"></td>
+          <td class="a" th:text="${#numbers.formatDecimal(l.netPay, 1, 'COMMA', 2, 'POINT')}"></td>
+          <td class="s"></td>
+        </tr>
+        <tr class="t"><td></td><td th:text="${'Subtotal · ' + b.name()}"></td><td class="a" th:text="${#numbers.formatDecimal(b.totals().net(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+      </tbody>
+      <tfoot><tr><td></td><td th:text="${'Total · ' + grand.count() + ' employees'}"></td><td class="a" th:text="${'₱' + #numbers.formatDecimal(grand.net(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr></tfoot>
+    </table>
+    <div class="foot"><div>Prepared by</div><div>Checked by</div><div>Approved by</div></div>
+  </div>
+</body>
+</html>

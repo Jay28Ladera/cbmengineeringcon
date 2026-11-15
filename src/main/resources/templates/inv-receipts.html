@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Stock Receiving')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Stock Receiving">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Inventory</div><h1 class="page-title">Stock receiving</h1><p class="page-sub">Record each delivery. Receiving against a purchase order updates what's still due on it.</p></div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/Inventory/StockReceiving/new}"><i class="bi bi-plus-lg"></i>Receive without PO</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel mb-4" th:unless="${#lists.isEmpty(waiting)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-hourglass-split"></i>Waiting for delivery <span class="count-badge hot" th:text="${#lists.size(waiting)}"></span></h2></div>
+        <div class="table-wrap"><table class="data-table"><tbody>
+          <tr th:each="p : ${waiting}">
+            <td><a class="mono" th:href="@{/Purchasing/Procurements/{id}(id=${p.id})}" th:text="${p.number}"></a></td>
+            <td th:text="${supplierMap[p.supplierId] != null ? supplierMap[p.supplierId].name : ''}"></td>
+            <td th:text="${p.expectedDate != null ? 'expected ' + #temporals.format(p.expectedDate, 'MMM d') : ''}"></td>
+            <td><span class="status" th:classappend="${'status-po-' + #strings.toLowerCase(p.status)}" th:text="${p.status}"></span></td>
+            <td class="actions"><a class="btn btn-sm btn-primary" th:href="@{/Inventory/StockReceiving/new(po=${p.id})}"><i class="bi bi-box-arrow-in-down"></i>Receive</a></td>
+          </tr>
+        </tbody></table></div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-box-arrow-in-down"></i>Receiving reports <span class="count-badge" th:text="${#lists.size(rows)}">0</span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table">
+            <thead><tr><th>RR no.</th><th>Date</th><th>Supplier</th><th>PO</th><th>DR / invoice</th><th class="money">Amount</th><th></th></tr></thead>
+            <tbody><tr th:each="r : ${rows}" th:with="x=${r.receipt()}" class="row-link" th:attr="data-href=@{/Inventory/StockReceiving/{id}(id=${x.id})}" th:classappend="${x.voided} ? ' row-void'">
+              <td><a class="mono" th:href="@{/Inventory/StockReceiving/{id}(id=${x.id})}" th:text="${x.number}"></a></td>
+              <td th:text="${#temporals.format(x.receivedOn, 'MMM d, yyyy')}"></td>
+              <td th:text="${r.supplier() != null ? r.supplier().name : '—'}"></td>
+              <td class="mono" th:text="${r.po() != null ? r.po().number : '—'}"></td>
+              <td class="small" th:text="${(x.drNumber != null ? 'DR ' + x.drNumber : '') + (x.invoiceNumber != null ? ' · SI ' + x.invoiceNumber : '')}"></td>
+              <td class="money"><span th:text="${'₱' + #numbers.formatDecimal(r.total(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${r.lines() + ' item(s)'}"></div></td>
+              <td><span th:if="${x.voided}" class="status status-rejected">Voided</span></td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-box-arrow-in-down"></i></div><h3>No deliveries yet</h3><p>Place a purchase order, then receive it here when it arrives.</p></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

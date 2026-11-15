@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Procurements')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Purchasing" data-title="Procurements">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Purchasing</div>
+          <h1 class="page-title">Purchase orders</h1>
+          <p class="page-sub">Draft → placed with the supplier → partly or fully received. Deliveries are recorded under Inventory › Stock Receiving.</p>
+        </div>
+        <div class="page-actions"><a class="btn btn-primary" th:href="@{/Purchasing/Procurements/new}"><i class="bi bi-plus-lg"></i>New purchase order</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <nav class="tl-tabs mb-3">
+        <a th:href="@{/Purchasing/Procurements}" th:classappend="${show == 'open'} ? ' active'">Open</a>
+        <a th:href="@{/Purchasing/Procurements(show='draft')}" th:classappend="${show == 'draft'} ? ' active'">Draft <span class="count-badge" th:if="${counts['DRAFT'] != null}" th:text="${counts['DRAFT']}"></span></a>
+        <a th:href="@{/Purchasing/Procurements(show='ordered')}" th:classappend="${show == 'ordered'} ? ' active'">Waiting for delivery <span class="count-badge" th:if="${counts['ORDERED'] != null}" th:text="${counts['ORDERED']}"></span></a>
+        <a th:href="@{/Purchasing/Procurements(show='partial')}" th:classappend="${show == 'partial'} ? ' active'">Partly received <span class="count-badge" th:if="${counts['PARTIAL'] != null}" th:text="${counts['PARTIAL']}"></span></a>
+        <a th:href="@{/Purchasing/Procurements(show='received')}" th:classappend="${show == 'received'} ? ' active'">Received</a>
+        <a th:href="@{/Purchasing/Procurements(show='cancelled')}" th:classappend="${show == 'cancelled'} ? ' active'">Cancelled</a>
+        <a th:href="@{/Purchasing/Procurements(show='all')}" th:classappend="${show == 'all'} ? ' active'">All</a>
+      </nav>
+
+      <section class="panel">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table">
+            <thead><tr><th>PO no.</th><th>Supplier</th><th>For</th><th>Ordered</th><th>Expected</th><th class="money">Amount</th><th>Received</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${rows}" th:with="p=${r.po()}" class="row-link" th:attr="data-href=@{/Purchasing/Procurements/{id}(id=${p.id})}">
+                <td><a class="mono" th:href="@{/Purchasing/Procurements/{id}(id=${p.id})}" th:text="${p.number}"></a></td>
+                <td th:text="${r.supplier() != null ? r.supplier().name : '—'}"></td>
+                <td th:text="${r.job() != null ? r.job().label : 'Warehouse stock'}"></td>
+                <td th:text="${#temporals.format(p.orderDate, 'MMM d, yyyy')}"></td>
+                <td th:text="${p.expectedDate != null ? #temporals.format(p.expectedDate, 'MMM d') : '—'}"></td>
+                <td class="money"><span th:text="${'₱' + #numbers.formatDecimal(r.total(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${r.lines() + ' item(s)'}"></div></td>
+                <td><div class="progress-mini"><span th:style="${'width:' + r.receivedPct() + '%'}"></span></div><div class="cell-sub" th:text="${r.receivedPct() + '%'}"></div></td>
+                <td><span class="status" th:classappend="${'status-po-' + #strings.toLowerCase(p.status)}" th:text="${p.status}"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-bag"></i></div><h3>Nothing here</h3><p>Create a purchase order directly, or from an approved canvass.</p></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

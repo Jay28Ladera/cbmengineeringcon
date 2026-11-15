@@ -36,7 +36,7 @@
                 <td><div class="cell-main" th:text="${q.inquiry.projectName}"></div><div class="cell-sub" th:text="${q.inquiry.projectLocation}"></div></td>
                 <td class="text-muted text-nowrap" th:text="${#temporals.format(q.createdAt, 'MMM d, yyyy')}"></td>
                 <td class="money" th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></td>
-                <td><span class="status" th:classappend="${'status-' + #strings.toLowerCase(q.status)}" th:text="${q.status}"></span></td>
+                <td><span class="status" th:classappend="${'status-' + #strings.toLowerCase(q.status)}" th:text="${#strings.replace(q.status, '_', ' ')}"></span></td>
                 <td class="actions"><a class="btn btn-sm btn-outline" th:href="@{/Quotations/{id}(id=${q.id})}">Open</a></td>
               </tr>
             </tbody>

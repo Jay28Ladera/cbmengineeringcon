@@ -15,6 +15,19 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    /** Keep a single form value whole when it is bound to a List of strings (see SingleValueListConverter). */
+    @Override
+    public void addFormatters(org.springframework.format.FormatterRegistry registry) {
+        registry.addConverter(new SingleValueListConverter());
+    }
+
+
+    private final AccessInterceptor accessInterceptor;
+
+    public WebConfig(AccessInterceptor accessInterceptor) {
+        this.accessInterceptor = accessInterceptor;
+    }
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Profile pictures saved by ProfileController. File names are unique, so they can be cached.
@@ -31,6 +44,10 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // Department / per-person module access (see AccessService).
+        registry.addInterceptor(accessInterceptor)
+                .addPathPatterns("/**")
+                .excludePathPatterns("/css/**", "/js/**", "/images/**", "/vendor/**", "/webjars/**", "/uploads/**", "/error");
         registry.addInterceptor(new HandlerInterceptor() {
             @Override
             public void postHandle(HttpServletRequest request, HttpServletResponse response,

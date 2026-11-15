@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Canvasses')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Purchasing" data-title="Canvasses">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Purchasing</div>
+          <h1 class="page-title">Canvasses</h1>
+          <p class="page-sub">Compare prices from several suppliers before buying. The lowest price wins each item unless you pick another; approved canvasses become purchase orders in one click.</p>
+        </div>
+        <div class="page-actions"><button class="btn btn-primary" type="button" data-open-dialog="newCanvass"><i class="bi bi-plus-lg"></i>New canvass</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clipboard-data"></i>All canvasses <span class="count-badge" th:text="${#lists.size(rows)}">0</span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table">
+            <thead><tr><th>Seq #</th><th>MR #</th><th>For</th><th>Job order</th><th class="num">Items</th><th class="num">Suppliers</th><th>Needed by</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${rows}" th:with="c=${r.canvass()}" class="row-link" th:attr="data-href=@{/Purchasing/Canvasses/{id}(id=${c.id})}">
+                <td><a class="mono" th:href="@{/Purchasing/Canvasses/{id}(id=${c.id})}" th:text="${c.number}"></a></td>
+                <td class="mono" th:text="${c.mrNo != null ? c.mrNo : '—'}"></td>
+                <td><div class="cell-main" th:text="${c.title}"></div><div class="cell-sub" th:text="${#temporals.format(c.createdAt, 'MMM d, yyyy') + (c.createdBy != null ? ' · ' + c.createdBy : '')}"></div></td>
+                <td th:text="${r.job() != null ? r.job().label : 'Warehouse stock'}"></td>
+                <td class="num" th:text="${r.items()}"></td>
+                <td class="num" th:text="${r.suppliers()}"></td>
+                <td th:text="${c.neededBy != null ? #temporals.format(c.neededBy, 'MMM d, yyyy') : '—'}"></td>
+                <td><span class="status" th:classappend="${'status-cv-' + #strings.toLowerCase(c.status)}" th:text="${#strings.replace(c.status, '_', ' ')}"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-clipboard-data"></i></div><h3>No canvasses yet</h3><p>Start one when you need prices for a list of materials.</p></div>
+      </section>
+
+      <dialog class="app-dialog app-dialog-sm" id="newCanvass" aria-labelledby="ncTitle">
+        <form th:action="@{/Purchasing/Canvasses}" method="post">
+          <header class="dialog-header"><div><h2 id="ncTitle">New canvass</h2><p>Items and suppliers are added on the next page.</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="newCanvass"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="mb-3"><label class="form-label" for="c1">What is it for? <span class="req">*</span></label><input id="c1" name="title" class="form-control" maxlength="200" placeholder="e.g. Copper piping for 3rd floor AC" required /></div>
+            <div class="mb-3"><label class="form-label" for="c2">Job order</label>
+              <select id="c2" name="jobOrderId" class="form-select"><option value="">Warehouse stock (no job order)</option><option th:each="j : ${jobOrders}" th:value="${j.id()}" th:text="${j.label}"></option></select></div>
+            <div class="row g-3">
+              <div class="col-6"><label class="form-label" for="c3">Needed by</label><input id="c3" name="neededBy" type="date" class="form-control" /></div>
+              <div class="col-6"><label class="form-label" for="c4">MR #</label><input id="c4" name="mrNo" class="form-control" maxlength="40" placeholder="Material request no." /></div>
+              <div class="col-12"><label class="form-label" for="c4">Notes</label><input id="c4" name="notes" class="form-control" maxlength="1000" /></div>
+            </div>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="newCanvass">Cancel</button><button type="submit" class="btn btn-primary">Create</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

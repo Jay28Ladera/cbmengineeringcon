@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pay Rules')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area content-narrow" th:fragment="page" data-section="Human Resources" data-title="Pay Rules">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources · Pay sheets</div>
+          <h1 class="page-title">Pay rules</h1>
+          <p class="page-sub">The multipliers the pay sheet uses. The starting values are the ones in the Excel payroll. Locked payrolls keep their figures when these change.</p>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <form class="panel" th:action="@{/HR/PayrollSettings}" method="post" th:object="${settings}">
+        <div class="panel-body">
+          <section class="form-section">
+            <h3 class="form-section-title"><span class="no">01</span>Overtime, Sundays and holidays</h3>
+            <div class="row g-3">
+              <div class="col-md-4"><label class="form-label" for="s1">Overtime (× rate/hr)</label><input id="s1" class="form-control" type="number" step="0.01" min="0" name="otMultiplier" th:value="*{otMultiplier}" required /></div>
+              <div class="col-md-4"><label class="form-label" for="s2">Sunday (× rate/day)</label><input id="s2" class="form-control" type="number" step="0.01" min="0" name="sundayMultiplier" th:value="*{sundayMultiplier}" required /></div>
+              <div class="col-md-4"><label class="form-label" for="s3">Sunday OT (× rate/hr)</label><input id="s3" class="form-control" type="number" step="0.01" min="0" name="sundayOtMultiplier" th:value="*{sundayOtMultiplier}" required /></div>
+              <div class="col-md-4"><label class="form-label" for="s4">Special holiday premium (%)</label><input id="s4" class="form-control" type="number" step="1" min="0" name="specialHolidayPremium" th:value="${settings.specialHolidayPremium.movePointRight(2).stripTrailingZeros().toPlainString()}" required /><div class="form-hint">Added per day worked</div></div>
+              <div class="col-md-4"><label class="form-label" for="s5">Regular holiday premium (%)</label><input id="s5" class="form-control" type="number" step="1" min="0" name="regularHolidayPremium" th:value="${settings.regularHolidayPremium.movePointRight(2).stripTrailingZeros().toPlainString()}" required /><div class="form-hint">100% = double pay</div></div>
+              <div class="col-md-4"><label class="form-label" for="s6">Night differential (%)</label><input id="s6" class="form-control" type="number" step="1" min="0" name="nightDiffRatePercent" th:value="${settings.nightDiffRate.movePointRight(2).stripTrailingZeros().toPlainString()}" required /><div class="form-hint">Of rate/hr, per ND hour</div></div>
+            </div>
+          </section>
+          <section class="form-section">
+            <h3 class="form-section-title"><span class="no">02</span>Lates</h3>
+            <div class="row g-3">
+              <div class="col-md-4"><label class="form-label" for="s7">Late deduction (× per-minute rate)</label><input id="s7" class="form-control" type="number" step="0.01" min="0" name="lateMultiplier" th:value="*{lateMultiplier}" required /><div class="form-hint">1.3 = minute rate plus 30%</div></div>
+              <div class="col-md-4"><label class="form-label" for="s8">Grace period (minutes per day)</label><input id="s8" class="form-control" type="number" step="1" min="0" max="120" name="lateGraceMinutes" th:value="*{lateGraceMinutes}" required /><div class="form-hint">Subtracted from each day's late minutes. Use 0 if you already type minutes after grace.</div></div>
+            </div>
+          </section>
+          <section class="form-section">
+            <h3 class="form-section-title"><span class="no">03</span>Work schedule (for biometric logs)</h3>
+            <p class="form-hint mt-0 mb-2">Used to turn punches into REG hours, OT and late minutes. Lates count from the shift start; REG is counted in half-hours within the shift, less the break; leaving early reduces REG.</p>
+            <div class="row g-3">
+              <div class="col-md-3"><label class="form-label" for="w1">Shift starts</label><input id="w1" class="form-control" type="time" name="shiftStart" th:value="${settings.shiftStart}" /></div>
+              <div class="col-md-3"><label class="form-label" for="w2">Shift ends</label><input id="w2" class="form-control" type="time" name="shiftEnd" th:value="${settings.shiftEnd}" /></div>
+              <div class="col-md-3"><label class="form-label" for="w3">Break from</label><input id="w3" class="form-control" type="time" name="breakStart" th:value="${settings.breakStart}" /></div>
+              <div class="col-md-3"><label class="form-label" for="w4">Break to</label><input id="w4" class="form-control" type="time" name="breakEnd" th:value="${settings.breakEnd}" /></div>
+              <div class="col-md-4"><label class="form-label" for="w5">OT counted in blocks of (minutes)</label><input id="w5" class="form-control" type="number" min="1" max="120" name="otBlockMinutes" th:value="${settings.otBlockMinutes}" /><div class="form-hint">30 = 6:00–6:29 PM out counts 1 hr OT</div></div>
+              <div class="col-md-8 d-flex align-items-center"><label class="oc-switch"><input type="checkbox" name="otFromLogs" value="true" th:checked="${settings.otFromLogs}" /><span></span>Count time after the shift as OT automatically</label></div>
+            </div>
+          </section>
+          <section class="form-section mb-0">
+            <h3 class="form-section-title"><span class="no">04</span>Rates and payslips</h3>
+            <div class="row g-3">
+              <div class="col-md-4"><label class="form-label" for="s9">Hours per day</label><input id="s9" class="form-control" type="number" step="1" min="1" max="24" name="hoursPerDay" th:value="*{hoursPerDay}" required /><div class="form-hint">Rate/hr = rate/day ÷ this</div></div>
+              <div class="col-md-4"><label class="form-label" for="s10">Working days per year</label><input id="s10" class="form-control" type="number" step="1" min="200" max="366" name="workDaysPerYear" th:value="*{workDaysPerYear}" required /><div class="form-hint">Daily rate of monthly staff with none set = monthly × 12 ÷ this</div></div>
+              <div class="col-md-4"><label class="form-label" for="s11">Company name on payslips</label><input id="s11" class="form-control" name="companyName" maxlength="160" th:value="*{companyName}" /></div>
+            </div>
+          </section>
+        </div>
+        <div class="panel-footer d-flex justify-content-between">
+          <a class="btn btn-ghost" th:href="@{/HR/PaySheets}"><i class="bi bi-arrow-left"></i>Back to pay sheet</a>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Save pay rules</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

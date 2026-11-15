@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Bill')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Bill">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow"><a th:href="@{/Accounting/Payables}">Payables</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${bill.number}"></span> <span class="status" th:classappend="${'status-bill-' + #strings.toLowerCase(bill.status)}" th:text="${bill.status}"></span></h1>
+          <p class="page-sub"><span th:text="${supplier != null ? supplier.name : ''}"></span>
+            <span th:if="${bill.invoiceNo}" th:text="${' · Invoice ' + bill.invoiceNo}"></span>
+            <span th:if="${po}"> · for <a th:href="@{/Purchasing/Procurements/{id}(id=${po.id})}" th:text="${po.number}"></a></span></p>
+        </div>
+        <div class="page-actions">
+          <a th:if="${bill.payable}" class="btn btn-primary" th:href="@{/Accounting/Payments/new(bill=${bill.id})}"><i class="bi bi-cash-coin"></i>Prepare payment</a>
+          <button th:if="${bill.status == 'OPEN' and bill.paid.signum() == 0}" class="btn btn-outline" type="button" data-open-dialog="voidBill"><i class="bi bi-x-circle"></i>Void</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${bill.status == 'VOID'}" class="alert alert-secondary mb-3" th:text="${'Voided: ' + (bill.voidReason ?: '')}"></div>
+
+      <section class="panel mb-4">
+        <div class="panel-body">
+          <dl class="meta-grid">
+            <div><dt>Bill date</dt><dd th:text="${#temporals.format(bill.billDate, 'MMM d, yyyy')}"></dd></div>
+            <div><dt>Due</dt><dd th:classappend="${bill.overdue} ? ' overdue'" th:text="${#temporals.format(bill.dueDate, 'MMM d, yyyy') + (bill.overdue ? ' · overdue' : '')}"></dd></div>
+            <div><dt>VAT</dt><dd th:text="${bill.vatLabel}"></dd></div>
+            <div><dt>EWT</dt><dd th:text="${bill.ewtRate.signum() == 0 ? 'None' : bill.ewtRate.stripTrailingZeros().toPlainString() + '% when paid'}"></dd></div>
+            <div><dt>Job order</dt><dd th:text="${bill.jobOrderId != null and jobMap.get(bill.jobOrderId) != null ? jobMap.get(bill.jobOrderId).label() : 'Office / warehouse'}"></dd></div>
+            <div><dt>Recorded</dt><dd th:text="${#temporals.format(bill.createdAt, 'MMM d, h:mm a') + ' · ' + bill.createdBy}"></dd></div>
+          </dl>
+          <p class="mt-2 mb-0" th:if="${bill.memo}" th:text="${bill.memo}"></p>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Description</th><th>Account</th><th class="num">Qty</th><th class="money">Unit price</th><th class="money">Amount</th></tr></thead>
+            <tbody>
+              <tr th:each="l : ${lines}" th:with="a=${accountMap.get(l.accountId)}">
+                <td th:text="${l.description}"></td>
+                <td class="small" th:text="${a != null ? a.label : ''}"></td>
+                <td class="num" th:text="${l.qty.stripTrailingZeros().toPlainString()}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-body d-flex">
+          <div class="acc-totals">
+            <div><span>Net of VAT</span><span th:text="${#numbers.formatDecimal(bill.netOfVat, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div><span>Input VAT</span><span th:text="${#numbers.formatDecimal(bill.vat, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div class="grand"><span>Bill total</span><span th:text="${#numbers.formatDecimal(bill.gross, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div><span>Paid</span><span th:text="${#numbers.formatDecimal(bill.paid, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div class="fw-semibold"><span>Balance</span><span th:text="${#numbers.formatDecimal(bill.balance, 1, 'COMMA', 2, 'POINT')}"></span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-cash-coin"></i>Payments</h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(payments)}">
+          <table class="data-table">
+            <thead><tr><th>Voucher</th><th>Status</th><th>Date</th><th class="money">Applied</th><th class="money">EWT</th><th class="money">Cash</th></tr></thead>
+            <tbody>
+              <tr th:each="p : ${payments}" class="row-link" th:attr="data-href=@{/Accounting/Payments/{id}(id=${p.key.id})}">
+                <td><a class="mono" th:href="@{/Accounting/Payments/{id}(id=${p.key.id})}" th:text="${p.key.number}"></a></td>
+                <td><span class="status" th:classappend="${'status-dv-' + #strings.toLowerCase(p.key.status)}" th:text="${p.key.statusLabel}"></span></td>
+                <td th:text="${#temporals.format(p.key.releaseDate != null ? p.key.releaseDate : p.key.voucherDate, 'MMM d, yyyy')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(p.value.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(p.value.ewt, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(p.value.net, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(payments)}">No payment prepared yet.</div>
+      </section>
+
+      <div th:replace="~{fragments/acc :: journal}"></div>
+
+      <dialog class="app-dialog" id="voidBill">
+        <form th:action="@{/Accounting/Payables/{id}/void(id=${bill.id})}" method="post">
+          <header class="dialog-header"><div><h2>Void bill</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="voidBill"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><p>The posting is reversed and the PO lines can be billed again.</p><label class="form-label" for="vb1">Reason</label><input id="vb1" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="voidBill">Keep</button><button type="submit" class="btn btn-danger">Void bill</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

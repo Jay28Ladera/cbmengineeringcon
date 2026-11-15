@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Categories')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Categories">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Inventory</div><h1 class="page-title">Categories</h1><p class="page-sub">Groups for materials (e.g. Piping, Electrical, Ducting, Consumables).</p></div>
+        <div class="page-actions"><button class="btn btn-primary" type="button" data-fill="catDialog" data-title="Add category"><i class="bi bi-plus-lg"></i>Add category</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table">
+            <thead><tr><th>Category</th><th>Description</th><th class="num">Materials</th><th class="actions"></th></tr></thead>
+            <tbody><tr th:each="r : ${rows}" th:with="c=${r.category()}">
+              <td class="cell-main" th:text="${c.name}"></td><td th:text="${c.description}"></td><td class="num" th:text="${r.materials()}"></td>
+              <td class="actions">
+                <button type="button" class="btn btn-sm btn-outline" data-fill="catDialog" th:attr="data-title=${'Edit ' + c.name},data-f-id=${c.id},data-f-name=${c.name},data-f-description=${c.description}">Edit</button>
+                <form class="d-inline" th:if="${r.materials() == 0}" th:action="@{/Inventory/Categories/{id}/delete(id=${c.id})}" method="post" data-confirm="Delete this category?" data-confirm-tone="danger" data-confirm-ok="Delete"><button class="btn btn-sm btn-ghost btn-icon" type="submit" aria-label="Delete"><i class="bi bi-trash"></i></button></form>
+              </td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-tags"></i></div><h3>No categories yet</h3><p>Add a few to keep the material list tidy.</p></div>
+      </section>
+      <dialog class="app-dialog app-dialog-sm" id="catDialog" aria-labelledby="catTitle">
+        <form th:action="@{/Inventory/Categories}" method="post"><input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 id="catTitle" data-dialog-title>Add category</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="catDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="mb-3"><label class="form-label" for="k1">Name <span class="req">*</span></label><input id="k1" name="name" class="form-control" maxlength="80" required /></div>
+            <div><label class="form-label" for="k2">Description</label><input id="k2" name="description" class="form-control" maxlength="300" /></div>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="catDialog">Cancel</button><button type="submit" class="btn btn-primary">Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

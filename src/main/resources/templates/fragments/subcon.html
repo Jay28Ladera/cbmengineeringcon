@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="contractFields(c, subs, jobs)">
+  <div class="row g-3">
+    <div class="col-md-6"><label class="form-label" for="k1">Subcontractor <span class="req">*</span></label><select id="k1" name="supplierId" class="form-select" required>
+      <option value="">Choose…</option><option th:each="s : ${subs}" th:value="${s.id}" th:text="${s.name + (s.trade != null ? ' · ' + s.trade : '')}" th:selected="${c != null and c.supplierId == s.id}"></option></select></div>
+    <div class="col-md-6"><label class="form-label" for="k2">Job order <span class="req">*</span></label><select id="k2" name="jobOrderId" class="form-select" required>
+      <option value="">Choose…</option><option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}" th:selected="${c != null and c.jobOrderId == j.id()}"></option></select></div>
+    <div class="col-12"><label class="form-label" for="k3">Scope of work <span class="req">*</span></label><input id="k3" name="scope" class="form-control" maxlength="600" required th:value="${c != null ? c.scope : ''}" placeholder="e.g. Electrical works for the chiller plant" /></div>
+    <div class="col-md-4"><label class="form-label" for="k4">Amount <span class="req">*</span></label><input id="k4" name="amount" class="form-control text-end" inputmode="decimal" required th:value="${c != null ? c.amount : ''}" /></div>
+    <div class="col-md-4"><label class="form-label" for="k5">VAT</label><select id="k5" name="vatMode" class="form-select"><option value="VAT" th:selected="${c == null or c.vat}">Amount includes 12% VAT</option><option value="NONE" th:selected="${c != null and !c.vat}">No VAT</option></select></div>
+    <div class="col-md-4"><label class="form-label" for="k6">EWT %</label><select id="k6" name="ewtRate" class="form-select">
+      <option th:each="r : ${ {'2','1','5','10','0'} }" th:value="${r}" th:text="${r == '0' ? 'None' : r + '%'}" th:selected="${c != null and c.ewtRate.stripTrailingZeros().toPlainString() == r}"></option></select></div>
+    <div class="col-md-3"><label class="form-label" for="k7">Downpayment %</label><input id="k7" name="dpPct" class="form-control text-end" th:value="${c != null ? c.dpPct.stripTrailingZeros().toPlainString() : '0'}" /></div>
+    <div class="col-md-3"><label class="form-label" for="k8">Retention %</label><input id="k8" name="retentionPct" class="form-control text-end" th:value="${c != null ? c.retentionPct.stripTrailingZeros().toPlainString() : '10'}" /></div>
+    <div class="col-md-3"><label class="form-label" for="k9">Start</label><input id="k9" type="date" name="startDate" class="form-control" th:value="${c != null ? c.startDate : ''}" /></div>
+    <div class="col-md-3"><label class="form-label" for="k10">End</label><input id="k10" type="date" name="endDate" class="form-control" th:value="${c != null ? c.endDate : ''}" /></div>
+    <div class="col-md-9"><label class="form-label" for="k11">Notes</label><input id="k11" name="notes" class="form-control" maxlength="600" th:value="${c != null ? c.notes : ''}" /></div>
+    <div class="col-md-3" th:if="${c != null}"><label class="form-label" for="k12">Status</label><select id="k12" name="status" class="form-select">
+      <option value="ACTIVE" th:selected="${c.status == 'ACTIVE'}">Active</option><option value="DONE" th:selected="${c.status == 'DONE'}">Done</option><option value="CANCELLED" th:selected="${c.status == 'CANCELLED'}">Cancelled</option></select></div>
+  </div>
+</th:block>
+</body>
+</html>

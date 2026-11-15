@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Canvass sheet in the company's paper format (form CBM-CD-006), for printing or saving as PDF.
+  Four suppliers per page, like the Excel form; more suppliers continue on the next page.
+  The letterhead (addresses, phone numbers, emails) is in the "letterhead" block below.
+-->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title th:text="${'Canvass ' + c.number}">Canvass</title>
+  <link rel="icon" th:href="@{/images/favicon.png}" />
+  <style>
+    @page { size: A4 landscape; margin: 8mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e9edf1; font-family: Tahoma, "Segoe UI", Arial, sans-serif; color: #000; font-size: 10.5px; }
+    .bar { position: sticky; top: 0; z-index: 2; display: flex; gap: 8px; justify-content: center; padding: 10px; background: #0b1524; }
+    .bar button, .bar a { padding: 7px 14px; border: 1px solid rgba(255,255,255,.4); border-radius: 6px; background: transparent; color: #fff; font: 600 13px "Segoe UI", Arial, sans-serif; text-decoration: none; cursor: pointer; }
+    .bar button.primary { background: #c8102e; border-color: #c8102e; }
+    .sheet { width: 281mm; min-height: 190mm; margin: 14px auto; padding: 6mm; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+    .sheet + .sheet { page-break-before: always; }
+    .letterhead { display: flex; align-items: center; justify-content: center; gap: 10px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+    .letterhead img { width: 150px; height: auto; }
+    .lh-text { font-size: 9.5px; line-height: 1.35; }
+    .lh-text .firm { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+    .lh-text b { color: #c00000; }
+    .lh-text .motto { text-align: center; font-style: italic; }
+    .lh-text a { color: #1155cc; }
+    .meta { display: grid; grid-template-columns: 1fr auto; margin-top: 6px; }
+    .meta table td { padding: 1px 6px; font-weight: 700; }
+    .meta table td:first-child { text-align: right; width: 110px; }
+    .seq { align-self: start; font-weight: 700; }
+    .seq span { display: inline-block; min-width: 70px; border-bottom: 2px solid #000; text-align: center; margin-left: 6px; }
+    table.cv { width: 100%; border-collapse: collapse; margin-top: 6px; table-layout: fixed; }
+    table.cv td, table.cv th { border: 1px solid #000; padding: 2px 3px; height: 17px; font-weight: 400; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+    table.cv td.brand { white-space: normal; font-size: 8.5px; line-height: 1.1; }
+    table.cv td.wrap { white-space: normal; line-height: 1.15; }
+    table.cv th { font-weight: 700; text-align: center; white-space: normal; font-size: 9px; line-height: 1.1; }
+    .yellow { background: #ffff00; }
+    .center { text-align: center; }
+    .right { text-align: right; }
+    .red { color: #c00000; }
+    .sup-label { border: none !important; font-weight: 700; text-align: center; font-size: 11px; }
+    .chosen { font-weight: 700; background: #fff2cc; }
+    .total td { font-weight: 700; }
+    .na { color: #c00000; font-size: 8px !important; }
+    .signs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 10px; }
+    .sign .role { font-weight: 400; }
+    .sign .img { height: 46px; display: flex; align-items: flex-end; justify-content: center; }
+    .sign .img img { max-height: 44px; max-width: 180px; }
+    .sign .line { border-top: 1px solid #000; text-align: center; font-weight: 700; padding-top: 2px; min-height: 16px; }
+    .sign .when { text-align: center; font-size: 9px; color: #444; }
+    table.pay { width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed; }
+    table.pay td { border: 1px solid #000; height: 16px; text-align: center; font-weight: 700; padding: 1px 2px; }
+    table.pay td.lbl { font-size: 9px; }
+    table.pay td.note { text-align: left; font-weight: 400; font-size: 8.5px; vertical-align: top; }
+    .x { font-size: 12px; }
+    .code { text-align: right; margin-top: 4px; font-size: 9px; }
+    @media print {
+      body { background: #fff; }
+      .bar { display: none; }
+      .sheet { margin: 0; box-shadow: none; width: auto; min-height: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="bar">
+  <button class="primary" type="button" onclick="window.print()">Print or save as PDF</button>
+  <a href="javascript:history.back()">Back</a>
+</div>
+
+<div class="sheet" th:each="page, ps : ${pages}">
+  <!-- Letterhead -->
+  <div class="letterhead">
+    <img th:src="@{/images/logo-cbm.png}" alt="CBM" />
+    <div class="lh-text">
+      <div class="firm">CBM ENGINEERING AIR CONDITIONING SUPPLIES/SERVICES</div>
+      <div><b>CEBU ADDRESS:</b> DUNGGUAN, PERRELOS, CARCAR CITY, CEBU PHILIPPINES</div>
+      <div><b>CONTACT #:</b> 032-4277572, 09778100507</div>
+      <div><b>MANILA ADDRESS:</b> 62 SCOUT CHUATOCO ST. BRGY. ROXAS DISTRICT, QUEZON CITY, METRO MANILA.</div>
+      <div><b>CONTACT #:</b> 09970990253, 09778100507</div>
+      <div><b>EMAIL:</b> <a>cbelectromechanical@gmail.com</a> / <a>cbmengineering.office@gmail.com</a></div>
+      <div class="motto">" CBM Moves ; Work with passion"</div>
+    </div>
+  </div>
+
+  <div class="meta">
+    <table>
+      <tr><td>DATE:</td><td th:text="${#temporals.format(c.createdAt, 'MM/dd/yyyy')}"></td></tr>
+      <tr><td>MR #:</td><td th:text="${c.mrNo != null ? c.mrNo : ''}"></td></tr>
+      <tr><td>PROJECT NAME:</td><td th:text="${#strings.toUpperCase(job != null ? job.label : c.title)}"></td></tr>
+    </table>
+    <div class="seq">CANVASS FORM SEQ #: <span th:text="${c.number}"></span>
+      <div th:if="${#lists.size(pages) > 1}" style="font-weight:400;margin-top:4px" th:text="${'Page ' + ps.count + ' of ' + #lists.size(pages)}"></div></div>
+  </div>
+
+  <table class="cv">
+    <colgroup>
+      <col style="width:7%" /><col style="width:14%" /><col style="width:3%" /><col style="width:3%" />
+      <th:block th:each="s : ${page}"><col style="width:6.2%" /><col style="width:6%" /><col style="width:6.05%" /></th:block>
+    </colgroup>
+    <tr>
+      <td class="sup-label" colspan="4"></td>
+      <td class="sup-label" colspan="3" th:each="s, st : ${page}" th:text="${'SUPPLIER ' + ((ps.index * 4) + st.count)}"></td>
+    </tr>
+    <tr>
+      <th class="yellow">REMARKS</th><th class="yellow">DESCRIPTION</th><th colspan="2"></th>
+      <th:block th:each="s, st : ${page}">
+        <th th:style="${'background:' + headerColors[st.index]}">Brand</th>
+        <th colspan="2" th:style="${'background:' + headerColors[st.index]}" th:text="${s != null and supplierMap[s.supplierId] != null ? #strings.toUpperCase(supplierMap[s.supplierId].name) : ''}"></th>
+      </th:block>
+    </tr>
+    <tr>
+      <th></th><th></th><th>QTY</th><th>UNIT</th>
+      <th:block th:each="s : ${page}"><th></th><th>UNIT COST</th><th>AMOUNT</th></th:block>
+    </tr>
+    <tr th:each="it : ${g.items()}">
+      <td class="wrap" th:text="${it.remarks}"></td>
+      <td class="center wrap" th:text="${#strings.toUpperCase(it.description)}"></td>
+      <td class="center" th:text="${it.qty.stripTrailingZeros().toPlainString()}"></td>
+      <td class="center" th:text="${#strings.toUpperCase(it.unit)}"></td>
+      <th:block th:each="s : ${page}">
+        <th:block th:if="${s == null}"><td></td><td></td><td class="right">-</td></th:block>
+        <th:block th:if="${s != null}" th:with="p=${g.price(it.id, s.supplierId)}, na=${g.isNotAvailable(it.id, s.supplierId)}, b=${g.brand(it.id, s.supplierId)}, win=${g.isWinner(it.id, s.supplierId)}">
+          <td class="center brand" th:classappend="${na} ? ' na' : ' red'" th:text="${na ? 'NOT AVAILABLE' : (b != null ? #strings.toUpperCase(b) : '')}"></td>
+          <td class="right" th:classappend="${win} ? ' chosen'" th:text="${p != null ? #numbers.formatDecimal(p, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+          <td class="right" th:classappend="${win} ? ' chosen'" th:text="${p != null ? #numbers.formatDecimal(g.amount(it.id, s.supplierId), 1, 'COMMA', 2, 'POINT') : '-'}"></td>
+        </th:block>
+      </th:block>
+    </tr>
+    <tr th:each="r : ${blankRows}">
+      <td></td><td></td><td></td><td></td>
+      <th:block th:each="s : ${page}"><td></td><td></td><td class="right">-</td></th:block>
+    </tr>
+    <tr class="total">
+      <td></td><td>TOTAL</td><td colspan="2"></td>
+      <th:block th:each="s : ${page}">
+        <td class="center" th:text="${s != null and s.vatInclusive != null ? (s.vatInclusive ? 'VAT' : 'NONVAT') : ''}"></td>
+        <td></td>
+        <td class="right yellow" th:text="${s != null and g.supplierTotals()[s.supplierId].signum() > 0 ? #numbers.formatDecimal(g.supplierTotals()[s.supplierId], 1, 'COMMA', 2, 'POINT') : '-'}"></td>
+      </th:block>
+    </tr>
+  </table>
+
+  <!-- Sign-offs -->
+  <div class="signs">
+    <div class="sign">
+      <div class="role">Approved By:</div>
+      <div class="img"><img th:if="${so.approvedSigUrl != null}" th:src="${so.approvedSigUrl}" alt="" /></div>
+      <div class="line" th:text="${so.approvedBy != null ? so.approvedBy + ' – ' + so.approvedTitle : ' '}"></div>
+      <div class="when" th:text="${so.approvedAt != null ? 'Approved via portal · ' + #temporals.format(so.approvedAt, 'MMM d, yyyy h:mm a') : 'Office Engineer/QS'}"></div>
+    </div>
+    <div class="sign">
+      <div class="role">Noted By:</div>
+      <div class="img"><img th:if="${so.notedSigUrl != null}" th:src="${so.notedSigUrl}" alt="" /></div>
+      <div class="line" th:text="${so.notedBy != null ? so.notedBy + ' – ' + so.notedTitle : ' '}"></div>
+      <div class="when" th:text="${so.notedAt != null ? 'Noted via portal · ' + #temporals.format(so.notedAt, 'MMM d, yyyy h:mm a') : 'Project Manager / Operations Manager'}"></div>
+    </div>
+    <div class="sign">
+      <div class="role">Processed By:</div>
+      <div class="img"><img th:if="${so.processedSigUrl != null}" th:src="${so.processedSigUrl}" alt="" /></div>
+      <div class="line" th:text="${so.processedBy != null ? so.processedBy + ' – ' + so.processedTitle : ' '}"></div>
+      <div class="when" th:text="${so.processedAt != null ? 'Processed via portal · ' + #temporals.format(so.processedAt, 'MMM d, yyyy h:mm a') : 'Finance Staff'}"></div>
+    </div>
+  </div>
+
+  <!-- Mode and terms of payment, per supplier -->
+  <table class="pay">
+    <colgroup>
+      <col style="width:7%" /><col style="width:14%" /><col style="width:3%" /><col style="width:3%" />
+      <th:block th:each="s : ${page}"><col style="width:6.2%" /><col style="width:6%" /><col style="width:6.05%" /></th:block>
+    </colgroup>
+    <tr>
+      <td class="note" rowspan="4">Note: Signed through the CBM portal; the date and time are under each signature.</td>
+      <td class="lbl" rowspan="2">MODE OF PAYMENT</td><td class="lbl" colspan="2">CASH</td>
+      <th:block th:each="s : ${page}"><td class="x" th:text="${s != null and s.paymentMode == 'CASH' ? 'X' : ''}"></td><td></td><td></td></th:block>
+    </tr>
+    <tr>
+      <td class="lbl" colspan="2">CHEQUE</td>
+      <th:block th:each="s : ${page}"><td class="x" th:text="${s != null and s.paymentMode == 'CHEQUE' ? 'X' : ''}"></td><td></td><td></td></th:block>
+    </tr>
+    <tr>
+      <td class="lbl" colspan="3">TERMS OF PAYMENT (DAYS)</td>
+      <th:block th:each="s : ${page}">
+        <td th:classappend="${s != null and s.termDays != null and s.termDays == 30} ? ' yellow'">30</td>
+        <td th:classappend="${s != null and s.termDays != null and s.termDays == 60} ? ' yellow'">60</td>
+        <td th:classappend="${s != null and s.termDays != null and s.termDays == 90} ? ' yellow'">90</td>
+      </th:block>
+    </tr>
+    <tr>
+      <td class="lbl" colspan="3">PDC</td>
+      <th:block th:each="s : ${page}"><td class="x" th:text="${s != null and s.isPdc() ? 'X' : ''}"></td><td></td><td></td></th:block>
+    </tr>
+  </table>
+  <div class="code">CBM-CD-006</div>
+</div>
+</body>
+</html>

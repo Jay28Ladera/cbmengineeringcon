@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Job billing')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Job billing">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Billing}">Client billing</a></div>
+          <h1 class="page-title" th:text="${job != null ? job.label() : 'Job order'}"></h1>
+          <p class="page-sub"><span th:text="${c.billTo ?: ''}"></span> · <a th:href="@{/JobOrders/{id}(id=${jobOrder.id})}">Open the job order</a></p></div>
+        <div class="page-actions" th:if="${saved}">
+          <a th:if="${pendingBilling != null}" class="btn btn-primary" th:href="@{/Accounting/Billing/{id}(id=${pendingBilling.id})}"><i class="bi bi-pencil-square"></i><span th:text="${'Continue ' + pendingBilling.title}"></span></a>
+          <th:block th:if="${pendingBilling == null}">
+            <form th:if="${c.dpPct.signum() > 0 and s.dpBilled().compareTo(c.dpAmount) < 0}" th:action="@{/Accounting/Billing/job/{id}/new(id=${jobOrder.id})}" method="post" class="d-inline">
+              <input type="hidden" name="kind" value="DOWNPAYMENT" /><button class="btn btn-outline" type="submit"><i class="bi bi-cash"></i>Bill downpayment</button></form>
+            <form th:if="${s.unbilled.signum() > 0}" th:action="@{/Accounting/Billing/job/{id}/new(id=${jobOrder.id})}" method="post" class="d-inline">
+              <input type="hidden" name="kind" value="PROGRESS" /><button class="btn btn-primary" type="submit"><i class="bi bi-graph-up-arrow"></i>New progress billing</button></form>
+            <form th:if="${s.retentionUnbilled.signum() > 0}" th:action="@{/Accounting/Billing/job/{id}/new(id=${jobOrder.id})}" method="post" class="d-inline"
+                  data-confirm="Bill the retention held? Usually done after the project is accepted or the warranty period ends." data-confirm-ok="Bill retention">
+              <input type="hidden" name="kind" value="RETENTION" /><button class="btn btn-outline" type="submit"><i class="bi bi-safe"></i>Release retention</button></form>
+          </th:block>
+          <a class="btn btn-outline" th:if="${s.balance.signum() > 0}" th:href="@{/Accounting/Collections/new(job=${jobOrder.id})}"><i class="bi bi-cash-coin"></i>Record collection</a>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:unless="${saved}" class="alert alert-info mb-3">Check the billing terms below (taken from the accepted quotation) and save them to start billing this job.</div>
+
+      <div class="kpi-grid" th:if="${saved}">
+        <div class="kpi"><div class="kpi-label">Contract<i class="bi bi-file-earmark-text"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.contract(), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${s.pctBilled + '% accomplished and billed'}"></div></div>
+        <div class="kpi"><div class="kpi-label">Billed<i class="bi bi-receipt"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.billed(), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Downpayment ₱' + #numbers.formatDecimal(s.dpBilled(), 1, 'COMMA', 2, 'POINT') + ', ₱' + #numbers.formatDecimal(s.dpUnrecouped, 1, 'COMMA', 2, 'POINT') + ' not yet recouped'}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Receivable<i class="bi bi-hourglass-split"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.balance, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Collected ₱' + #numbers.formatDecimal(s.collected(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Retention held<i class="bi bi-safe"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.retentionUnbilled, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Not yet billed: ₱' + #numbers.formatDecimal(s.unbilled, 1, 'COMMA', 2, 'POINT')}"></div></div>
+      </div>
+
+      <section class="panel mb-4" th:if="${saved}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i>Billings <span class="count-badge" th:text="${#lists.size(billings)}"></span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(billings)}"><table class="data-table">
+          <thead><tr><th>Billing</th><th>Date</th><th class="num">% to date</th><th class="money">Work / amount</th><th class="money">Recoupment</th><th class="money">Retention</th><th class="money">Amount due</th><th class="money">Balance</th></tr></thead>
+          <tbody><tr th:each="b : ${billings}" class="row-link" th:classappend="${b.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/Billing/{id}(id=${b.id})}">
+            <td><a class="mono" th:href="@{/Accounting/Billing/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${'status-sb-' + #strings.toLowerCase(b.status)}" th:text="${b.statusLabel}"></span><div class="cell-sub" th:text="${b.title}"></div></td>
+            <td th:text="${#temporals.format(b.billingDate, 'MMM d, yyyy')}"></td>
+            <td class="num" th:text="${b.kind == 'PROGRESS' ? #numbers.formatDecimal(b.pctToDate, 1, 2) + '%' : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${b.recoupment.signum() > 0 ? '(' + #numbers.formatDecimal(b.recoupment, 1, 'COMMA', 2, 'POINT') + ')' : ''}"></td>
+            <td class="money" th:text="${b.retention.signum() > 0 ? '(' + #numbers.formatDecimal(b.retention, 1, 'COMMA', 2, 'POINT') + ')' : ''}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${b.issued ? #numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT') : '—'}"></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(billings)}">No billings yet. Start with the downpayment, or a progress billing once work is accomplished.</div>
+      </section>
+
+      <section class="panel mb-4" th:if="${saved and !#lists.isEmpty(collections)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-cash-coin"></i>Collections</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Receipt</th><th>Date</th><th>Method</th><th>OR no.</th><th class="money">Applied</th><th class="money">CWT</th><th class="money">Cash</th><th>2307</th></tr></thead>
+          <tbody><tr th:each="x : ${collections}" class="row-link" th:classappend="${!x.posted} ? ' row-void'" th:attr="data-href=@{/Accounting/Collections/{id}(id=${x.id})}">
+            <td><a class="mono" th:href="@{/Accounting/Collections/{id}(id=${x.id})}" th:text="${x.number}"></a></td>
+            <td th:text="${#temporals.format(x.receivedDate, 'MMM d, yyyy')}"></td>
+            <td th:text="${x.methodLabel + (x.chequeNo != null ? ' #' + x.chequeNo : '')}"></td>
+            <td th:text="${x.orNo ?: '—'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(x.applied, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(x.cwt, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(x.cash, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span th:if="${x.cwt.signum() > 0}" class="status" th:classappend="${x.form2307} ? 'status-approved' : 'status-pending'" th:text="${x.form2307 ? 'Received' : 'Waiting'}"></span></td></tr></tbody>
+        </table></div>
+      </section>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-sliders"></i>Billing terms</h2>
+          <span class="small text-muted" th:if="${c.updatedBy != null}" th:text="${'Saved by ' + c.updatedBy + ' · ' + #temporals.format(c.updatedAt, 'MMM d, yyyy')}"></span></div>
+        <form th:action="@{/Accounting/Billing/job/{id}/terms(id=${jobOrder.id})}" method="post" class="panel-body">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label" for="t1">Contract amount <span class="req">*</span></label><input id="t1" name="contractAmount" class="form-control text-end" inputmode="decimal" th:value="${c.contractAmount}" required />
+              <div class="form-text" th:if="${quoteTotal != null}" th:text="${'Accepted quotation: ₱' + #numbers.formatDecimal(quoteTotal, 1, 'COMMA', 2, 'POINT') + '. Raise it for change orders.'}"></div></div>
+            <div class="col-md-4"><label class="form-label" for="t2">VAT</label><select id="t2" name="vatMode" class="form-select">
+              <option value="VAT" th:selected="${c.vat}">Amount includes 12% VAT</option><option value="NONE" th:selected="${!c.vat}">No VAT</option></select></div>
+            <div class="col-md-4"><label class="form-label" for="t3">Billing by</label><select id="t3" name="basis" class="form-select">
+              <option value="ITEMS" th:selected="${c.basis == 'ITEMS'}">% accomplishment per quotation item</option><option value="LUMP" th:selected="${c.basis == 'LUMP'}">Overall % (lump sum / milestones)</option></select></div>
+            <div class="col-md-3"><label class="form-label" for="t4">Downpayment %</label><input id="t4" name="dpPct" class="form-control text-end" inputmode="decimal" th:value="${c.dpPct.stripTrailingZeros().toPlainString()}" />
+              <div class="form-text">Recouped from each progress billing at the same %.</div></div>
+            <div class="col-md-3"><label class="form-label" for="t5">Retention %</label><input id="t5" name="retentionPct" class="form-control text-end" inputmode="decimal" th:value="${c.retentionPct.stripTrailingZeros().toPlainString()}" />
+              <div class="form-text">Held from each progress billing; billed at the end.</div></div>
+            <div class="col-md-3"><label class="form-label" for="t6">Client withholds (CWT) %</label><select id="t6" name="cwtRate" class="form-select">
+              <option th:each="r : ${ {'2','1','5','0'} }" th:value="${r}" th:text="${r == '0' ? 'None' : r + '%' + (r == '2' ? ' · contractors' : '')}" th:selected="${c.cwtRate.stripTrailingZeros().toPlainString() == r}"></option></select></div>
+            <div class="col-md-3"><label class="form-label" for="t7">Payment terms (days)</label><input id="t7" name="termDays" class="form-control text-end" inputmode="numeric" th:value="${c.termDays}" /></div>
+            <div class="col-md-8"><label class="form-label" for="t8">Bill to</label><input id="t8" name="billTo" class="form-control" maxlength="300" th:value="${c.billTo}" /></div>
+            <div class="col-md-4"><label class="form-label" for="t9">Client's PO / contract no.</label><input id="t9" name="clientRef" class="form-control" maxlength="80" th:value="${c.clientRef}" /></div>
+          </div>
+          <div class="d-flex justify-content-end mt-3"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Save terms</button></div>
+        </form>
+        <div class="table-wrap" th:if="${c.basis == 'ITEMS'}">
+          <table class="data-table">
+            <thead><tr><th>Scope item (from the quotation)</th><th class="money">Contract value</th></tr></thead>
+            <tbody><tr th:each="x : ${scope}"><td th:text="${x.description()}"></td><td class="money" th:text="${#numbers.formatDecimal(x.value(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

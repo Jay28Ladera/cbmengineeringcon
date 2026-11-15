@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Biometric Device')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Human Resources" data-title="Biometric Device" data-hr-page="devices">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Biometric devices</h1>
+          <p class="page-sub">ZKTeco and compatible machines send their punches here by themselves. You can also upload the file exported from a machine under Time Logs.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/HR/TimeLogs}"><i class="bi bi-clock-history"></i>Time logs</a>
+          <button class="btn btn-primary" type="button" data-hr-new-device><i class="bi bi-plus-lg"></i>Add device</button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${waiting > 0}" class="alert alert-warning mb-3"><span><b th:text="${waiting}">1</b> machine(s) connected but are waiting for approval. Approve a machine only if the serial number matches one of yours (Menu › System Info › Device Info).</span></div>
+
+      <div class="row g-3">
+        <div class="col-xl-8">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-fingerprint"></i>Machines <span class="count-badge" th:text="${#lists.size(devices)}">0</span></h2></div>
+            <div class="device-list" th:unless="${#lists.isEmpty(devices)}">
+              <article class="device-card" th:each="r : ${devices}" th:with="d=${r.device()}"
+                       th:classappend="${!d.approved} ? ' waiting' : (${d.online} ? ' online' : ' offline')">
+                <div class="device-icon"><i class="bi bi-fingerprint"></i></div>
+                <div class="device-main">
+                  <div class="device-title">
+                    <span th:text="${d.name}">Main gate</span>
+                    <span class="status status-sent" th:if="${!d.approved}">Waiting for approval</span>
+                    <span class="status status-accepted" th:if="${d.approved and d.online}">Online</span>
+                    <span class="status" th:if="${d.approved and !d.online}">Offline</span>
+                  </div>
+                  <div class="device-sub">
+                    <span class="mono" th:text="${'SN ' + d.serialNumber}"></span>
+                    <span th:if="${d.location}" th:text="${d.location}"></span>
+                    <span th:if="${d.firmware}" th:text="${d.firmware}"></span>
+                  </div>
+                  <dl class="device-stats">
+                    <div><dt>Last check-in</dt><dd th:text="${d.lastSeenAt != null ? #temporals.format(d.lastSeenAt, 'MMM d, h:mm a') : 'Never'}"></dd></div>
+                    <div><dt>Last punch received</dt><dd th:text="${d.lastLogAt != null ? #temporals.format(d.lastLogAt, 'MMM d, h:mm a') : '—'}"></dd></div>
+                    <div><dt>Punches saved</dt><dd th:text="${#numbers.formatInteger(r.stored(), 1, 'COMMA')}"></dd></div>
+                    <div th:if="${d.userCount != null}"><dt>Users on machine</dt><dd th:text="${d.userCount}"></dd></div>
+                    <div th:if="${d.lastIp}"><dt>From IP</dt><dd class="mono" th:text="${d.lastIp}"></dd></div>
+                  </dl>
+                </div>
+                <div class="device-actions">
+                  <button th:if="${!d.approved}" type="button" class="btn btn-sm btn-primary" data-hr-edit-device
+                          th:attr="data-id=${d.id},data-sn=${d.serialNumber},data-name=${d.name.startsWith('New device') ? '' : d.name},data-location=${d.location}">Approve</button>
+                  <button th:if="${d.approved}" type="button" class="btn btn-sm btn-outline" data-hr-edit-device
+                          th:attr="data-id=${d.id},data-sn=${d.serialNumber},data-name=${d.name},data-location=${d.location}">Edit</button>
+                  <div class="dropdown d-inline-block">
+                    <button class="btn btn-sm btn-ghost btn-icon" type="button" data-bs-toggle="dropdown" aria-label="More"><i class="bi bi-three-dots"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li th:if="${d.approved}"><form th:action="@{/HR/BiometricDevice/{id}/resend(id=${d.id})}" method="post"><button class="dropdown-item" type="submit"><i class="bi bi-arrow-repeat"></i>Ask for all logs again</button></form></li>
+                      <li th:if="${d.approved}"><form th:action="@{/HR/BiometricDevice/{id}/disable(id=${d.id})}" method="post"><button class="dropdown-item" type="submit"><i class="bi bi-pause-circle"></i>Pause</button></form></li>
+                      <li><form th:action="@{/HR/BiometricDevice/{id}/delete(id=${d.id})}" method="post" data-confirm="Remove this machine? Punches already saved are kept." data-confirm-tone="danger" data-confirm-ok="Remove"><button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash"></i>Remove</button></form></li>
+                    </ul>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(devices)}">
+              <div class="empty-icon"><i class="bi bi-fingerprint"></i></div>
+              <h3>No machines yet</h3>
+              <p>Set up the machine with the details on the right. It appears here on its first check-in, waiting for you to approve it. Or add it now with its serial number.</p>
+            </div>
+          </section>
+        </div>
+
+        <div class="col-xl-4">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-router"></i>Set up the machine</h2></div>
+            <div class="panel-body setup-steps">
+              <p class="mb-3">On the machine: <b>Menu › COMM. › Cloud Server Setting</b> (some models: <b>ADMS</b>).</p>
+              <dl class="setup-values">
+                <div><dt>Enable domain name</dt><dd>ON</dd></div>
+                <div><dt>Server address</dt><dd class="mono copyable" th:text="${serverHost}">example.com</dd></div>
+                <div><dt>Server port</dt><dd class="mono" th:text="${serverPort}">443</dd></div>
+                <div th:if="${serverHttps}"><dt>HTTPS</dt><dd>ON</dd></div>
+                <div><dt>Proxy server</dt><dd>OFF</dd></div>
+              </dl>
+              <ol class="small text-muted ps-3 mb-3">
+                <li>Make sure the machine has internet (Ethernet or Wi-Fi) and the right date and time.</li>
+                <li>Save. Within a minute it shows here as <b>waiting for approval</b>.</li>
+                <li>Approve it and give it a name (e.g. "Cebu office"). Its stored punches start coming in.</li>
+                <li>Under <a th:href="@{/HR/Employees}">Employees</a>, put each person's machine User ID in <b>Biometric ID</b>, or link them from <a th:href="@{/HR/TimeLogs(view='unmatched')}">Unmatched IDs</a>.</li>
+              </ol>
+              <div class="alert alert-info mb-0 small" th:if="${serverHttps}"><span>Older machines without an HTTPS option can't connect to an HTTPS-only site. For those, export the logs to a USB drive (<b>Data Mgt. › Download › Attendance</b>) and upload the file under Time Logs.</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <dialog class="app-dialog app-dialog-sm" id="deviceDialog" aria-labelledby="deviceDialogTitle">
+        <form th:action="@{/HR/BiometricDevice}" method="post" id="deviceForm">
+          <input type="hidden" name="id" id="devId" />
+          <header class="dialog-header">
+            <div><h2 id="deviceDialogTitle">Add device</h2><p>The serial number is on the machine: Menu › System Info › Device Info.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="deviceDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div class="mb-3"><label class="form-label" for="devSn">Serial number <span class="req">*</span></label><input id="devSn" name="serialNumber" class="form-control mono" maxlength="64" required /></div>
+            <div class="mb-3"><label class="form-label" for="devName">Name <span class="req">*</span></label><input id="devName" name="name" class="form-control" maxlength="120" placeholder="e.g. Cebu office entrance" required /></div>
+            <div><label class="form-label" for="devLoc">Location</label><input id="devLoc" name="location" class="form-control" maxlength="160" placeholder="e.g. Mandaue warehouse" /></div>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="deviceDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save and approve</button>
+          </footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -48,6 +48,8 @@ public class ProfileController {
             model.addAttribute("profileImageUrl", user.getProfileImageUrl());
             model.addAttribute("role", user.getRole());
             model.addAttribute("activePage", "profile");
+            model.addAttribute("signatureUrl", signatures.findById(user.getId()).map(com.asmsi.admin_system.entity.UserSignature::dataUrl).orElse(null));
+            model.addAttribute("canApproveQuotes", quoteApprovers.existsById(user.getId()));
             // you don't have phone in User, but HTML expects it
             model.addAttribute("phone", ""); // or store in a separate table later
         }
@@ -67,6 +69,50 @@ public class ProfileController {
         User user = optionalUser.get();
         setCommon(model, user);
         return "profile";
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.asmsi.admin_system.repository.UserSignatureRepository signatures;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.asmsi.admin_system.repository.QuoteApproverRepository quoteApprovers;
+
+    /** Saves the signature drawn on the pad (a PNG data URL) or an uploaded image of it. */
+    @PostMapping("/profile/signature")
+    public String saveSignature(Principal principal,
+                                @RequestParam(required = false) String signatureData,
+                                @RequestParam(required = false) MultipartFile signatureFile,
+                                RedirectAttributes redirect) {
+        if (principal == null) return "redirect:/login";
+        User user = userRepository.findByUsername(principal.getName()).orElse(null);
+        if (user == null) return "redirect:/login";
+        try {
+            byte[] bytes; String type;
+            if (signatureFile != null && !signatureFile.isEmpty()) {
+                type = signatureFile.getContentType() == null ? "" : signatureFile.getContentType().toLowerCase();
+                if (!type.equals("image/png") && !type.equals("image/jpeg") && !type.equals("image/webp"))
+                    throw new IllegalArgumentException("Upload the signature as a PNG, JPG or WebP picture.");
+                if (signatureFile.getSize() > 1_000_000) throw new IllegalArgumentException("The signature picture must be under 1 MB.");
+                bytes = signatureFile.getBytes();
+            } else {
+                bytes = com.asmsi.admin_system.service.SignatureImages.decodePng(signatureData);
+                type = "image/png";
+            }
+            var sig = signatures.findById(user.getId()).orElseGet(com.asmsi.admin_system.entity.UserSignature::new);
+            sig.userId = user.getId(); sig.image = bytes; sig.contentType = type; sig.updatedAt = java.time.LocalDateTime.now();
+            signatures.save(sig);
+            redirect.addFlashAttribute("success", "Signature saved. It will be placed on the quotations you approve.");
+        } catch (IllegalArgumentException | java.io.IOException e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/profile#signature";
+    }
+
+    @PostMapping("/profile/signature/remove")
+    public String removeSignature(Principal principal, RedirectAttributes redirect) {
+        if (principal == null) return "redirect:/login";
+        userRepository.findByUsername(principal.getName()).ifPresent(u -> signatures.deleteById(u.getId()));
+        redirect.addFlashAttribute("success", "Signature removed. Quotations already approved keep the signature they were approved with.");
+        return "redirect:/profile#signature";
     }
 
     @GetMapping("/my-profile")

@@ -106,6 +106,124 @@
           </div>
         </section>
       </article>
+
+      <section class="panel mt-4" th:if="${access.contains('ACCOUNTING')}">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-receipt"></i>Billing &amp; collections</h2>
+          <div class="table-toolbar"><a class="btn btn-sm" th:classappend="${billingSet} ? 'btn-outline' : 'btn-primary'" th:href="@{/Accounting/Billing/job/{id}(id=${jobOrder.id})}" th:text="${billingSet ? 'Open billing' : 'Set up billing'}"></a></div>
+        </div>
+        <div class="panel-body" th:if="${billing != null}">
+          <dl class="meta-grid">
+            <div><dt>Contract</dt><dd th:text="${'₱' + #numbers.formatDecimal(billing.contract(), 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Accomplished &amp; billed</dt><dd th:text="${billing.pctBilled + '%'}"></dd></div>
+            <div><dt>Billed</dt><dd th:text="${'₱' + #numbers.formatDecimal(billing.billed(), 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Collected</dt><dd th:text="${'₱' + #numbers.formatDecimal(billing.collected(), 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Receivable</dt><dd class="fw-semibold" th:text="${'₱' + #numbers.formatDecimal(billing.balance, 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Retention held</dt><dd th:text="${'₱' + #numbers.formatDecimal(billing.retentionUnbilled, 1, 'COMMA', 2, 'POINT')}"></dd></div>
+          </dl>
+        </div>
+        <div class="panel-body small text-muted" th:if="${billing == null}">No billing terms yet. Set the contract amount, downpayment and retention to start billing the client.</div>
+      </section>
+
+      <section class="panel mt-4 jo-materials">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-boxes"></i>Purchases &amp; materials</h2>
+          <div class="table-toolbar">
+            <a class="btn btn-sm btn-outline" th:if="${access.contains('PURCHASING')}" th:href="@{/Purchasing/Procurements/new(jobOrder=${jobOrder.id})}"><i class="bi bi-bag-plus"></i>New purchase order</a>
+            <a class="btn btn-sm btn-outline" th:if="${access.contains('INVENTORY')}" th:href="@{/Inventory/StockIssuance/new(jobOrder=${jobOrder.id})}"><i class="bi bi-box-arrow-up-right"></i>Issue materials</a>
+          </div>
+        </div>
+        <div class="jo-cost-strip jo-cost-5">
+          <div><span>Material budget</span><b th:text="${'₱' + #numbers.formatDecimal(mat.materialBudget(), 1, 'COMMA', 2, 'POINT')}"></b>
+            <small th:text="${mat.materialBudget().signum() > 0 ? 'Quoted material cost' : 'No material costs on the quotation'}"></small></div>
+          <div th:classappend="${mat.overBudget} ? ' over'"><span>Materials issued (cost)</span><b th:text="${'₱' + #numbers.formatDecimal(mat.materialCost(), 1, 'COMMA', 2, 'POINT')}"></b>
+            <th:block th:if="${mat.materialBudget().signum() > 0}">
+              <div class="jo-bar"><i th:style="${'width:' + (mat.budgetUsedPct > 100 ? 100 : mat.budgetUsedPct) + '%'}"></i></div>
+              <small th:text="${mat.overBudget ? mat.budgetUsedPct + '% of budget · ₱' + #numbers.formatDecimal(mat.budgetLeft.negate(), 1, 'COMMA', 2, 'POINT') + ' over' : mat.budgetUsedPct + '% of budget · ₱' + #numbers.formatDecimal(mat.budgetLeft, 1, 'COMMA', 2, 'POINT') + ' left'}"></small>
+            </th:block></div>
+          <div><span>Purchase orders placed</span><b th:text="${'₱' + #numbers.formatDecimal(mat.ordered(), 1, 'COMMA', 2, 'POINT')}"></b></div>
+          <div><span>Contract amount</span><b th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></b></div>
+          <div><span>Tools on site</span><b th:text="${#lists.size(mat.toolsOut())}"></b></div>
+        </div>
+
+        <!-- Quoted materials: budget vs what happened, and what is still to buy -->
+        <div class="jo-budget" th:unless="${#lists.isEmpty(mat.budgetLines())}">
+          <div class="jo-budget-head">
+            <div>
+              <h3 class="jo-sub p-0">Quoted materials</h3>
+              <p class="small text-muted mb-0">To buy = quoted − issued − in stock − on order for this job. Stock is shared, so check it before you canvass.</p>
+            </div>
+            <form th:if="${access.contains('PURCHASING') and !#lists.isEmpty(mat.toBuy)}" th:action="@{/Purchasing/Canvasses/from-job/{id}(id=${jobOrder.id})}" method="post"
+                  th:attr="data-confirm=${#lists.isEmpty(mat.canvasses()) ? null : 'This job order already has ' + #lists.size(mat.canvasses()) + ' canvass(es). Start another one for the ' + #lists.size(mat.toBuy) + ' item(s) still to buy?'},data-confirm-ok=${'Start canvass'}">
+              <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-clipboard-check"></i><span th:text="${'Start canvass · ' + #lists.size(mat.toBuy) + ' item(s)'}"></span></button>
+            </form>
+            <span class="badge-ok" th:if="${#lists.isEmpty(mat.toBuy)}"><i class="bi bi-check2-circle"></i>Nothing left to buy</span>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Material</th><th class="num">Quoted</th><th class="money">Budget</th><th class="num">Issued</th><th class="num">In stock</th><th class="num">On order</th><th class="num">To buy</th></tr></thead>
+              <tbody>
+                <tr th:each="b : ${mat.budgetLines()}">
+                  <td>
+                    <a th:if="${b.linked}" th:href="@{/Inventory/Materials/{id}(id=${b.material().id})}" th:text="${b.description()}"></a>
+                    <span th:unless="${b.linked}" th:text="${b.description()}"></span>
+                    <div class="cell-sub" th:text="${b.linked ? b.material().code : 'Not linked to inventory: track it by hand'}"></div>
+                  </td>
+                  <td class="num text-nowrap" th:text="${b.quotedQty().stripTrailingZeros().toPlainString() + ' ' + b.unit()}"></td>
+                  <td class="money" th:text="${'₱' + #numbers.formatDecimal(b.budget(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="num"><th:block th:if="${b.linked}"><span th:text="${b.issued().stripTrailingZeros().toPlainString()}"></span>
+                    <div class="jo-bar sm"><i th:style="${'width:' + (b.usedPct > 100 ? 100 : b.usedPct) + '%'}" th:classappend="${b.usedPct > 100} ? ' over'"></i></div></th:block><span th:unless="${b.linked}" class="text-muted">—</span></td>
+                  <td class="num" th:text="${b.linked ? b.onHand().stripTrailingZeros().toPlainString() : '—'}"></td>
+                  <td class="num" th:text="${b.linked ? b.onOrder().stripTrailingZeros().toPlainString() : '—'}"></td>
+                  <td class="num fw-semibold" th:classappend="${b.toBuy().signum() > 0} ? ' text-buy' : ' text-muted'" th:text="${b.toBuy().signum() > 0 ? b.toBuy().stripTrailingZeros().toPlainString() : '0'}"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="jo-canvasses" th:unless="${#lists.isEmpty(mat.canvasses())}">
+            <span class="small text-muted">Canvasses:</span>
+            <a th:each="cv : ${mat.canvasses()}" class="chip-link" th:href="@{/Purchasing/Canvasses/{id}(id=${cv.id})}"><span class="mono" th:text="${cv.number}"></span> <span class="text-muted" th:text="${#strings.toLowerCase(cv.status)}"></span></a>
+          </div>
+        </div>
+        <div class="jo-budget-empty small text-muted" th:if="${#lists.isEmpty(mat.budgetLines())}">
+          No material lines on quotation <span class="mono" th:text="${q.quotationNumber}"></span>. Mark lines as <b>Material</b> and give them a cost to track a material budget here.
+        </div>
+        <div class="row g-0" th:unless="${mat.empty}">
+          <div class="col-lg-6 jo-col">
+            <h3 class="jo-sub">Purchase orders</h3>
+            <p class="text-muted small px-3" th:if="${#lists.isEmpty(mat.orders())}">None yet.</p>
+            <table class="data-table" th:unless="${#lists.isEmpty(mat.orders())}">
+              <tbody>
+                <tr th:each="r : ${mat.orders()}">
+                  <td><a class="mono" th:href="@{/Purchasing/Procurements/{id}(id=${r.po().id})}" th:text="${r.po().number}"></a><div class="cell-sub" th:text="${r.supplier() != null ? r.supplier().name : ''}"></div></td>
+                  <td><span class="status" th:classappend="${'status-po-' + #strings.toLowerCase(r.po().status)}" th:text="${r.po().status}"></span></td>
+                  <td class="money" th:text="${'₱' + #numbers.formatDecimal(r.total(), 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="col-lg-6 jo-col">
+            <h3 class="jo-sub">Materials issued</h3>
+            <p class="text-muted small px-3" th:if="${#lists.isEmpty(mat.issues())}">None yet.</p>
+            <table class="data-table" th:unless="${#lists.isEmpty(mat.issues())}">
+              <tbody>
+                <tr th:each="r : ${mat.issues()}" th:classappend="${r.issue().voided} ? ' row-void'">
+                  <td><a class="mono" th:href="@{/Inventory/StockIssuance/{id}(id=${r.issue().id})}" th:text="${r.issue().number}"></a><div class="cell-sub" th:text="${#temporals.format(r.issue().issuedOn, 'MMM d, yyyy') + ' · ' + r.items() + ' item(s)' + (r.issue().voided ? ' · voided' : '')}"></div></td>
+                  <td class="money" th:text="${'₱' + #numbers.formatDecimal(r.total(), 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+              </tbody>
+            </table>
+            <th:block th:unless="${#lists.isEmpty(mat.toolsOut())}">
+              <h3 class="jo-sub">Tools on this job</h3>
+              <table class="data-table"><tbody>
+                <tr th:each="t : ${mat.toolsOut()}">
+                  <td><span class="mono" th:text="${t.tool() != null ? t.tool().tag : ''}"></span> <span th:text="${t.tool() != null ? t.tool().name : ''}"></span><div class="cell-sub" th:text="${'With ' + t.issue().issuedTo + ' since ' + #temporals.format(t.issue().issuedOn, 'MMM d')}"></div></td>
+                </tr>
+              </tbody></table>
+            </th:block>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 </div>

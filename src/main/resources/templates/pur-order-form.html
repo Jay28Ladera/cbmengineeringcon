@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Purchase Order')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area content-wide" th:fragment="page" data-section="Purchasing" data-title="Purchase Order">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow"><a th:href="@{/Purchasing/Procurements}">Purchase orders</a> › <span th:text="${po.id == null ? 'New' : po.number}"></span></div>
+          <h1 class="page-title" th:text="${po.id == null ? 'New purchase order' : 'Edit ' + po.number}">PO</h1>
+          <p class="page-sub">Save as draft while you work on it. "Place order" fixes the prices and makes it ready to print and receive against.</p>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <form th:action="@{/Purchasing/Procurements}" method="post" class="panel">
+        <input type="hidden" name="id" th:value="${po.id}" />
+        <div class="panel-body">
+          <div class="row g-3">
+            <div class="col-md-5"><label class="form-label" for="p1">Supplier <span class="req">*</span></label>
+              <select id="p1" name="supplierId" class="form-select" required><option value="">Choose…</option>
+                <option th:each="s : ${suppliers}" th:value="${s.id}" th:selected="${s.id == po.supplierId}" th:attr="data-terms=${s.paymentTerms}" th:text="${s.name}"></option></select>
+              <div class="form-hint"><a th:href="@{/Purchasing/Suppliers}">Add a supplier</a> if it isn't listed.</div></div>
+            <div class="col-md-4"><label class="form-label" for="p2">For job order</label>
+              <select id="p2" name="jobOrderId" class="form-select"><option value="">Warehouse stock</option>
+                <option th:each="j : ${jobOrders}" th:value="${j.id()}" th:selected="${j.id() == po.jobOrderId}" th:text="${j.label}"></option></select></div>
+            <div class="col-md-3"><label class="form-label" for="p3">Payment terms (text)</label><input id="p3" name="paymentTerms" class="form-control" th:value="${po.paymentTerms}" maxlength="120" /></div>
+            <div class="col-md-3"><label class="form-label" for="p8">Mode of payment</label>
+              <select id="p8" name="paymentMode" class="form-select"><option value="">—</option><option value="CASH" th:selected="${po.paymentMode == 'CASH'}">Cash</option><option value="CHEQUE" th:selected="${po.paymentMode == 'CHEQUE'}">Cheque</option></select></div>
+            <div class="col-md-3"><label class="form-label" for="p9">Terms</label>
+              <select id="p9" name="termDays" class="form-select"><option value="">—</option>
+                <option value="0" th:selected="${po.termDays != null and po.termDays == 0}">Pay before ordering (cash / COD)</option>
+                <option value="30" th:selected="${po.termDays != null and po.termDays == 30}">30 days</option>
+                <option value="60" th:selected="${po.termDays != null and po.termDays == 60}">60 days</option>
+                <option value="90" th:selected="${po.termDays != null and po.termDays == 90}">90 days</option></select></div>
+            <div class="col-md-3"><label class="form-label" for="p10">Prices</label>
+              <select id="p10" name="vatInclusive" class="form-select"><option value="">—</option>
+                <option value="true" th:selected="${po.vatInclusive != null and po.vatInclusive}">VAT-inclusive (VAT supplier)</option>
+                <option value="false" th:selected="${po.vatInclusive != null and !po.vatInclusive}">No VAT included</option></select></div>
+            <div class="col-md-3 d-flex align-items-end"><label class="d-flex gap-2 align-items-center mb-2"><input type="checkbox" name="pdc" value="true" th:checked="${po.pdc != null and po.pdc}" /> PDC (post-dated cheque)</label></div>
+            <div class="col-md-3"><label class="form-label" for="p4">Order date</label><input id="p4" type="date" name="orderDate" class="form-control" th:value="${po.orderDate}" /></div>
+            <div class="col-md-3"><label class="form-label" for="p5">Expected delivery</label><input id="p5" type="date" name="expectedDate" class="form-control" th:value="${po.expectedDate}" /></div>
+            <div class="col-md-6"><label class="form-label" for="p6">Deliver to</label><input id="p6" name="deliverTo" class="form-control" th:value="${po.deliverTo}" maxlength="300" placeholder="Warehouse or site address" /></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table line-table" data-lines>
+            <thead><tr><th style="width:26%">Material</th><th>Description</th><th style="width:100px" class="num">Qty</th><th style="width:90px">Unit</th><th style="width:130px" class="num">Unit price (₱)</th><th style="width:130px" class="money">Amount</th><th style="width:44px"></th></tr></thead>
+            <tbody>
+              <tr th:each="l : ${lines}">
+                <td><select name="line_material" class="form-select form-select-sm material-pick"><option value="">— free text —</option>
+                  <option th:each="m : ${materials}" th:value="${m.id}" th:selected="${m.id == l.materialId}" th:attr="data-unit=${m.unit},data-name=${m.name},data-cost=${m.lastCost}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td><input name="line_desc" class="form-control form-control-sm" th:value="${l.description}" maxlength="200" /></td>
+                <td><input name="line_qty" class="form-control form-control-sm num q" th:value="${l.qty.stripTrailingZeros().toPlainString()}" inputmode="decimal" /></td>
+                <td><input name="line_unit" class="form-control form-control-sm" th:value="${l.unit}" maxlength="20" /></td>
+                <td><input name="line_price" class="form-control form-control-sm num p" th:value="${l.unitPrice.toPlainString()}" inputmode="decimal" /></td>
+                <td class="money amt"></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(lines)}">
+                <td><select name="line_material" class="form-select form-select-sm material-pick"><option value="">— free text —</option>
+                  <option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-name=${m.name},data-cost=${m.lastCost}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td><input name="line_desc" class="form-control form-control-sm" maxlength="200" /></td>
+                <td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                <td><input name="line_unit" class="form-control form-control-sm" value="pc" maxlength="20" /></td>
+                <td><input name="line_price" class="form-control form-control-sm num p" inputmode="decimal" /></td>
+                <td class="money amt"></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+              </tr>
+            </tbody>
+            <template>
+              <tr>
+                <td><select name="line_material" class="form-select form-select-sm material-pick"><option value="">— free text —</option>
+                  <option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-name=${m.name},data-cost=${m.lastCost}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td><input name="line_desc" class="form-control form-control-sm" maxlength="200" /></td>
+                <td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                <td><input name="line_unit" class="form-control form-control-sm" value="pc" maxlength="20" /></td>
+                <td><input name="line_price" class="form-control form-control-sm num p" inputmode="decimal" /></td>
+                <td class="money amt"></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+              </tr>
+            </template>
+            <tfoot>
+              <tr><td colspan="5"><button type="button" class="btn btn-sm btn-outline" data-add-line><i class="bi bi-plus-lg"></i>Add item</button></td><td class="money"><b data-lines-total>0.00</b></td><td></td></tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="panel-body">
+          <div class="row g-3">
+            <div class="col-md-2"><label class="form-label" for="p7">VAT / tax %</label><input id="p7" name="taxRate" class="form-control" th:value="${po.taxRate != null ? po.taxRate.stripTrailingZeros().toPlainString() : '0'}" inputmode="decimal" /></div>
+            <div class="col-md-10"><label class="form-label" for="p8">Notes to the supplier</label><input id="p8" name="notes" class="form-control" th:value="${po.notes}" maxlength="1000" /></div>
+          </div>
+        </div>
+        <div class="panel-footer d-flex justify-content-between">
+          <a class="btn btn-ghost" th:href="${po.id == null ? '/Purchasing/Procurements' : '/Purchasing/Procurements/' + po.id}">Cancel</a>
+          <div class="d-flex gap-2">
+            <button type="submit" name="action" value="save" class="btn btn-outline"><i class="bi bi-save"></i>Save draft</button>
+            <button type="submit" name="action" value="order" class="btn btn-primary"><i class="bi bi-send"></i>Place order</button>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

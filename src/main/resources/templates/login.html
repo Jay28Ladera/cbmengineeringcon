@@ -15,6 +15,8 @@
         <span th:if="${ex != null and #strings.containsIgnoreCase(ex.message, 'disabled')}">Your account is still waiting for administrator approval.</span>
         <span th:unless="${ex != null and #strings.containsIgnoreCase(ex.message, 'disabled')}">The username or password is incorrect.</span>
       </div>
+      <div th:if="${param.disabled}" class="alert alert-warning" role="status">Your account was disabled or changed by an administrator. Sign in again, or contact the CBM office.</div>
+      <div th:if="${param.activated}" class="alert alert-success" role="status">Your account is active. Sign in with your new password.</div>
       <div th:if="${param.reset}" class="alert alert-success" role="status">Your password has been reset. Sign in with the new password.</div>
       <div th:if="${param.logout}" class="alert alert-success" role="status">You have been signed out.</div>
       <div th:if="${success}" class="alert alert-success" role="status" th:text="${success}"></div>

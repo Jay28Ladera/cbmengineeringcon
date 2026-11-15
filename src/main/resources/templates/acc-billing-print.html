@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title th:text="${b.title + ' ' + b.number}">Billing</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 12px/1.45 "IBM Plex Sans", "Segoe UI", Arial, sans-serif; color: #142033; background: #e9ecf1; }
+    .bar { position: sticky; top: 0; display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #0b1524; color: #fff; font-size: 13px; }
+    .bar button { margin-left: auto; padding: 7px 16px; border: 0; border-radius: 6px; background: #c8151d; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .sheet { width: 210mm; max-width: 100%; min-height: 297mm; margin: 16px auto; padding: 14mm; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #142033; padding-bottom: 8px; gap: 12px; }
+    .co { display: flex; gap: 12px; align-items: center; } .co img { height: 54px; }
+    .co b { display: block; font-size: 15px; text-transform: uppercase; }
+    .ttl { text-align: right; } .ttl h1 { margin: 0; font-size: 18px; letter-spacing: .06em; color: #c8151d; text-transform: uppercase; }
+    .ttl .no { font-family: ui-monospace, monospace; font-size: 14px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 6px 18px; margin: 12px 0; }
+    .l { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #526176; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #22385a; color: #fff; font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase; text-align: left; padding: 5px 6px; }
+    td { padding: 5px 6px; border-bottom: 1px solid #d5dbe3; vertical-align: top; }
+    .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sum { margin-left: auto; width: 330px; margin-top: 10px; }
+    .sum div { display: flex; justify-content: space-between; padding: 3px 0; font-variant-numeric: tabular-nums; }
+    .sum .due { border-top: 2px solid #142033; margin-top: 4px; padding-top: 6px; font-weight: 700; font-size: 15px; }
+    .words { margin-top: 8px; font-style: italic; }
+    .note { margin-top: 12px; padding: 8px 10px; background: #f3f5f8; border-radius: 4px; }
+    .sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10mm; margin-top: 16mm; }
+    .sign > div { text-align: center; font-size: 11px; color: #526176; }
+    .sign .line { position: relative; height: 46px; border-bottom: 1px solid #142033; color: #142033; font-weight: 600; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 2px; }
+    .sign .line img { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); max-height: 46px; max-width: 90%; }
+    .stamp { display: inline-block; margin-top: 4px; padding: 2px 8px; border: 2px solid #a15c00; color: #a15c00; font-weight: 700; letter-spacing: .08em; }
+    @media print { @page { size: A4; margin: 0; } body { background: #fff; } .bar { display: none; } .sheet { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="bar"><b th:text="${b.title + ' · ' + b.number}"></b><button type="button" onclick="window.print()">Print / save as PDF</button></div>
+  <div class="sheet">
+    <div class="top">
+      <div class="co"><img th:src="@{/images/logo-cbm.webp}" alt="" /><div><b>CBM Engineering &amp; Construction</b><span>Billing statement</span></div></div>
+      <div class="ttl"><h1 th:text="${b.title}"></h1><div class="no" th:text="${b.number}"></div>
+        <div th:text="${'Date: ' + #temporals.format(b.billingDate, 'MMMM d, yyyy')}"></div>
+        <div th:text="${'Due: ' + #temporals.format(b.dueDate, 'MMMM d, yyyy')}"></div>
+        <div th:if="${!b.issued}"><span class="stamp" th:text="${b.status == 'VOID' ? 'VOID' : 'DRAFT · NOT YET APPROVED'}"></span></div></div>
+    </div>
+    <div class="grid">
+      <div><div class="l">Bill to</div><b th:text="${c.billTo}"></b><div th:if="${c.clientRef}" th:text="${'Your ref: ' + c.clientRef}"></div></div>
+      <div><div class="l">Project</div><b th:text="${project}"></b><div th:text="${location}"></div>
+        <div th:text="${jobNumber + (quoteNumber != '' ? ' · Quotation ' + quoteNumber : '')}"></div>
+        <div th:text="${'Contract price ₱' + #numbers.formatDecimal(c.contractAmount, 1, 'COMMA', 2, 'POINT') + (c.vat ? ' (VAT inclusive)' : '')}"></div>
+        <div th:if="${b.kind == 'PROGRESS' and b.asOf != null}" th:text="${'Accomplishment as of ' + #temporals.format(b.asOf, 'MMMM d, yyyy')}"></div></div>
+    </div>
+    <table th:if="${b.kind == 'PROGRESS'}">
+      <thead><tr><th>Description</th><th class="r">Contract value</th><th class="r">Prev. %</th><th class="r">This %</th><th class="r">To date %</th><th class="r">This billing</th><th class="r">To date</th></tr></thead>
+      <tbody><tr th:each="l : ${lines}">
+        <td th:text="${l.description}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(l.contractValue, 1, 'COMMA', 2, 'POINT')}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(l.prevPct, 1, 2)}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(l.thisPct, 1, 2)}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(l.toDatePct, 1, 2)}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(l.thisAmount, 1, 'COMMA', 2, 'POINT')}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(l.toDateAmount, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+    </table>
+    <table th:unless="${b.kind == 'PROGRESS'}">
+      <thead><tr><th>Description</th><th class="r">Amount</th></tr></thead>
+      <tbody><tr><td th:text="${b.memo}"></td><td class="r" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+    </table>
+    <div class="sum">
+      <th:block th:if="${b.kind == 'PROGRESS'}">
+        <div><span th:text="${'Accomplished to date (' + #numbers.formatDecimal(b.pctToDate, 1, 2) + '%)'}"></span><span th:text="${#numbers.formatDecimal(b.grossToDate, 1, 'COMMA', 2, 'POINT')}"></span></div>
+        <div><span>Less previous billings</span><span th:text="${#numbers.formatDecimal(b.prevGross, 1, 'COMMA', 2, 'POINT')}"></span></div>
+        <div><b>Work accomplished this billing</b><b th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></b></div>
+        <div><span th:text="${'Less recoupment of downpayment (' + c.dpPct.stripTrailingZeros().toPlainString() + '%)'}"></span><span th:text="${'(' + #numbers.formatDecimal(b.recoupment, 1, 'COMMA', 2, 'POINT') + ')'}"></span></div>
+        <div><span th:text="${'Less retention (' + c.retentionPct.stripTrailingZeros().toPlainString() + '%)'}"></span><span th:text="${'(' + #numbers.formatDecimal(b.retention, 1, 'COMMA', 2, 'POINT') + ')'}"></span></div>
+      </th:block>
+      <div class="due"><span>AMOUNT DUE</span><span th:text="${'₱ ' + #numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></span></div>
+      <div th:if="${b.vat.signum() > 0}" style="font-size:11px;color:#526176"><span th:text="${b.kind == 'PROGRESS' ? 'Output VAT 12% on work billed (net of recouped downpayment)' : 'Includes 12% VAT'}"></span><span th:text="${#numbers.formatDecimal(b.vat, 1, 'COMMA', 2, 'POINT')}"></span></div>
+    </div>
+    <div class="words" th:text="${words}"></div>
+    <div class="note" th:if="${b.kind == 'PROGRESS' and b.memo != null}" th:text="${b.memo}"></div>
+    <div class="note">Please make cheques payable to <b>CBM Engineering &amp; Construction</b>. If you withhold tax, kindly send the BIR Form 2307 with your payment.</div>
+    <div class="sign">
+      <div><div class="line" th:text="${b.preparedBy}"></div>Prepared by</div>
+      <div><div class="line"><img th:if="${b.approvedSigUrl != null}" th:src="${b.approvedSigUrl}" alt="" /><span th:text="${b.approvedBy ?: ''}"></span></div><span th:text="${'Approved by' + (b.approvedTitle != null ? ' · ' + b.approvedTitle : '')}"></span></div>
+      <div><div class="line"></div>Received by (client) · date</div>
+    </div>
+  </div>
+</body>
+</html>

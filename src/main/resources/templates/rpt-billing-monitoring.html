@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Billing monitoring')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Billing monitoring">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Billing monitoring</h1>
+          <p class="page-sub">Billed versus collected for every job with billing terms. Amounts as billed to the client (VAT included where it applies).</p></div>
+        <div class="page-actions"><button class="btn btn-outline" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button></div>
+      </div>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Job order</th><th class="money">Contract</th><th class="num">Accomplished</th><th class="money">Accomplished ₱</th><th class="money">Billed</th><th class="money">Collected</th><th class="money">Receivable</th><th class="money">Retention held</th><th class="money">Not yet billed</th></tr></thead>
+          <tbody><tr th:each="r : ${rows}" class="row-link" th:attr="data-href=@{/Accounting/Billing/job/{id}(id=${r.job().id()})}">
+            <td><a th:href="@{/Accounting/Billing/job/{id}(id=${r.job().id()})}" th:text="${r.job().label()}"></a><div class="cell-sub" th:text="${r.c().billTo}"></div></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.s().contract(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="num" th:text="${r.s().pctBilled + '%'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.s().accomplished(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.s().billed(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.s().collected(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(r.s().balance, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.s().retentionUnbilled, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.s().unbilled, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+          <tfoot><tr class="tb-total"><td>Total</td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[0], 1, 'COMMA', 2, 'POINT')}"></td><td></td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[1], 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[2], 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[3], 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[4], 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[5], 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(t[6], 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(rows)}">No job has billing terms yet. Set them in Accounting › Client billing.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

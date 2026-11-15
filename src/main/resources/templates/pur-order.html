@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Purchase Order')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Purchasing" data-title="Purchase Order">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow"><a th:href="@{/Purchasing/Procurements}">Purchase orders</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${po.number}"></span> <span class="status" th:classappend="${'status-po-' + #strings.toLowerCase(po.status)}" th:text="${po.status}"></span></h1>
+          <p class="page-sub"><span th:text="${supplier != null ? supplier.name : ''}"></span> · <span th:text="${job != null ? job.label : 'Warehouse stock'}"></span>
+            <span th:if="${canvass}"> · from canvass <a th:href="@{/Purchasing/Canvasses/{id}(id=${canvass.id})}" th:text="${canvass.number}"></a></span></p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" target="_blank" rel="noopener" th:href="@{/Purchasing/Procurements/{id}/print(id=${po.id})}"><i class="bi bi-printer"></i>Print</a>
+          <a th:if="${po.editable}" class="btn btn-outline" th:href="@{/Purchasing/Procurements/{id}(id=${po.id},edit=true)}"><i class="bi bi-pencil"></i>Edit</a>
+          <a th:if="${access.contains('ACCOUNTING') and po.status != 'CANCELLED' and payStatus == null}" class="btn btn-outline" th:href="@{/Accounting/Payables/new(po=${po.id})}"><i class="bi bi-receipt"></i><span th:text="${po.payFirst ? 'Request payment' : 'Record bill'}"></span></a>
+          <form th:if="${po.editable}" th:action="@{/Purchasing/Procurements/{id}/order(id=${po.id})}" method="post" class="d-inline" data-confirm="Place this order with the supplier? Prices are fixed after this." data-confirm-ok="Place order"><button class="btn btn-primary" type="submit" th:disabled="${payBlock != null}" th:title="${payBlock}"><i class="bi bi-send"></i>Place order</button></form>
+          <a th:if="${po.receivable and access.contains('INVENTORY')}" class="btn btn-primary" th:href="@{/Inventory/StockReceiving/new(po=${po.id})}"><i class="bi bi-box-arrow-in-down"></i>Receive delivery</a>
+          <div class="dropdown d-inline-block">
+            <button class="btn btn-ghost btn-icon" type="button" data-bs-toggle="dropdown" aria-label="More"><i class="bi bi-three-dots"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li th:if="${po.status == 'ORDERED' or po.status == 'CANCELLED'}"><form th:action="@{/Purchasing/Procurements/{id}/draft(id=${po.id})}" method="post"><button class="dropdown-item" type="submit"><i class="bi bi-arrow-counterclockwise"></i>Back to draft</button></form></li>
+              <li th:if="${po.status == 'DRAFT' or po.status == 'ORDERED'}"><form th:action="@{/Purchasing/Procurements/{id}/cancel(id=${po.id})}" method="post" data-confirm="Cancel this purchase order?" data-confirm-tone="danger" data-confirm-ok="Cancel PO"><button class="dropdown-item" type="submit"><i class="bi bi-x-circle"></i>Cancel order</button></form></li>
+              <li th:if="${po.editable}"><form th:action="@{/Purchasing/Procurements/{id}/delete(id=${po.id})}" method="post" data-confirm="Delete this draft?" data-confirm-tone="danger" data-confirm-ok="Delete"><button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash"></i>Delete draft</button></form></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${payBlock != null}" class="alert alert-warning mb-3"><i class="bi bi-hourglass-split"></i> <span th:text="${payBlock}"></span></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel mb-4">
+        <div class="panel-body">
+          <dl class="meta-grid">
+            <div><dt>Order date</dt><dd th:text="${#temporals.format(po.orderDate, 'MMM d, yyyy')}"></dd></div>
+            <div><dt>Expected delivery</dt><dd th:text="${po.expectedDate != null ? #temporals.format(po.expectedDate, 'MMM d, yyyy') : '—'}"></dd></div>
+            <div><dt>Payment</dt><dd th:text="${!#strings.isEmpty(po.termsLabel()) ? po.termsLabel() + (po.paymentTerms != null ? ' · ' + po.paymentTerms : '') : (po.paymentTerms ?: '—')}"></dd></div>
+            <div><dt>Prices</dt><dd th:text="${po.vatInclusive == null ? '—' : (po.vatInclusive ? 'VAT-inclusive' : 'No VAT')}"></dd></div>
+            <div th:if="${payStatus != null}"><dt>Accounting</dt><dd th:text="${payStatus}"></dd></div>
+            <div><dt>Deliver to</dt><dd th:text="${po.deliverTo ?: '—'}"></dd></div>
+            <div><dt>Placed</dt><dd th:text="${po.orderedAt != null ? #temporals.format(po.orderedAt, 'MMM d, h:mm a') + ' · ' + po.orderedBy : 'Not yet'}"></dd></div>
+          </dl>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Received</th><th class="money">Unit price</th><th class="money">Amount</th></tr></thead>
+            <tbody>
+              <tr th:each="l : ${lines}">
+                <td th:text="${l.description}"></td>
+                <td class="num text-nowrap" th:text="${l.qty.stripTrailingZeros().toPlainString() + ' ' + l.unit}"></td>
+                <td class="num" th:classappend="${l.receivedQty.compareTo(l.qty) >= 0} ? ' text-success fw-semibold'" th:text="${l.receivedQty.stripTrailingZeros().toPlainString()}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr><td colspan="4" class="text-end">Subtotal</td><td class="money" th:text="${'₱' + #numbers.formatDecimal(subtotal, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr th:if="${tax.signum() != 0}"><td colspan="4" class="text-end" th:text="${'Tax ' + po.taxRate.stripTrailingZeros().toPlainString() + '%'}"></td><td class="money" th:text="${'₱' + #numbers.formatDecimal(tax, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr><td colspan="4" class="text-end fw-semibold">Total</td><td class="money fw-semibold" th:text="${'₱' + #numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="panel-footer small" th:if="${po.notes}" th:text="${po.notes}"></div>
+      </section>
+
+      <section class="panel" th:unless="${#lists.isEmpty(receipts)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-box-arrow-in-down"></i>Deliveries received</h2></div>
+        <div class="table-wrap"><table class="data-table"><tbody>
+          <tr th:each="r : ${receipts}" class="row-link" th:attr="data-href=@{/Inventory/StockReceiving/{id}(id=${r.id})}" th:classappend="${r.voided} ? ' row-void'">
+            <td><a class="mono" th:href="@{/Inventory/StockReceiving/{id}(id=${r.id})}" th:text="${r.number}"></a></td>
+            <td th:text="${#temporals.format(r.receivedOn, 'MMM d, yyyy')}"></td>
+            <td th:text="${(r.drNumber != null ? 'DR ' + r.drNumber : '') + (r.invoiceNumber != null ? ' · SI ' + r.invoiceNumber : '')}"></td>
+            <td><span th:if="${r.voided}" class="status status-rejected">Voided</span></td>
+          </tr>
+        </tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

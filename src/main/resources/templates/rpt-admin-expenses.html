@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin expense listing')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Admin expense listing">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Admin expense listing</h1>
+          <p class="page-sub">Every operating expense (accounts 6xxx) posted in the period, from bills, petty cash, liquidations, payroll and journal entries.</p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <div><label class="form-label small mb-0" for="rf">From</label><input id="rf" type="date" name="from" class="form-control form-control-sm" th:value="${from}" /></div>
+          <div><label class="form-label small mb-0" for="rt">To</label><input id="rt" type="date" name="to" class="form-control form-control-sm" th:value="${to}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-pie-chart"></i>By account</h2><span class="fw-semibold" th:text="${'₱' + #numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></span></div>
+        <div class="table-wrap"><table class="data-table"><tbody>
+          <tr th:each="e : ${byAcc}"><td><span class="mono small" th:text="${e.key.code}"></span> <span th:text="${e.key.name}"></span></td><td class="money" th:text="${#numbers.formatDecimal(e.value, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        </tbody></table></div>
+      </section>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Date</th><th>Entry</th><th>Account</th><th>Description</th><th>Job / supplier</th><th class="money">Amount</th></tr></thead>
+          <tbody><tr th:each="x : ${rows}" th:with="l=${x.row().line()}, e=${x.row().entry()}" class="row-link" th:attr="data-href=@{/Accounting/Journal/{id}(id=${e.id})}">
+            <td class="text-nowrap" th:text="${#temporals.format(e.entryDate, 'MMM d, yyyy')}"></td>
+            <td><a class="mono" th:href="@{/Accounting/Journal/{id}(id=${e.id})}" th:text="${e.number}"></a><div class="cell-sub" th:text="${e.sourceRef}"></div></td>
+            <td class="small" th:text="${x.account().code + ' ' + x.account().name}"></td>
+            <td class="cell-wrap" th:text="${l.memo ?: e.memo}"></td>
+            <td class="small"><span th:if="${l.jobOrderId != null and jobMap.get(l.jobOrderId) != null}" th:text="${jobMap.get(l.jobOrderId).number()}"></span> <span th:if="${l.supplierId != null and supplierMap.get(l.supplierId) != null}" th:text="${supplierMap.get(l.supplierId).name}"></span></td>
+            <td class="money" th:text="${#numbers.formatDecimal(l.debit.subtract(l.credit), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+          <tfoot><tr class="tb-total"><td colspan="5">Total</td><td class="money" th:text="${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(rows)}">No operating expenses in this period.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

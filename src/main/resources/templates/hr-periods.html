@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payroll Periods')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Human Resources" data-title="Payroll Periods" data-hr-page="periods">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Payroll periods</h1>
+          <p class="page-sub">Each cut-off has its own time sheet and pay sheet. Lock a period once payroll is released so the payslips can no longer change.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" type="button" data-open-dialog="customPeriodDialog"><i class="bi bi-calendar-range"></i>Custom dates</button>
+          <form th:action="@{/HR/PayrollPeriod}" method="post" class="d-inline">
+            <input type="hidden" name="startDate" th:value="${nextStart}" />
+            <input type="hidden" name="endDate" th:value="${nextEnd}" />
+            <button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg"></i>New period <span class="btn-sub" th:text="${nextLabel}"></span></button>
+          </form>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-calendar-range"></i>All periods <span class="count-badge" th:text="${#lists.size(periods)}">0</span></h2>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(periods)}">
+          <table class="data-table">
+            <thead><tr><th>Date covered</th><th>Status</th><th>Time entries</th><th>Notes</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="p : ${periods}">
+                <td><div class="cell-main" th:text="${p.label}"></div><div class="cell-sub" th:text="${p.firstCutoff ? '26 – 10 cut-off' : '11 – 25 cut-off'}"></div></td>
+                <td>
+                  <span th:if="${p.locked}" class="status status-accepted"><i class="bi bi-lock-fill"></i>Locked</span>
+                  <span th:unless="${p.locked}" class="status status-new">Open</span>
+                  <div class="cell-sub" th:if="${p.locked and p.lockedAt != null}" th:text="${#temporals.format(p.lockedAt, 'MMM d, h:mm a') + (p.lockedBy != null ? ' · ' + p.lockedBy : '')}"></div>
+                </td>
+                <td th:text="${entryCounts[p.id] == 0 ? '—' : entryCounts[p.id] + ' days logged'}"></td>
+                <td class="cell-wrap" th:text="${p.notes}"></td>
+                <td class="actions">
+                  <a class="btn btn-sm btn-outline" th:href="@{/HR/TimeSheets(period=${p.id})}"><i class="bi bi-table"></i>Time sheet</a>
+                  <a class="btn btn-sm btn-outline" th:href="@{/HR/PaySheets(period=${p.id})}"><i class="bi bi-file-earmark-spreadsheet"></i>Pay sheet</a>
+                  <div class="dropdown d-inline-block">
+                    <button class="btn btn-sm btn-ghost btn-icon" type="button" data-bs-toggle="dropdown" aria-label="More"><i class="bi bi-three-dots"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li th:unless="${p.locked}"><button class="dropdown-item" type="button" data-hr-edit-period
+                          th:attr="data-id=${p.id},data-start=${p.startDate},data-end=${p.endDate},data-notes=${p.notes}"><i class="bi bi-pencil"></i>Change dates</button></li>
+                      <li th:unless="${p.locked}">
+                        <form th:action="@{/HR/PayrollPeriod/{id}/lock(id=${p.id})}" method="post" data-confirm="Lock this payroll? Payslips become final and this cut-off's loan installments are deducted from the balances." data-confirm-ok="Lock payroll">
+                          <input type="hidden" name="back" value="periods" /><button class="dropdown-item" type="submit"><i class="bi bi-lock"></i>Lock payroll</button>
+                        </form>
+                      </li>
+                      <li th:if="${p.locked}">
+                        <form th:action="@{/HR/PayrollPeriod/{id}/unlock(id=${p.id})}" method="post" data-confirm="Unlock this payroll? It will be recomputed with the current rates and rules, and loan installments go back to their balances." data-confirm-ok="Unlock" data-confirm-tone="danger">
+                          <input type="hidden" name="back" value="periods" /><button class="dropdown-item" type="submit"><i class="bi bi-unlock"></i>Unlock</button>
+                        </form>
+                      </li>
+                      <li th:unless="${p.locked}"><hr class="dropdown-divider" /></li>
+                      <li th:unless="${p.locked}">
+                        <form th:action="@{/HR/PayrollPeriod/{id}/delete(id=${p.id})}" method="post" data-confirm="Delete this period with its time sheet and pay sheet entries? This can't be undone." data-confirm-ok="Delete" data-confirm-tone="danger">
+                          <button class="dropdown-item text-danger" type="submit"><i class="bi bi-trash"></i>Delete</button>
+                        </form>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(periods)}">
+          <div class="empty-icon"><i class="bi bi-calendar-plus"></i></div>
+          <h3>No payroll periods yet</h3>
+          <p>Create the first cut-off. Next ones follow automatically: 26 – 10, then 11 – 25.</p>
+        </div>
+      </section>
+
+      <dialog class="app-dialog app-dialog-sm" id="customPeriodDialog" aria-labelledby="customPeriodTitle">
+        <form id="periodForm" th:action="@{/HR/PayrollPeriod}" method="post" th:attr="data-create-action=@{/HR/PayrollPeriod}">
+          <header class="dialog-header">
+            <div><h2 id="customPeriodTitle">Payroll period</h2><p id="customPeriodSub">Any range up to one month.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="customPeriodDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div class="row g-3">
+              <div class="col-6"><label class="form-label" for="perStart">Start</label><input id="perStart" name="startDate" type="date" class="form-control" th:value="${nextStart}" required /></div>
+              <div class="col-6"><label class="form-label" for="perEnd">End</label><input id="perEnd" name="endDate" type="date" class="form-control" th:value="${nextEnd}" required /></div>
+              <div class="col-12"><label class="form-label" for="perNotes">Notes</label><input id="perNotes" name="notes" class="form-control" maxlength="600" /></div>
+            </div>
+            <p class="form-hint mt-3 mb-0" id="perEditHint" hidden>Time entries outside the new dates will be removed.</p>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="customPeriodDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button>
+          </footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

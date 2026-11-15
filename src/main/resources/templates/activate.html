@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Activate your account')}"></head>
+<body>
+<main class="auth" th:fragment="page">
+  <section th:replace="~{fragments/auth :: brand}"></section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <h2>Activate your account</h2>
+      <p class="lead-text" th:if="${name}">Welcome, <strong th:text="${name}">Name</strong>. Choose your username and password to finish setting up your CBM portal account.</p>
+
+      <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+
+      <form th:if="${token}" th:action="@{/activate}" method="post">
+        <input type="hidden" name="token" th:value="${token}" />
+        <div class="field">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" class="form-control" id="username" name="username" th:value="${username}" autocomplete="username"
+                 required pattern="[A-Za-z0-9._-]{3,40}" title="3–40 letters, numbers, dots, dashes or underscores" />
+          <div class="form-hint">You'll use this to sign in. You can keep the suggested one.</div>
+        </div>
+        <div class="field">
+          <label class="form-label" for="password">Password</label>
+          <div class="password-field">
+            <input type="password" class="form-control" id="password" name="password" autocomplete="new-password" minlength="8" required autofocus />
+            <button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button>
+          </div>
+          <div class="form-hint">At least 8 characters.</div>
+        </div>
+        <div class="field">
+          <label class="form-label" for="confirmPassword">Confirm password</label>
+          <div class="password-field">
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" autocomplete="new-password" minlength="8" required data-match="password" />
+            <button class="password-toggle" type="button" aria-label="Show password"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Activate account</button>
+      </form>
+
+      <div class="auth-alt"><a th:href="@{/login}" class="fw-semibold"><i class="bi bi-arrow-left me-1"></i>Back to sign in</a></div>
+    </div>
+  </section>
+</main>
+<script th:src="@{/js/auth.js}" defer></script>
+</body>
+</html>

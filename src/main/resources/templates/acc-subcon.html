@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Subcon billings')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Subcon billings">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Subcon billings</h1>
+          <p class="page-sub">Subcontracts per job order and the subcontractors' billings against them. Posting a billing charges the job and puts a bill in Payables for a payment voucher.</p></div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/Subcontractors}"><i class="bi bi-person-gear"></i>Subcontractors</a>
+          <button class="btn btn-primary" type="button" data-open-dialog="scDialog"><i class="bi bi-plus-lg"></i>New subcontract</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-file-earmark-text"></i>Subcontracts <span class="count-badge" th:text="${#lists.size(rows)}"></span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}"><table class="data-table">
+          <thead><tr><th>Subcontract</th><th>Subcontractor</th><th>Job order</th><th class="money">Amount</th><th class="num">Billed %</th><th class="money">Billed</th><th class="money">Unpaid</th><th class="money">Retention held</th></tr></thead>
+          <tbody><tr th:each="r : ${rows}" th:with="c=${r.key}, s=${r.value}" class="row-link" th:classappend="${c.status == 'CANCELLED'} ? ' row-void'" th:attr="data-href=@{/Accounting/SubconBillings/contract/{id}(id=${c.id})}">
+            <td><a class="mono" th:href="@{/Accounting/SubconBillings/contract/{id}(id=${c.id})}" th:text="${c.number}"></a> <span class="status" th:classappend="${c.status == 'ACTIVE'} ? 'status-in_progress' : 'status-draft'" th:text="${c.status}"></span><div class="cell-sub" th:text="${c.scope}"></div></td>
+            <td th:text="${supplierMap.get(c.supplierId) != null ? supplierMap.get(c.supplierId).name : ''}"></td>
+            <td th:text="${jobMap.get(c.jobOrderId) != null ? jobMap.get(c.jobOrderId).label() : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(c.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="num" th:text="${s.pctBilled + '%'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(s.billed(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(s.payable, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(s.retentionUnreleased, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+        </table></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-file-earmark-text"></i></div><h3>No subcontracts yet</h3><p>Add the subcontractor first, then a subcontract for the job.</p></div>
+      </section>
+      <section class="panel" th:unless="${#lists.isEmpty(recent)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i>Recent billings</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Billing</th><th>Subcontractor</th><th>Job order</th><th>Date</th><th class="money">Work / amount</th><th class="money">Amount due</th></tr></thead>
+          <tbody><tr th:each="b : ${recent}" class="row-link" th:classappend="${b.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/SubconBillings/{id}(id=${b.id})}">
+            <td><a class="mono" th:href="@{/Accounting/SubconBillings/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${b.status == 'POSTED' ? 'status-approved' : (b.status == 'VOID' ? 'status-rejected' : 'status-draft')}" th:text="${b.status}"></span><div class="cell-sub" th:text="${b.title}"></div></td>
+            <td th:text="${supplierMap.get(b.supplierId) != null ? supplierMap.get(b.supplierId).name : ''}"></td>
+            <td th:text="${jobMap.get(b.jobOrderId) != null ? jobMap.get(b.jobOrderId).number() : ''}"></td>
+            <td th:text="${#temporals.format(b.billingDate, 'MMM d, yyyy')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+        </table></div>
+      </section>
+      <dialog class="app-dialog" id="scDialog">
+        <form th:action="@{/Accounting/SubconBillings/contract}" method="post">
+          <header class="dialog-header"><div><h2>New subcontract</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="scDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body" th:insert="~{fragments/subcon :: contractFields(${null}, ${subs}, ${jobs})}"></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="scDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

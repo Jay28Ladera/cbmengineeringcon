@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pay Sheets')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area content-wide" th:fragment="page" data-section="Human Resources" data-title="Pay Sheets" data-hr-page="paysheet">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Pay sheet</h1>
+          <p class="page-sub" th:if="${period}">Computed from the time sheet, rates and pay rules. Click an employee to see the breakdown or add incentives, loans, contributions and other lines.</p>
+        </div>
+        <div class="page-actions" th:if="${period}">
+          <a class="btn btn-ghost" th:href="@{/HR/PayrollSettings}"><i class="bi bi-sliders"></i>Pay rules</a>
+          <div class="dropdown d-inline-block">
+            <button class="btn btn-outline dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-printer"></i>Print &amp; export</button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" target="_blank" rel="noopener" data-full-load th:href="@{/HR/PaySheets/{id}/payslips(id=${period.id})}"><i class="bi bi-receipt"></i>Payslips (4 per page)</a></li>
+              <li><a class="dropdown-item" target="_blank" rel="noopener" data-full-load th:href="@{/HR/PaySheets/{id}/signatures(id=${period.id})}"><i class="bi bi-pen"></i>Signature sheet</a></li>
+              <li><a class="dropdown-item" data-full-load th:href="@{/HR/PaySheets/{id}/export(id=${period.id})}"><i class="bi bi-file-earmark-excel"></i>Excel (PAYLIST)</a></li>
+            </ul>
+          </div>
+          <form th:unless="${period.locked}" th:action="@{/HR/PayrollPeriod/{id}/lock(id=${period.id})}" method="post" class="d-inline"
+                data-confirm="Lock this payroll? Payslips become final and this cut-off's loan installments are deducted from the balances." data-confirm-ok="Lock payroll">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-lock"></i>Lock payroll</button>
+          </form>
+          <form th:if="${period.locked}" th:action="@{/HR/PayrollPeriod/{id}/unlock(id=${period.id})}" method="post" class="d-inline"
+                data-confirm="Unlock this payroll? It will be recomputed with the current rates and rules, and loan installments go back to their balances." data-confirm-ok="Unlock" data-confirm-tone="danger">
+            <button class="btn btn-outline" type="submit"><i class="bi bi-unlock"></i>Unlock</button>
+          </form>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel" th:if="${period == null}">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-calendar-plus"></i></div>
+          <h3>No payroll period yet</h3>
+          <p>Create a cut-off, fill in its time sheet, then the pay sheet is computed here.</p>
+          <a class="btn btn-primary mt-3" th:href="@{/HR/PayrollPeriod}">Payroll periods</a>
+        </div>
+      </section>
+
+      <th:block th:if="${period}">
+        <div class="alert alert-success mb-3" th:if="${period.locked}"><span><span th:text="${'Locked' + (period.lockedAt != null ? ' on ' + #temporals.format(period.lockedAt, 'MMM d, yyyy h:mm a') : '') + (period.lockedBy != null ? ' by ' + period.lockedBy : '') + '. These figures are final.'}"></span></span></div>
+        <div class="alert alert-warning mb-3" th:if="${warnCount > 0}"><b th:text="${warnCount}">0</b> employee(s) need attention (no rate set, or deductions larger than pay). They are marked below.</div>
+
+        <section class="kpi-grid hr-kpis">
+          <div class="kpi"><div class="kpi-label">Date covered <i class="bi bi-calendar-range"></i></div><div class="kpi-value kpi-value-sm" th:text="${period.label}"></div>
+            <div class="kpi-note">
+              <select class="form-select form-select-sm kpi-select" data-hr-nav aria-label="Change period">
+                <option th:each="p : ${allPeriods}" th:value="@{/HR/PaySheets(period=${p.id})}" th:selected="${p.id == period.id}" th:text="${p.label + (p.locked ? '  · locked' : '')}"></option>
+              </select>
+            </div>
+          </div>
+          <div class="kpi"><div class="kpi-label">Gross pay <i class="bi bi-cash-stack"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(grand.gross(), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${grand.count() + ' employees'}"></div></div>
+          <div class="kpi"><div class="kpi-label">Deductions <i class="bi bi-dash-circle"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(grand.deductions(), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Lates, absences, loans, contributions</div></div>
+          <div class="kpi accent"><div class="kpi-label">Net payroll <i class="bi bi-wallet2"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(grand.net(), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note"><a th:href="@{/HR/TimeSheets(period=${period.id})}">Open time sheet</a></div></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="bi bi-file-earmark-spreadsheet"></i>Pay list</h2>
+            <div class="table-toolbar">
+              <div class="search-input"><i class="bi bi-search"></i><input id="psSearch" type="search" class="form-control" placeholder="Find employee…" aria-label="Find employee" /></div>
+              <label class="oc-switch"><input type="checkbox" id="psHideZero" /><span></span>Hide zero pay</label>
+            </div>
+          </div>
+          <div class="table-wrap ps-wrap">
+            <table class="data-table ps-table" id="psTable">
+              <thead>
+                <tr>
+                  <th>Employee</th><th class="num">Days</th><th class="money">Basic</th><th class="money">Overtime</th><th class="money" title="Sunday, Sunday OT, holiday and night differential">Premiums</th>
+                  <th class="money">Other pay</th><th class="money em">Gross</th>
+                  <th class="money">Lates · abs.</th><th class="money" title="Loans, cash advances, sinking fund and other deductions">Loans &amp; others</th><th class="money">SSS · PH · PI</th>
+                  <th class="money em">Deductions</th><th class="money em">Net pay</th>
+                </tr>
+              </thead>
+              <tbody th:each="b : ${blocks}">
+                <tr class="ps-group"><td colspan="12" th:text="${b.name()}"></td></tr>
+                <tr th:each="l : ${b.lines()}" class="row-link ps-row" th:attr="data-ps=${l.employeeId},data-search=${#strings.toLowerCase(l.name)},data-zero=${!l.hasActivity()}"
+                    th:classappend="${!#lists.isEmpty(l.warnings)} ? ' ps-warn'">
+                  <td>
+                    <div class="cell-main"><span th:text="${l.name}"></span> <i th:if="${!#lists.isEmpty(l.warnings)}" class="bi bi-exclamation-triangle-fill text-warning" th:title="${#strings.listJoin(l.warnings, ', ')}"></i></div>
+                    <div class="cell-sub" th:text="${(l.position ?: '') + ' · ₱' + #numbers.formatDecimal(l.dailyRate, 1, 'COMMA', 2, 'POINT') + '/day' + (l.rateType == 'MONTHLY' ? ' · monthly' : '')}"></div>
+                  </td>
+                  <td class="num" th:text="${l.regDays.signum() == 0 ? '—' : #numbers.formatDecimal(l.regDays, 1, 2)}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(l.basicPay, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${l.otPay.signum() == 0 ? '—' : #numbers.formatDecimal(l.otPay, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:with="v=${l.sunPay.add(l.sunOtPay).add(l.specialHolPay).add(l.regularHolPay).add(l.ndPay)}" th:text="${v.signum() == 0 ? '—' : #numbers.formatDecimal(v, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${l.otherEarnings.signum() == 0 ? '—' : #numbers.formatDecimal(l.otherEarnings, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(l.grossPay, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:with="v=${l.lateAmount.add(l.absentAmount)}" th:text="${v.signum() == 0 ? '—' : #numbers.formatDecimal(v, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:with="v=${l.deductionSum('LOAN', 'CASH_ADVANCE', 'SINKING', 'OTHER_DEDUCTION')}" th:text="${v.signum() == 0 ? '—' : #numbers.formatDecimal(v, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:with="v=${l.deductionSum('SSS', 'PHILHEALTH', 'PAGIBIG')}" th:text="${v.signum() == 0 ? '—' : #numbers.formatDecimal(v, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(l.totalDeductions, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em net" th:classappend="${l.netPay.signum() < 0} ? ' neg'" th:text="${#numbers.formatDecimal(l.netPay, 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+                <tr class="ps-subtotal" th:with="t=${b.totals()}">
+                  <td th:text="${'Subtotal · ' + t.count()}"></td><td></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.basic(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.ot(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.sunday().add(t.holiday()).add(t.nd()), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.other(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(t.gross(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.lates().add(t.absent()), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.loans().add(t.others()), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(t.gov(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(t.deductions(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(t.net(), 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr class="ps-grand">
+                  <td>Grand total</td><td></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.basic(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.ot(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.sunday().add(grand.holiday()).add(grand.nd()), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.other(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(grand.gross(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.lates().add(grand.absent()), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.loans().add(grand.others()), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(grand.gov(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(grand.deductions(), 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money em" th:text="${#numbers.formatDecimal(grand.net(), 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+
+        <script type="application/json" id="psData" th:utext="${linesJson}">{}</script>
+        <script type="application/json" id="psKinds" th:utext="${kindsJson}">[]</script>
+
+        <dialog class="app-dialog" id="payDialog" aria-labelledby="payDialogTitle"
+                th:attr="data-period=${period.id},data-locked=${period.locked},data-open=${openId},data-delete-base=@{/HR/PaySheets/{id}/adjustments/(id=${period.id})},data-slip-base=@{/HR/PaySheets/{id}/payslips(id=${period.id})}">
+          <header class="dialog-header">
+            <div><h2 id="payDialogTitle">Employee</h2><p id="payDialogSub"></p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="payDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div id="payWarnings"></div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="summary-block h-100">
+                  <div class="summary-label">Payables</div>
+                  <table class="slip-table" id="payEarnings"></table>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="summary-block h-100">
+                  <div class="summary-label">Deductions</div>
+                  <table class="slip-table" id="payDeductions"></table>
+                </div>
+              </div>
+            </div>
+            <div class="net-line"><span>Net pay</span><b id="payNet">₱0.00</b></div>
+
+            <form class="adj-form" id="adjForm" th:unless="${period.locked}" th:action="@{/HR/PaySheets/{id}/adjustments(id=${period.id})}" method="post">
+              <input type="hidden" name="employeeId" id="adjEmployee" />
+              <div class="summary-label mb-2">Add a line for this cut-off</div>
+              <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                  <label class="form-label" for="adjKind">Type</label>
+                  <select class="form-select" name="kind" id="adjKind" required>
+                    <optgroup label="Add to pay"><option th:each="k : ${payItems}" th:if="${k.earning}" th:value="${k.key}" th:text="${k.label}"></option></optgroup>
+                    <optgroup label="Deduct"><option th:each="k : ${payItems}" th:unless="${k.earning}" th:value="${k.key}" th:text="${k.label}"></option></optgroup>
+                  </select>
+                </div>
+                <div class="col-md-3"><label class="form-label" for="adjAmount">Amount (₱)</label><input class="form-control" type="number" name="amount" id="adjAmount" min="0.01" step="0.01" required /></div>
+                <div class="col-md-5"><label class="form-label" for="adjDesc">Description</label><input class="form-control" name="description" id="adjDesc" maxlength="200" placeholder="e.g. Rent motor – October" /></div>
+              </div>
+              <div class="form-hint mt-2">Entering SSS, PhilHealth or Pag-IBIG here replaces the employee's standard amount for this cut-off.</div>
+              <div class="text-end mt-2"><button class="btn btn-dark btn-sm" type="submit"><i class="bi bi-plus-lg"></i>Add line</button></div>
+            </form>
+          </div>
+          <footer class="dialog-footer">
+            <a class="btn btn-ghost me-auto" id="paySlipLink" target="_blank" rel="noopener" data-full-load href="#"><i class="bi bi-printer"></i>Print payslip</a>
+            <button type="button" class="btn btn-outline" data-close-dialog="payDialog">Close</button>
+          </footer>
+        </dialog>
+      </th:block>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

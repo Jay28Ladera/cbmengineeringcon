@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Material')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Material">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Inventory/Materials}">Materials</a> › <span class="mono" th:text="${m.code}"></span></div>
+          <h1 class="page-title" th:text="${m.name}"></h1>
+          <p class="page-sub"><span th:text="${category ?: 'No category'}"></span><span th:if="${m.location}" th:text="${' · ' + m.location}"></span><span th:unless="${m.active}" class="status status-rejected ms-2">Inactive</span></p></div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Purchasing/MarketPrices(material=${m.id})}"><i class="bi bi-graph-up"></i>Prices</a>
+          <a class="btn btn-outline" th:href="@{/Inventory/StockAdjustment}"><i class="bi bi-sliders"></i>Adjust</a>
+          <a class="btn btn-primary" th:href="@{/Inventory/StockIssuance/new}"><i class="bi bi-box-arrow-up-right"></i>Issue</a>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="kpi-grid hr-kpis">
+        <div class="kpi" th:classappend="${m.low} ? ' kpi-warn'"><div class="kpi-label">On hand</div><div class="kpi-value" th:text="${m.onHand.stripTrailingZeros().toPlainString()}"></div><div class="kpi-note" th:text="${m.unit + (m.reorderLevel != null ? ' · reorder at ' + m.reorderLevel.stripTrailingZeros().toPlainString() : '')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Average cost</div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(m.avgCost, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${'per ' + m.unit}"></div></div>
+        <div class="kpi"><div class="kpi-label">Last purchase cost</div><div class="kpi-value" th:text="${m.lastCost != null ? '₱' + #numbers.formatDecimal(m.lastCost, 1, 'COMMA', 2, 'POINT') : '—'}"></div><div class="kpi-note">From the latest delivery</div></div>
+        <div class="kpi accent"><div class="kpi-label">Stock value</div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(m.stockValue, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">On hand × average cost</div></div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-journal-text"></i>Stock card <span class="text-muted small fw-normal">newest first</span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(card)}">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Reference</th><th>What</th><th class="num">In</th><th class="num">Out</th><th class="num">Balance</th><th class="money">Unit cost</th><th>By</th></tr></thead>
+            <tbody><tr th:each="r : ${card}" th:with="s=${r.move()}">
+              <td class="text-nowrap" th:text="${#temporals.format(s.movedOn, 'MMM d, yyyy')}"></td>
+              <td class="mono text-nowrap" th:text="${s.refNo}"></td>
+              <td><span th:text="${s.kind == 'RECEIPT' ? 'Delivery' : (s.kind == 'ISSUE' ? 'Issued' : (s.kind == 'VOID' ? 'Voided entry' : 'Adjustment'))}"></span><div class="cell-sub" th:text="${r.job() != null ? r.job().label + (s.note != null ? ' · ' + s.note : '') : s.note}"></div></td>
+              <td class="num text-success" th:text="${s.qty.signum() > 0 ? s.qty.stripTrailingZeros().toPlainString() : ''}"></td>
+              <td class="num text-danger" th:text="${s.qty.signum() < 0 ? s.qty.negate().stripTrailingZeros().toPlainString() : ''}"></td>
+              <td class="num fw-semibold" th:text="${s.balanceAfter.stripTrailingZeros().toPlainString()}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(s.unitCost, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="small" th:text="${s.createdBy}"></td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(card)}"><h3>No movements yet</h3><p>Deliveries, issuances and adjustments of this material show here.</p></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payment voucher')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Payment voucher">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow"><a th:href="@{/Accounting/Payments}">Payments</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${v.number}"></span> <span class="status" th:classappend="${'status-dv-' + #strings.toLowerCase(v.status)}" th:text="${v.statusLabel}"></span></h1>
+          <p class="page-sub"><span th:text="${supplier != null ? supplier.name : ''}"></span> · <b th:text="${'₱' + #numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT')}"></b> by <span th:text="${v.method == 'CASH' ? 'cash' : 'cheque'}"></span><span th:if="${v.pdc}" class="status status-pending ms-1">PDC</span></p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" target="_blank" rel="noopener" th:href="@{/Accounting/Payments/{id}/print(id=${v.id})}"><i class="bi bi-printer"></i>Print</a>
+          <a th:if="${v.editable}" class="btn btn-outline" th:href="@{/Accounting/Payments/{id}/edit(id=${v.id})}"><i class="bi bi-pencil"></i>Edit</a>
+          <form th:if="${v.editable}" th:action="@{/Accounting/Payments/{id}/submit(id=${v.id})}" method="post" class="d-inline"><button class="btn btn-primary" type="submit"><i class="bi bi-send"></i>Submit for approval</button></form>
+          <th:block th:if="${v.status == 'FOR_APPROVAL' and canApprove}">
+            <button class="btn btn-outline" type="button" data-open-dialog="dvReturn"><i class="bi bi-arrow-return-left"></i>Return</button>
+            <form th:action="@{/Approvals/voucher/{id}/approve(id=${v.id})}" method="post" class="d-inline" data-confirm="Approve this payment? Your signature goes on the voucher." data-confirm-ok="Approve">
+              <input type="hidden" name="from" value="voucher" /><button class="btn btn-primary" type="submit" th:disabled="${!hasSignature}" th:title="${hasSignature ? '' : 'Save your signature on My profile first'}"><i class="bi bi-pen"></i>Approve &amp; sign</button></form>
+          </th:block>
+          <button th:if="${v.status == 'APPROVED'}" class="btn btn-primary" type="button" data-open-dialog="dvRelease"><i class="bi bi-cash-stack"></i>Release payment</button>
+          <div class="dropdown d-inline-block" th:if="${v.status != 'VOID' and v.status != 'CANCELLED'}">
+            <button class="btn btn-ghost btn-icon" type="button" data-bs-toggle="dropdown" aria-label="More"><i class="bi bi-three-dots"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li th:if="${v.status == 'APPROVED' and canApprove}"><button class="dropdown-item" type="button" data-open-dialog="dvReturn"><i class="bi bi-arrow-return-left"></i>Return to Finance</button></li>
+              <li><button class="dropdown-item text-danger" type="button" data-open-dialog="dvCancel"><i class="bi bi-x-circle"></i><span th:text="${v.status == 'RELEASED' ? 'Void payment' : 'Cancel voucher'}"></span></button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${v.returnNote != null and v.editable}" class="alert alert-warning mb-3"><b th:text="${'Returned by ' + v.returnedBy + ':'}"></b> <span th:text="${v.returnNote}"></span></div>
+      <div th:if="${v.status == 'FOR_APPROVAL' and !canApprove}" class="alert alert-info mb-3" th:text="${'Waiting for approval by ' + #strings.listJoin(approverNames, ', ') + '.'}"></div>
+      <div th:if="${v.status == 'VOID' or v.status == 'CANCELLED'}" class="alert alert-secondary mb-3" th:text="${v.statusLabel + (v.voidReason != null ? ': ' + v.voidReason : '')}"></div>
+
+      <section class="panel mb-4">
+        <div class="panel-body">
+          <dl class="meta-grid">
+            <div><dt>Voucher date</dt><dd th:text="${#temporals.format(v.voucherDate, 'MMM d, yyyy')}"></dd></div>
+            <div><dt>Paid from</dt><dd th:text="${bank != null ? bank.label : '—'}"></dd></div>
+            <div th:if="${v.method == 'CHEQUE'}"><dt>Cheque</dt><dd th:text="${(v.chequeNo ?: 'No. to follow') + (v.chequeDate != null ? ' · dated ' + #temporals.format(v.chequeDate, 'MMM d, yyyy') : '')}"></dd></div>
+            <div><dt>Prepared</dt><dd th:text="${v.preparedBy + ' · ' + #temporals.format(v.preparedAt, 'MMM d, h:mm a')}"></dd></div>
+            <div><dt>Approved</dt><dd th:text="${v.approvedAt != null ? v.approvedBy + ' · ' + #temporals.format(v.approvedAt, 'MMM d, h:mm a') : 'Not yet'}"></dd></div>
+            <div th:if="${v.releasedAt}"><dt>Released</dt><dd th:text="${#temporals.format(v.releaseDate, 'MMM d, yyyy') + ' · ' + v.releasedBy}"></dd></div>
+            <div th:if="${v.receivedBy}"><dt>Received by</dt><dd th:text="${v.receivedBy + (v.orNo != null ? ' · OR ' + v.orNo : '')}"></dd></div>
+          </dl>
+          <p class="mt-2 mb-0" th:text="${v.particulars}"></p>
+          <p class="mt-1 mb-0 small text-muted" th:text="${words}"></p>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Bill</th><th>Reference</th><th class="money">Applied</th><th class="num">EWT</th><th class="money">EWT amount</th><th class="money">Net</th></tr></thead>
+            <tbody>
+              <tr th:each="l : ${lines}" th:with="b=${billMap.get(l.billId)}">
+                <td><a class="mono" th:href="@{/Accounting/Payables/{id}(id=${l.billId})}" th:text="${b != null ? b.number : ''}"></a></td>
+                <td class="small" th:text="${(b != null and b.invoiceNo != null ? 'Inv ' + b.invoiceNo : '') + (poNumbers.get(l.billId) != null ? ' · ' + poNumbers.get(l.billId) : '')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="num" th:text="${l.ewtRate.stripTrailingZeros().toPlainString() + '%'}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.ewt, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.net, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+            <tfoot><tr class="tb-total"><td colspan="2">Total</td><td class="money" th:text="${#numbers.formatDecimal(v.gross, 1, 'COMMA', 2, 'POINT')}"></td><td></td><td class="money" th:text="${#numbers.formatDecimal(v.ewt, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <div th:replace="~{fragments/acc :: journal}"></div>
+
+      <dialog class="app-dialog" id="dvRelease">
+        <form th:action="@{/Accounting/Payments/{id}/release(id=${v.id})}" method="post">
+          <header class="dialog-header"><div><h2>Release payment</h2><p class="dialog-sub" th:text="${'₱' + #numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT') + ' to ' + (supplier != null ? supplier.name : '')}"></p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="dvRelease"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label" for="r1">Release date</label><input id="r1" type="date" name="releaseDate" class="form-control" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" /></div>
+              <th:block th:if="${v.method == 'CHEQUE'}">
+                <div class="col-md-6"><label class="form-label" for="r2">Cheque no. <span class="req">*</span></label><input id="r2" name="chequeNo" class="form-control" th:value="${v.chequeNo}" required maxlength="40" /></div>
+                <div class="col-md-6"><label class="form-label" for="r3">Cheque date</label><input id="r3" type="date" name="chequeDate" class="form-control" th:value="${v.chequeDate}" /></div>
+              </th:block>
+              <div class="col-md-6"><label class="form-label" for="r4">Received by</label><input id="r4" name="receivedBy" class="form-control" maxlength="160" placeholder="Supplier's representative" /></div>
+              <div class="col-md-6"><label class="form-label" for="r5">Supplier OR / AR no.</label><input id="r5" name="orNo" class="form-control" maxlength="60" /></div>
+            </div>
+            <p class="small text-muted mt-3 mb-0">Posts the payment to the ledger and marks the bills paid. A pay-first purchase order can then be placed.</p>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="dvRelease">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-cash-stack"></i>Release</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="dvReturn">
+        <form th:action="@{/Approvals/voucher/{id}/return(id=${v.id})}" method="post">
+          <input type="hidden" name="from" value="voucher" />
+          <header class="dialog-header"><div><h2>Return to Finance</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="dvReturn"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><label class="form-label" for="rt1">What should change?</label><textarea id="rt1" name="note" class="form-control" rows="3" maxlength="600" required></textarea></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="dvReturn">Cancel</button><button type="submit" class="btn btn-primary">Return</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="dvCancel">
+        <form th:action="@{/Accounting/Payments/{id}/cancel(id=${v.id})}" method="post">
+          <header class="dialog-header"><div><h2 th:text="${v.status == 'RELEASED' ? 'Void payment' : 'Cancel voucher'}"></h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="dvCancel"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><p th:if="${v.status == 'RELEASED'}">The payment entry is reversed and the bills become unpaid again. Use this for a bounced or cancelled cheque.</p>
+            <label class="form-label" for="c1">Reason</label><input id="c1" name="reason" class="form-control" maxlength="300" th:required="${v.status == 'RELEASED'}" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="dvCancel">Keep</button><button type="submit" class="btn btn-danger" th:text="${v.status == 'RELEASED' ? 'Void payment' : 'Cancel voucher'}"></button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

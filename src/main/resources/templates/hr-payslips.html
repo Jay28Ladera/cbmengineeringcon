@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="'Payslips · ' + ${period.label}">Payslips</title>
+  <link rel="icon" type="image/png" th:href="@{/images/favicon.png}" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 11px/1.35 "IBM Plex Sans", "Segoe UI", Arial, sans-serif; color: #142033; background: #e9ecf1; }
+    .bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 16px; background: #0b1524; color: #fff; font-size: 13px; z-index: 2; }
+    .bar b { font-weight: 600; } .bar span { opacity: .7; }
+    .bar button { margin-left: auto; padding: 7px 16px; border: 0; border-radius: 6px; background: #c8151d; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .page { width: 210mm; min-height: 297mm; margin: 16px auto; padding: 8mm; background: #fff; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6mm; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+    .slip { border: 1px solid #142033; padding: 4mm; display: flex; flex-direction: column; page-break-inside: avoid; }
+    .head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #142033; padding-bottom: 2mm; margin-bottom: 2mm; }
+    .head .co { font-weight: 700; font-size: 11.5px; text-transform: uppercase; letter-spacing: .02em; }
+    .head .ttl { font-weight: 700; color: #c8151d; letter-spacing: .12em; font-size: 10px; }
+    .meta { display: grid; grid-template-columns: 22mm 1fr; row-gap: .6mm; margin-bottom: 2mm; }
+    .meta dt { color: #526176; } .meta dd { margin: 0; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: #22385a; padding: .8mm 1.5mm; }
+    td { padding: .5mm 1.5mm; border-bottom: 1px dotted #c2cad5; vertical-align: top; }
+    td.q { text-align: right; color: #526176; width: 13mm; white-space: nowrap; }
+    td.a { text-align: right; width: 22mm; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    td .d { display: block; color: #6b7a8f; font-size: 9px; }
+    tr.tot td { font-weight: 700; border-bottom: 1px solid #142033; border-top: 1px solid #142033; }
+    .sec { margin-top: 1.5mm; }
+    .net { margin-top: auto; padding-top: 2mm; display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 700; border-top: 2px solid #142033; }
+    .sign { display: flex; justify-content: space-between; margin-top: 5mm; gap: 6mm; font-size: 9px; color: #526176; }
+    .sign div { flex: 1; border-top: 1px solid #142033; padding-top: .8mm; text-align: center; }
+    .draft { color: #a15c00; font-weight: 700; font-size: 9px; }
+    .empty { padding: 60px; text-align: center; font-size: 14px; }
+    @media print {
+      @page { size: A4; margin: 0; }
+      body { background: #fff; }
+      .bar { display: none; }
+      .page { margin: 0; box-shadow: none; page-break-after: always; }
+      .page:last-child { page-break-after: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <b th:text="${'Payslips · ' + period.label}">Payslips</b>
+    <span th:text="${#lists.size(pages) == 0 ? 'Nothing to print' : (#lists.size(pages) + ' page(s), 4 per A4')}"></span>
+    <span th:unless="${period.locked}">· Draft — lock the payroll to make these final</span>
+    <button type="button" onclick="window.print()">Print</button>
+  </div>
+  <div class="empty" th:if="${#lists.isEmpty(pages)}">No payslips: no one has pay in this period yet.</div>
+
+  <div class="page" th:each="pg : ${pages}">
+    <div class="slip" th:each="l : ${pg}">
+      <div class="head"><span class="co" th:text="${settings.companyName}">Company</span><span class="ttl">PAY SLIP</span></div>
+      <dl class="meta">
+        <dt>Date covered</dt><dd><span th:text="${period.label}"></span> <span class="draft" th:unless="${period.locked}">DRAFT</span></dd>
+        <dt>Name</dt><dd th:text="${l.name}"></dd>
+        <dt>Position</dt><dd th:text="${l.position ?: '—'}"></dd>
+        <dt>Rate</dt><dd th:text="${'₱' + #numbers.formatDecimal(l.dailyRate, 1, 'COMMA', 2, 'POINT') + ' / day' + (l.rateType == 'MONTHLY' and l.monthlyRate != null ? '  ·  ₱' + #numbers.formatDecimal(l.monthlyRate, 1, 'COMMA', 2, 'POINT') + ' / month' : '')}"></dd>
+      </dl>
+      <table>
+        <tr><th colspan="3">Payables</th></tr>
+        <tr><td th:text="${l.rateType == 'MONTHLY' ? 'Salary (half month)' : 'Salary + allowance'}"></td><td class="q" th:text="${l.rateType == 'MONTHLY' ? '' : #numbers.formatDecimal(l.regDays, 1, 2) + ' d'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.basicPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.otPay.signum() != 0}"><td>Overtime (regular)</td><td class="q" th:text="${l.otHours.stripTrailingZeros().toPlainString() + ' h'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.otPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.sunPay.signum() != 0}"><td>Sunday</td><td class="q" th:text="${#numbers.formatDecimal(l.sunDays, 1, 2) + ' d'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.sunPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.sunOtPay.signum() != 0}"><td>Sunday OT</td><td class="q" th:text="${l.sunOtHours.stripTrailingZeros().toPlainString() + ' h'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.sunOtPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.specialHolPay.signum() != 0}"><td>Holiday 30%</td><td class="q" th:text="${#numbers.formatDecimal(l.specialHolDays, 1, 2) + ' d'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.specialHolPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.regularHolPay.signum() != 0}"><td>Holiday 2X</td><td class="q" th:text="${#numbers.formatDecimal(l.regularHolDays, 1, 2) + ' d'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.regularHolPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.ndPay.signum() != 0}"><td>Night differential</td><td class="q" th:text="${l.ndHours.stripTrailingZeros().toPlainString() + ' h'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.ndPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:each="i : ${l.earnings}"><td><span th:text="${i.label}"></span><span class="d" th:if="${i.description}" th:text="${i.description}"></span></td><td class="q"></td><td class="a" th:text="${#numbers.formatDecimal(i.amount, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr class="tot"><td colspan="2">Total pay</td><td class="a" th:text="${#numbers.formatDecimal(l.grossPay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+      </table>
+      <table class="sec">
+        <tr><th colspan="3">Deductions</th></tr>
+        <tr th:if="${l.lateAmount.signum() != 0}"><td>Lates</td><td class="q" th:text="${l.lateMinutes + ' min'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.lateAmount, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.absentAmount.signum() != 0}"><td>Absent</td><td class="q" th:text="${#numbers.formatDecimal(l.absentDays, 1, 2) + ' d'}"></td><td class="a" th:text="${#numbers.formatDecimal(l.absentAmount, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:each="i : ${l.deductions}"><td><span th:text="${i.label}"></span><span class="d" th:if="${i.description}" th:text="${i.description}"></span></td><td class="q"></td><td class="a" th:text="${#numbers.formatDecimal(i.amount, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr th:if="${l.totalDeductions.signum() == 0}"><td colspan="3" style="color:#6b7a8f">None</td></tr>
+        <tr class="tot"><td colspan="2">Total deductions</td><td class="a" th:text="${#numbers.formatDecimal(l.totalDeductions, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+      </table>
+      <div class="net"><span>NET PAY</span><span th:text="${'₱' + #numbers.formatDecimal(l.netPay, 1, 'COMMA', 2, 'POINT')}"></span></div>
+      <div class="sign"><div>Prepared by</div><div>Received by / date</div></div>
+    </div>
+  </div>
+</body>
+</html>

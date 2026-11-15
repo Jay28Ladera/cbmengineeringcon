@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- The ledger entry behind a document: journal (may be null), jlines, accountMap, preview -->
+<section class="panel mb-4" th:fragment="journal">
+  <div class="panel-header">
+    <h2 class="panel-title"><i class="bi bi-journal-text"></i><span th:text="${preview ? 'Accounting entry on release' : 'Accounting entry'}"></span>
+      <a th:if="${journal != null}" class="mono small ms-2" th:href="@{/Accounting/Journal/{id}(id=${journal.id})}" th:text="${journal.number}"></a>
+      <span th:if="${journal != null and journal.status == 'VOID'}" class="status status-je-void ms-1">Reversed</span></h2>
+  </div>
+  <div class="table-wrap" th:unless="${#lists.isEmpty(jlines)}">
+    <table class="data-table je-table">
+      <thead><tr><th>Account</th><th>Memo</th><th class="money">Debit</th><th class="money">Credit</th></tr></thead>
+      <tbody>
+        <tr th:each="l : ${jlines}" th:with="a=${accountMap.get(l.accountId)}">
+          <td><a th:if="${a != null}" th:href="@{/Accounting/Accounts/{id}(id=${a.id})}"><span class="mono" th:text="${a.code}"></span> <span th:text="${a.name}"></span></a></td>
+          <td class="cell-wrap" th:text="${l.memo}"></td>
+          <td class="money" th:text="${l.debit.signum() > 0 ? #numbers.formatDecimal(l.debit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+          <td class="money" th:text="${l.credit.signum() > 0 ? #numbers.formatDecimal(l.credit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel-body text-muted small" th:if="${#lists.isEmpty(jlines)}">Nothing posted yet.</div>
+</section>
+</body>
+</html>

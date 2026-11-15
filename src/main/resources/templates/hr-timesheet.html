@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Time Sheets')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area content-wide" th:fragment="page" data-section="Human Resources" data-title="Time Sheets" data-hr-page="timesheet">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Time sheet</h1>
+          <p class="page-sub" th:if="${period}">Hours per day: <b>REG</b> regular hours, <b>OT</b> overtime hours, <b>L</b> minutes late. You can paste straight from the Excel DTR.</p>
+        </div>
+        <div class="page-actions" th:if="${period}">
+          <div class="dropdown d-inline-block" th:unless="${period.locked}">
+            <button class="btn btn-outline dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-fingerprint"></i>From time logs</button>
+            <div class="dropdown-menu dropdown-menu-end p-2" style="min-width: 290px">
+              <form th:action="@{/HR/TimeLogs/apply}" method="post" data-confirm="Fill the empty days of this time sheet from the biometric logs? Days already typed in are kept." data-confirm-ok="Fill from logs">
+                <input type="hidden" name="periodId" th:value="${period.id}" /><input type="hidden" name="mode" value="fill" />
+                <input type="hidden" name="group" th:value="${group}" /><input type="hidden" name="back" value="timesheet" />
+                <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-in-down"></i>Fill empty days from logs</button>
+              </form>
+              <form th:action="@{/HR/TimeLogs/apply}" method="post" data-confirm="Replace every day that has biometric logs with what the logs show? Days you typed in for those dates are overwritten." data-confirm-ok="Replace" data-confirm-tone="danger">
+                <input type="hidden" name="periodId" th:value="${period.id}" /><input type="hidden" name="mode" value="replace" />
+                <input type="hidden" name="group" th:value="${group}" /><input type="hidden" name="back" value="timesheet" />
+                <button class="dropdown-item" type="submit"><i class="bi bi-arrow-repeat"></i>Replace days that have logs</button>
+              </form>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" th:href="@{/HR/TimeLogs}"><i class="bi bi-clock-history"></i>Open time logs</a>
+            </div>
+          </div>
+          <a class="btn btn-outline" th:href="@{/HR/PaySheets(period=${period.id})}"><i class="bi bi-file-earmark-spreadsheet"></i>Pay sheet</a>
+          <button class="btn btn-primary" type="button" id="tsSave" th:unless="${period.locked}" disabled><i class="bi bi-check2"></i>Save <span id="tsDirtyCount"></span></button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel" th:if="${period == null}">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-calendar-plus"></i></div>
+          <h3>No payroll period yet</h3>
+          <p>Create a cut-off first, then fill in its time sheet.</p>
+          <a class="btn btn-primary mt-3" th:href="@{/HR/PayrollPeriod}">Payroll periods</a>
+        </div>
+      </section>
+
+      <th:block th:if="${period}">
+        <div class="alert alert-warning mb-3" th:if="${period.locked}">This payroll is locked, so the time sheet is read-only. Unlock it on the pay sheet to make changes.</div>
+
+        <section class="panel ts-panel" id="tsPanel"
+                 th:attr="data-period=${period.id},data-save-url=@{/HR/TimeSheets/{id}/save(id=${period.id})},data-hpd=${hoursPerDay},data-grace=${graceMinutes},data-locked=${period.locked}">
+          <div class="panel-header">
+            <div class="ts-pickers">
+              <select class="form-select form-select-sm" data-hr-nav aria-label="Payroll period">
+                <option th:each="p : ${allPeriods}" th:value="@{/HR/TimeSheets(period=${p.id},group=${group})}" th:selected="${p.id == period.id}"
+                        th:text="${p.label + (p.locked ? '  · locked' : '')}"></option>
+              </select>
+              <select class="form-select form-select-sm" data-hr-nav aria-label="Payroll group">
+                <option th:value="@{/HR/TimeSheets(period=${period.id})}">All groups</option>
+                <option th:each="g : ${groups}" th:value="@{/HR/TimeSheets(period=${period.id},group=${g})}" th:selected="${g == group}" th:text="${g}"></option>
+              </select>
+              <div class="search-input"><i class="bi bi-search"></i><input id="tsSearch" type="search" class="form-control form-control-sm" placeholder="Find employee…" aria-label="Find employee" /></div>
+            </div>
+            <div class="table-toolbar">
+              <span class="ts-meta"><b th:text="${workingDays}">0</b> working days · grace <b th:text="${graceMinutes}">0</b> min</span>
+              <button type="button" class="btn btn-sm btn-outline" id="tsFillAll" th:unless="${period.locked}" title="Put 8 hours on every empty working day of the rows shown"><i class="bi bi-magic"></i>Fill 8 hrs (empty days)</button>
+            </div>
+          </div>
+
+          <div class="ts-legend">
+            <span><i class="sw sw-sun"></i>Sunday (paid ×1.3)</span>
+            <span><i class="sw sw-hol"></i>Holiday</span>
+            <span><i class="sw sw-dirty"></i>Not saved yet</span>
+            <span class="text-muted">Arrow keys or Enter to move · paste a block copied from Excel</span>
+          </div>
+
+          <div class="ts-scroll" th:unless="${#lists.isEmpty(rows)}">
+            <fieldset th:disabled="${period.locked}">
+            <table class="ts-grid" id="tsGrid">
+              <thead>
+                <tr>
+                  <th class="ts-name" rowspan="2">Employee</th>
+                  <th th:each="d : ${days}" colspan="3" class="ts-day"
+                      th:classappend="${d.sunday() ? 'sun' : (d.holiday() != null ? 'hol' : '')}"
+                      th:attr="data-date=${d.iso()},data-working=${d.working()},data-sunday=${d.sunday()},title=${d.holiday() != null ? d.holiday() + ' (' + d.holidayType() + ' holiday)' : null}">
+                    <span class="dow" th:text="${d.dow()}">Mon</span><span class="dom" th:text="${d.dom()}">1</span>
+                    <span class="hol-tag" th:if="${d.holiday() != null}" th:text="${d.holidayType() == 'Regular' ? '2X' : '30%'}"></span>
+                  </th>
+                  <th class="ts-tot" rowspan="2" title="Days worked (Mon–Sat)">Days</th>
+                  <th class="ts-tot" rowspan="2" title="Overtime hours">OT</th>
+                  <th class="ts-tot" rowspan="2" title="Sunday days worked">Sun</th>
+                  <th class="ts-tot" rowspan="2" title="Minutes late, after grace">Late</th>
+                  <th class="ts-tot" rowspan="2" title="Days absent on working days">Abs</th>
+                  <th class="ts-nd" rowspan="2" title="Night differential hours for the period">ND hrs</th>
+                  <th class="ts-rem" rowspan="2">Remarks</th>
+                </tr>
+                <tr class="ts-sub">
+                  <th:block th:each="d : ${days}"><th th:classappend="${d.sunday() ? 'sun' : (d.holiday() != null ? 'hol' : '')}">REG</th><th th:classappend="${d.sunday() ? 'sun' : (d.holiday() != null ? 'hol' : '')}">OT</th><th class="l" th:classappend="${d.sunday() ? 'sun' : (d.holiday() != null ? 'hol' : '')}">L</th></th:block>
+                </tr>
+              </thead>
+              <tbody>
+                <th:block th:each="r : ${rows}">
+                  <tr class="ts-group" th:if="${r.groupStart()}"><td th:colspan="${colspan}"><span th:text="${r.group()}"></span></td></tr>
+                  <tr class="ts-row" th:attr="data-e=${r.employee().id},data-search=${#strings.toLowerCase(r.employee().fullName)}">
+                    <td class="ts-name">
+                      <div class="nm" th:text="${r.employee().fullName}"></div>
+                      <div class="ps"><span th:text="${r.employee().position ?: ''}"></span><span class="rt" th:text="${r.employee().monthly ? 'monthly' : 'daily'}"></span></div>
+                      <button type="button" class="ts-fill" th:unless="${period.locked}" title="Fill 8 hrs on this row's empty working days" aria-label="Fill row"><i class="bi bi-magic"></i></button>
+                    </td>
+                    <th:block th:each="c, st : ${r.cells()}" th:with="cls=${days[st.index].sunday() ? ' sun' : (days[st.index].holiday() != null ? ' hol' : '')}"><td th:class="${'r' + cls}"><input th:value="${c.reg()}" /></td><td th:class="${'o' + cls}"><input th:value="${c.ot()}" /></td><td th:class="${'l' + cls}"><input th:value="${c.late()}" /></td></th:block>
+                    <td class="ts-tot t-days"></td><td class="ts-tot t-ot"></td><td class="ts-tot t-sun"></td><td class="ts-tot t-late"></td><td class="ts-tot t-abs"></td>
+                    <td class="ts-nd"><input class="nd" th:value="${r.nd()}" /></td>
+                    <td class="ts-rem"><input class="rem" th:value="${r.remarks()}" maxlength="600" placeholder="Notes for HR" /></td>
+                  </tr>
+                </th:block>
+              </tbody>
+            </table>
+            </fieldset>
+          </div>
+          <div class="empty-state" th:if="${#lists.isEmpty(rows)}">
+            <div class="empty-icon"><i class="bi bi-people"></i></div>
+            <h3>No employees to show</h3>
+            <p>Add employees under HR › Employees, or choose another group.</p>
+          </div>
+        </section>
+      </th:block>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

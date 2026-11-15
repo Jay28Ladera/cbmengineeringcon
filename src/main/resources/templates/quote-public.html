@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${invalid != null ? 'Quotation' : 'Quotation ' + quotation.quotationNumber})}"></head>
+<body class="qp-body">
+<!--
+  The client's quotation page (no sign-in). Opened from the link in the quotation email.
+-->
+<header class="qp-bar">
+  <div class="qp-bar-in">
+    <div class="qp-brand"><img th:src="@{/images/logo-cbm.webp}" width="360" height="208" alt="CBM" /><span>CBM Engineering &amp; Construction</span></div>
+    <button th:if="${invalid == null}" type="button" class="btn btn-outline btn-sm" onclick="window.print()"><i class="bi bi-printer"></i>Print or save as PDF</button>
+  </div>
+</header>
+
+<main class="qp-main">
+  <th:block th:if="${invalid != null}">
+    <div class="qp-card qp-center">
+      <h1>This link is not valid</h1>
+      <p class="text-muted">The quotation link may be incomplete. Please open it again from the email, or contact CBM Engineering &amp; Construction.</p>
+    </div>
+  </th:block>
+
+  <th:block th:if="${invalid == null}" th:with="inq=${quotation.inquiry}">
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="qp-status no-print" th:switch="${state}">
+      <div th:case="'waiting'" class="qp-note">
+        <b th:text="${'Hello ' + inq.fullName + ','}"></b>
+        <span>please review the quotation below. To accept it, sign at the bottom of the page or upload a signed copy.</span>
+        <span th:if="${signoff.expiresAt != null}" th:text="${'Valid until ' + #temporals.format(signoff.expiresAt, 'MMMM d, yyyy') + '.'}"></span>
+      </div>
+      <div th:case="'accepted'" class="qp-note ok"><i class="bi bi-check2-circle"></i>
+        <span th:text="${'Accepted by ' + signoff.clientName + ' on ' + #temporals.format(signoff.clientRespondedAt, 'MMMM d, yyyy') + '. Thank you! We will contact you about the next steps.'}"></span></div>
+      <div th:case="'declined'" class="qp-note bad"><i class="bi bi-x-circle"></i>
+        <span>This quotation was declined. If you would like a revised quotation, reply to our email or contact us.</span></div>
+      <div th:case="'expired'" class="qp-note bad"><i class="bi bi-clock-history"></i>
+        <span th:text="${'This quotation expired on ' + #temporals.format(signoff.expiresAt, 'MMMM d, yyyy') + '. Please contact us for an updated quotation.'}"></span></div>
+      <div th:case="*" class="qp-note"><span>This quotation is no longer open for signing.</span></div>
+    </div>
+
+    <article th:replace="~{fragments/quote-doc :: doc(${quotation}, ${signoff})}"></article>
+
+    <!-- Accept or decline -->
+    <section class="qp-card no-print" th:if="${state == 'waiting'}" id="respond">
+      <div class="qp-tabs" role="tablist">
+        <button type="button" class="active" data-qp-tab="accept" role="tab">Accept and sign</button>
+        <button type="button" data-qp-tab="decline" role="tab">Decline</button>
+      </div>
+
+      <form th:action="@{/q/{t}/accept(t=${token})}" method="post" enctype="multipart/form-data" data-sig-form data-qp-pane="accept" class="qp-pane">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label" for="clientName">Your full name <span class="req">*</span></label>
+            <input id="clientName" name="clientName" class="form-control" required maxlength="160" autocomplete="name" th:value="${clientName != null ? clientName : inq.fullName}" /></div>
+          <div class="col-md-6"><label class="form-label" for="clientTitle">Position and company</label>
+            <input id="clientTitle" name="clientTitle" class="form-control" maxlength="160" placeholder="e.g. Owner, ABC Trading" th:value="${clientTitle != null ? clientTitle : inq.company}" /></div>
+        </div>
+        <div class="form-label mt-3">Your signature</div>
+        <div class="sig-pad" data-sig-pad>
+          <canvas aria-label="Signature pad: draw your signature with your mouse or finger"></canvas>
+          <span class="sig-line"></span>
+          <button type="button" class="btn btn-sm btn-ghost sig-clear" data-sig-clear><i class="bi bi-eraser"></i>Clear</button>
+        </div>
+        <input type="hidden" name="signatureData" data-sig-out />
+        <div class="small text-danger mt-1" data-sig-msg hidden>Sign in the box, or upload a signed copy below.</div>
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+          <span class="small text-muted">Or</span>
+          <label class="btn btn-sm btn-outline mb-0"><i class="bi bi-upload"></i>Upload a signed copy
+            <input type="file" name="signedCopy" accept="application/pdf,image/png,image/jpeg,image/webp" class="d-none" data-sig-file /></label>
+          <span class="small text-muted" data-sig-file-name>Print, sign and scan or photograph it. PDF, JPG or PNG, up to 8 MB.</span>
+        </div>
+        <label class="qp-agree mt-3"><input type="checkbox" name="agree" value="true" required />
+          <span th:text="${'I accept quotation ' + quotation.quotationNumber + ' for ₱' + #numbers.formatDecimal(quotation.grandTotal, 1, 'COMMA', 2, 'POINT') + ', including its terms, and I am authorized to accept it.'}"></span></label>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-primary btn-lg" type="submit"><i class="bi bi-pen"></i>Accept and sign</button>
+        </div>
+      </form>
+
+      <form th:action="@{/q/{t}/decline(t=${token})}" method="post" data-qp-pane="decline" class="qp-pane" hidden
+            onsubmit="return confirm('Decline this quotation?');">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label" for="dName">Your name</label>
+            <input id="dName" name="clientName" class="form-control" maxlength="160" th:value="${inq.fullName}" /></div>
+          <div class="col-12"><label class="form-label" for="dReason">Reason (optional)</label>
+            <textarea id="dReason" name="reason" class="form-control" rows="3" maxlength="1000" placeholder="e.g. over our budget, timeline does not work, chose another contractor"></textarea>
+            <div class="form-hint">This helps us send you a better offer.</div></div>
+        </div>
+        <div class="d-flex justify-content-end mt-3"><button class="btn btn-danger-outline" type="submit">Decline the quotation</button></div>
+      </form>
+    </section>
+
+    <p class="qp-foot no-print">Questions about this quotation? Reply to the email it came with<span th:if="${signoff.sentBy != null}" th:text="${', or contact ' + signoff.sentBy}"></span>.</p>
+  </th:block>
+</main>
+
+<script th:src="@{/js/signature.js}" defer></script>
+<script>
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest && e.target.closest('[data-qp-tab]');
+    if (!t) return;
+    document.querySelectorAll('[data-qp-tab]').forEach(function (b) { b.classList.toggle('active', b === t); });
+    document.querySelectorAll('[data-qp-pane]').forEach(function (p) { p.hidden = p.dataset.qpPane !== t.dataset.qpTab; });
+    window.dispatchEvent(new Event('resize'));
+  });
+</script>
+</body>
+</html>

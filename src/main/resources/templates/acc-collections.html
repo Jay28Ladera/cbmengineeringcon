@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Collections')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Collections">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Collections</h1>
+          <p class="page-sub">Payments received from clients. The tax a client withholds (CWT) is credited to the billing too; keep its BIR Form 2307 for CBM's tax return.</p></div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/Reports/PaymentListing}"><i class="bi bi-list-columns"></i>Payment listing</a>
+          <a class="btn btn-primary" th:href="@{/Accounting/Collections/new}"><i class="bi bi-plus-lg"></i>Record collection</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:unless="${#lists.isEmpty(missing2307)}" class="alert alert-warning mb-3" th:text="${#lists.size(missing2307) + ' collection(s) with tax withheld are still waiting for the client’s BIR Form 2307.'}"></div>
+      <section class="panel">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}"><table class="data-table">
+          <thead><tr><th>Receipt</th><th>Date</th><th>Job order</th><th>Method</th><th>OR no.</th><th class="money">Applied</th><th class="money">CWT</th><th class="money">Cash in</th><th>2307</th></tr></thead>
+          <tbody><tr th:each="x : ${rows}" class="row-link" th:classappend="${!x.posted} ? ' row-void'" th:attr="data-href=@{/Accounting/Collections/{id}(id=${x.id})}">
+            <td><a class="mono" th:href="@{/Accounting/Collections/{id}(id=${x.id})}" th:text="${x.number}"></a> <span th:unless="${x.posted}" class="status status-rejected">Void</span></td>
+            <td th:text="${#temporals.format(x.receivedDate, 'MMM d, yyyy')}"></td>
+            <td th:text="${jobMap.get(x.jobOrderId) != null ? jobMap.get(x.jobOrderId).label() : ''}"></td>
+            <td><span th:text="${x.methodLabel}"></span><div class="cell-sub" th:text="${(bankMap.get(x.bankId) != null ? bankMap.get(x.bankId).name : '') + (x.chequeNo != null ? ' · #' + x.chequeNo : '')}"></div></td>
+            <td th:text="${x.orNo ?: '—'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(x.applied, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(x.cwt, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(x.cash, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span th:if="${x.cwt.signum() > 0}" class="status" th:classappend="${x.form2307} ? 'status-approved' : 'status-pending'" th:text="${x.form2307 ? 'Received' : 'Waiting'}"></span></td></tr></tbody>
+        </table></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-cash-coin"></i></div><h3>No collections yet</h3><p>Record a payment when a client pays a billing.</p></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

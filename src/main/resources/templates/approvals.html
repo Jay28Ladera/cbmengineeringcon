@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Approvals')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Approvals" data-title="Waiting for approval">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Approvals</div>
+          <h1 class="page-title">Waiting for your approval</h1>
+          <p class="page-sub">Quotations, canvass sheets, payments and client billings waiting for your signature. Your saved signature is printed on each one you sign.</p>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div class="alert alert-warning mb-3" th:unless="${hasSignature}">
+        You have no saved signature yet, so you can't approve. <a th:href="@{/profile#signature}" data-full-load>Add your signature on My profile</a> (it takes a few seconds), then come back here.
+      </div>
+
+      <div class="panel" th:if="${#lists.isEmpty(pending) and #lists.isEmpty(canvassPending) and #lists.isEmpty(voucherPending) and #lists.isEmpty(billingPending)}">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-patch-check"></i></div>
+          <h3>Nothing waiting</h3>
+          <p>When a quotation, a canvass sheet, a payment voucher or a client billing needs your signature it appears here, and you get an email.</p>
+        </div>
+      </div>
+
+      <!-- Client billings -->
+      <h2 class="appr-section" th:unless="${#lists.isEmpty(billingPending)}"><i class="bi bi-receipt"></i>Client billings <span class="count-badge" th:text="${#lists.size(billingPending)}"></span></h2>
+      <div class="appr-list mb-4" th:unless="${#lists.isEmpty(billingPending)}">
+        <article class="appr-card" th:each="p : ${billingPending}" th:with="b=${p.billing()}, s=${p.summary()}">
+          <header class="appr-head">
+            <div class="appr-title">
+              <span class="mono appr-no" th:text="${b.number}"></span>
+              <h2 th:text="${b.title}"></h2>
+              <div class="cell-sub" th:text="${p.job()}"></div>
+            </div>
+            <div class="appr-sub text-end">
+              <div style="font-size:1.4rem;font-weight:700" th:text="${'₱' + #numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></div>
+              <div class="small text-muted" th:if="${b.kind == 'PROGRESS'}" th:text="${'Work ₱' + #numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT') + ' less recoupment ₱' + #numbers.formatDecimal(b.recoupment, 1, 'COMMA', 2, 'POINT') + ' and retention ₱' + #numbers.formatDecimal(b.retention, 1, 'COMMA', 2, 'POINT')}"></div>
+              <div class="small text-muted" th:text="${'Prepared by ' + b.preparedBy}"></div>
+            </div>
+          </header>
+          <div class="px-3 pb-2 small">
+            <span th:if="${b.kind == 'PROGRESS'}" th:text="${'Accomplished to date ' + #numbers.formatDecimal(b.pctToDate, 1, 2) + '% (₱' + #numbers.formatDecimal(b.grossToDate, 1, 'COMMA', 2, 'POINT') + ' of ₱' + #numbers.formatDecimal(p.contract().contractAmount, 1, 'COMMA', 2, 'POINT') + ')'}"></span>
+            <span th:text="${' · already billed ₱' + #numbers.formatDecimal(s.billed(), 1, 'COMMA', 2, 'POINT') + ', collected ₱' + #numbers.formatDecimal(s.collected(), 1, 'COMMA', 2, 'POINT')}"></span>
+          </div>
+          <footer class="appr-actions">
+            <a class="btn btn-ghost" th:href="@{/Approvals/billing/{id}/print(id=${b.id})}" target="_blank" rel="noopener" data-full-load><i class="bi bi-printer"></i>View billing</a>
+            <button type="button" class="btn btn-outline" data-fill="returnDialog" data-f-from="approvals"
+                    th:attr="data-action=@{/Approvals/billing/{id}/return(id=${b.id})},data-title=${'Return ' + b.number + ' to Finance'}"><i class="bi bi-arrow-counterclockwise"></i>Return for changes</button>
+            <form th:action="@{/Approvals/billing/{id}/approve(id=${b.id})}" method="post"
+                  th:attr="data-confirm=${'Approve and issue ' + b.title + ' for ₱' + #numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT') + '? Your signature goes on it.'}"
+                  data-confirm-title="Approve billing" data-confirm-ok="Approve" data-confirm-tone="success">
+              <button class="btn btn-success" type="submit" th:disabled="${!hasSignature}"><i class="bi bi-pen"></i>Approve &amp; sign</button>
+            </form>
+          </footer>
+        </article>
+      </div>
+
+      <!-- Payment vouchers -->
+      <h2 class="appr-section" th:unless="${#lists.isEmpty(voucherPending)}"><i class="bi bi-cash-coin"></i>Payments <span class="count-badge" th:text="${#lists.size(voucherPending)}"></span></h2>
+      <div class="appr-list mb-4" th:unless="${#lists.isEmpty(voucherPending)}">
+        <article class="appr-card" th:each="p : ${voucherPending}" th:with="v=${p.voucher()}">
+          <header class="appr-head">
+            <div class="appr-title">
+              <span class="mono appr-no" th:text="${'Voucher ' + v.number}"></span>
+              <h2 th:text="${p.supplier()}"></h2>
+              <div class="cell-sub" th:text="${(v.method == 'CASH' ? 'Cash' : 'Cheque') + ' · ' + p.bank() + (v.pdc ? ' · PDC dated ' + #temporals.format(v.chequeDate, 'MMM d') : '')}"></div>
+            </div>
+            <div class="appr-sub text-end">
+              <div class="appr-total" style="font-size:1.4rem;font-weight:700" th:text="${'₱' + #numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT')}"></div>
+              <div class="small text-muted" th:text="${'Bills ₱' + #numbers.formatDecimal(v.gross, 1, 'COMMA', 2, 'POINT') + ' less EWT ₱' + #numbers.formatDecimal(v.ewt, 1, 'COMMA', 2, 'POINT')}"></div>
+              <div class="small text-muted" th:text="${'Prepared by ' + v.preparedBy + (v.submittedAt != null ? ' · ' + #temporals.format(v.submittedAt, 'MMM d, h:mm a') : '')}"></div>
+            </div>
+          </header>
+          <div class="px-3 pb-2">
+            <p class="mb-1" th:text="${v.particulars}"></p>
+            <ul class="small mb-0"><li th:each="b : ${p.bills()}" th:text="${b}"></li></ul>
+          </div>
+          <footer class="appr-actions">
+            <a class="btn btn-ghost" th:href="@{/Approvals/voucher/{id}/print(id=${v.id})}" target="_blank" rel="noopener" data-full-load><i class="bi bi-printer"></i>View voucher</a>
+            <button type="button" class="btn btn-outline" data-fill="returnDialog" data-f-from="approvals"
+                    th:attr="data-action=@{/Approvals/voucher/{id}/return(id=${v.id})},data-title=${'Return voucher ' + v.number + ' to Finance'}"><i class="bi bi-arrow-counterclockwise"></i>Return for changes</button>
+            <form th:action="@{/Approvals/voucher/{id}/approve(id=${v.id})}" method="post"
+                  th:attr="data-confirm=${'Approve payment of ₱' + #numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT') + ' to ' + p.supplier() + '? Your signature goes on the voucher.'}"
+                  data-confirm-title="Approve payment" data-confirm-ok="Approve" data-confirm-tone="success">
+              <button class="btn btn-success" type="submit" th:disabled="${!hasSignature}"><i class="bi bi-pen"></i>Approve &amp; sign</button>
+            </form>
+          </footer>
+        </article>
+      </div>
+
+      <!-- Canvass sheets -->
+      <h2 class="appr-section" th:unless="${#lists.isEmpty(canvassPending)}"><i class="bi bi-clipboard-check"></i>Canvass sheets <span class="count-badge" th:text="${#lists.size(canvassPending)}"></span></h2>
+      <div class="appr-list mb-4" th:unless="${#lists.isEmpty(canvassPending)}">
+        <article class="appr-card appr-cv" th:each="p : ${canvassPending}" th:with="c=${p.canvass()}, so=${p.signoff()}, g=${p.grid()}">
+          <header class="appr-head">
+            <div class="appr-title">
+              <span class="mono appr-no" th:text="${'Canvass ' + c.number + (c.mrNo != null ? ' · MR # ' + c.mrNo : '')}"></span>
+              <h2 th:text="${c.title}"></h2>
+              <div class="cell-sub" th:text="${p.jobLabel()}"></div>
+            </div>
+            <div class="appr-sub text-end">
+              <span class="appr-step" th:text="${'Your signature: ' + p.stepLabel()}"></span>
+              <div class="small text-muted" th:if="${so.submittedAt != null}" th:text="${'Submitted by ' + so.submittedBy + ' · ' + #temporals.format(so.submittedAt, 'MMM d, h:mm a')}"></div>
+              <div class="small text-muted" th:if="${so.approvedAt != null}" th:text="${'Approved by ' + so.approvedBy}"></div>
+              <div class="small text-muted" th:if="${so.notedAt != null}" th:text="${'Noted by ' + so.notedBy}"></div>
+            </div>
+          </header>
+          <div class="appr-figures">
+            <div class="hl"><span>Chosen total</span><b th:text="${'₱' + #numbers.formatDecimal(g.awardedTotal(), 1, 'COMMA', 2, 'POINT')}"></b>
+              <small th:text="${#lists.size(g.items()) + ' item(s) · ' + #lists.size(g.suppliers()) + ' supplier(s) compared'}"></small></div>
+            <div><span>Cheapest possible</span><b th:text="${'₱' + #numbers.formatDecimal(g.cheapestTotal(), 1, 'COMMA', 2, 'POINT')}"></b>
+              <small th:text="${g.allCheapest() ? 'All items at the cheapest price' : '₱' + #numbers.formatDecimal(g.awardedTotal().subtract(g.cheapestTotal()), 1, 'COMMA', 2, 'POINT') + ' above the cheapest'}"></small></div>
+            <div><span>Saved vs highest</span><b class="text-success" th:text="${'₱' + #numbers.formatDecimal(g.savings(), 1, 'COMMA', 2, 'POINT')}"></b><small>Against the highest quotes</small></div>
+          </div>
+          <div class="table-wrap appr-items-open">
+            <table class="data-table">
+              <thead><tr><th>Item</th><th class="money">Qty</th><th>Chosen supplier</th><th>Brand</th><th class="money">Unit cost</th><th class="money">Amount</th><th></th></tr></thead>
+              <tbody>
+                <tr th:each="it : ${g.items()}" th:with="w=${g.winners()[it.id]}">
+                  <td><span th:text="${it.description}"></span><div class="cell-sub" th:if="${it.remarks}" th:text="${it.remarks}"></div></td>
+                  <td class="money text-nowrap" th:text="${it.qty.stripTrailingZeros().toPlainString() + ' ' + it.unit}"></td>
+                  <td th:text="${w != null and supplierMap.get(w) != null ? supplierMap.get(w).name : '—'}"></td>
+                  <td th:text="${w != null and g.brand(it.id, w) != null ? g.brand(it.id, w) : ''}"></td>
+                  <td class="money" th:text="${w != null ? '₱' + #numbers.formatDecimal(g.price(it.id, w), 1, 'COMMA', 2, 'POINT') : '—'}"></td>
+                  <td class="money" th:text="${w != null ? '₱' + #numbers.formatDecimal(g.amount(it.id, w), 1, 'COMMA', 2, 'POINT') : '—'}"></td>
+                  <td><span class="cv-tag low" th:if="${w != null and g.isLowest(it.id, w)}">Cheapest</span>
+                      <span class="cv-tag up" th:if="${w != null and g.percentAboveLowest(it.id, w) != null}" th:text="${'+' + g.percentAboveLowest(it.id, w) + '%'}"></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <footer class="appr-actions">
+            <a class="btn btn-ghost" th:href="@{/Approvals/canvass/{id}/print(id=${c.id})}" target="_blank" rel="noopener" data-full-load><i class="bi bi-printer"></i>View canvass sheet</a>
+            <button type="button" class="btn btn-outline" th:if="${p.step() != 'PROCESS'}" data-fill="returnDialog" data-f-from="approvals"
+                    th:attr="data-action=@{/Approvals/canvass/{id}/return(id=${c.id})},data-title=${'Return canvass ' + c.number + ' for changes'}"><i class="bi bi-arrow-counterclockwise"></i>Return for changes</button>
+            <form th:action="@{/Approvals/canvass/{id}/sign(id=${c.id})}" method="post"
+                  th:attr="data-confirm=${'Sign &quot;' + p.stepLabel() + '&quot; on canvass ' + c.number + '? Your saved signature will be printed on the sheet.'}"
+                  data-confirm-title="Sign canvass" data-confirm-ok="Sign" data-confirm-tone="success">
+              <button class="btn btn-success" type="submit" th:disabled="${!hasSignature}"><i class="bi bi-pen"></i><span th:text="${'Sign as ' + p.stepLabel()}"></span></button>
+            </form>
+          </footer>
+        </article>
+      </div>
+
+      <h2 class="appr-section" th:if="${!#lists.isEmpty(pending) and (!#lists.isEmpty(canvassPending) or !#lists.isEmpty(voucherPending) or !#lists.isEmpty(billingPending))}"><i class="bi bi-file-earmark-text"></i>Quotations <span class="count-badge" th:text="${#lists.size(pending)}"></span></h2>
+      <div class="appr-list">
+        <article class="appr-card" th:each="p : ${pending}" th:with="q=${p.quotation()}, so=${p.signoff()}, inq=${q.inquiry}">
+          <header class="appr-head">
+            <div class="appr-title">
+              <a class="mono appr-no" th:href="@{/Quotations/{id}(id=${q.id})}" th:text="${q.quotationNumber}"></a>
+              <h2 th:text="${inq.projectName}"></h2>
+              <div class="cell-sub">
+                <span th:text="${inq.fullName + (inq.company != null and !#strings.isEmpty(inq.company) ? ' · ' + inq.company : '')}"></span>
+                <span th:if="${inq.projectLocation}" th:text="${' · ' + inq.projectLocation}"></span>
+              </div>
+            </div>
+            <div class="appr-sub text-end">
+              <div class="small text-muted" th:if="${so.submittedAt != null}" th:text="${'Submitted by ' + so.submittedBy}"></div>
+              <div class="small text-muted" th:if="${so.submittedAt != null}" th:text="${#temporals.format(so.submittedAt, 'MMM d, h:mm a')}"></div>
+            </div>
+          </header>
+
+          <div class="appr-figures">
+            <div class="hl"><span>Quotation total</span><b th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></b>
+              <small th:text="${#lists.size(q.lineItems) + ' item(s)' + (q.discountAmount.signum() > 0 ? ' · discount ₱' + #numbers.formatDecimal(q.discountAmount, 1, 'COMMA', 2, 'POINT') : '') + (q.taxRate.signum() > 0 ? ' · VAT ' + q.taxRate + '%' : '')}"></small></div>
+            <div><span>Our cost</span><b th:text="${q.costed ? '₱' + #numbers.formatDecimal(q.totalCost, 1, 'COMMA', 2, 'POINT') : '—'}"></b>
+              <small th:text="${q.costed ? 'Cost on ' + (#lists.size(q.lineItems) - q.uncostedCount) + ' of ' + #lists.size(q.lineItems) + ' line(s)' : 'No costs entered'}"></small></div>
+            <div th:classappend="${q.costed and q.grossProfit.signum() < 0} ? ' bad'"><span>Gross profit</span><b th:text="${q.costed ? '₱' + #numbers.formatDecimal(q.grossProfit, 1, 'COMMA', 2, 'POINT') : '—'}"></b>
+              <small th:text="${q.costed and q.marginPct != null ? q.marginPct + '% margin' : ''}"></small></div>
+          </div>
+          <div class="appr-warn" th:if="${q.uncostedCount > 0}"><i class="bi bi-exclamation-triangle"></i>
+            <span th:text="${q.uncostedCount + ' of ' + #lists.size(q.lineItems) + ' line(s) have no cost, so the profit shown is too high.'}"></span></div>
+          <div class="appr-warn" th:if="${so.returnNote != null}"><i class="bi bi-chat-left-text"></i><span th:text="${'Your earlier note: ' + so.returnNote}"></span></div>
+
+          <details class="appr-items">
+            <summary>Show the items</summary>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Type</th><th>Description</th><th class="money">Qty</th><th class="money">Price</th><th class="money">Amount</th><th class="money">Cost</th><th class="money">Markup</th></tr></thead>
+                <tbody>
+                  <tr th:each="it : ${q.lineItems}">
+                    <td class="text-nowrap" th:text="${it.kindLabel}"></td>
+                    <td><span th:text="${it.description}"></span>
+                      <div class="cell-sub" th:if="${it.crew}" th:text="${it.crewSize + ' worker(s) × ' + it.workDays.stripTrailingZeros().toPlainString() + ' day(s) × ₱' + #numbers.formatDecimal(it.dailyRate, 1, 'COMMA', 2, 'POINT') + '/day'}"></div></td>
+                    <td class="money text-nowrap" th:text="${#numbers.formatDecimal(it.quantity, 1, 'COMMA', 2, 'POINT') + ' ' + it.unit}"></td>
+                    <td class="money" th:text="${'₱' + #numbers.formatDecimal(it.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="money" th:text="${'₱' + #numbers.formatDecimal(it.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="money" th:classappend="${!it.costed} ? ' text-warning'" th:text="${it.costed ? '₱' + #numbers.formatDecimal(it.lineCost, 1, 'COMMA', 2, 'POINT') : 'none'}"></td>
+                    <td class="money" th:text="${it.markupPct != null ? it.markupPct + '%' : '—'}"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="small text-muted mb-0 mt-2 pre-line" th:if="${q.terms != null and !#strings.isEmpty(q.terms)}" th:text="${'Terms: ' + q.terms}"></p>
+          </details>
+
+          <footer class="appr-actions">
+            <a class="btn btn-ghost" th:href="@{/Quotations/{id}(id=${q.id})}">Open the full quotation</a>
+            <button type="button" class="btn btn-outline" data-fill="returnDialog" data-f-from="approvals"
+                    th:attr="data-action=@{/Quotations/{id}/return(id=${q.id})},data-title=${'Return ' + q.quotationNumber + ' for changes'}"><i class="bi bi-arrow-counterclockwise"></i>Return for changes</button>
+            <form th:action="@{/Quotations/{id}/approve(id=${q.id})}" method="post"
+                  th:attr="data-confirm=${'Approve ' + q.quotationNumber + ' for ₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT') + '? Your signature will be printed on it.'}"
+                  data-confirm-title="Approve quotation" data-confirm-ok="Approve" data-confirm-tone="success">
+              <input type="hidden" name="from" value="approvals" />
+              <button class="btn btn-outline" type="submit" th:disabled="${!hasSignature}" title="Approve; the preparer sends it to the client"><i class="bi bi-patch-check"></i>Approve</button>
+            </form>
+            <button type="button" class="btn btn-success" th:disabled="${!hasSignature}" data-fill="approveSendDialog" data-f-from="approvals" data-f-valid-days="30"
+                    th:attr="data-action=@{/Quotations/{id}/approve-send(id=${q.id})},data-title=${'Approve ' + q.quotationNumber + ' and send to the client'},data-f-to=${inq.email},data-f-cc=${p.submitterEmail()},data-f-message=${'Thank you for considering CBM Engineering & Construction for ' + inq.projectName + '. Please find our quotation below. You can review it, then accept it by signing online or uploading a signed copy.'}"><i class="bi bi-send-check"></i>Approve &amp; send to client</button>
+          </footer>
+        </article>
+      </div>
+
+      <section class="panel mt-4" th:unless="${#lists.isEmpty(recent)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i>Your recent decisions</h2></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Quotation</th><th>Project</th><th class="money">Total</th><th>Your decision</th><th>Now</th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${recent}" th:with="q=${r.quotation()}, so=${r.signoff()}" class="row-link" th:attr="data-href=@{/Quotations/{id}(id=${q.id})}">
+                <td class="mono" th:text="${q.quotationNumber}"></td>
+                <td th:text="${q.inquiry.projectName}"></td>
+                <td class="money" th:text="${'₱' + #numbers.formatDecimal(q.grandTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td th:text="${so.approvedAt != null ? 'Approved ' + #temporals.format(so.approvedAt, 'MMM d') : 'Returned ' + #temporals.format(so.returnedAt, 'MMM d')}"></td>
+                <td><span class="status" th:classappend="${'status-' + #strings.toLowerCase(q.status)}" th:text="${#strings.replace(q.status, '_', ' ')}"></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div th:replace="~{fragments/quote-doc :: approveSendDialog(${null}, ${null}, ${null}, ${null})}"></div>
+
+      <dialog class="app-dialog" id="returnDialog" aria-labelledby="returnTitle">
+        <form th:action="@{/Approvals}" method="post">
+          <input type="hidden" name="from" />
+          <header class="dialog-header"><div><h2 id="returnTitle" data-dialog-title>Return for changes</h2>
+            <p>It goes back to the preparer as a draft, with your note on top. It must be approved again before sending.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="returnDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <label class="form-label" for="returnNote">What should be changed?</label>
+            <textarea id="returnNote" name="note" class="form-control" rows="4" maxlength="1000" placeholder="e.g. Labor days look short for 4 units; please check the copper pipe quantity."></textarea>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="returnDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary">Return to preparer</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

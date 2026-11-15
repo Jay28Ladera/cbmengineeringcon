@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Admin expenses')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Admin expenses">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Admin expenses</h1>
+          <p class="page-sub">Office and operating costs for the month, from bills, petty cash and payroll. Monthly expenses (rent, internet, utilities) are set up once and billed with one click each month.</p></div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Accounting/AdminExpenses(month=${prev})}"><i class="bi bi-chevron-left"></i></a>
+          <span class="btn btn-ghost disabled" th:text="${#temporals.format(month.atDay(1), 'MMMM yyyy')}"></span>
+          <a class="btn btn-outline" th:href="@{/Accounting/AdminExpenses(month=${next})}"><i class="bi bi-chevron-right"></i></a>
+          <a class="btn btn-primary" th:href="@{/Accounting/Payables/new}"><i class="bi bi-plus-lg"></i>Enter expense bill</a>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${dueNow > 0}" class="alert alert-warning mb-3" th:text="${dueNow + ' monthly expense(s) not yet billed this month. Use Bill this month below.'}"></div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-5">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-pie-chart"></i>By account</h2><span class="fw-semibold" th:text="${'₱' + #numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(totals)}"><table class="data-table">
+              <tbody><tr th:each="t : ${totals}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${t.account().id},from=${month.atDay(1)},to=${month.atEndOfMonth()})}">
+                <td><span class="mono small" th:text="${t.account().code}"></span> <span th:text="${t.account().name}"></span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(t.amount(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+            </table></div>
+            <div class="panel-body text-muted small" th:if="${#lists.isEmpty(totals)}">No operating expenses posted this month.</div>
+          </section>
+        </div>
+        <div class="col-lg-7">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i>Expense bills this month</h2></div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(monthBills)}"><table class="data-table">
+              <thead><tr><th>Bill</th><th>Supplier</th><th>Due</th><th class="money">Amount</th></tr></thead>
+              <tbody><tr th:each="b : ${monthBills}" class="row-link" th:attr="data-href=@{/Accounting/Payables/{id}(id=${b.id})}">
+                <td><a class="mono" th:href="@{/Accounting/Payables/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${'status-bill-' + #strings.toLowerCase(b.status)}" th:text="${b.status}"></span><div class="cell-sub" th:text="${b.memo}"></div></td>
+                <td th:text="${supplierMap.get(b.supplierId) != null ? supplierMap.get(b.supplierId).name : ''}"></td>
+                <td th:text="${#temporals.format(b.dueDate, 'MMM d')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+            </table></div>
+            <div class="panel-body text-muted small" th:if="${#lists.isEmpty(monthBills)}">No expense bills dated this month.</div>
+          </section>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-calendar2-check"></i>Monthly expenses</h2>
+          <button class="btn btn-sm btn-outline" type="button" data-fill="recDialog" data-title="Add monthly expense"><i class="bi bi-plus-lg"></i>Add</button></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(recurring)}"><table class="data-table">
+          <thead><tr><th>Expense</th><th>Supplier</th><th>Account</th><th class="num">Day</th><th class="money">Usual amount</th><th>This month</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="r : ${recurring}" th:classappend="${!r.active} ? ' row-void'">
+            <td th:text="${r.description}"></td>
+            <td th:text="${supplierMap.get(r.supplierId) != null ? supplierMap.get(r.supplierId).name : ''}"></td>
+            <td class="small" th:text="${accountMap.get(r.accountId) != null ? accountMap.get(r.accountId).label : ''}"></td>
+            <td class="num" th:text="${r.dayOfMonth}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td>
+              <span th:if="${r.lastMonth == thisMonth}" class="status status-approved">Billed</span>
+              <form th:if="${r.active and r.lastMonth != thisMonth}" th:action="@{/Accounting/AdminExpenses/recurring/{id}/bill(id=${r.id})}" method="post" class="d-flex gap-1">
+                <input name="amount" class="form-control form-control-sm text-end" style="width:110px" inputmode="decimal" th:value="${r.amount}" aria-label="Amount this month" />
+                <input name="invoiceNo" class="form-control form-control-sm" style="width:100px" placeholder="Invoice no." aria-label="Invoice number" />
+                <button class="btn btn-sm btn-primary" type="submit">Bill this month</button></form></td>
+            <td class="actions"><button type="button" class="btn btn-sm btn-ghost" data-fill="recDialog"
+              th:attr="data-title=${'Edit ' + r.description},data-f-id=${r.id},data-f-supplier-id=${r.supplierId},data-f-description=${r.description},data-f-account-id=${r.accountId},data-f-job-order-id=${r.jobOrderId},data-f-amount=${r.amount},data-f-vat-mode=${r.vatMode},data-f-ewt-rate=${r.ewtRate.stripTrailingZeros().toPlainString()},data-f-day-of-month=${r.dayOfMonth},data-f-due-days=${r.dueDays},data-f-active=${r.active}">Edit</button></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(recurring)}">None yet. Add rent, internet, electricity, water and other monthly bills.</div>
+      </section>
+      <dialog class="app-dialog" id="recDialog">
+        <form th:action="@{/Accounting/AdminExpenses/recurring}" method="post">
+          <input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 data-dialog-title>Monthly expense</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="recDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="e1">Supplier / payee <span class="req">*</span></label><select id="e1" name="supplierId" class="form-select" required><option value="">Choose…</option>
+              <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}"></option></select><div class="form-text">Landlord, utility company… add them in Purchasing › Suppliers.</div></div>
+            <div class="col-md-6"><label class="form-label" for="e2">Description <span class="req">*</span></label><input id="e2" name="description" class="form-control" maxlength="300" required placeholder="Office rent" /></div>
+            <div class="col-md-6"><label class="form-label" for="e3">Account</label><select id="e3" name="accountId" class="form-select"><option th:each="a : ${expenseAccounts}" th:value="${a.id}" th:text="${a.label}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="e4">Job order</label><select id="e4" name="jobOrderId" class="form-select"><option value="">Office</option><option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}"></option></select></div>
+            <div class="col-md-4"><label class="form-label" for="e5">Usual amount <span class="req">*</span></label><input id="e5" name="amount" class="form-control text-end" inputmode="decimal" required /></div>
+            <div class="col-md-4"><label class="form-label" for="e6">VAT</label><select id="e6" name="vatMode" class="form-select"><option value="INCLUSIVE">Includes 12% VAT</option><option value="EXCLUSIVE">VAT added</option><option value="NONE">No VAT</option></select></div>
+            <div class="col-md-4"><label class="form-label" for="e7">EWT %</label><select id="e7" name="ewtRate" class="form-select"><option value="0">None</option><option value="5">5% · rent</option><option value="1">1%</option><option value="2">2%</option><option value="10">10%</option></select></div>
+            <div class="col-md-4"><label class="form-label" for="e8">Bill date (day of month)</label><input id="e8" name="dayOfMonth" class="form-control text-end" value="1" /></div>
+            <div class="col-md-4"><label class="form-label" for="e9">Due after (days)</label><input id="e9" name="dueDays" class="form-control text-end" value="15" /></div>
+            <div class="col-md-4 d-flex align-items-end"><label class="oc-switch"><input type="checkbox" name="active" value="true" checked /><span></span>Active</label></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="recDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

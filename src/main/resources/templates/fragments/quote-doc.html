@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  Client-facing quotation document (what the client sees and prints), and the signature block.
+  doc(quotation, signoff)        : the whole read-only document, used on the client's page (/q/{token}).
+  signatures(quotation, signoff) : CBM approval + client conforme, also placed on the internal quotation page.
+-->
+<body>
+
+<article class="doc" th:fragment="doc(quotation, signoff)" th:with="inq=${quotation.inquiry}">
+  <header class="doc-head">
+    <div class="doc-brand">
+      <img th:src="@{/images/logo-cbm.webp}" width="360" height="208" alt="CBM" />
+      <div><div class="name">CBM Engineering<br />&amp; Construction</div><div class="kind">Project quotation</div></div>
+    </div>
+    <div class="doc-meta">
+      <div class="doc-no" th:text="${quotation.quotationNumber}"></div>
+      <div class="date">Date: <span th:text="${#temporals.format(quotation.sentAt != null ? quotation.sentAt : quotation.createdAt, 'MMMM d, yyyy')}"></span></div>
+      <div class="date" th:if="${signoff.expiresAt != null}">Valid until: <span th:text="${#temporals.format(signoff.expiresAt, 'MMMM d, yyyy')}"></span></div>
+    </div>
+  </header>
+
+  <section class="doc-section">
+    <div class="party-grid">
+      <div class="party">
+        <h2>Prepared for</h2>
+        <div class="name" th:text="${inq.fullName}"></div>
+        <div th:if="${inq.company}" th:text="${inq.company}"></div>
+        <div th:text="${inq.email}"></div>
+        <div th:text="${inq.phone}"></div>
+      </div>
+      <div class="party">
+        <h2>Project</h2>
+        <div class="name" th:text="${inq.projectName}"></div>
+        <div th:text="${inq.projectLocation}"></div>
+        <div th:if="${inq.propertyType}" th:text="${inq.propertyType}"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="doc-section" th:if="${inq.servicesNeeded != null or inq.projectDetails != null}">
+    <h2>Scope</h2>
+    <div class="fw-semibold mb-1" th:text="${inq.servicesNeeded}"></div>
+    <p class="pre-line text-muted mb-0" th:text="${inq.projectDetails}"></p>
+  </section>
+
+  <section class="doc-section">
+    <h2>Priced items</h2>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th style="width:44px">#</th><th>Description</th><th class="money">Qty</th><th>Unit</th><th class="money">Unit price</th><th class="money">Amount</th></tr></thead>
+        <tbody>
+          <tr th:each="item, s : ${quotation.lineItems}">
+            <td class="text-muted mono" th:text="${s.count}"></td>
+            <td th:text="${item.description}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(item.quantity, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td th:text="${item.unit}"></td>
+            <td class="money" th:text="${'₱' + #numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${'₱' + #numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="doc-section">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <th:block th:if="${quotation.terms != null and !#strings.isEmpty(quotation.terms)}">
+          <h2>Terms and notes</h2>
+          <p class="pre-line mb-0" th:text="${quotation.terms}"></p>
+        </th:block>
+      </div>
+      <div class="col-lg-6">
+        <div class="totals">
+          <div class="row-t"><span>Subtotal</span><span class="mono" th:text="${'₱' + #numbers.formatDecimal(quotation.subtotal, 1, 'COMMA', 2, 'POINT')}"></span></div>
+          <div class="row-t" th:if="${quotation.discountAmount.signum() > 0}"><span>Discount</span><span class="mono" th:text="${'− ₱' + #numbers.formatDecimal(quotation.discountAmount, 1, 'COMMA', 2, 'POINT')}"></span></div>
+          <div class="row-t"><span>Tax (<span th:text="${quotation.taxRate}"></span>%)</span><span class="mono" th:text="${'₱' + #numbers.formatDecimal(quotation.taxAmount, 1, 'COMMA', 2, 'POINT')}"></span></div>
+          <div class="row-t grand"><span>Total</span><span class="mono" th:text="${'₱' + #numbers.formatDecimal(quotation.grandTotal, 1, 'COMMA', 2, 'POINT')}"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section th:replace="~{fragments/quote-doc :: signatures(${quotation}, ${signoff})}"></section>
+</article>
+
+<section class="doc-section sig-block" th:fragment="signatures(quotation, signoff)">
+  <div class="sig-grid">
+    <div class="sig-box">
+      <h2>Prepared and approved by</h2>
+      <div class="sig-img">
+        <img th:if="${signoff.approverSigUrl != null}" th:src="${signoff.approverSigUrl}" alt="Signature of the approver" />
+        <span th:unless="${signoff.approved}" class="sig-pending">Waiting for approval</span>
+      </div>
+      <div class="sig-name" th:text="${signoff.approved ? signoff.approverName : ' '}"></div>
+      <div class="sig-role" th:text="${signoff.approved ? signoff.approverTitle + ' · CBM Engineering & Construction' : 'CBM Engineering & Construction'}"></div>
+      <div class="sig-date" th:if="${signoff.approved}" th:text="${'Approved ' + #temporals.format(signoff.approvedAt, 'MMMM d, yyyy')}"></div>
+    </div>
+    <div class="sig-box">
+      <h2>Conforme · accepted by the client</h2>
+      <div class="sig-img">
+        <img th:if="${signoff.clientSigUrl != null}" th:src="${signoff.clientSigUrl}" alt="Signature of the client" />
+        <span th:if="${signoff.clientSigUrl == null and signoff.hasClientFile() and quotation.status == 'ACCEPTED'}" class="sig-pending">Signed copy uploaded</span>
+      </div>
+      <div class="sig-name" th:text="${quotation.status == 'ACCEPTED' and signoff.clientName != null ? signoff.clientName : ' '}"></div>
+      <div class="sig-role" th:text="${quotation.status == 'ACCEPTED' and signoff.clientTitle != null ? signoff.clientTitle : 'Signature over printed name'}"></div>
+      <div class="sig-date" th:if="${quotation.status == 'ACCEPTED' and signoff.clientRespondedAt != null}"
+           th:text="${'Accepted ' + #temporals.format(signoff.clientRespondedAt, 'MMMM d, yyyy · h:mm a') + (signoff.clientSigUrl != null ? ' · signed electronically' : '')}"></div>
+      <div class="sig-date" th:unless="${quotation.status == 'ACCEPTED'}">Date</div>
+    </div>
+  </div>
+</section>
+
+<!-- Approve and email the client in one step. action: the form's URL, or null when a data-fill button sets it. -->
+<dialog class="app-dialog" id="approveSendDialog" aria-labelledby="asTitle" th:fragment="approveSendDialog(action, to, cc, message)">
+  <form th:action="${action != null ? action : '#'}" method="post">
+    <input type="hidden" name="from" />
+    <header class="dialog-header"><div><h2 id="asTitle" data-dialog-title>Approve and send to the client</h2>
+      <p>Your signature goes on the quotation and the client gets an email with a link to view and sign it. Their reply comes to you.</p></div>
+      <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="approveSendDialog"><i class="bi bi-x-lg"></i></button></header>
+    <div class="dialog-body">
+      <div class="row g-3">
+        <div class="col-md-8"><label class="form-label" for="asTo">Client's email <span class="req">*</span></label>
+          <input id="asTo" name="to" type="email" class="form-control" required th:value="${to}" /></div>
+        <div class="col-md-4"><label class="form-label" for="asDays">Valid for</label>
+          <div class="input-group"><input id="asDays" name="validDays" type="number" min="1" max="365" class="form-control" value="30" /><span class="input-group-text">days</span></div></div>
+        <div class="col-12"><label class="form-label" for="asCc">CC</label>
+          <input id="asCc" name="cc" class="form-control" placeholder="name@example.com" th:value="${cc}" />
+          <div class="form-hint">The person who prepared it is copied, so they know it went out.</div></div>
+        <div class="col-12"><label class="form-label" for="asMsg">Message</label>
+          <textarea id="asMsg" name="message" class="form-control" rows="4" maxlength="2000" th:text="${message}"></textarea></div>
+      </div>
+    </div>
+    <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="approveSendDialog">Cancel</button>
+      <button type="submit" class="btn btn-success"><i class="bi bi-send-check"></i>Approve &amp; send</button></footer>
+  </form>
+</dialog>
+
+</body>
+</html>

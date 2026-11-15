@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Enter bill')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Enter bill">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow"><a th:href="@{/Accounting/Payables}">Payables</a></div>
+          <h1 class="page-title" th:text="${po != null ? (po.payFirst ? 'Request payment for ' + po.number : 'Bill for ' + po.number) : 'Enter bill'}"></h1>
+          <p class="page-sub" th:if="${po != null and po.payFirst}">This supplier is paid before the order is placed. Recording the bill lets Finance prepare the payment voucher; once it is released, Purchasing can place the order.</p>
+          <p class="page-sub" th:if="${po != null and !po.payFirst}">Bills what was delivered and not yet billed. Match it to the supplier's invoice; the amount owed falls due by the PO terms.</p>
+          <p class="page-sub" th:if="${po == null}">For expenses without a purchase order: rentals, utilities, repairs, services. Choose the expense account for each line.</p>
+        </div>
+      </div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <form th:action="@{/Accounting/Payables}" method="post" data-bill-form>
+        <input type="hidden" name="poId" th:value="${po != null ? po.id : ''}" />
+        <section class="panel mb-4">
+          <div class="panel-body">
+            <div class="row g-3">
+              <div class="col-md-5"><label class="form-label" for="b1">Supplier <span class="req">*</span></label>
+                <input th:if="${po != null}" class="form-control" disabled th:value="${supplierMap.get(po.supplierId) != null ? supplierMap.get(po.supplierId).name : ''}" />
+                <input th:if="${po != null}" type="hidden" name="supplierId" th:value="${po.supplierId}" />
+                <select th:if="${po == null}" id="b1" name="supplierId" class="form-select" required>
+                  <option value="">Choose…</option>
+                  <option th:each="s : ${suppliers}" th:value="${s.id}" th:text="${s.name}" th:selected="${bill.supplierId == s.id}"></option>
+                </select></div>
+              <div class="col-md-3"><label class="form-label" for="b2">Supplier invoice / SI no.</label><input id="b2" name="invoiceNo" class="form-control" maxlength="60" th:value="${bill.invoiceNo}" th:placeholder="${po != null and po.payFirst ? 'If already issued' : 'e.g. SI 004512'}" /></div>
+              <div class="col-md-2"><label class="form-label" for="b3">Bill date</label><input id="b3" type="date" name="billDate" class="form-control" th:value="${bill.billDate}" /></div>
+              <div class="col-md-2"><label class="form-label" for="b4">Due date</label><input id="b4" type="date" name="dueDate" class="form-control" th:value="${bill.dueDate}" /></div>
+              <div class="col-md-3" th:if="${po != null}"><label class="form-label">VAT</label><input class="form-control" disabled th:value="${bill.vatLabel}" />
+                <input type="hidden" name="vatMode" th:value="${bill.vatMode}" /><div class="form-text">Follows the PO (edit the PO to change it).</div></div>
+              <div class="col-md-3" th:if="${po == null}"><label class="form-label" for="b5">VAT</label>
+                <select id="b5" name="vatMode" class="form-select">
+                  <option value="INCLUSIVE" th:selected="${bill.vatMode == 'INCLUSIVE'}">Prices include 12% VAT</option>
+                  <option value="EXCLUSIVE" th:selected="${bill.vatMode == 'EXCLUSIVE'}">VAT added on top</option>
+                  <option value="NONE" th:selected="${bill.vatMode == 'NONE'}">No VAT (non-VAT supplier)</option>
+                </select></div>
+              <input type="hidden" name="vatRate" th:value="${bill.vatRate}" />
+              <div class="col-md-3"><label class="form-label" for="b6">Withholding tax (EWT)</label>
+                <select id="b6" name="ewtRate" class="form-select">
+                  <option th:each="r : ${ {'1','2','5','10','15','0'} }" th:value="${r}" th:text="${r == '0' ? 'None' : r + '%'}" th:selected="${bill.ewtRate.stripTrailingZeros().toPlainString() == r}"></option>
+                </select><div class="form-text">Withheld when paid; BIR 2307 goes to the supplier.</div></div>
+              <div class="col-md-3"><label class="form-label" for="b7">Job order</label>
+                <select id="b7" name="jobOrderId" class="form-select">
+                  <option value="">Office / warehouse</option>
+                  <option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}" th:selected="${bill.jobOrderId == j.id()}"></option>
+                </select></div>
+              <div class="col-md-3"><label class="form-label" for="b8">Memo</label><input id="b8" name="memo" class="form-control" maxlength="500" /></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel mb-4">
+          <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-ul"></i>Lines</h2>
+            <button th:if="${po == null}" class="btn btn-sm btn-outline" type="button" data-add-row="billLines"><i class="bi bi-plus-lg"></i>Add line</button></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Description</th><th class="num" style="width:110px">Qty</th><th class="money" style="width:140px">Unit price</th><th class="money" style="width:130px">Amount</th><th style="width:250px">Account</th><th th:if="${po == null}" style="width:40px"></th></tr></thead>
+              <tbody id="billLines">
+                <tr th:each="l : ${lines}" data-bill-line>
+                  <td><input name="l_desc" class="form-control" th:value="${l.description()}" readonly /><input type="hidden" name="l_poline" th:value="${l.poLineId()}" /><input type="hidden" name="l_job" th:value="${l.jobOrderId()}" /></td>
+                  <td><input name="l_qty" class="form-control text-end" inputmode="decimal" th:value="${l.qty().stripTrailingZeros().toPlainString()}" th:readonly="${po.payFirst}" /></td>
+                  <td><input name="l_price" class="form-control text-end" inputmode="decimal" th:value="${l.unitPrice()}" th:readonly="${po != null}" /></td>
+                  <td class="money" data-amt>0.00</td>
+                  <td><input type="hidden" name="l_account" th:value="${l.accountId()}" /><span class="small text-muted">2040 · Goods received, not yet billed</span></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(lines)}" data-bill-line>
+                  <td><input name="l_desc" class="form-control" maxlength="300" placeholder="e.g. Generator rental, 3 days" /><input type="hidden" name="l_poline" value="" /><input type="hidden" name="l_job" value="" /></td>
+                  <td><input name="l_qty" class="form-control text-end" inputmode="decimal" value="1" /></td>
+                  <td><input name="l_price" class="form-control text-end" inputmode="decimal" /></td>
+                  <td class="money" data-amt>0.00</td>
+                  <td><select name="l_account" class="form-select">
+                    <option th:each="a : ${expenseAccounts}" th:value="${a.id}" th:text="${a.label}" th:selected="${a.code == '6190'}"></option></select></td>
+                  <td><button class="btn btn-sm btn-ghost btn-icon" type="button" data-remove-row aria-label="Remove line"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="panel-body d-flex">
+            <div class="acc-totals">
+              <div><span>Net of VAT</span><span data-total="net">0.00</span></div>
+              <div><span>Input VAT</span><span data-total="vat">0.00</span></div>
+              <div class="grand"><span>Bill total (owed)</span><span data-total="gross">0.00</span></div>
+              <div class="text-muted small"><span>Less EWT when paid</span><span data-total="ewt">0.00</span></div>
+              <div class="text-muted small"><span>Cash out to supplier</span><span data-total="pay">0.00</span></div>
+            </div>
+          </div>
+        </section>
+        <div class="d-flex justify-content-end gap-2">
+          <a class="btn btn-ghost" th:href="${po != null} ? @{/Purchasing/Procurements/{id}(id=${po.id})} : @{/Accounting/Payables}">Cancel</a>
+          <button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Record bill</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

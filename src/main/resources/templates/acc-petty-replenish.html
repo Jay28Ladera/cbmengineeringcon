@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Replenish petty cash')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Replenish petty cash">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/PettyCash}">Petty cash</a></div><h1 class="page-title" th:text="${'Replenish ' + fund.name}"></h1>
+          <p class="page-sub" th:text="${'On hand ₱' + #numbers.formatDecimal(balance, 1, 'COMMA', 2, 'POINT') + '. The cheque below refills what these vouchers and advances paid out.'}"></p></div>
+      </div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel mb-4">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Voucher</th><th>Date</th><th>Paid to</th><th>For</th><th>Account</th><th class="money">Amount</th></tr></thead>
+          <tbody>
+            <tr th:each="v : ${u.vouchers()}"><td class="mono" th:text="${v.number}"></td><td th:text="${#temporals.format(v.voucherDate, 'MMM d')}"></td><td th:text="${v.payee}"></td>
+              <td th:text="${v.description}"></td><td class="small" th:text="${accountMap.get(v.accountId) != null ? accountMap.get(v.accountId).label : ''}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(v.amount, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+            <tr th:each="a : ${u.advances()}"><td class="mono" th:text="${a.number}"></td><td th:text="${#temporals.format(a.advanceDate, 'MMM d')}"></td><td th:text="${a.employeeName}"></td>
+              <td th:text="${'Cash advance · ' + a.purpose}"></td><td class="small">1410 · Advances to Employees</td>
+              <td class="money" th:text="${#numbers.formatDecimal(a.amount.subtract(a.returned), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+          </tbody>
+          <tfoot><tr class="tb-total"><td colspan="5">To replenish</td><td class="money" th:text="${#numbers.formatDecimal(u.total(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+        </table></div>
+      </section>
+      <form th:action="@{/Accounting/PettyCash/fund/{id}/replenish(id=${fund.id})}" method="post" class="panel">
+        <div class="panel-body row g-3 align-items-end">
+          <div class="col-md-5"><label class="form-label" for="r1">From</label><select id="r1" name="bankId" class="form-select" required><option th:each="b : ${banks}" th:value="${b.id}" th:text="${b.label}"></option></select></div>
+          <div class="col-md-3"><label class="form-label" for="r2">Cheque no.</label><input id="r2" name="chequeNo" class="form-control" maxlength="40" /></div>
+          <div class="col-md-2"><label class="form-label" for="r3">Date</label><input id="r3" type="date" name="date" class="form-control" th:value="${today}" /></div>
+          <div class="col-md-2"><button class="btn btn-primary w-100" type="submit" th:disabled="${u.total().signum() <= 0}"><i class="bi bi-arrow-repeat"></i>Replenish</button></div>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

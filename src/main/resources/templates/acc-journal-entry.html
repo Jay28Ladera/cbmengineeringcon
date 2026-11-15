@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Journal entry')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Journal entry">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Journal}">Journal</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${entry.number}"></span> <span class="status" th:classappend="${'status-je-' + #strings.toLowerCase(entry.status)}" th:text="${entry.status == 'VOID' ? 'Reversed' : 'Posted'}"></span></h1>
+          <p class="page-sub"><span th:text="${#temporals.format(entry.entryDate, 'MMMM d, yyyy')}"></span> · <span th:text="${entry.memo}"></span></p></div>
+        <div class="page-actions">
+          <a th:if="${sourceLink != null}" class="btn btn-outline" th:href="@{${sourceLink}}"><i class="bi bi-box-arrow-up-right"></i>Open <span th:text="${entry.sourceRef ?: 'document'}"></span></a>
+          <button th:if="${entry.posted and entry.reversesId == null and (entry.source == 'MANUAL' or entry.source == 'OPENING')}" class="btn btn-outline" type="button" data-open-dialog="jeVoid"><i class="bi bi-arrow-counterclockwise"></i>Void</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${reversedBy}" class="alert alert-secondary mb-3">Reversed by <a class="mono" th:href="@{/Accounting/Journal/{id}(id=${reversedBy.id})}" th:text="${reversedBy.number}"></a><span th:text="${entry.voidReason != null ? ': ' + entry.voidReason : ''}"></span></div>
+      <div th:if="${reverses}" class="alert alert-secondary mb-3">This reverses <a class="mono" th:href="@{/Accounting/Journal/{id}(id=${reverses.id})}" th:text="${reverses.number}"></a>.</div>
+      <section class="panel">
+        <div class="panel-body small text-muted" th:text="${'Source: ' + #strings.capitalize(#strings.toLowerCase(entry.source)) + (entry.sourceRef != null ? ' ' + entry.sourceRef : '') + ' · posted by ' + entry.createdBy + ' · ' + #temporals.format(entry.createdAt, 'MMM d, yyyy h:mm a')}"></div>
+        <div class="table-wrap">
+          <table class="data-table je-table">
+            <thead><tr><th>Account</th><th>Memo</th><th>Job / supplier</th><th class="money">Debit</th><th class="money">Credit</th></tr></thead>
+            <tbody>
+              <tr th:each="l : ${jlines}" th:with="a=${accountMap.get(l.accountId)}">
+                <td><a th:if="${a != null}" th:href="@{/Accounting/Accounts/{id}(id=${a.id})}"><span class="mono" th:text="${a.code}"></span> <span th:text="${a.name}"></span></a></td>
+                <td class="cell-wrap" th:text="${l.memo}"></td>
+                <td class="small"><span th:if="${l.jobOrderId != null and jobMap.get(l.jobOrderId) != null}" th:text="${jobMap.get(l.jobOrderId).label()}"></span>
+                  <span th:if="${l.supplierId != null and supplierMap.get(l.supplierId) != null}" th:text="${supplierMap.get(l.supplierId).name}"></span></td>
+                <td class="money" th:text="${l.debit.signum() > 0 ? #numbers.formatDecimal(l.debit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+                <td class="money" th:text="${l.credit.signum() > 0 ? #numbers.formatDecimal(l.credit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <dialog class="app-dialog" id="jeVoid">
+        <form th:action="@{/Accounting/Journal/{id}/void(id=${entry.id})}" method="post">
+          <header class="dialog-header"><div><h2>Void entry</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="jeVoid"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><p>A reversing entry is posted today; both stay on record.</p><label class="form-label" for="jv">Reason</label><input id="jv" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="jeVoid">Keep</button><button type="submit" class="btn btn-danger">Void</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

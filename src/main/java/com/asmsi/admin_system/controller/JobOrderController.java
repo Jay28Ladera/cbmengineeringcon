@@ -14,7 +14,10 @@ import java.util.List;
 @RequestMapping({"/JobOrders", "/Implementation/JobOrders"})
 public class JobOrderController {
     private final JobOrderRepository jobOrders;
-    public JobOrderController(JobOrderRepository jobOrders) { this.jobOrders = jobOrders; }
+    private final com.asmsi.admin_system.inventory.JobOrderMaterials materials;
+    public JobOrderController(JobOrderRepository jobOrders, com.asmsi.admin_system.inventory.JobOrderMaterials materials) {
+        this.jobOrders = jobOrders; this.materials = materials;
+    }
 
     @GetMapping
     public String list(Model model) {
@@ -23,12 +26,18 @@ public class JobOrderController {
         return "job-orders";
     }
 
+    @org.springframework.beans.factory.annotation.Autowired private com.asmsi.admin_system.accounting.ClientBillingService billingService;
+    @org.springframework.beans.factory.annotation.Autowired private com.asmsi.admin_system.accounting.JobContractRepository billingTerms;
+
     @GetMapping("/{id}")
     public String view(@PathVariable Long id, Model model) {
         var order = jobOrders.findWithDetailsById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job order not found"));
         model.addAttribute("jobOrder", order);
         model.addAttribute("nextStatuses", allowedNext(order.getStatus()));
+        model.addAttribute("mat", materials.forJobOrder(order.getId(), order.getQuotation()));
+        model.addAttribute("billingSet", billingTerms.existsById(id));
+        model.addAttribute("billing", billingTerms.existsById(id) ? billingService.summary(id) : null);
         model.addAttribute("activePage", "job-orders");
         return "job-order-detail";
     }

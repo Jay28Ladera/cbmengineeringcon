@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Journal')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Journal">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Journal</h1>
+          <p class="page-sub">Every posting, newest first. Bills, payments and stock movements post here on their own; use a manual entry for anything else (bank charges, corrections, accruals).</p></div>
+        <div class="page-actions"><a class="btn btn-primary" th:href="@{/Accounting/Journal/new}"><i class="bi bi-plus-lg"></i>Manual entry</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div class="mb-3 d-flex flex-wrap gap-1">
+        <a class="btn btn-sm" th:classappend="${source == null or source == ''} ? 'btn-primary' : 'btn-outline'" th:href="@{/Accounting/Journal}">All</a>
+        <a th:each="s : ${sources}" class="btn btn-sm" th:classappend="${source == s} ? 'btn-primary' : 'btn-outline'" th:href="@{/Accounting/Journal(source=${s})}" th:text="${#strings.capitalize(#strings.toLowerCase(s))}"></a>
+      </div>
+      <section class="panel">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(entries)}">
+          <table class="data-table">
+            <thead><tr><th>Date</th><th>Entry</th><th>Description</th><th>Source</th><th class="money">Amount</th></tr></thead>
+            <tbody>
+              <tr th:each="e : ${entries}" class="row-link" th:classappend="${e.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/Journal/{id}(id=${e.id})}">
+                <td class="text-nowrap" th:text="${#temporals.format(e.entryDate, 'MMM d, yyyy')}"></td>
+                <td><a class="mono" th:href="@{/Accounting/Journal/{id}(id=${e.id})}" th:text="${e.number}"></a> <span th:if="${e.status == 'VOID'}" class="status status-je-void">Reversed</span><span th:if="${e.reversesId != null}" class="status status-draft">Reversal</span></td>
+                <td class="cell-wrap" th:text="${e.memo}"></td>
+                <td class="small"><span th:text="${#strings.capitalize(#strings.toLowerCase(e.source))}"></span> <span class="mono" th:text="${e.sourceRef}"></span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(totals.get(e.id) ?: 0, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(entries)}"><div class="empty-icon"><i class="bi bi-journal"></i></div><h3>No entries yet</h3><p>Receiving stock, recording a bill or releasing a payment posts here automatically.</p></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

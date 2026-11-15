@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Holidays')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Human Resources" data-title="Holidays">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Holidays</h1>
+          <p class="page-sub">Marked on the time sheet and used by the pay sheet. Work on a <b>regular</b> holiday adds 100% of the daily rate (2X); work on a <b>special</b> holiday adds 30%. Holidays don't count as absences.</p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-ghost btn-icon" th:href="@{/HR/Holidays(year=${year - 1})}" aria-label="Previous year"><i class="bi bi-chevron-left"></i></a>
+          <span class="year-label" th:text="${year}">2026</span>
+          <a class="btn btn-ghost btn-icon" th:href="@{/HR/Holidays(year=${year + 1})}" aria-label="Next year"><i class="bi bi-chevron-right"></i></a>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <div class="row g-3">
+        <div class="col-lg-8">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-calendar-event"></i><span th:text="${year + ' holidays'}"></span> <span class="count-badge" th:text="${#lists.size(holidays)}">0</span></h2></div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(holidays)}">
+              <table class="data-table">
+                <thead><tr><th>Date</th><th>Holiday</th><th>Type</th><th class="actions"></th></tr></thead>
+                <tbody>
+                  <tr th:each="h : ${holidays}">
+                    <td class="text-nowrap"><div class="cell-main" th:text="${#temporals.format(h.date, 'MMM d')}"></div><div class="cell-sub" th:text="${#temporals.format(h.date, 'EEEE')}"></div></td>
+                    <td th:text="${h.name}"></td>
+                    <td><span class="status" th:classappend="${h.regular} ? ' status-rejected' : ' status-sent'" th:text="${h.regular ? 'Regular · 2X' : 'Special · 30%'}"></span></td>
+                    <td class="actions">
+                      <form th:action="@{/HR/Holidays/{id}/delete(id=${h.id})}" method="post" th:attr="data-confirm=${'Remove ' + h.name + '?'}" data-confirm-tone="danger" data-confirm-ok="Remove">
+                        <button class="btn btn-sm btn-ghost btn-icon" type="submit" aria-label="Remove"><i class="bi bi-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="empty-state" th:if="${#lists.isEmpty(holidays)}">
+              <div class="empty-icon"><i class="bi bi-calendar"></i></div>
+              <h3 th:text="${'No holidays for ' + year + ' yet'}">No holidays yet</h3>
+              <p>Add them from the official proclamation for the year, including local holidays (e.g. Cebu provincial holidays).</p>
+            </div>
+          </section>
+        </div>
+        <div class="col-lg-4">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-plus-circle"></i>Add holiday</h2></div>
+            <form class="panel-body" th:action="@{/HR/Holidays}" method="post">
+              <div class="mb-3"><label class="form-label" for="holDate">Date</label><input id="holDate" name="date" type="date" class="form-control" required /></div>
+              <div class="mb-3"><label class="form-label" for="holName">Name</label><input id="holName" name="name" class="form-control" maxlength="160" placeholder="e.g. Bonifacio Day" required /></div>
+              <div class="mb-3">
+                <span class="form-label d-block">Type</span>
+                <div class="seg">
+                  <label><input type="radio" name="type" value="REGULAR" checked /><span>Regular (2X)</span></label>
+                  <label><input type="radio" name="type" value="SPECIAL" /><span>Special (30%)</span></label>
+                </div>
+              </div>
+              <button class="btn btn-primary w-100" type="submit"><i class="bi bi-plus-lg"></i>Add holiday</button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

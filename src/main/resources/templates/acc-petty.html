@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Petty cash')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Petty cash">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Petty cash</h1>
+          <p class="page-sub">Small payments out of a fund kept by a custodian. Each voucher is charged to its expense (and job) right away; a replenishment cheque refills the fund for what was spent. Cash advances to employees are liquidated with receipts, and what is not returned is deducted from pay.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-outline" type="button" data-open-dialog="caDialog"><i class="bi bi-person-badge"></i>Cash advance</button>
+          <button class="btn btn-primary" type="button" data-open-dialog="pcvDialog"><i class="bi bi-plus-lg"></i>Petty cash voucher</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${#lists.isEmpty(funds)}" class="alert alert-info mb-3">No petty cash fund yet. Add one in <a th:href="@{/Accounting/Banks}">Banks &amp; Cash</a> (kind: Petty cash fund), then post its starting amount with a transfer.</div>
+
+      <div class="kpi-grid" th:unless="${#lists.isEmpty(funds)}">
+        <div class="kpi" th:each="f : ${funds}">
+          <div class="kpi-label"><span th:text="${f.fund().name}"></span><i class="bi bi-wallet2"></i></div>
+          <div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(f.balance(), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${(f.fund().custodian != null ? f.fund().custodian + ' · ' : '') + (f.fund().fundLimit != null ? 'fund ₱' + #numbers.formatDecimal(f.fund().fundLimit, 1, 'COMMA', 0, 'POINT') + ' · ' : '') + f.count() + ' to replenish'}"></div>
+          <a class="btn btn-sm btn-outline mt-2" th:if="${f.toReplenish().signum() > 0}" th:href="@{/Accounting/PettyCash/fund/{id}/replenish(id=${f.fund().id})}" th:text="${'Replenish ₱' + #numbers.formatDecimal(f.toReplenish(), 1, 'COMMA', 2, 'POINT')}"></a>
+        </div>
+      </div>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-person-badge"></i>Cash advances</h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(advances)}"><table class="data-table">
+          <thead><tr><th>Advance</th><th>Employee</th><th>Purpose</th><th>From</th><th class="money">Amount</th><th>Liquidation</th></tr></thead>
+          <tbody><tr th:each="a : ${advances}" class="row-link" th:classappend="${a.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/PettyCash/advance/{id}(id=${a.id})}">
+            <td><a class="mono" th:href="@{/Accounting/PettyCash/advance/{id}(id=${a.id})}" th:text="${a.number}"></a><div class="cell-sub" th:text="${#temporals.format(a.advanceDate, 'MMM d, yyyy')}"></div></td>
+            <td th:text="${a.employeeName}"></td>
+            <td class="cell-wrap"><span th:text="${a.purpose}"></span><div class="cell-sub" th:if="${a.jobOrderId != null and jobMap.get(a.jobOrderId) != null}" th:text="${jobMap.get(a.jobOrderId).number()}"></div></td>
+            <td th:text="${bankMap.get(a.sourceId) != null ? bankMap.get(a.sourceId).name : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(a.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span class="status" th:classappend="${a.open ? (a.overdue ? 'status-rejected' : 'status-pending') : (a.status == 'VOID' ? 'status-draft' : 'status-approved')}"
+                      th:text="${a.open ? (a.overdue ? 'Overdue' : 'To liquidate') : (a.status == 'VOID' ? 'Void' : 'Liquidated')}"></span>
+              <div class="cell-sub" th:if="${a.toPayroll.signum() > 0}" th:text="${'₱' + #numbers.formatDecimal(a.toPayroll, 1, 'COMMA', 2, 'POINT') + ' via payroll'}"></div></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(advances)}">No cash advances.</div>
+      </section>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt-cutoff"></i>Petty cash vouchers</h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="pcvTable" aria-label="Search vouchers" /></div></div></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(vouchers)}"><table class="data-table" id="pcvTable">
+          <thead><tr><th>Voucher</th><th>Date</th><th>Fund</th><th>Paid to</th><th>For</th><th>Account</th><th class="money">Amount</th><th>Status</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="v : ${vouchers}" th:classappend="${!v.posted} ? ' row-void'">
+            <td class="mono" th:text="${v.number}"></td>
+            <td th:text="${#temporals.format(v.voucherDate, 'MMM d')}"></td>
+            <td th:text="${bankMap.get(v.fundId) != null ? bankMap.get(v.fundId).name : ''}"></td>
+            <td th:text="${v.payee}"></td>
+            <td class="cell-wrap"><span th:text="${v.description}"></span><div class="cell-sub" th:text="${(v.receiptNo != null ? 'OR ' + v.receiptNo : '') + (v.jobOrderId != null and jobMap.get(v.jobOrderId) != null ? ' · ' + jobMap.get(v.jobOrderId).number() : '')}"></div></td>
+            <td class="small" th:text="${accountMap.get(v.accountId) != null ? accountMap.get(v.accountId).label : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(v.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span class="status" th:classappend="${!v.posted ? 'status-rejected' : (v.replenishmentId != null ? 'status-approved' : 'status-pending')}" th:text="${!v.posted ? 'Void' : (v.replenishmentId != null ? 'Replenished' : 'Unreplenished')}"></span></td>
+            <td class="actions"><button th:if="${v.posted and v.replenishmentId == null}" type="button" class="btn btn-sm btn-ghost" data-fill="pcvVoid"
+                th:attr="data-action=@{/Accounting/PettyCash/voucher/{id}/void(id=${v.id})},data-title=${'Void ' + v.number}">Void</button></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(vouchers)}">No vouchers yet.</div>
+      </section>
+
+      <section class="panel" th:unless="${#lists.isEmpty(replenishments)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-arrow-repeat"></i>Replenishments</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>No.</th><th>Date</th><th>Fund</th><th>From</th><th>Cheque</th><th class="money">Amount</th></tr></thead>
+          <tbody><tr th:each="r : ${replenishments}"><td class="mono" th:text="${r.number}"></td><td th:text="${#temporals.format(r.replDate, 'MMM d, yyyy')}"></td>
+            <td th:text="${bankMap.get(r.fundId) != null ? bankMap.get(r.fundId).name : ''}"></td><td th:text="${bankMap.get(r.bankId) != null ? bankMap.get(r.bankId).name : ''}"></td>
+            <td th:text="${r.chequeNo ?: '—'}"></td><td class="money" th:text="${#numbers.formatDecimal(r.amount, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+        </table></div>
+      </section>
+
+      <dialog class="app-dialog" id="pcvDialog">
+        <form th:action="@{/Accounting/PettyCash/voucher}" method="post">
+          <header class="dialog-header"><div><h2>Petty cash voucher</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="pcvDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="p1">Fund <span class="req">*</span></label><select id="p1" name="fundId" class="form-select" required>
+              <option th:each="f : ${funds}" th:value="${f.fund().id}" th:text="${f.fund().name + ' · ₱' + #numbers.formatDecimal(f.balance(), 1, 'COMMA', 2, 'POINT')}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="p2">Date</label><input id="p2" type="date" name="voucherDate" class="form-control" th:value="${today}" /></div>
+            <div class="col-md-6"><label class="form-label" for="p3">Paid to <span class="req">*</span></label><input id="p3" name="payee" class="form-control" maxlength="160" required /></div>
+            <div class="col-md-6"><label class="form-label" for="p4">Amount <span class="req">*</span></label><input id="p4" name="amount" class="form-control text-end" inputmode="decimal" required /></div>
+            <div class="col-12"><label class="form-label" for="p5">For <span class="req">*</span></label><input id="p5" name="description" class="form-control" maxlength="300" required placeholder="e.g. Tricycle fare to site, 2 trips" /></div>
+            <div class="col-md-6"><label class="form-label" for="p6">Expense account</label><select id="p6" name="accountId" class="form-select">
+              <option th:each="a : ${expenseAccounts}" th:value="${a.id}" th:text="${a.label}" th:selected="${a.code == '6070'}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="p7">Job order</label><select id="p7" name="jobOrderId" class="form-select"><option value="">Office</option>
+              <option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="p8">Receipt / OR no.</label><input id="p8" name="receiptNo" class="form-control" maxlength="60" /></div>
+            <div class="col-md-6"><label class="form-label" for="p9">Received by</label><input id="p9" name="receivedBy" class="form-control" maxlength="160" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="pcvDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Record</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="caDialog">
+        <form th:action="@{/Accounting/PettyCash/advance}" method="post">
+          <header class="dialog-header"><div><h2>Cash advance to an employee</h2><p>Liquidate it later with receipts; the rest is deducted from pay.</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="caDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="a1">Employee <span class="req">*</span></label><select id="a1" name="employeeId" class="form-select" required><option value="">Choose…</option>
+              <option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.fullName + (e.position != null ? ' · ' + e.position : '')}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="a2">Paid from <span class="req">*</span></label><select id="a2" name="sourceId" class="form-select" required>
+              <option th:each="b : ${sources}" th:value="${b.id}" th:text="${b.name}"></option></select></div>
+            <div class="col-md-4"><label class="form-label" for="a3">Amount <span class="req">*</span></label><input id="a3" name="amount" class="form-control text-end" inputmode="decimal" required /></div>
+            <div class="col-md-4"><label class="form-label" for="a4">Date</label><input id="a4" type="date" name="advanceDate" class="form-control" th:value="${today}" /></div>
+            <div class="col-md-4"><label class="form-label" for="a5">Liquidate by</label><input id="a5" type="date" name="dueDate" class="form-control" /></div>
+            <div class="col-md-8"><label class="form-label" for="a6">Purpose <span class="req">*</span></label><input id="a6" name="purpose" class="form-control" maxlength="300" required placeholder="e.g. Site purchases: fittings and consumables" /></div>
+            <div class="col-md-4"><label class="form-label" for="a7">Job order</label><select id="a7" name="jobOrderId" class="form-select"><option value="">Office</option>
+              <option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}"></option></select></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="caDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Give advance</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="pcvVoid">
+        <form th:action="@{/Accounting/PettyCash}" method="post">
+          <header class="dialog-header"><div><h2 data-dialog-title>Void voucher</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="pcvVoid"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><label class="form-label" for="pv">Reason</label><input id="pv" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="pcvVoid">Keep</button><button type="submit" class="btn btn-danger">Void</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

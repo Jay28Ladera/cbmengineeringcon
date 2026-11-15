@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Suppliers')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Purchasing" data-title="Suppliers">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Purchasing</div>
+          <h1 class="page-title">Suppliers</h1>
+          <p class="page-sub">Who CBM buys from. Suppliers are compared in canvasses and named on purchase orders and deliveries.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" data-fill="supplierDialog" data-title="Add supplier"><i class="bi bi-plus-lg"></i>Add supplier</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-truck"></i>Supplier directory <span class="count-badge" th:text="${#lists.size(rows)}">0</span></h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search suppliers…" data-filter-table="supTable" aria-label="Search suppliers" /></div></div>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table" id="supTable">
+            <thead><tr><th>Supplier</th><th>Contact</th><th>Supplies</th><th>Terms</th><th class="money">Ordered</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${rows}" th:with="s=${r.supplier()}" th:classappend="${!s.active} ? ' row-void'">
+                <td><div class="cell-main" th:text="${s.name}"></div><div class="cell-sub"><span th:text="${s.address}"></span><span th:if="${s.tin}" th:text="${' · TIN ' + s.tin}"></span><span th:unless="${s.active}" class="status status-rejected ms-1">Inactive</span></div></td>
+                <td><div th:text="${s.contactPerson ?: '—'}"></div><div class="cell-sub"><span th:text="${s.phone}"></span> <span th:text="${s.email}"></span></div></td>
+                <td class="cell-wrap" th:text="${s.supplies ?: '—'}"></td>
+                <td th:text="${s.paymentTerms ?: '—'}"></td>
+                <td class="money"><span th:text="${'₱' + #numbers.formatDecimal(r.ordered(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${r.orders() + ' PO(s)'}"></div></td>
+                <td class="actions">
+                  <a class="btn btn-sm btn-ghost" th:href="@{/Purchasing/Procurements/new(supplier=${s.id})}" title="New purchase order"><i class="bi bi-bag-plus"></i></a>
+                  <button type="button" class="btn btn-sm btn-outline" data-fill="supplierDialog" th:attr="data-title=${'Edit ' + s.name},data-f-id=${s.id},data-f-name=${s.name},data-f-contact-person=${s.contactPerson},data-f-phone=${s.phone},data-f-email=${s.email},data-f-address=${s.address},data-f-tin=${s.tin},data-f-payment-terms=${s.paymentTerms},data-f-supplies=${s.supplies},data-f-notes=${s.notes},data-f-active=${s.active},data-f-vat-registered=${s.isVat() ? 'YES' : 'NO'},data-f-ewt-rate=${s.ewt().stripTrailingZeros().toPlainString()}">Edit</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-truck"></i></div><h3>No suppliers yet</h3><p>Add the hardware stores, distributors and fabricators you buy from.</p></div>
+      </section>
+
+      <dialog class="app-dialog" id="supplierDialog" aria-labelledby="supTitle">
+        <form th:action="@{/Purchasing/Suppliers}" method="post">
+          <input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 id="supTitle" data-dialog-title>Add supplier</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="supplierDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="row g-3">
+              <div class="col-md-8"><label class="form-label" for="s1">Name <span class="req">*</span></label><input id="s1" name="name" class="form-control" maxlength="160" required /></div>
+              <div class="col-md-4"><label class="form-label" for="s2">TIN</label><input id="s2" name="tin" class="form-control" maxlength="40" /></div>
+              <div class="col-md-4"><label class="form-label" for="s3">Contact person</label><input id="s3" name="contactPerson" class="form-control" maxlength="120" /></div>
+              <div class="col-md-4"><label class="form-label" for="s4">Phone</label><input id="s4" name="phone" class="form-control" maxlength="60" /></div>
+              <div class="col-md-4"><label class="form-label" for="s5">Email</label><input id="s5" name="email" type="email" class="form-control" maxlength="160" /></div>
+              <div class="col-12"><label class="form-label" for="s6">Address</label><input id="s6" name="address" class="form-control" maxlength="300" /></div>
+              <div class="col-md-4"><label class="form-label" for="s7">Payment terms</label><input id="s7" name="paymentTerms" class="form-control" maxlength="120" placeholder="e.g. COD, 30 days" /></div>
+              <div class="col-md-8"><label class="form-label" for="s8">Supplies</label><input id="s8" name="supplies" class="form-control" maxlength="300" placeholder="e.g. Copper pipes, refrigerant, ducting" /></div>
+              <div class="col-md-4"><label class="form-label" for="s10">VAT</label>
+                <select id="s10" name="vatRegistered" class="form-select"><option value="YES">VAT-registered (12% input VAT)</option><option value="NO">Non-VAT</option></select></div>
+              <div class="col-md-4"><label class="form-label" for="s11">Withholding tax (EWT)</label>
+                <select id="s11" name="ewtRate" class="form-select"><option value="1">1% · goods</option><option value="2">2% · services, contractors</option><option value="5">5% · rentals</option><option value="10">10% · professional fees</option><option value="15">15% · professional fees (higher)</option><option value="0">None</option></select></div>
+              <div class="col-md-4 d-flex align-items-end"><p class="small text-muted mb-1">Used on bills and payment vouchers; can be changed per bill.</p></div>
+              <div class="col-md-9"><label class="form-label" for="s9">Notes</label><input id="s9" name="notes" class="form-control" maxlength="1000" /></div>
+              <div class="col-md-3 d-flex align-items-end"><label class="oc-switch"><input type="checkbox" name="active" value="true" checked /><span></span>Active</label></div>
+            </div>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="supplierDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

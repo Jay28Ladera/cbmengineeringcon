@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Employees')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Human Resources" data-title="Employees" data-hr-page="employees">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Employees</h1>
+          <p class="page-sub">Everyone on the organizational chart is listed here automatically. Add site crews, drivers and other staff who are not on the chart.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" data-hr-new-employee><i class="bi bi-person-plus"></i>Add employee</button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="kpi-grid hr-kpis" aria-label="Employee figures">
+        <div class="kpi"><div class="kpi-label">Active employees <i class="bi bi-people"></i></div><div class="kpi-value" th:text="${activeCount}">0</div><div class="kpi-note">On the pay sheet</div></div>
+        <div class="kpi"><div class="kpi-label">From the org chart <i class="bi bi-diagram-3"></i></div><div class="kpi-value" th:text="${linkedCount}">0</div><div class="kpi-note">Name and position follow the chart</div></div>
+        <div class="kpi"><div class="kpi-label">Added in HR <i class="bi bi-person-plus"></i></div><div class="kpi-value" th:text="${activeCount - linkedCount}">0</div><div class="kpi-note">Not on the chart</div></div>
+        <div class="kpi" th:classappend="${noRateCount > 0} ? ' kpi-warn'"><div class="kpi-label">No rate yet <i class="bi bi-exclamation-triangle"></i></div><div class="kpi-value" th:text="${noRateCount}">0</div><div class="kpi-note">Set a rate before payroll</div></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-person-badge"></i>Master list <span class="count-badge" id="empCount" th:text="${#lists.size(employees)}">0</span></h2>
+          <div class="table-toolbar">
+            <div class="search-input"><i class="bi bi-search"></i><input id="empSearch" type="search" class="form-control" placeholder="Search name, position, ID…" aria-label="Search employees" /></div>
+            <select id="empGroupFilter" class="form-select form-select-sm hr-filter" aria-label="Filter by group">
+              <option value="">All groups</option>
+              <option th:each="g : ${groups}" th:value="${g}" th:text="${g}"></option>
+              <option value="No group">No group</option>
+            </select>
+            <select id="empStateFilter" class="form-select form-select-sm hr-filter" aria-label="Filter by status">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="norate">No rate yet</option>
+              <option value="">Everyone</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-wrap" th:unless="${#lists.isEmpty(employees)}">
+          <table class="data-table" id="empTable">
+            <thead><tr><th>Employee</th><th>Group</th><th>Status</th><th class="money">Rate</th><th>Contributions</th><th>Source</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="e : ${employees}" class="row-link"
+                  th:with="norate=${(e.dailyRate == null or e.dailyRate == 0) and (e.monthlyRate == null or e.monthlyRate == 0)}"
+                  th:attr="data-emp-id=${e.id},data-group=${e.payGroup != null and !#strings.isEmpty(e.payGroup) ? e.payGroup : 'No group'},data-active=${e.active},data-norate=${norate},data-search=${#strings.toLowerCase((e.fullName ?: '') + ' ' + (e.position ?: '') + ' ' + (e.employeeNo ?: '') + ' ' + (e.department ?: '') + ' ' + (e.biometricId ?: ''))}">
+                <td>
+                  <div class="cell-main" th:text="${e.fullName}">Name</div>
+                  <div class="cell-sub"><span th:text="${e.position ?: 'No position'}"></span><span th:if="${e.employeeNo}" class="mono" th:text="${' · ' + e.employeeNo}"></span><span th:if="${e.biometricId}" class="bio-chip" th:title="${'Biometric ID ' + e.biometricId}"><i class="bi bi-fingerprint"></i><span th:text="${e.biometricId}"></span></span></div>
+                </td>
+                <td><span th:text="${e.payGroup ?: '—'}" th:classappend="${e.payGroup == null} ? ' text-muted'"></span></td>
+                <td>
+                  <span class="code-chip" th:if="${e.statusCode}" th:text="${e.statusCode}"></span>
+                  <span th:text="${e.employmentStatus ?: ''}"></span>
+                  <span class="status status-rejected ms-1" th:unless="${e.active}">Inactive</span>
+                </td>
+                <td class="money">
+                  <th:block th:if="${e.monthly and e.monthlyRate != null}"><span th:text="${'₱' + #numbers.formatDecimal(e.monthlyRate, 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub">per month</div></th:block>
+                  <th:block th:if="${!e.monthly and e.dailyRate != null}"><span th:text="${'₱' + #numbers.formatDecimal(e.dailyRate, 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub">per day</div></th:block>
+                  <span th:if="${norate}" class="status status-sent">No rate</span>
+                </td>
+                <td class="cell-sub-only">
+                  <span th:if="${e.sssAmount == null and e.philhealthAmount == null and e.pagibigAmount == null}" class="text-muted">Entered per cut-off</span>
+                  <span th:unless="${e.sssAmount == null and e.philhealthAmount == null and e.pagibigAmount == null}"
+                        th:text="${'SSS ' + (e.sssAmount ?: 0) + ' · PH ' + (e.philhealthAmount ?: 0) + ' · PI ' + (e.pagibigAmount ?: 0)}"></span>
+                </td>
+                <td>
+                  <span th:if="${e.linked}" class="source-chip source-chart"><i class="bi bi-diagram-3"></i>Org chart</span>
+                  <span th:unless="${e.linked}" class="source-chip"><i class="bi bi-person"></i>HR</span>
+                </td>
+                <td class="actions"><button type="button" class="btn btn-sm btn-outline" th:attr="data-hr-edit=${e.id}">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div id="empNoMatch" class="empty-state" hidden><h3>No matches</h3><p>No employee matches the search and filters.</p></div>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(employees)}">
+          <div class="empty-icon"><i class="bi bi-people"></i></div>
+          <h3>No employees yet</h3>
+          <p>Add people to the organizational chart, or add an employee here.</p>
+        </div>
+      </section>
+
+      <script type="application/json" id="hrEmployeesData" th:utext="${employeesJson}">{}</script>
+
+      <!-- Add / edit employee -->
+      <dialog class="app-dialog" id="employeeDialog" aria-labelledby="employeeDialogTitle">
+        <form id="employeeForm" th:action="@{/HR/Employees/save}" method="post" novalidate>
+          <input type="hidden" name="id" id="empId" />
+          <header class="dialog-header">
+            <div><h2 id="employeeDialogTitle">Add employee</h2><p id="employeeDialogSub">Someone who is not on the organizational chart.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="employeeDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div class="alert alert-info mb-3" id="empLinkedNote" hidden>
+              <i class="bi bi-diagram-3 me-1"></i>Name, position, department, employee ID and date hired come from the <a th:href="@{/organization-chart}">organizational chart</a>. Change them there.
+            </div>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">01</span>Employee</h3>
+              <div class="row g-3">
+                <div class="col-md-6"><label class="form-label" for="empName">Full name <span class="req">*</span></label><input id="empName" name="fullName" class="form-control" maxlength="160" placeholder="SURNAME, First name" required data-chart-field /></div>
+                <div class="col-md-3"><label class="form-label" for="empNo">Employee ID</label><input id="empNo" name="employeeNo" class="form-control" maxlength="64" data-chart-field /></div>
+                <div class="col-md-3"><label class="form-label" for="empHired">Date hired</label><input id="empHired" name="dateHired" type="date" class="form-control" data-chart-field /></div>
+                <div class="col-md-6"><label class="form-label" for="empPosition">Position</label><input id="empPosition" name="position" class="form-control" maxlength="160" placeholder="e.g. AC Technician" data-chart-field /></div>
+                <div class="col-md-6"><label class="form-label" for="empDept">Department</label><input id="empDept" name="department" class="form-control" maxlength="120" data-chart-field /></div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">02</span>Payroll</h3>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label" for="empGroup">Payroll group</label>
+                  <input id="empGroup" name="payGroup" class="form-control" list="groupList" maxlength="80" placeholder="e.g. Cebu Site" />
+                  <datalist id="groupList"><option th:each="g : ${groups}" th:value="${g}"></option></datalist>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="empStatusCode">Status code</label>
+                  <select id="empStatusCode" name="statusCode" class="form-select">
+                    <option value="">—</option>
+                    <option value="R">R · Regular</option>
+                    <option value="PR">PR · Probationary</option>
+                    <option value="PB">PB · Project based</option>
+                    <option value="PT">PT · Part time</option>
+                    <option value="SC">SC · Special / contract</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="empEmployment">Employment status</label>
+                  <select id="empEmployment" name="employmentStatus" class="form-select">
+                    <option value="">—</option>
+                    <option>Regular</option><option>Probationary</option><option>Project Based</option><option>Special</option>
+                  </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="empBio">Biometric ID</label>
+                  <input id="empBio" name="biometricId" class="form-control" maxlength="32" placeholder="User ID on the machine" />
+                  <div class="form-hint">Links the machine's punches to this person.</div>
+                </div>
+                <div class="col-md-8">
+                  <span class="form-label d-block">Paid by</span>
+                  <div class="seg">
+                    <label><input type="radio" name="rateType" value="DAILY" id="empRateDaily" checked /><span>Daily rate</span></label>
+                    <label><input type="radio" name="rateType" value="MONTHLY" id="empRateMonthly" /><span>Monthly rate</span></label>
+                  </div>
+                  <div class="form-hint" id="rateTypeHint">Paid for the days worked in each cut-off.</div>
+                </div>
+                <div class="col-md-4" id="monthlyWrap" hidden>
+                  <label class="form-label" for="empMonthly">Monthly rate (₱)</label>
+                  <input id="empMonthly" name="monthlyRate" type="number" min="0" step="0.01" class="form-control" />
+                  <div class="form-hint">Half is paid each cut-off.</div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label" for="empDaily">Daily rate (₱)</label>
+                  <input id="empDaily" name="dailyRate" type="number" min="0" step="0.01" class="form-control" />
+                  <div class="form-hint" id="dailyHint">Basic + allowance per day. Rate/hr = ÷ 8.</div>
+                </div>
+                <div class="col-md-4" id="rateChangeWrap" hidden>
+                  <label class="form-label" for="empRateEff">Rate effective</label>
+                  <input id="empRateEff" name="rateEffective" type="date" class="form-control" th:value="${today}" />
+                </div>
+                <div class="col-md-12" id="rateNoteWrap" hidden>
+                  <label class="form-label" for="empRateNote">Reason for the change</label>
+                  <input id="empRateNote" name="rateNote" class="form-control" maxlength="300" placeholder="e.g. Year-end increase as per evaluation" />
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">03</span>Standard contributions</h3>
+              <p class="form-hint mt-0 mb-2">Deducted automatically on the chosen cut-off. Leave blank to enter them on the pay sheet each time. An amount typed on the pay sheet replaces these for that cut-off.</p>
+              <div class="row g-3">
+                <div class="col-md-3"><label class="form-label" for="empSss">SSS (₱)</label><input id="empSss" name="sss" type="number" min="0" step="0.01" class="form-control" /></div>
+                <div class="col-md-3"><label class="form-label" for="empPh">PhilHealth (₱)</label><input id="empPh" name="philhealth" type="number" min="0" step="0.01" class="form-control" /></div>
+                <div class="col-md-3"><label class="form-label" for="empPi">Pag-IBIG (₱)</label><input id="empPi" name="pagibig" type="number" min="0" step="0.01" class="form-control" /></div>
+                <div class="col-md-3">
+                  <label class="form-label" for="empCutoff">Deduct on</label>
+                  <select id="empCutoff" name="contributionCutoff" class="form-select">
+                    <option value="FIRST">26 – 10 cut-off</option>
+                    <option value="SECOND" selected>11 – 25 cut-off</option>
+                    <option value="BOTH">Both cut-offs</option>
+                  </select>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">04</span>Other</h3>
+              <div class="row g-3">
+                <div class="col-md-9"><label class="form-label" for="empRemarks">Remarks</label><input id="empRemarks" name="remarks" class="form-control" maxlength="600" /></div>
+                <div class="col-md-3 d-flex align-items-end">
+                  <label class="oc-switch"><input type="checkbox" name="active" value="true" id="empActive" checked /><span></span>Active</label>
+                </div>
+              </div>
+            </section>
+
+            <section class="form-section mb-0" id="rateHistoryWrap" hidden>
+              <h3 class="form-section-title"><span class="no">05</span>Rate history</h3>
+              <ul class="rate-history" id="rateHistory"></ul>
+            </section>
+          </div>
+          <footer class="dialog-footer">
+            <button type="submit" form="employeeDeleteForm" class="btn btn-danger-outline me-auto" id="empDeleteBtn" hidden><i class="bi bi-trash"></i>Delete</button>
+            <button type="button" class="btn btn-ghost" data-close-dialog="employeeDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button>
+          </footer>
+        </form>
+        <form id="employeeDeleteForm" method="post" th:action="@{/HR/Employees/0/delete}" data-confirm="Delete this employee? This can't be undone." data-confirm-tone="danger" data-confirm-ok="Delete"></form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

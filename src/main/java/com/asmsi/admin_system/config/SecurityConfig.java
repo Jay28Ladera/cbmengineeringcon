@@ -11,7 +11,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
+import com.asmsi.admin_system.repository.UserRepository;
+import com.asmsi.admin_system.service.AccessService;
 import com.asmsi.admin_system.service.UserService;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -19,24 +22,35 @@ public class SecurityConfig {
 
     private final UserService userService;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final AccessService accessService;
 
-    public SecurityConfig(UserService userService, BCryptPasswordEncoder passwordEncoder) {
+    public SecurityConfig(UserService userService, BCryptPasswordEncoder passwordEncoder,
+                          UserRepository userRepository, AccessService accessService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+        this.accessService = accessService;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+                // Reload a signed-in person's account after an admin changes it (see PrincipalRefreshFilter).
+                .addFilterBefore(new PrincipalRefreshFilter(userRepository, accessService), AnonymousAuthenticationFilter.class)
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/iclock/**"))
                 .authorizeHttpRequests(auth -> auth
                         // Public website, sign-in pages and static files
                         .requestMatchers(
                                 "/", "/login", "/signup", "/request-account",
-                                "/forget-password", "/forgot-password", "/reset-password",
+                                "/forget-password", "/forgot-password", "/reset-password", "/activate",
                                 "/inquiries/public", "/Clients/public",
+                                // A client opening the quotation link from their email (the random link is the key)
+                                "/q/**", "/sb/**",
                                 "/css/**", "/js/**", "/images/**", "/vendor/**", "/webjars/**",
-                                "/favicon.ico", "/error")
+                                "/favicon.ico", "/error",
+                                // Attendance machines push their logs here (checked by serial number, see AdmsController)
+                                "/iclock/**")
                         .permitAll()
                         // User approval and administration: admins only
                         .requestMatchers("/users/**", "/Admin/**").hasAnyRole("ADMIN", "CEO")

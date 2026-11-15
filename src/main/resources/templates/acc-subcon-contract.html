@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Subcontract')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Subcontract">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/SubconBillings}">Subcon billings</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${c.number}"></span> <span th:text="${sub != null ? sub.name : ''}"></span></h1>
+          <p class="page-sub"><span th:text="${c.scope}"></span> · <a th:href="@{/JobOrders/{id}(id=${c.jobOrderId})}" th:text="${job != null ? job.label() : ''}"></a></p></div>
+        <div class="page-actions">
+          <a th:if="${draft != null}" class="btn btn-primary" th:href="@{/Accounting/SubconBillings/{id}(id=${draft.id})}"><i class="bi bi-pencil-square"></i>Continue draft</a>
+          <th:block th:if="${draft == null and c.status == 'ACTIVE'}">
+            <form th:if="${c.dpPct.signum() > 0 and s.dpBilled().compareTo(c.dpAmount) < 0}" th:action="@{/Accounting/SubconBillings/contract/{id}/new(id=${c.id})}" method="post" class="d-inline"><input type="hidden" name="kind" value="DOWNPAYMENT" /><button class="btn btn-outline" type="submit"><i class="bi bi-cash"></i>Downpayment</button></form>
+            <form th:if="${s.unbilled.signum() > 0}" th:action="@{/Accounting/SubconBillings/contract/{id}/new(id=${c.id})}" method="post" class="d-inline"><input type="hidden" name="kind" value="PROGRESS" /><button class="btn btn-primary" type="submit"><i class="bi bi-graph-up-arrow"></i>Record progress billing</button></form>
+            <form th:if="${s.retentionUnreleased.signum() > 0}" th:action="@{/Accounting/SubconBillings/contract/{id}/new(id=${c.id})}" method="post" class="d-inline"><input type="hidden" name="kind" value="RETENTION" /><button class="btn btn-outline" type="submit"><i class="bi bi-safe"></i>Release retention</button></form>
+          </th:block>
+          <button class="btn btn-ghost" type="button" data-open-dialog="scEdit"><i class="bi bi-pencil"></i>Edit</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Subcontract<i class="bi bi-file-earmark-text"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(c.amount, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${s.pctBilled + '% billed · DP ' + c.dpPct.stripTrailingZeros().toPlainString() + '% · retention ' + c.retentionPct.stripTrailingZeros().toPlainString() + '%'}"></div></div>
+        <div class="kpi"><div class="kpi-label">Billed to CBM<i class="bi bi-receipt"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.billed(), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Advance ₱' + #numbers.formatDecimal(s.dpBilled(), 1, 'COMMA', 2, 'POINT') + ', ₱' + #numbers.formatDecimal(s.dpUnrecouped, 1, 'COMMA', 2, 'POINT') + ' not yet recouped'}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Unpaid<i class="bi bi-hourglass-split"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.payable, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${'Paid ₱' + #numbers.formatDecimal(s.paid(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Retention held<i class="bi bi-safe"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.retentionUnreleased, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Released at the end</div></div>
+      </div>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i>Billings</h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(billings)}"><table class="data-table">
+          <thead><tr><th>Billing</th><th>Date</th><th>Their ref.</th><th class="num">% to date</th><th class="money">Work / amount</th><th class="money">Recoupment</th><th class="money">Retention</th><th class="money">Amount due</th><th>Bill</th></tr></thead>
+          <tbody><tr th:each="b : ${billings}" class="row-link" th:classappend="${b.status == 'VOID'} ? ' row-void'" th:attr="data-href=@{/Accounting/SubconBillings/{id}(id=${b.id})}">
+            <td><a class="mono" th:href="@{/Accounting/SubconBillings/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${b.status == 'POSTED' ? 'status-approved' : (b.status == 'VOID' ? 'status-rejected' : 'status-draft')}" th:text="${b.status}"></span><div class="cell-sub" th:text="${b.title}"></div></td>
+            <td th:text="${#temporals.format(b.billingDate, 'MMM d, yyyy')}"></td>
+            <td th:text="${b.invoiceNo ?: '—'}"></td>
+            <td class="num" th:text="${b.kind == 'PROGRESS' ? #numbers.formatDecimal(b.pctToDate, 1, 2) + '%' : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${b.recoupment.signum() > 0 ? '(' + #numbers.formatDecimal(b.recoupment, 1, 'COMMA', 2, 'POINT') + ')' : ''}"></td>
+            <td class="money" th:text="${b.retention.signum() > 0 ? '(' + #numbers.formatDecimal(b.retention, 1, 'COMMA', 2, 'POINT') + ')' : ''}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><a th:if="${billMap.get(b.id) != null}" class="mono small" th:href="@{/Accounting/Payables/{id}(id=${billMap.get(b.id).id})}" th:text="${billMap.get(b.id).number + ' · ' + billMap.get(b.id).status}"></a></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(billings)}">No billings yet.</div>
+      </section>
+      <dialog class="app-dialog" id="scEdit">
+        <form th:action="@{/Accounting/SubconBillings/contract}" method="post">
+          <input type="hidden" name="id" th:value="${c.id}" />
+          <header class="dialog-header"><div><h2 th:text="${'Edit ' + c.number}"></h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="scEdit"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body" th:insert="~{fragments/subcon :: contractFields(${c}, ${subs}, ${jobs})}"></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="scEdit">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

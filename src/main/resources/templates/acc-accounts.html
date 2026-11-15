@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Chart of accounts')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Chart of accounts">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Chart of accounts</h1>
+          <p class="page-sub">Every peso posted lands in one of these accounts. Accounts marked <i class="bi bi-lock"></i> are used by the system (bills, payments, stock) and keep their code.</p></div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Accounting/TrialBalance}"><i class="bi bi-list-columns"></i>Trial balance</a>
+          <button class="btn btn-primary" type="button" data-fill="accDialog" data-title="Add account"><i class="bi bi-plus-lg"></i>Add account</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-diagram-3"></i>Accounts</h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search accounts…" data-filter-table="accTable" aria-label="Search accounts" /></div></div></div>
+        <div class="table-wrap">
+          <table class="data-table" id="accTable">
+            <thead><tr><th style="width:90px">Code</th><th>Name</th><th>Group</th><th class="money">Balance today</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <th:block th:each="t : ${types}">
+                <tr class="acc-type-head"><td colspan="5" th:text="${t == 'ASSET' ? 'Assets' : (t == 'LIABILITY' ? 'Liabilities' : (t == 'EQUITY' ? 'Equity' : (t == 'INCOME' ? 'Income' : 'Expenses')))}"></td></tr>
+                <tr th:each="a : ${byType.get(t)}" class="row-link" th:classappend="${!a.active} ? ' row-void'" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${a.id})}">
+                  <td class="mono" th:text="${a.code}"></td>
+                  <td><a th:href="@{/Accounting/Accounts/{id}(id=${a.id})}" th:text="${a.name}"></a> <i class="bi bi-lock text-muted small" th:if="${a.systemAccount}" title="Used by the system"></i>
+                    <div class="cell-sub" th:if="${a.description}" th:text="${a.description}"></div></td>
+                  <td class="small" th:text="${a.groupName}"></td>
+                  <td class="money" th:with="b=${bal.get(a.id)}" th:text="${b != null and b.balance.signum() != 0 ? #numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT') : '—'}"></td>
+                  <td class="actions"><button type="button" class="btn btn-sm btn-ghost" data-fill="accDialog"
+                    th:attr="data-title=${'Edit ' + a.code},data-f-id=${a.id},data-f-code=${a.code},data-f-name=${a.name},data-f-type=${a.type},data-f-group-name=${a.groupName},data-f-description=${a.description},data-f-active=${a.active}">Edit</button></td>
+                </tr>
+              </th:block>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <dialog class="app-dialog" id="accDialog">
+        <form th:action="@{/Accounting/Accounts}" method="post">
+          <input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 data-dialog-title>Add account</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="accDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-3"><label class="form-label" for="a1">Code <span class="req">*</span></label><input id="a1" name="code" class="form-control mono" maxlength="12" required placeholder="6125" /></div>
+            <div class="col-md-9"><label class="form-label" for="a2">Name <span class="req">*</span></label><input id="a2" name="name" class="form-control" maxlength="120" required /></div>
+            <div class="col-md-4"><label class="form-label" for="a3">Type</label><select id="a3" name="type" class="form-select">
+              <option value="ASSET">Asset</option><option value="LIABILITY">Liability</option><option value="EQUITY">Equity</option><option value="INCOME">Income</option><option value="EXPENSE" selected>Expense</option></select></div>
+            <div class="col-md-8"><label class="form-label" for="a4">Group</label><input id="a4" name="groupName" class="form-control" maxlength="60" placeholder="e.g. Operating expenses" /></div>
+            <div class="col-12"><label class="form-label" for="a5">Description</label><input id="a5" name="description" class="form-control" maxlength="300" /></div>
+            <div class="col-12"><label class="oc-switch"><input type="checkbox" name="active" value="true" checked /><span></span>Active (can be chosen on bills and entries)</label></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="accDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

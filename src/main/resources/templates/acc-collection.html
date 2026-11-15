@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Collection')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Collection">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Collections}">Collections</a></div>
+          <h1 class="page-title"><span class="mono" th:text="${x.number}"></span> <span th:unless="${x.posted}" class="status status-rejected">Void</span></h1>
+          <p class="page-sub"><a th:href="@{/Accounting/Billing/job/{id}(id=${x.jobOrderId})}" th:text="${job != null ? job.label() : ''}"></a> · <span th:text="${#temporals.format(x.receivedDate, 'MMMM d, yyyy')}"></span></p></div>
+        <div class="page-actions" th:if="${x.posted}">
+          <form th:if="${x.cwt.signum() > 0}" th:action="@{/Accounting/Collections/{id}/2307(id=${x.id})}" method="post" class="d-inline">
+            <button class="btn btn-outline" type="submit"><i class="bi" th:classappend="${x.form2307} ? 'bi-x-square' : 'bi-check2-square'"></i><span th:text="${x.form2307 ? 'Mark 2307 not received' : 'Mark 2307 received'}"></span></button></form>
+          <button class="btn btn-ghost" type="button" data-open-dialog="crVoid"><i class="bi bi-x-circle"></i>Void</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:unless="${x.posted}" class="alert alert-secondary mb-3" th:text="${'Voided: ' + x.voidReason}"></div>
+      <section class="panel mb-4">
+        <div class="panel-body"><dl class="meta-grid">
+          <div><dt>Method</dt><dd th:text="${x.methodLabel + (x.chequeNo != null ? ' · ' + x.chequeNo : '') + (x.chequeBank != null ? ' · ' + x.chequeBank : '') + (x.pdc ? ' · PDC dated ' + #temporals.format(x.chequeDate, 'MMM d') : '')}"></dd></div>
+          <div><dt>Deposited to</dt><dd th:text="${bank != null ? bank.label : ''}"></dd></div>
+          <div><dt>Official receipt</dt><dd th:text="${x.orNo ?: '—'}"></dd></div>
+          <div><dt>BIR 2307</dt><dd th:text="${x.cwt.signum() == 0 ? 'No tax withheld' : (x.form2307 ? 'Received' + (x.form2307At != null ? ' ' + #temporals.format(x.form2307At, 'MMM d, yyyy') : '') : 'Waiting for the client')}"></dd></div>
+          <div><dt>Recorded</dt><dd th:text="${x.createdBy + ' · ' + #temporals.format(x.createdAt, 'MMM d, h:mm a')}"></dd></div>
+        </dl><p class="mt-2 mb-0" th:if="${x.memo}" th:text="${x.memo}"></p></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Billing</th><th class="money">Settled</th><th class="money">Tax withheld</th><th class="money">Cash</th></tr></thead>
+          <tbody><tr th:each="e : ${lines}">
+            <td><a class="mono" th:href="@{/Accounting/Billing/{id}(id=${e.key.id})}" th:text="${e.key.number}"></a> <span class="small text-muted" th:text="${e.key.title}"></span></td>
+            <td class="money" th:text="${#numbers.formatDecimal(e.value.applied, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(e.value.cwt, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(e.value.applied.subtract(e.value.cwt), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+          <tfoot><tr class="tb-total"><td>Total</td><td class="money" th:text="${#numbers.formatDecimal(x.applied, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(x.cwt, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(x.cash, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+        </table></div>
+      </section>
+      <div th:replace="~{fragments/acc :: journal}"></div>
+      <dialog class="app-dialog" id="crVoid">
+        <form th:action="@{/Accounting/Collections/{id}/void(id=${x.id})}" method="post">
+          <header class="dialog-header"><div><h2>Void collection</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="crVoid"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><p>Use this for a bounced cheque or a wrong entry. The posting is reversed and the billings are open again.</p><label class="form-label" for="cv">Reason</label><input id="cv" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="crVoid">Keep</button><button type="submit" class="btn btn-danger">Void</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

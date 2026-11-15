@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Stock Issuance')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Stock Issuance">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Inventory</div><h1 class="page-title">Stock issuance</h1><p class="page-sub">Materials released from the warehouse. Issued to a job order, their cost (at average cost) is charged to that job.</p></div>
+        <div class="page-actions"><a class="btn btn-primary" th:href="@{/Inventory/StockIssuance/new}"><i class="bi bi-box-arrow-up-right"></i>Issue materials</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table">
+            <thead><tr><th>No.</th><th>Date</th><th>Job order</th><th>Received by</th><th class="money">Cost</th><th></th></tr></thead>
+            <tbody><tr th:each="r : ${rows}" th:with="x=${r.issue()}" class="row-link" th:attr="data-href=@{/Inventory/StockIssuance/{id}(id=${x.id})}" th:classappend="${x.voided} ? ' row-void'">
+              <td><a class="mono" th:href="@{/Inventory/StockIssuance/{id}(id=${x.id})}" th:text="${x.number}"></a></td>
+              <td th:text="${#temporals.format(x.issuedOn, 'MMM d, yyyy')}"></td>
+              <td><div th:text="${r.job() != null ? r.job().label : '—'}"></div><div class="cell-sub" th:text="${x.purpose}"></div></td>
+              <td th:text="${x.issuedTo ?: '—'}"></td>
+              <td class="money"><span th:text="${'₱' + #numbers.formatDecimal(r.total(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${r.lines() + ' item(s)'}"></div></td>
+              <td><span th:if="${x.voided}" class="status status-rejected">Voided</span></td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-box-arrow-up-right"></i></div><h3>Nothing issued yet</h3><p>Issue materials to a job order when they leave the warehouse.</p></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

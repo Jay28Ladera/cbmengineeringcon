@@ -21,6 +21,8 @@ public class Quotation {
     @Column(length = 4000) private String terms;
     @Column(precision = 14, scale = 2) private BigDecimal taxRate = BigDecimal.ZERO;
     @Column(precision = 14, scale = 2) private BigDecimal discountAmount = BigDecimal.ZERO;
+    /** Default markup on cost (percent) used by "Apply markup to all lines". Internal. */
+    @Column(name = "markup_pct", precision = 7, scale = 2) private BigDecimal markupPct;
     @OneToMany(mappedBy = "quotation", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
     private List<QuotationLineItem> lineItems = new ArrayList<>();
@@ -46,6 +48,8 @@ public class Quotation {
     public void setTaxRate(BigDecimal taxRate) { this.taxRate = taxRate; }
     public BigDecimal getDiscountAmount() { return discountAmount == null ? BigDecimal.ZERO : discountAmount; }
     public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
+    public BigDecimal getMarkupPct() { return markupPct; }
+    public void setMarkupPct(BigDecimal markupPct) { this.markupPct = markupPct; }
     public List<QuotationLineItem> getLineItems() { return lineItems; }
     public void setLineItems(List<QuotationLineItem> lineItems) { this.lineItems = lineItems; }
     public void addLineItem(QuotationLineItem item) { lineItems.add(item); item.setQuotation(this); }
@@ -59,4 +63,20 @@ public class Quotation {
     public BigDecimal getTaxAmount() { return getSubtotal().subtract(getDiscountAmount()).max(BigDecimal.ZERO).multiply(getTaxRate()).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP); }
     @Transient
     public BigDecimal getGrandTotal() { return getSubtotal().subtract(getDiscountAmount()).max(BigDecimal.ZERO).add(getTaxAmount()); }
+
+    // ---- internal costing (never printed for the client)
+    @Transient public BigDecimal getNetSelling() { return getSubtotal().subtract(getDiscountAmount()).max(BigDecimal.ZERO); }
+    @Transient public BigDecimal getTotalCost() { return lineItems.stream().map(QuotationLineItem::getLineCost).reduce(BigDecimal.ZERO, BigDecimal::add); }
+    @Transient public BigDecimal getCostOf(String kind) {
+        return lineItems.stream().filter(i -> kind.equals(i.getKind())).map(QuotationLineItem::getLineCost).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    @Transient public BigDecimal getMaterialCost() { return getCostOf("MATERIAL"); }
+    @Transient public BigDecimal getGrossProfit() { return getNetSelling().subtract(getTotalCost()); }
+    /** Gross profit as a percent of the selling price (before tax); null when nothing is priced. */
+    @Transient public BigDecimal getMarginPct() {
+        BigDecimal sell = getNetSelling();
+        return sell.signum() == 0 ? null : getGrossProfit().multiply(new BigDecimal("100")).divide(sell, 1, java.math.RoundingMode.HALF_UP);
+    }
+    @Transient public long getUncostedCount() { return lineItems.stream().filter(i -> !i.isCosted()).count(); }
+    @Transient public boolean isCosted() { return lineItems.stream().anyMatch(QuotationLineItem::isCosted); }
 }

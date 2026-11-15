@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Subcon billing')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Subcon billing">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/SubconBillings/contract/{id}(id=${c.id})}" th:text="${c.number + ' · ' + (sub != null ? sub.name : '')}"></a></div>
+          <h1 class="page-title"><span th:text="${b.title}"></span> <span class="status" th:classappend="${b.status == 'POSTED' ? 'status-approved' : (b.status == 'VOID' ? 'status-rejected' : 'status-draft')}" th:text="${b.status}"></span></h1>
+          <p class="page-sub"><span class="mono" th:text="${b.number}"></span> · <span th:text="${c.scope}"></span> · <span th:text="${job != null ? job.label() : ''}"></span></p></div>
+        <div class="page-actions">
+          <a th:if="${bill != null}" class="btn btn-outline" th:href="@{/Accounting/Payables/{id}(id=${bill.id})}"><i class="bi bi-receipt"></i><span th:text="${'Bill ' + bill.number}"></span></a>
+          <a th:if="${bill != null and bill.payable}" class="btn btn-primary" th:href="@{/Accounting/Payments/new(bill=${bill.id})}"><i class="bi bi-cash-coin"></i>Prepare payment</a>
+          <button th:if="${b.posted}" class="btn btn-ghost" type="button" data-open-dialog="scbVoid"><i class="bi bi-x-circle"></i>Void</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div th:if="${b.status == 'VOID'}" class="alert alert-secondary mb-3" th:text="${'Voided: ' + b.voidReason}"></div>
+
+      <form th:if="${b.editable}" th:action="@{/Accounting/SubconBillings/{id}(id=${b.id})}" method="post" class="panel mb-4">
+        <div class="panel-body"><div class="row g-3">
+          <div class="col-md-3" th:if="${b.kind == 'PROGRESS'}"><label class="form-label" for="g1">% accomplished to date</label>
+            <div class="input-group"><input id="g1" name="pctToDate" class="form-control text-end" inputmode="decimal" th:value="${b.pctToDate.stripTrailingZeros().toPlainString()}" /><span class="input-group-text">%</span></div>
+            <div class="form-text" th:text="${'Last billed: ' + #numbers.formatDecimal(s.pct(), 1, 2) + '%. Verified at site by the engineer.'}"></div></div>
+          <div class="col-md-3" th:unless="${b.kind == 'PROGRESS'}"><label class="form-label" for="g2">Amount</label><input id="g2" name="amount" class="form-control text-end" inputmode="decimal" th:value="${b.gross}" /></div>
+          <div class="col-md-3"><label class="form-label" for="g3">Billing date</label><input id="g3" type="date" name="billingDate" class="form-control" th:value="${b.billingDate}" /></div>
+          <div class="col-md-3"><label class="form-label" for="g4">Their billing / invoice no.</label><input id="g4" name="invoiceNo" class="form-control" maxlength="60" th:value="${b.invoiceNo}" /></div>
+          <div class="col-md-3"><label class="form-label" for="g5">Verified by (engineer)</label><input id="g5" name="verifiedBy" class="form-control" maxlength="160" th:value="${b.verifiedBy}" /></div>
+          <div class="col-12"><label class="form-label" for="g6">Remarks</label><input id="g6" name="memo" class="form-control" maxlength="600" th:value="${b.memo}" /></div>
+        </div></div>
+        <div class="panel-body border-top d-flex justify-content-between align-items-center gap-2">
+          <span class="small text-muted">Save to recompute. Posting charges the job and creates the bill to pay.</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline" type="submit" name="action" value="save"><i class="bi bi-arrow-repeat"></i>Save &amp; compute</button>
+            <button class="btn btn-primary" type="submit" name="action" value="post" onclick="return confirm('Post this billing and create the bill to pay?')"><i class="bi bi-check2-circle"></i>Post billing</button>
+          </div>
+        </div>
+      </form>
+      <form th:if="${b.editable}" th:action="@{/Accounting/SubconBillings/{id}/delete(id=${b.id})}" method="post" class="mb-3" data-confirm="Delete this draft?" data-confirm-tone="danger" data-confirm-ok="Delete"><button class="btn btn-ghost text-danger btn-sm" type="submit"><i class="bi bi-trash"></i>Delete draft</button></form>
+
+      <section class="panel mb-4">
+        <div class="panel-body d-flex">
+          <dl class="meta-grid me-4">
+            <div><dt>Subcontract</dt><dd th:text="${'₱' + #numbers.formatDecimal(c.amount, 1, 'COMMA', 2, 'POINT') + (c.vat ? ' (VAT incl.)' : '')}"></dd></div>
+            <div><dt>Verified by</dt><dd th:text="${b.verifiedBy ?: '—'}"></dd></div>
+            <div><dt>Prepared</dt><dd th:text="${b.preparedBy}"></dd></div>
+            <div th:if="${b.postedAt}"><dt>Posted</dt><dd th:text="${b.postedBy + ' · ' + #temporals.format(b.postedAt, 'MMM d, h:mm a')}"></dd></div>
+          </dl>
+          <div class="acc-totals">
+            <th:block th:if="${b.kind == 'PROGRESS'}">
+              <div><span th:text="${'Accomplished to date (' + #numbers.formatDecimal(b.pctToDate, 1, 2) + '%)'}"></span><span th:text="${#numbers.formatDecimal(b.grossToDate, 1, 'COMMA', 2, 'POINT')}"></span></div>
+              <div><span>Less previous billings</span><span th:text="${#numbers.formatDecimal(b.prevGross, 1, 'COMMA', 2, 'POINT')}"></span></div>
+              <div class="fw-semibold"><span>Work this billing</span><span th:text="${#numbers.formatDecimal(b.gross, 1, 'COMMA', 2, 'POINT')}"></span></div>
+              <div><span>Less advance recouped</span><span th:text="${'(' + #numbers.formatDecimal(b.recoupment, 1, 'COMMA', 2, 'POINT') + ')'}"></span></div>
+              <div><span>Less retention</span><span th:text="${'(' + #numbers.formatDecimal(b.retention, 1, 'COMMA', 2, 'POINT') + ')'}"></span></div>
+            </th:block>
+            <div class="grand"><span>Amount due to subcontractor</span><span th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div class="text-muted small" th:if="${b.vat.signum() > 0}"><span>Input VAT on the work</span><span th:text="${#numbers.formatDecimal(b.vat, 1, 'COMMA', 2, 'POINT')}"></span></div>
+            <div class="text-muted small"><span th:text="${'EWT ' + c.ewtRate.stripTrailingZeros().toPlainString() + '% is withheld when paid'}"></span><span></span></div>
+          </div>
+        </div>
+      </section>
+      <th:block th:if="${journal != null}"><div th:replace="~{fragments/acc :: journal}"></div></th:block>
+      <dialog class="app-dialog" id="scbVoid">
+        <form th:action="@{/Accounting/SubconBillings/{id}/void(id=${b.id})}" method="post">
+          <header class="dialog-header"><div><h2>Void billing</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="scbVoid"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><p>Reverses the posting and voids its bill. Not possible once the bill is paid or on a voucher.</p><label class="form-label" for="sv">Reason</label><input id="sv" name="reason" class="form-control" required maxlength="300" /></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="scbVoid">Keep</button><button type="submit" class="btn btn-danger">Void</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

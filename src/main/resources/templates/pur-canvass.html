@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Canvass')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area content-wide" th:fragment="page" data-section="Purchasing" data-title="Canvass">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow"><a th:href="@{/Purchasing/Canvasses}">Canvasses</a> › <span class="mono" th:text="${c.number}"></span></div>
+          <h1 class="page-title" th:text="${c.title}">Canvass</h1>
+          <p class="page-sub">
+            <span class="status" th:classappend="${'status-cv-' + #strings.toLowerCase(c.status)}" th:text="${#strings.replace(c.status, '_', ' ')}"></span>
+            <span th:text="${job != null ? 'For ' + job.label : 'For warehouse stock'}"></span>
+            <span th:if="${c.mrNo}" th:text="${' · MR # ' + c.mrNo}"></span>
+            <span th:if="${c.neededBy}" th:text="${' · needed by ' + #temporals.format(c.neededBy, 'MMM d, yyyy')}"></span>
+
+          </p>
+        </div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Purchasing/Canvasses/{id}/print(id=${c.id})}" target="_blank" rel="noopener" data-full-load><i class="bi bi-printer"></i>Print canvass sheet</a>
+          <form th:if="${draft}" th:action="@{/Purchasing/Canvasses/{id}/submit(id=${c.id})}" method="post" class="d-inline" data-confirm="Submit this canvass for approval? Prices and choices are locked while it is being signed." data-confirm-title="Submit for approval" data-confirm-ok="Submit">
+            <button class="btn btn-primary" type="submit" th:disabled="${#lists.isEmpty(g.items()) or #lists.isEmpty(g.suppliers())}"><i class="bi bi-send-check"></i>Submit for approval</button>
+          </form>
+          <form th:if="${c.status == 'APPROVED'}" th:action="@{/Purchasing/Canvasses/{id}/reopen(id=${c.id})}" method="post" class="d-inline" data-confirm="Reopen this canvass for changes? The signatures are cleared and it must be signed again." data-confirm-ok="Reopen"><button class="btn btn-outline" type="submit"><i class="bi bi-arrow-counterclockwise"></i>Reopen</button></form>
+          <form th:if="${c.status == 'APPROVED'}" th:action="@{/Purchasing/Canvasses/{id}/orders(id=${c.id})}" method="post" class="d-inline" data-confirm="Create one draft purchase order per winning supplier?" data-confirm-ok="Create POs">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-bag-check"></i>Create purchase orders</button>
+          </form>
+          <form th:if="${c.status != 'ORDERED'}" th:action="@{/Purchasing/Canvasses/{id}/delete(id=${c.id})}" method="post" class="d-inline" data-confirm="Delete this canvass with its prices?" data-confirm-tone="danger" data-confirm-ok="Delete">
+            <button class="btn btn-ghost btn-icon" type="submit" aria-label="Delete"><i class="bi bi-trash"></i></button>
+          </form>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <ol class="flow-steps">
+        <li th:classappend="${!#lists.isEmpty(g.items())} ? ' done'"><b>1</b>Items</li>
+        <li th:classappend="${!#lists.isEmpty(g.suppliers())} ? ' done'"><b>2</b>Suppliers and prices</li>
+        <li th:classappend="${so.approvedAt != null} ? ' done'"><b>3</b>Approved (QS)</li>
+        <li th:classappend="${so.notedAt != null} ? ' done'"><b>4</b>Noted (Manager)</li>
+        <li th:classappend="${c.status == 'ORDERED'} ? ' done'"><b>5</b>Purchase orders</li>
+      </ol>
+
+      <div class="alert alert-warning" th:if="${draft and so.returnNote != null}">
+        <b th:text="${'Returned for changes by ' + so.returnedBy + ':'}"></b> <span class="pre-line" th:text="${so.returnNote}"></span>
+      </div>
+
+      <!-- Sign-off: Approved by → Noted by → Processed by (as on form CBM-CD-006) -->
+      <section class="panel mb-4 cv-signoff" th:unless="${draft and so.submittedAt == null}">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-pen"></i>Sign-off</h2>
+          <span class="small text-muted" th:if="${so.submittedAt != null}" th:text="${'Submitted by ' + so.submittedBy + ' · ' + #temporals.format(so.submittedAt, 'MMM d, h:mm a')}"></span>
+        </div>
+        <div class="cv-sign-grid">
+          <div class="cv-sign" th:classappend="${so.approvedAt != null} ? ' signed' : (${pendingStep == 'APPROVE'} ? ' waiting')">
+            <span class="cv-sign-step">Approved by</span>
+            <div class="cv-sign-img"><img th:if="${so.approvedSigUrl != null}" th:src="${so.approvedSigUrl}" alt="Signature" /></div>
+            <b th:text="${so.approvedBy != null ? so.approvedBy : (pendingStep == 'APPROVE' ? 'Waiting: ' + #strings.listJoin(pendingSigners, ' or ') : '—')}"></b>
+            <small th:text="${so.approvedAt != null ? so.approvedTitle + ' · ' + #temporals.format(so.approvedAt, 'MMM d, h:mm a') : 'Office Engineer/QS'}"></small>
+          </div>
+          <div class="cv-sign" th:classappend="${so.notedAt != null} ? ' signed' : (${pendingStep == 'NOTE'} ? ' waiting')">
+            <span class="cv-sign-step">Noted by</span>
+            <div class="cv-sign-img"><img th:if="${so.notedSigUrl != null}" th:src="${so.notedSigUrl}" alt="Signature" /></div>
+            <b th:text="${so.notedBy != null ? so.notedBy : (pendingStep == 'NOTE' ? 'Waiting: ' + #strings.listJoin(pendingSigners, ' or ') : '—')}"></b>
+            <small th:text="${so.notedAt != null ? so.notedTitle + ' · ' + #temporals.format(so.notedAt, 'MMM d, h:mm a') : 'Project / Operations Manager'}"></small>
+          </div>
+          <div class="cv-sign" th:classappend="${so.processedAt != null} ? ' signed' : (${pendingStep == 'PROCESS'} ? ' waiting')">
+            <span class="cv-sign-step">Processed by</span>
+            <div class="cv-sign-img"><img th:if="${so.processedSigUrl != null}" th:src="${so.processedSigUrl}" alt="Signature" /></div>
+            <b th:text="${so.processedBy != null ? so.processedBy : (pendingStep == 'PROCESS' ? 'Waiting: ' + #strings.listJoin(pendingSigners, ' or ') : '—')}"></b>
+            <small th:text="${so.processedAt != null ? so.processedTitle + ' · ' + #temporals.format(so.processedAt, 'MMM d, h:mm a') : 'Finance, when paying'}"></small>
+          </div>
+        </div>
+        <div class="cv-sign-actions" th:if="${canSignNow or c.status == 'FOR_APPROVAL'}">
+          <span class="small text-danger me-auto" th:if="${canSignNow and !hasSignature}">Save your signature on <a th:href="@{/profile#signature}" data-full-load>My profile</a> first.</span>
+          <button type="button" class="btn btn-outline" data-open-dialog="cvReturnDialog" th:if="${c.status == 'FOR_APPROVAL'}"><i class="bi bi-arrow-counterclockwise"></i>Return for changes</button>
+          <form th:if="${canSignNow}" th:action="@{/Approvals/canvass/{id}/sign(id=${c.id})}" method="post"
+                th:attr="data-confirm=${'Sign &quot;' + pendingLabel + '&quot; on canvass ' + c.number + '? Your saved signature will be printed on the sheet.'}" data-confirm-title="Sign canvass" data-confirm-ok="Sign" data-confirm-tone="success">
+            <input type="hidden" name="from" value="canvass" />
+            <button class="btn btn-success" type="submit" th:disabled="${!hasSignature}"><i class="bi bi-pen"></i><span th:text="${'Sign as ' + pendingLabel}"></span></button>
+          </form>
+        </div>
+      </section>
+      <dialog class="app-dialog" id="cvReturnDialog" aria-labelledby="cvrTitle" th:if="${c.status == 'FOR_APPROVAL'}">
+        <form th:action="@{/Approvals/canvass/{id}/return(id=${c.id})}" method="post">
+          <input type="hidden" name="from" value="canvass" />
+          <header class="dialog-header"><div><h2 id="cvrTitle">Return for changes</h2><p>The canvass goes back to draft with your note, and the signatures are cleared.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="cvReturnDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><label class="form-label" for="cvrNote">What should be changed?</label>
+            <textarea id="cvrNote" name="note" class="form-control" rows="4" maxlength="1000" placeholder="e.g. Ask one more supplier for the grease trap."></textarea></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="cvReturnDialog">Cancel</button><button type="submit" class="btn btn-primary">Return to preparer</button></footer>
+        </form>
+      </dialog>
+
+      <!-- Details (draft) -->
+      <section class="panel mb-4" th:if="${draft}">
+        <form th:action="@{/Purchasing/Canvasses/{id}/header(id=${c.id})}" method="post" class="cv-details">
+          <div><label class="form-label" for="cvMr">MR #</label><input id="cvMr" name="mrNo" class="form-control form-control-sm" maxlength="40" th:value="${c.mrNo}" placeholder="e.g. 00004" /></div>
+          <div class="grow"><label class="form-label" for="cvTitle">For</label><input id="cvTitle" name="title" class="form-control form-control-sm" maxlength="200" th:value="${c.title}" /></div>
+          <div class="grow"><label class="form-label" for="cvJob">Project / job order</label>
+            <select id="cvJob" name="jobOrderId" class="form-select form-select-sm"><option value="">Warehouse stock (no job order)</option>
+              <option th:each="j : ${jobs}" th:value="${j.id}" th:selected="${j.id == c.jobOrderId}" th:text="${j.label}"></option>
+              <option th:if="${job != null and !#lists.contains(jobs.![id], c.jobOrderId)}" th:value="${job.id}" selected th:text="${job.label}"></option></select></div>
+          <div><label class="form-label" for="cvNeed">Needed by</label><input id="cvNeed" type="date" name="neededBy" class="form-control form-control-sm" th:value="${c.neededBy}" /></div>
+          <div class="align-self-end"><button class="btn btn-sm btn-outline" type="submit">Save details</button></div>
+        </form>
+      </section>
+
+      <!-- Items -->
+      <section class="panel mb-4" th:if="${draft}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-check"></i>Items to price</h2></div>
+        <form th:action="@{/Purchasing/Canvasses/{id}/items(id=${c.id})}" method="post">
+          <div class="table-wrap">
+            <table class="data-table line-table" data-lines>
+              <thead><tr><th style="width:26%">Material (optional)</th><th>Description</th><th style="width:100px" class="num">Qty</th><th style="width:90px">Unit</th><th style="width:20%">Remarks</th><th style="width:44px"></th></tr></thead>
+              <tbody>
+                <tr th:each="it : ${g.items()}">
+                  <td><input type="hidden" name="line_id" th:value="${it.id}" />
+                    <select name="line_material" class="form-select form-select-sm material-pick"><option value="">— free text —</option>
+                      <option th:each="m : ${materials}" th:value="${m.id}" th:selected="${m.id == it.materialId}" th:attr="data-unit=${m.unit},data-name=${m.name}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                  <td><input name="line_desc" class="form-control form-control-sm" th:value="${it.description}" maxlength="200" /></td>
+                  <td><input name="line_qty" class="form-control form-control-sm num q" th:value="${it.qty.stripTrailingZeros().toPlainString()}" inputmode="decimal" /></td>
+                  <td><input name="line_unit" class="form-control form-control-sm" th:value="${it.unit}" maxlength="20" /></td>
+                  <td><input name="line_remarks" class="form-control form-control-sm" th:value="${it.remarks}" maxlength="200" /></td>
+                  <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(g.items())}">
+                  <td><input type="hidden" name="line_id" value="" />
+                    <select name="line_material" class="form-select form-select-sm material-pick"><option value="">— free text —</option>
+                      <option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-name=${m.name}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                  <td><input name="line_desc" class="form-control form-control-sm" maxlength="200" placeholder="e.g. Copper pipe 3/8 x 50 ft" /></td>
+                  <td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                  <td><input name="line_unit" class="form-control form-control-sm" value="pc" maxlength="20" /></td>
+                  <td><input name="line_remarks" class="form-control form-control-sm" maxlength="200" /></td>
+                  <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+              </tbody>
+              <template>
+                <tr>
+                  <td><input type="hidden" name="line_id" value="" />
+                    <select name="line_material" class="form-select form-select-sm material-pick"><option value="">— free text —</option>
+                      <option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-name=${m.name}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                  <td><input name="line_desc" class="form-control form-control-sm" maxlength="200" placeholder="e.g. Copper pipe 3/8 x 50 ft" /></td>
+                  <td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                  <td><input name="line_unit" class="form-control form-control-sm" value="pc" maxlength="20" /></td>
+                  <td><input name="line_remarks" class="form-control form-control-sm" maxlength="200" /></td>
+                  <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+              </template>
+            </table>
+          </div>
+          <div class="panel-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-sm btn-outline" data-add-line><i class="bi bi-plus-lg"></i>Add item</button>
+            <button type="submit" class="btn btn-sm btn-dark"><i class="bi bi-check2"></i>Save items</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Supplier quotes and comparison -->
+      <section class="panel mb-4" id="compare">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-shop"></i>Supplier quotes <span class="count-badge" th:text="${#lists.size(g.suppliers())}">0</span></h2>
+          <button th:if="${draft and !#lists.isEmpty(g.items())}" type="button" class="btn btn-primary btn-sm" data-add-quote><i class="bi bi-plus-lg"></i>Add supplier quote</button>
+        </div>
+
+        <div class="empty-state" th:if="${#lists.isEmpty(g.items())}"><p>Add the items first, then each supplier's quote.</p></div>
+        <div class="empty-state" th:if="${!#lists.isEmpty(g.items()) and #lists.isEmpty(g.suppliers())}">
+          <div class="empty-icon"><i class="bi bi-shop"></i></div>
+          <h3>No quotes yet</h3>
+          <p>Ask two or three suppliers for their price on these items, then add each quote here. The cheapest is picked for you.</p>
+          <button th:if="${draft}" type="button" class="btn btn-primary mt-2" data-add-quote><i class="bi bi-plus-lg"></i>Add the first quote</button>
+        </div>
+
+        <th:block th:unless="${#lists.isEmpty(g.items()) or #lists.isEmpty(g.suppliers())}">
+          <div class="cv-summary">
+            <div class="hl"><span>Chosen total</span><b th:text="${'₱' + #numbers.formatDecimal(g.awardedTotal(), 1, 'COMMA', 2, 'POINT')}"></b>
+              <small th:text="${g.allCheapest() ? 'All at the cheapest price' : '₱' + #numbers.formatDecimal(g.awardedTotal().subtract(g.cheapestTotal()), 1, 'COMMA', 2, 'POINT') + ' above the cheapest'}"></small></div>
+            <div><span>Cheapest possible</span><b th:text="${'₱' + #numbers.formatDecimal(g.cheapestTotal(), 1, 'COMMA', 2, 'POINT')}"></b><small>Each item from its cheapest supplier</small></div>
+            <div><span>You save</span><b class="text-success" th:text="${'₱' + #numbers.formatDecimal(g.savings(), 1, 'COMMA', 2, 'POINT')}"></b><small>Against the highest quotes</small></div>
+            <div><span>Cheapest single supplier</span>
+              <b th:if="${g.bestSingleSupplier() != null}" th:text="${'₱' + #numbers.formatDecimal(g.bestSingleTotal(), 1, 'COMMA', 2, 'POINT')}"></b>
+              <small th:if="${g.bestSingleSupplier() != null}" th:text="${supplierMap[g.bestSingleSupplier()].name + ' quoted everything'}"></small>
+              <b th:if="${g.bestSingleSupplier() == null}">—</b><small th:if="${g.bestSingleSupplier() == null}">No supplier quoted every item</small></div>
+          </div>
+          <div class="alert alert-warning mx-4 mt-3 mb-0" th:if="${g.unpricedItems() > 0}"><span th:text="${g.unpricedItems() + ' item(s) have no price yet. Add a quote that covers them before approving.'}"></span></div>
+
+          <div class="cv-cards">
+            <article class="cv-card" th:each="s : ${g.suppliers()}" th:with="sup=${supplierMap[s.supplierId]}"
+                     th:classappend="${g.chosenTotal(s.supplierId).signum() > 0} ? ' has-chosen'">
+              <header>
+                <div><div class="cv-name" th:text="${sup != null ? sup.name : '?'}"></div>
+                  <div class="cell-sub"><span th:if="${s.quoteRef}" th:text="${'Quote ' + s.quoteRef}"></span><span th:if="${s.quoteDate}" th:text="${(s.quoteRef != null and !#strings.isEmpty(s.quoteRef) ? ' · ' : 'Quoted ') + #temporals.format(s.quoteDate, 'MMM d')}"></span></div></div>
+                <span class="cv-tag best" th:if="${g.bestSingleSupplier() == s.supplierId}">Cheapest for all</span>
+              </header>
+              <dl>
+                <div><dt>Quoted</dt><dd th:text="${g.quoted(s.supplierId) + ' of ' + #lists.size(g.items()) + ' items'}"></dd></div>
+                <div><dt>Their total</dt><dd th:text="${'₱' + #numbers.formatDecimal(g.supplierTotals()[s.supplierId], 1, 'COMMA', 2, 'POINT')}"></dd></div>
+                <div><dt>Delivery</dt><dd th:text="${s.deliveryDays != null ? s.deliveryDays + ' day(s)' : '—'}"></dd></div>
+                <div><dt>Chosen from them</dt><dd class="fw-semibold" th:text="${'₱' + #numbers.formatDecimal(g.chosenTotal(s.supplierId), 1, 'COMMA', 2, 'POINT')}"></dd></div>
+              </dl>
+              <p class="cv-terms cv-pay" th:if="${s.vatInclusive != null or !#strings.isEmpty(s.paymentSummary())}">
+                <span th:if="${s.vatInclusive != null}" class="cv-tag" th:classappend="${s.vatInclusive} ? ' up'" th:text="${s.vatInclusive ? 'VAT' : 'NON-VAT'}"></span>
+                <span th:text="${s.paymentSummary()}"></span></p>
+              <p class="cv-terms" th:if="${s.terms != null or s.validUntil != null}"><span th:text="${s.terms}"></span><span th:if="${s.validUntil}" th:text="${(s.terms != null ? ' · ' : '') + 'valid until ' + #temporals.format(s.validUntil, 'MMM d')}"></span></p>
+              <footer th:if="${draft}">
+                <form th:action="@{/Purchasing/Canvasses/{id}/choose-supplier(id=${c.id})}" method="post"><input type="hidden" name="supplierId" th:value="${s.supplierId}" />
+                  <button class="btn btn-sm btn-outline" type="submit" th:text="${'Use for all ' + g.quoted(s.supplierId)}" th:title="${'Choose this supplier for every item they quoted'}"></button></form>
+                <button type="button" class="btn btn-sm btn-ghost" data-edit-quote
+                        th:attr="data-vat=${s.vatInclusive == null ? '' : (s.vatInclusive ? 'VAT' : 'NONVAT')},data-mode=${s.paymentMode},data-termdays=${s.termDays},data-pdc=${s.isPdc()},data-supplier=${s.supplierId},data-ref=${s.quoteRef},data-date=${s.quoteDate},data-days=${s.deliveryDays},data-valid=${s.validUntil},data-terms=${s.terms},data-prices=${quotePrices[s.supplierId]},data-name=${sup != null ? sup.name : ''}">Edit</button>
+                <button type="submit" class="btn btn-sm btn-ghost btn-icon" th:attr="form=${'rm' + s.supplierId}" aria-label="Remove quote"><i class="bi bi-trash"></i></button>
+              </footer>
+            </article>
+          </div>
+
+          <div class="cv-toolbar" th:if="${draft}">
+            <span class="small text-muted">Click a price to choose that supplier for the item.</span>
+            <form th:action="@{/Purchasing/Canvasses/{id}/choose-cheapest(id=${c.id})}" method="post">
+              <button class="btn btn-sm btn-dark" type="submit" th:disabled="${g.allCheapest()}"><i class="bi bi-lightning-charge"></i>Choose cheapest for every item</button>
+            </form>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table cv-compare">
+              <thead><tr><th>Item</th><th class="num">Qty</th>
+                <th th:each="s : ${g.suppliers()}" class="num" th:text="${supplierMap[s.supplierId] != null ? supplierMap[s.supplierId].name : '?'}"></th></tr></thead>
+              <tbody>
+                <tr th:each="it : ${g.items()}">
+                  <td><div class="cell-main" th:text="${it.description}"></div><div class="cell-sub" th:if="${it.remarks}" th:text="${it.remarks}"></div></td>
+                  <td class="num text-nowrap" th:text="${it.qty.stripTrailingZeros().toPlainString() + ' ' + it.unit}"></td>
+                  <td th:each="s : ${g.suppliers()}" class="cv-pick" th:with="p=${g.price(it.id, s.supplierId)},win=${g.isWinner(it.id, s.supplierId)},low=${g.isLowest(it.id, s.supplierId)},pct=${g.percentAboveLowest(it.id, s.supplierId)}"
+                      th:classappend="${(win ? ' win' : '') + (low ? ' low' : '') + (p == null ? ' none' : '')}">
+                    <span th:if="${p == null and g.isNotAvailable(it.id, s.supplierId)}" class="cv-na">NOT AVAILABLE<small th:if="${g.brand(it.id, s.supplierId) != null}" th:text="${g.brand(it.id, s.supplierId)}"></small></span>
+                    <span th:if="${p == null and !g.isNotAvailable(it.id, s.supplierId)}" class="text-muted">no quote</span>
+                    <form th:if="${p != null and draft}" th:action="@{/Purchasing/Canvasses/{id}/choose(id=${c.id})}" method="post">
+                      <input type="hidden" name="itemId" th:value="${it.id}" /><input type="hidden" name="supplierId" th:value="${s.supplierId}" />
+                      <button type="submit" class="cv-price" th:title="${win ? 'Chosen' : 'Choose this supplier for ' + it.description}">
+                        <b th:text="${'₱' + #numbers.formatDecimal(p, 1, 'COMMA', 2, 'POINT')}"></b>
+                        <small th:text="${(g.brand(it.id, s.supplierId) != null ? g.brand(it.id, s.supplierId) + ' · ' : '') + '= ₱' + #numbers.formatDecimal(g.amount(it.id, s.supplierId), 1, 'COMMA', 2, 'POINT')}"></small>
+                        <span class="cv-badges"><span class="cv-tag low" th:if="${low}">Cheapest</span><span class="cv-tag up" th:if="${pct != null}" th:text="${'+' + pct + '%'}"></span><span class="cv-tag chosen" th:if="${win}"><i class="bi bi-check-lg"></i>Chosen</span></span>
+                      </button>
+                    </form>
+                    <div th:if="${p != null and !draft}" class="cv-price static">
+                      <b th:text="${'₱' + #numbers.formatDecimal(p, 1, 'COMMA', 2, 'POINT')}"></b>
+                      <small th:text="${(g.brand(it.id, s.supplierId) != null ? g.brand(it.id, s.supplierId) + ' · ' : '') + '= ₱' + #numbers.formatDecimal(g.amount(it.id, s.supplierId), 1, 'COMMA', 2, 'POINT')}"></small>
+                      <span class="cv-badges"><span class="cv-tag low" th:if="${low}">Cheapest</span><span class="cv-tag chosen" th:if="${win}"><i class="bi bi-check-lg"></i>Chosen</span></span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot><tr><td colspan="2">Chosen from each supplier</td>
+                <td th:each="s : ${g.suppliers()}" class="num" th:text="${'₱' + #numbers.formatDecimal(g.chosenTotal(s.supplierId), 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+            </table>
+          </div>
+        </th:block>
+        <th:block th:if="${draft}">
+          <form th:each="s : ${g.suppliers()}" th:id="${'rm' + s.supplierId}" th:action="@{/Purchasing/Canvasses/{id}/suppliers/{sid}/remove(id=${c.id},sid=${s.supplierId})}" method="post" data-confirm="Remove this supplier's quote?" data-confirm-tone="danger" data-confirm-ok="Remove"></form>
+        </th:block>
+      </section>
+
+      <!-- Add / edit one supplier's quote -->
+      <dialog class="app-dialog" id="quoteDialog" aria-labelledby="qTitle" th:if="${draft}">
+        <form th:action="@{/Purchasing/Canvasses/{id}/quote(id=${c.id})}" method="post">
+          <header class="dialog-header"><div><h2 id="qTitle">Add supplier quote</h2><p>Type the supplier's price for each item. Leave a price blank if they don't have it.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="quoteDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6" data-new-quote><label class="form-label" for="q1">Supplier <span class="req">*</span></label>
+                <select id="q1" name="supplierId" class="form-select"><option value="">— new supplier (type the name) —</option>
+                  <option th:each="s : ${allSuppliers}" th:value="${s.id}" th:attr="data-terms=${s.paymentTerms}" th:text="${s.name}"></option></select></div>
+              <div class="col-md-6" data-new-quote data-new-supplier><label class="form-label" for="q2">New supplier name</label><input id="q2" name="newSupplier" class="form-control" maxlength="160" placeholder="Added to the supplier directory" /></div>
+              <div class="col-12" data-edit-quote-name hidden><div class="form-label">Supplier</div><div class="fw-semibold" id="qName"></div><input type="hidden" name="supplierId" id="qSupplierHidden" disabled /></div>
+              <div class="col-md-3"><label class="form-label" for="q3">Their quote no.</label><input id="q3" name="quoteRef" class="form-control" maxlength="60" /></div>
+              <div class="col-md-3"><label class="form-label" for="q4">Quote date</label><input id="q4" type="date" name="quoteDate" class="form-control" th:value="${today}" /></div>
+              <div class="col-md-3"><label class="form-label" for="q5">Delivery (days)</label><input id="q5" name="deliveryDays" class="form-control" inputmode="numeric" /></div>
+              <div class="col-md-3"><label class="form-label" for="q6">Valid until</label><input id="q6" type="date" name="validUntil" class="form-control" /></div>
+              <div class="col-md-3"><label class="form-label" for="q8">VAT</label>
+                <select id="q8" name="vat" class="form-select"><option value="">—</option><option value="VAT">VAT (inclusive)</option><option value="NONVAT">Non-VAT</option></select></div>
+              <div class="col-md-3"><label class="form-label" for="q9">Mode of payment</label>
+                <select id="q9" name="paymentMode" class="form-select"><option value="">—</option><option value="CASH">Cash</option><option value="CHEQUE">Cheque</option></select></div>
+              <div class="col-md-3"><label class="form-label" for="q10">Terms (days)</label>
+                <select id="q10" name="termDays" class="form-select"><option value="">—</option><option value="0">Pay before ordering (cash / COD)</option><option value="30">30 days</option><option value="60">60 days</option><option value="90">90 days</option></select></div>
+              <div class="col-md-3 d-flex align-items-end"><label class="d-flex gap-2 align-items-center mb-2"><input type="checkbox" name="pdc" value="true" id="q11" /> PDC (post-dated cheque)</label></div>
+              <div class="col-12"><label class="form-label" for="q7">Other terms</label><input id="q7" name="terms" class="form-control" maxlength="300" placeholder="e.g. free delivery within Cebu" /></div>
+            </div>
+            <table class="data-table line-table">
+              <thead><tr><th>Item</th><th class="num">Qty</th><th style="width:150px">Brand</th><th style="width:130px" class="num">Unit price (₱)</th><th style="width:70px" class="text-center" title="They don't carry it">N/A</th><th style="width:120px" class="money">Amount</th></tr></thead>
+              <tbody>
+                <tr th:each="it : ${g.items()}">
+                  <td th:text="${it.description}"></td>
+                  <td class="num text-nowrap"><input type="hidden" class="q" th:value="${it.qty.toPlainString()}" /><span th:text="${it.qty.stripTrailingZeros().toPlainString() + ' ' + it.unit}"></span></td>
+                  <td><input class="form-control form-control-sm qb" th:name="${'brand_' + it.id}" th:attr="data-item=${it.id}" maxlength="80" placeholder="Brand" /></td>
+                  <td><input class="form-control form-control-sm num p" th:name="${'price_' + it.id}" th:attr="data-item=${it.id}" inputmode="decimal" placeholder="—" /></td>
+                  <td class="text-center"><input type="checkbox" class="qna" th:name="${'na_' + it.id}" value="true" th:attr="data-item=${it.id}" aria-label="Not available" /></td>
+                  <td class="money amt"></td>
+                </tr>
+              </tbody>
+              <tfoot><tr><td colspan="5" class="text-end">Their total</td><td class="money"><b data-lines-total>0.00</b></td></tr></tfoot>
+            </table>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="quoteDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save quote</button></footer>
+        </form>
+      </dialog>
+
+      <section class="panel" th:unless="${#lists.isEmpty(orders)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-bag-check"></i>Purchase orders from this canvass</h2></div>
+        <div class="table-wrap"><table class="data-table"><tbody>
+          <tr th:each="po : ${orders}" class="row-link" th:attr="data-href=@{/Purchasing/Procurements/{id}(id=${po.id})}">
+            <td><a class="mono" th:href="@{/Purchasing/Procurements/{id}(id=${po.id})}" th:text="${po.number}"></a></td>
+            <td th:text="${supplierMap[po.supplierId] != null ? supplierMap[po.supplierId].name : ''}"></td>
+            <td><span class="status" th:classappend="${'status-po-' + #strings.toLowerCase(po.status)}" th:text="${po.status}"></span></td>
+          </tr>
+        </tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

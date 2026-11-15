@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Materials')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Materials">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Inventory</div><h1 class="page-title">Materials</h1><p class="page-sub">Stock on hand is updated by deliveries, issuances and adjustments; nobody types it in. Click a material for its stock card.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" type="button" data-fill="matDialog" data-title="Add material" th:attr="data-f-code=${nextCode}" data-new="1"><i class="bi bi-plus-lg"></i>Add material</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="kpi-grid hr-kpis">
+        <div class="kpi"><div class="kpi-label">Materials <i class="bi bi-bricks"></i></div><div class="kpi-value" th:text="${activeCount}">0</div><div class="kpi-note">Active items</div></div>
+        <div class="kpi accent"><div class="kpi-label">Stock value <i class="bi bi-cash-stack"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(stockValue, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">On hand × average cost</div></div>
+        <div class="kpi" th:classappend="${lowCount > 0} ? ' kpi-warn'"><div class="kpi-label">To reorder <i class="bi bi-exclamation-triangle"></i></div><div class="kpi-value" th:text="${lowCount}">0</div><div class="kpi-note">At or below reorder level</div></div>
+        <div class="kpi"><div class="kpi-label">Quick links</div><div class="kpi-note mt-2"><a th:href="@{/Inventory/StockReceiving}">Receive</a> · <a th:href="@{/Inventory/StockIssuance/new}">Issue</a> · <a th:href="@{/Inventory/StockAdjustment}">Adjust</a></div></div>
+      </section>
+      <section class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-bricks"></i>Material list</h2>
+          <div class="table-toolbar">
+            <div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search code or name…" data-filter-table="matTable" aria-label="Search" /></div>
+            <label class="oc-switch"><input type="checkbox" data-filter-low="matTable" /><span></span>To reorder only</label>
+          </div>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(materials)}">
+          <table class="data-table" id="matTable">
+            <thead><tr><th>Code</th><th>Material</th><th>Category</th><th class="num">On hand</th><th class="num">Reorder at</th><th class="money">Avg cost</th><th class="money">Value</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="m : ${materials}" class="row-link" th:attr="data-href=@{/Inventory/Materials/{id}(id=${m.id})},data-low=${m.active and m.low}" th:classappend="${(!m.active ? ' row-void' : '') + (m.active and m.low ? ' row-low' : '')}">
+                <td class="mono" th:text="${m.code}"></td>
+                <td><div class="cell-main" th:text="${m.name}"></div><div class="cell-sub" th:text="${m.location}"></div></td>
+                <td th:text="${m.categoryId != null ? categoryMap[m.categoryId] : '—'}"></td>
+                <td class="num fw-semibold" th:text="${m.onHand.stripTrailingZeros().toPlainString() + ' ' + m.unit}"></td>
+                <td class="num"><span th:text="${m.reorderLevel != null ? m.reorderLevel.stripTrailingZeros().toPlainString() : '—'}"></span> <span th:if="${m.active and m.low}" class="status status-sent">Reorder</span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(m.avgCost, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(m.stockValue, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="actions"><button type="button" class="btn btn-sm btn-outline" data-fill="matDialog" th:attr="data-title=${'Edit ' + m.code},data-f-id=${m.id},data-f-code=${m.code},data-f-name=${m.name},data-f-category-id=${m.categoryId},data-f-unit=${m.unit},data-f-reorder-level=${m.reorderLevel != null ? m.reorderLevel.stripTrailingZeros().toPlainString() : ''},data-f-location=${m.location},data-f-notes=${m.notes},data-f-active=${m.active}">Edit</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(materials)}"><div class="empty-icon"><i class="bi bi-bricks"></i></div><h3>No materials yet</h3><p>Add the items you keep in stock. Put the current count as the opening stock.</p></div>
+      </section>
+      <dialog class="app-dialog" id="matDialog" aria-labelledby="matTitle">
+        <form th:action="@{/Inventory/Materials}" method="post"><input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 id="matTitle" data-dialog-title>Add material</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="matDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="row g-3">
+              <div class="col-md-3"><label class="form-label" for="a1">Code</label><input id="a1" name="code" class="form-control mono" maxlength="40" /></div>
+              <div class="col-md-9"><label class="form-label" for="a2">Name <span class="req">*</span></label><input id="a2" name="name" class="form-control" maxlength="200" placeholder="e.g. Copper pipe 3/8 in, 50 ft roll" required /></div>
+              <div class="col-md-5"><label class="form-label" for="a3">Category</label><select id="a3" name="categoryId" class="form-select"><option value="">—</option><option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option></select></div>
+              <div class="col-md-3"><label class="form-label" for="a4">Unit</label><input id="a4" name="unit" class="form-control" maxlength="20" value="pc" list="unitList" /><datalist id="unitList"><option>pc</option><option>roll</option><option>m</option><option>ft</option><option>box</option><option>kg</option><option>L</option><option>can</option><option>set</option><option>length</option><option>sheet</option><option>bag</option></datalist></div>
+              <div class="col-md-4"><label class="form-label" for="a5">Reorder level</label><input id="a5" name="reorderLevel" class="form-control" inputmode="decimal" /><div class="form-hint">Flag when stock falls to this</div></div>
+              <div class="col-md-6"><label class="form-label" for="a6">Location</label><input id="a6" name="location" class="form-control" maxlength="120" placeholder="e.g. Rack B2" /></div>
+              <div class="col-md-6"><label class="form-label" for="a7">Notes</label><input id="a7" name="notes" class="form-control" maxlength="600" /></div>
+              <div class="col-md-4" data-new-only><label class="form-label" for="a8">Opening stock</label><input id="a8" name="openingQty" class="form-control" inputmode="decimal" /></div>
+              <div class="col-md-4" data-new-only><label class="form-label" for="a9">Opening unit cost (₱)</label><input id="a9" name="openingCost" class="form-control" inputmode="decimal" /></div>
+              <div class="col-md-4 d-flex align-items-end" data-edit-only><label class="oc-switch"><input type="checkbox" name="active" value="true" checked /><span></span>Active</label></div>
+            </div>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="matDialog">Cancel</button><button type="submit" class="btn btn-primary">Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

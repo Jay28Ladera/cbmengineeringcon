@@ -1,0 +1,11 @@
+package com.asmsi.admin_system.inventory;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import java.util.List;
+import java.util.Optional;
+
+public interface PurchaseOrderLineRepository extends JpaRepository<PurchaseOrderLine, Long> {
+    List<PurchaseOrderLine> findByPoIdOrderBySortOrderAscIdAsc(Long poId);
+    List<PurchaseOrderLine> findByPoIdIn(java.util.Collection<Long> poIds);
+}

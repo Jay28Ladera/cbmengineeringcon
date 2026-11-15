@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payments')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Payments">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Accounting</div>
+          <h1 class="page-title">Payments</h1>
+          <p class="page-sub">Disbursement vouchers to suppliers. Finance prepares, the CEO approves with a signature, then Finance releases the cash or cheque.</p>
+        </div>
+        <div class="page-actions"><a class="btn btn-primary" th:href="@{/Accounting/Payments/new}"><i class="bi bi-plus-lg"></i>New voucher</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <th:block th:each="grp : ${ {'active', 'done'} }" th:with="list=${grp == 'active' ? active : done}">
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi" th:classappend="${grp == 'active'} ? 'bi-hourglass-split' : 'bi-archive'"></i><span th:text="${grp == 'active' ? 'In progress' : 'Released & closed'}"></span> <span class="count-badge" th:text="${#lists.size(list)}"></span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(list)}">
+          <table class="data-table">
+            <thead><tr><th>Voucher</th><th>Payee</th><th>Method</th><th>Date</th><th class="money">Bills</th><th class="money">EWT</th><th class="money">Net paid</th></tr></thead>
+            <tbody>
+              <tr th:each="v : ${list}" class="row-link" th:classappend="${v.status == 'VOID' or v.status == 'CANCELLED'} ? ' row-void'" th:attr="data-href=@{/Accounting/Payments/{id}(id=${v.id})}">
+                <td><a class="mono" th:href="@{/Accounting/Payments/{id}(id=${v.id})}" th:text="${v.number}"></a> <span class="status" th:classappend="${'status-dv-' + #strings.toLowerCase(v.status)}" th:text="${v.statusLabel}"></span></td>
+                <td th:text="${supplierMap.get(v.supplierId) != null ? supplierMap.get(v.supplierId).name : '—'}"></td>
+                <td><span th:text="${v.method == 'CASH' ? 'Cash' : 'Cheque'}"></span><span class="cell-sub d-block" th:text="${(v.bankId != null and bankMap.get(v.bankId) != null ? bankMap.get(v.bankId).name : '') + (v.chequeNo != null ? ' #' + v.chequeNo : '')}"></span></td>
+                <td th:text="${#temporals.format(v.releaseDate != null ? v.releaseDate : v.voucherDate, 'MMM d, yyyy')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(v.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(v.ewt, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money fw-semibold" th:text="${#numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT')}"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(list)}" th:text="${grp == 'active' ? 'No vouchers in progress. Start one from Payables, or with New voucher.' : 'Nothing released yet.'}"></div>
+      </section>
+      </th:block>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Banks & cash')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Banks & cash">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Banks &amp; cash</h1>
+          <p class="page-sub">Where CBM's money is. Each one has its own ledger account; payments released from it lower its balance.</p></div>
+        <div class="page-actions">
+          <button class="btn btn-outline" type="button" data-open-dialog="trDialog"><i class="bi bi-arrow-left-right"></i>Transfer / deposit</button>
+          <button class="btn btn-primary" type="button" data-fill="bankDialog" data-title="Add bank or cash account"><i class="bi bi-plus-lg"></i>Add account</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Account</th><th>Kind</th><th>Bank / number</th><th>Ledger</th><th class="money">Balance</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${rows}" th:with="b=${r.bank()}" th:classappend="${!b.active} ? ' row-void'">
+                <td><div class="cell-main" th:text="${b.name}"></div><div class="cell-sub" th:if="${b.custodian}" th:text="${'Custodian: ' + b.custodian}"></div></td>
+                <td th:text="${b.kind == 'BANK' ? 'Bank (cheques)' : (b.kind == 'PETTY' ? 'Petty cash' : 'Cash')}"></td>
+                <td th:text="${(b.bankName ?: '') + (b.accountNo != null ? ' · ' + b.accountNo : '')}"></td>
+                <td><a th:if="${r.account() != null}" class="mono" th:href="@{/Accounting/Accounts/{id}(id=${r.account().id})}" th:text="${r.account().code}"></a></td>
+                <td class="money fw-semibold" th:classappend="${r.balance().signum() < 0} ? ' overdue'" th:text="${#numbers.formatDecimal(r.balance(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="actions"><button type="button" class="btn btn-sm btn-ghost" data-fill="bankDialog"
+                  th:attr="data-title=${'Edit ' + b.name},data-f-id=${b.id},data-f-name=${b.name},data-f-kind=${b.kind},data-f-bank-name=${b.bankName},data-f-account-no=${b.accountNo},data-f-custodian=${b.custodian},data-f-fund-limit=${b.fundLimit},data-f-active=${b.active}">Edit</button></td>
+              </tr>
+            </tbody>
+            <tfoot><tr class="tb-total"><td colspan="4">Total cash and bank</td><td class="money" th:text="${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr></tfoot>
+          </table>
+        </div>
+        <div class="panel-body small text-muted">Starting balances: enter them once in <a th:href="@{/Accounting/Opening}">Opening balances</a>.</div>
+      </section>
+      <dialog class="app-dialog" id="bankDialog">
+        <form th:action="@{/Accounting/Banks}" method="post">
+          <input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 data-dialog-title>Add account</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="bankDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-8"><label class="form-label" for="bk1">Name <span class="req">*</span></label><input id="bk1" name="name" class="form-control" maxlength="120" required placeholder="e.g. BDO Current – Operations" /></div>
+            <div class="col-md-4" data-new-only><label class="form-label" for="bk2">Kind</label><select id="bk2" name="kind" class="form-select"><option value="BANK">Bank (cheques)</option><option value="CASH">Cash on hand</option><option value="PETTY">Petty cash fund</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="bk3">Bank</label><input id="bk3" name="bankName" class="form-control" maxlength="80" placeholder="BDO, BPI, Metrobank…" /></div>
+            <div class="col-md-6"><label class="form-label" for="bk4">Account no.</label><input id="bk4" name="accountNo" class="form-control" maxlength="40" /></div>
+            <div class="col-md-6"><label class="form-label" for="bk5">Custodian (petty cash)</label><input id="bk5" name="custodian" class="form-control" maxlength="120" /></div>
+            <div class="col-md-6"><label class="form-label" for="bk6">Fund amount (petty cash)</label><input id="bk6" name="fundLimit" class="form-control text-end" inputmode="decimal" /></div>
+            <div class="col-12"><label class="oc-switch"><input type="checkbox" name="active" value="true" checked /><span></span>Active</label></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="bankDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="trDialog">
+        <form th:action="@{/Accounting/Banks/transfer}" method="post">
+          <header class="dialog-header"><div><h2>Transfer between accounts</h2><p>Bank deposit of cash, withdrawal, or replenishing petty cash.</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="trDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="t1">From</label><select id="t1" name="fromId" class="form-select" required><option th:each="r : ${rows}" th:if="${r.bank().active}" th:value="${r.bank().id}" th:text="${r.bank().name}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="t2">To</label><select id="t2" name="toId" class="form-select" required><option th:each="r, s : ${rows}" th:if="${r.bank().active}" th:value="${r.bank().id}" th:text="${r.bank().name}" th:selected="${s.index == 1}"></option></select></div>
+            <div class="col-md-6"><label class="form-label" for="t3">Amount</label><input id="t3" name="amount" class="form-control text-end" inputmode="decimal" required /></div>
+            <div class="col-md-6"><label class="form-label" for="t4">Date</label><input id="t4" type="date" name="date" class="form-control" th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" /></div>
+            <div class="col-12"><label class="form-label" for="t5">Memo</label><input id="t5" name="memo" class="form-control" maxlength="500" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="trDialog">Cancel</button><button type="submit" class="btn btn-primary">Post transfer</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="${'Voucher ' + v.number}">Voucher</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 12px/1.45 "IBM Plex Sans", "Segoe UI", Arial, sans-serif; color: #142033; background: #e9ecf1; }
+    .bar { position: sticky; top: 0; display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #0b1524; color: #fff; font-size: 13px; }
+    .bar button { margin-left: auto; padding: 7px 16px; border: 0; border-radius: 6px; background: #c8151d; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .sheet { width: 210mm; min-height: 148mm; margin: 16px auto; padding: 12mm 14mm; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #142033; padding-bottom: 8px; }
+    .co { display: flex; gap: 12px; align-items: center; } .co img { height: 50px; }
+    .co b { display: block; font-size: 15px; text-transform: uppercase; }
+    .ttl { text-align: right; } .ttl h1 { margin: 0; font-size: 18px; letter-spacing: .08em; color: #c8151d; }
+    .ttl .no { font-family: ui-monospace, monospace; font-size: 14px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 6px 18px; margin: 12px 0; }
+    .grid .l { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #526176; }
+    .amt { border: 2px solid #142033; padding: 8px 10px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; }
+    .amt b { font-size: 18px; } .words { font-style: italic; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #22385a; color: #fff; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; text-align: left; padding: 5px 6px; }
+    td { padding: 5px 6px; border-bottom: 1px solid #d5dbe3; }
+    .r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    tfoot td { font-weight: 700; border-top: 2px solid #142033; border-bottom: 0; }
+    h3 { margin: 14px 0 0; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #526176; }
+    .sign { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10mm; margin-top: 14mm; }
+    .sign > div { text-align: center; font-size: 11px; color: #526176; }
+    .sign .line { position: relative; height: 46px; border-bottom: 1px solid #142033; color: #142033; font-weight: 600; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 2px; }
+    .sign .line img { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); max-height: 46px; max-width: 90%; }
+    .stamp { display: inline-block; padding: 2px 8px; border: 2px solid #a15c00; color: #a15c00; font-weight: 700; letter-spacing: .08em; }
+    @media print { @page { size: A4; margin: 0; } body { background: #fff; } .bar { display: none; } .sheet { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+  <div class="bar"><b th:text="${'Payment voucher ' + v.number}"></b><span th:text="${'· ' + v.statusLabel}"></span><button type="button" onclick="window.print()">Print</button></div>
+  <div class="sheet">
+    <div class="top">
+      <div class="co"><img th:src="@{/images/logo-cbm.webp}" alt="" /><div><b>CBM Engineering &amp; Construction</b><span>Finance · Disbursement</span></div></div>
+      <div class="ttl"><h1 th:text="${v.method == 'CASH' ? 'CASH VOUCHER' : 'CHECK VOUCHER'}"></h1><div class="no" th:text="${v.number}"></div>
+        <div th:text="${'Date: ' + #temporals.format(v.voucherDate, 'MMMM d, yyyy')}"></div>
+        <div th:if="${v.status == 'DRAFT' or v.status == 'FOR_APPROVAL'}"><span class="stamp">NOT YET APPROVED</span></div>
+        <div th:if="${v.status == 'VOID' or v.status == 'CANCELLED'}"><span class="stamp" th:text="${#strings.toUpperCase(v.statusLabel)}"></span></div></div>
+    </div>
+    <div class="grid">
+      <div><div class="l">Payee</div><b th:text="${supplier != null ? supplier.name : ''}"></b>
+        <div th:if="${supplier != null and supplier.address != null}" th:text="${supplier.address}"></div>
+        <div th:if="${supplier != null and supplier.tin != null}" th:text="${'TIN ' + supplier.tin}"></div></div>
+      <div><div class="l">Payment</div>
+        <div th:text="${bank != null ? bank.label : ''}"></div>
+        <div th:if="${v.method == 'CHEQUE'}" th:text="${'Cheque no. ' + (v.chequeNo ?: '—') + (v.chequeDate != null ? ' · ' + #temporals.format(v.chequeDate, 'MMM d, yyyy') : '') + (v.pdc ? ' (PDC)' : '')}"></div></div>
+    </div>
+    <div class="amt"><span class="words" th:text="${words}"></span><b th:text="${'₱ ' + #numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT')}"></b></div>
+    <div th:if="${v.particulars}"><span class="l" style="font-size:10px;letter-spacing:.08em;color:#526176">PARTICULARS </span><span th:text="${v.particulars}"></span></div>
+    <table>
+      <thead><tr><th>Bill / invoice</th><th>Reference</th><th class="r">Amount</th><th class="r">EWT</th><th class="r">Net</th></tr></thead>
+      <tbody>
+        <tr th:each="l : ${lines}" th:with="b=${billMap.get(l.billId)}">
+          <td th:text="${b != null ? b.number + (b.invoiceNo != null ? ' · Inv ' + b.invoiceNo : '') : ''}"></td>
+          <td th:text="${poNumbers.get(l.billId) ?: ''}"></td>
+          <td class="r" th:text="${#numbers.formatDecimal(l.gross, 1, 'COMMA', 2, 'POINT')}"></td>
+          <td class="r" th:text="${#numbers.formatDecimal(l.ewt, 1, 'COMMA', 2, 'POINT') + ' (' + l.ewtRate.stripTrailingZeros().toPlainString() + '%)'}"></td>
+          <td class="r" th:text="${#numbers.formatDecimal(l.net, 1, 'COMMA', 2, 'POINT')}"></td>
+        </tr>
+      </tbody>
+      <tfoot><tr><td colspan="2">Total</td><td class="r" th:text="${#numbers.formatDecimal(v.gross, 1, 'COMMA', 2, 'POINT')}"></td><td class="r" th:text="${#numbers.formatDecimal(v.ewt, 1, 'COMMA', 2, 'POINT')}"></td><td class="r" th:text="${#numbers.formatDecimal(v.net, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+    </table>
+    <h3>Accounting entry</h3>
+    <table>
+      <thead><tr><th>Account</th><th class="r">Debit</th><th class="r">Credit</th></tr></thead>
+      <tbody>
+        <tr th:each="l : ${jlines}" th:with="a=${accountMap.get(l.accountId)}">
+          <td th:text="${a != null ? a.code + ' ' + a.name : ''}"></td>
+          <td class="r" th:text="${l.debit.signum() > 0 ? #numbers.formatDecimal(l.debit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+          <td class="r" th:text="${l.credit.signum() > 0 ? #numbers.formatDecimal(l.credit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="sign">
+      <div><div class="line" th:text="${v.preparedBy}"></div>Prepared by</div>
+      <div><div class="line"><img th:if="${v.approvedSigUrl != null}" th:src="${v.approvedSigUrl}" alt="" /><span th:text="${v.approvedBy ?: ''}"></span></div><span th:text="${'Approved by' + (v.approvedTitle != null ? ' · ' + v.approvedTitle : '')}"></span></div>
+      <div><div class="line" th:text="${v.receivedBy ?: ''}"></div>Received by · <span th:text="${v.orNo != null ? 'OR ' + v.orNo : 'OR no.'}"></span></div>
+    </div>
+  </div>
+</body>
+</html>

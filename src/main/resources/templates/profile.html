@@ -60,6 +60,40 @@
           </div>
         </div>
       </form>
+
+      <!-- Signature: drawn once, placed on the quotations this user approves -->
+      <section class="panel mt-4" id="signature">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-pen"></i>My signature</h2>
+          <span class="status status-approved" th:if="${canApproveQuotes}">Quotation approver</span>
+        </div>
+        <div class="panel-body p-4">
+          <p class="text-muted small mb-3" th:if="${canApproveQuotes}">You approve quotations. This signature is printed on every quotation you approve, above your name and position.</p>
+          <p class="text-muted small mb-3" th:unless="${canApproveQuotes}">Draw your signature once. It is used on documents you approve or sign in the portal.</p>
+          <div class="sig-current" th:if="${signatureUrl != null}">
+            <div class="form-label">Saved signature</div>
+            <div class="sig-frame"><img th:src="${signatureUrl}" alt="Your saved signature" /></div>
+            <form th:action="@{/profile/signature/remove}" method="post" class="mt-2" data-confirm="Remove your saved signature?" data-confirm-tone="danger" data-confirm-ok="Remove">
+              <button class="btn btn-sm btn-ghost" type="submit"><i class="bi bi-trash"></i>Remove</button>
+            </form>
+          </div>
+          <form th:action="@{/profile/signature}" method="post" enctype="multipart/form-data" data-sig-form>
+            <div class="form-label mt-3" th:text="${signatureUrl != null} ? 'Replace it' : 'Draw your signature'"></div>
+            <div class="sig-pad" data-sig-pad>
+              <canvas width="640" height="200" aria-label="Signature pad: draw with your mouse or finger"></canvas>
+              <span class="sig-line"></span>
+              <button type="button" class="btn btn-sm btn-ghost sig-clear" data-sig-clear><i class="bi bi-eraser"></i>Clear</button>
+            </div>
+            <input type="hidden" name="signatureData" data-sig-out />
+            <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+              <label class="btn btn-sm btn-outline mb-0"><i class="bi bi-upload"></i>Upload a picture instead
+                <input type="file" name="signatureFile" accept="image/png,image/jpeg,image/webp" class="d-none" data-sig-file /></label>
+              <span class="small text-muted" data-sig-file-name>PNG or JPG, white or clear background, under 1 MB.</span>
+              <button class="btn btn-primary ms-auto" type="submit"><i class="bi bi-check2"></i>Save signature</button>
+            </div>
+          </form>
+        </div>
+      </section>
     </main>
   </div>
 </div>

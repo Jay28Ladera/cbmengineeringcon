@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Time Logs')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Human Resources" data-title="Time Logs" data-hr-page="timelogs">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Time logs</h1>
+          <p class="page-sub">Punches from the biometric machines, uploaded files and manual entries. Send them to a payroll period's time sheet when the cut-off is done.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-outline" type="button" data-open-dialog="importDialog"><i class="bi bi-upload"></i>Upload file</button>
+          <button class="btn btn-outline" type="button" data-hr-add-punch><i class="bi bi-plus-lg"></i>Add punch</button>
+          <button class="btn btn-primary" type="button" data-open-dialog="applyDialog"><i class="bi bi-box-arrow-in-right"></i>Send to time sheet</button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <nav class="tl-tabs mb-3" aria-label="Time log views">
+        <a th:href="@{/HR/TimeLogs}" th:classappend="${view != 'punches' and view != 'unmatched'} ? ' active'"><i class="bi bi-calendar-day"></i>Daily attendance</a>
+        <a th:href="@{/HR/TimeLogs(view='punches')}" th:classappend="${view == 'punches'} ? ' active'"><i class="bi bi-list-ul"></i>All punches</a>
+        <a th:href="@{/HR/TimeLogs(view='unmatched')}" th:classappend="${view == 'unmatched'} ? ' active'"><i class="bi bi-person-exclamation"></i>Unmatched IDs <span class="count-badge hot" th:if="${unmatchedCount > 0}" th:text="${unmatchedCount}"></span></a>
+      </nav>
+
+      <!-- ===================== Daily ===================== -->
+      <th:block th:if="${view != 'punches' and view != 'unmatched'}">
+        <section class="kpi-grid hr-kpis kpi-grid-5">
+          <div class="kpi"><div class="kpi-label">Present</div><div class="kpi-value" th:text="${present}">0</div><div class="kpi-note">With time-in and time-out</div></div>
+          <div class="kpi" th:classappend="${late > 0} ? ' kpi-warn'"><div class="kpi-label">Late</div><div class="kpi-value" th:text="${late}">0</div><div class="kpi-note" th:text="${'After ' + #temporals.format(settings.shiftStart, 'h:mm a')}"></div></div>
+          <div class="kpi" th:classappend="${incomplete > 0} ? ' kpi-warn'"><div class="kpi-label">To check</div><div class="kpi-value" th:text="${incomplete}">0</div><div class="kpi-note">Missing time-in or out</div></div>
+          <div class="kpi"><div class="kpi-label">No logs</div><div class="kpi-value" th:text="${noLogs}">0</div><div class="kpi-note">Absent, on leave or off</div></div>
+          <div class="kpi"><div class="kpi-label">Not enrolled</div><div class="kpi-value" th:text="${notEnrolled}">0</div><div class="kpi-note">No Biometric ID yet</div></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div class="day-nav">
+              <a class="btn btn-sm btn-ghost btn-icon" th:href="@{/HR/TimeLogs(date=${prevDate},group=${group})}" aria-label="Previous day"><i class="bi bi-chevron-left"></i></a>
+              <form th:action="@{/HR/TimeLogs}" method="get" class="d-inline-flex gap-2 align-items-center">
+                <input type="date" name="date" class="form-control form-control-sm" th:value="${date}" onchange="this.form.requestSubmit()" aria-label="Date" />
+                <input type="hidden" name="group" th:value="${group}" />
+              </form>
+              <a class="btn btn-sm btn-ghost btn-icon" th:href="@{/HR/TimeLogs(date=${nextDate},group=${group})}" aria-label="Next day"><i class="bi bi-chevron-right"></i></a>
+              <h2 class="panel-title ms-2"><span th:text="${#temporals.format(date, 'EEEE, MMM d, yyyy')}"></span>
+                <span class="status status-new" th:if="${isToday}">Today</span>
+                <span class="status status-rejected" th:if="${isSunday}">Sunday</span>
+                <span class="status status-sent" th:if="${holiday}" th:text="${holiday.name}"></span>
+              </h2>
+            </div>
+            <div class="table-toolbar">
+              <select class="form-select form-select-sm hr-filter" data-hr-nav aria-label="Group">
+                <option th:value="@{/HR/TimeLogs(date=${date})}">All groups</option>
+                <option th:each="g : ${groups}" th:value="@{/HR/TimeLogs(date=${date},group=${g})}" th:selected="${g == group}" th:text="${g}"></option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table tl-table">
+              <thead><tr><th>Employee</th><th>In</th><th>Out</th><th>Punches</th><th class="num">REG</th><th class="num">OT</th><th class="num">Late</th><th>Status</th><th class="actions"></th></tr></thead>
+              <tbody>
+                <th:block th:each="r : ${daily}" th:with="d=${r.day()},e=${r.employee()}">
+                  <tr class="tl-group" th:if="${r.group()}"><td colspan="9" th:text="${r.groupName()}"></td></tr>
+                  <tr th:classappend="${d.status() == 'NONE'} ? ' tl-none'">
+                    <td>
+                      <div class="cell-main" th:text="${e.fullName}"></div>
+                      <div class="cell-sub">
+                        <span th:if="${e.biometricId}" class="bio-chip"><i class="bi bi-fingerprint"></i><span th:text="${e.biometricId}"></span></span>
+                        <span th:unless="${e.biometricId}" class="text-muted">No Biometric ID</span>
+                        <span th:text="${e.position ?: ''}"></span>
+                      </div>
+                    </td>
+                    <td class="tl-time" th:text="${d.in() != null ? #temporals.format(d.in(), 'h:mm a') : '—'}"></td>
+                    <td class="tl-time" th:text="${d.out() != null ? #temporals.format(d.out(), 'h:mm a') : '—'}"></td>
+                    <td><span class="punch-chip" th:each="p : ${d.punches()}" th:text="${#temporals.format(p, 'h:mm')}"></span></td>
+                    <td class="num" th:text="${d.regText()}"></td>
+                    <td class="num" th:text="${d.otText()}"></td>
+                    <td class="num" th:classappend="${d.late() > 0} ? ' text-danger fw-semibold'" th:text="${d.late() > 0 ? d.late() + 'm' : ''}"></td>
+                    <td>
+                      <span th:switch="${d.status()}">
+                        <span th:case="'PRESENT'" class="status status-accepted">Present</span>
+                        <span th:case="'LATE'" class="status status-sent">Late</span>
+                        <span th:case="'INCOMPLETE'" class="status status-rejected">No time-out</span>
+                        <span th:case="'CHECK'" class="status status-rejected">Outside shift</span>
+                        <span th:case="*" class="text-muted small" th:text="${e.biometricId != null ? 'No logs' : 'Not enrolled'}"></span>
+                      </span>
+                    </td>
+                    <td class="actions">
+                      <button type="button" class="btn btn-sm btn-ghost" data-hr-add-punch th:attr="data-employee=${e.id},data-date=${date}" title="Add a missing punch"><i class="bi bi-plus-lg"></i>Punch</button>
+                    </td>
+                  </tr>
+                </th:block>
+              </tbody>
+            </table>
+          </div>
+          <div class="empty-state" th:if="${#lists.isEmpty(daily)}"><h3>No employees</h3><p>Add employees first, or pick another group.</p></div>
+          <div class="panel-footer small text-muted" th:text="${'Shift ' + #temporals.format(settings.shiftStart, 'h:mm a') + ' – ' + #temporals.format(settings.shiftEnd, 'h:mm a') + ', break ' + #temporals.format(settings.breakStart, 'h:mm') + '–' + #temporals.format(settings.breakEnd, 'h:mm a') + ', OT in ' + settings.otBlockMinutes + '-minute blocks. Change under Pay rules.'}"></div>
+        </section>
+      </th:block>
+
+      <!-- ===================== Punches ===================== -->
+      <section class="panel" th:if="${view == 'punches'}">
+        <div class="panel-header">
+          <form th:action="@{/HR/TimeLogs}" method="get" class="tl-filter">
+            <input type="hidden" name="view" value="punches" />
+            <label>From <input type="date" name="from" class="form-control form-control-sm" th:value="${from}" /></label>
+            <label>To <input type="date" name="to" class="form-control form-control-sm" th:value="${to}" /></label>
+            <select name="employee" class="form-select form-select-sm" aria-label="Employee">
+              <option value="">All employees</option>
+              <option th:each="e : ${activeEmployees}" th:value="${e.id}" th:selected="${e.id == employeeId}" th:text="${e.fullName}"></option>
+            </select>
+            <button class="btn btn-sm btn-dark" type="submit">Show</button>
+          </form>
+          <span class="count-badge" th:text="${#lists.size(punches) + (capped ? '+' : '')}">0</span>
+        </div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(punches)}">
+          <table class="data-table">
+            <thead><tr><th>Date &amp; time</th><th>Employee</th><th>From</th><th>Note</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${punches}" th:with="a=${r.log()}">
+                <td class="text-nowrap"><div class="cell-main" th:text="${#temporals.format(a.punchTime, 'h:mm:ss a')}"></div><div class="cell-sub" th:text="${#temporals.format(a.punchTime, 'EEE, MMM d, yyyy')}"></div></td>
+                <td>
+                  <div class="cell-main" th:if="${r.employee()}" th:text="${r.employee().fullName}"></div>
+                  <div class="cell-main text-danger" th:unless="${r.employee()}"><span th:text="${'Device ID ' + a.pin}"></span> <span class="small fw-normal" th:if="${r.pinName()}" th:text="${'(' + r.pinName() + ')'}"></span></div>
+                  <div class="cell-sub"><span th:if="${a.pin}" class="bio-chip"><i class="bi bi-fingerprint"></i><span th:text="${a.pin}"></span></span>
+                    <a th:unless="${r.employee()}" th:href="@{/HR/TimeLogs(view='unmatched')}">Link to employee</a></div>
+                </td>
+                <td>
+                  <span class="source-chip" th:classappend="${a.source == 'DEVICE'} ? ' source-chart'" th:text="${a.source == 'DEVICE' ? (r.deviceName() ?: 'Machine') : (a.source == 'IMPORT' ? 'Uploaded file' : 'Manual')}"></span>
+                  <span class="cell-sub d-block" th:if="${a.punchState != null}" th:text="${a.punchState == 0 ? 'Check-in' : (a.punchState == 1 ? 'Check-out' : (a.punchState == 4 ? 'OT in' : (a.punchState == 5 ? 'OT out' : (a.punchState == 2 ? 'Break out' : (a.punchState == 3 ? 'Break in' : '')))))}"></span>
+                </td>
+                <td class="cell-wrap"><span th:text="${a.note}"></span><span class="cell-sub d-block" th:if="${a.createdBy}" th:text="${'by ' + a.createdBy}"></span></td>
+                <td class="actions">
+                  <form th:action="@{/HR/TimeLogs/{id}/delete(id=${a.id})}" method="post" data-confirm="Remove this punch? If it came from a machine or file it won't be re-imported from the same file unless you upload it again." data-confirm-tone="danger" data-confirm-ok="Remove">
+                    <input type="hidden" name="from" th:value="${from}" /><input type="hidden" name="to" th:value="${to}" />
+                    <button class="btn btn-sm btn-ghost btn-icon" type="submit" aria-label="Remove"><i class="bi bi-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(punches)}">
+          <div class="empty-icon"><i class="bi bi-clock-history"></i></div>
+          <h3>No punches in these dates</h3>
+          <p>Connect a machine under Biometric Device, or upload its exported file.</p>
+        </div>
+        <div class="panel-footer small text-muted" th:if="${capped}">Showing the latest 500. Narrow the dates or pick an employee to see the rest.</div>
+      </section>
+
+      <!-- ===================== Unmatched ===================== -->
+      <section class="panel" th:if="${view == 'unmatched'}">
+        <div class="panel-header">
+          <h2 class="panel-title"><i class="bi bi-person-exclamation"></i>Device IDs not linked to an employee</h2>
+          <form th:action="@{/HR/TimeLogs/link-auto}" method="post" th:unless="${#lists.isEmpty(pins)}">
+            <button class="btn btn-sm btn-outline" type="submit"><i class="bi bi-magic"></i>Link by employee ID / name</button>
+          </form>
+        </div>
+        <p class="px-4 pt-3 mb-0 small text-muted" th:unless="${#lists.isEmpty(pins)}">These punches aren't counted until the ID is linked. Linking sets the employee's Biometric ID, and all their punches — past and future — follow.</p>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(pins)}">
+          <table class="data-table">
+            <thead><tr><th>Device ID</th><th>Name on machine</th><th class="num">Punches</th><th>Dates</th><th style="width:40%">Link to</th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${pins}">
+                <td><span class="bio-chip lg"><i class="bi bi-fingerprint"></i><span th:text="${r.pin()}"></span></span></td>
+                <td th:text="${r.deviceName() ?: '—'}"></td>
+                <td class="num" th:text="${r.count()}"></td>
+                <td class="small" th:text="${#temporals.format(r.first(), 'MMM d') + ' – ' + #temporals.format(r.last(), 'MMM d, yyyy')}"></td>
+                <td>
+                  <form th:action="@{/HR/TimeLogs/link}" method="post" class="d-flex gap-2">
+                    <input type="hidden" name="pin" th:value="${r.pin()}" />
+                    <select name="employeeId" class="form-select form-select-sm" required aria-label="Employee">
+                      <option value="">Choose employee…</option>
+                      <option th:each="e : ${freeEmployees}" th:value="${e.id}" th:selected="${r.suggestion() != null and r.suggestion().id == e.id}"
+                              th:text="${e.fullName + (e.employeeNo != null ? '  · ' + e.employeeNo : '') + (r.suggestion() != null and r.suggestion().id == e.id ? '  (suggested)' : '')}"></option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" type="submit">Link</button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(pins)}">
+          <div class="empty-icon"><i class="bi bi-check2-circle"></i></div>
+          <h3>Every device ID is linked</h3>
+          <p>All punches belong to an employee.</p>
+        </div>
+      </section>
+
+      <!-- ===================== Dialogs ===================== -->
+      <dialog class="app-dialog app-dialog-sm" id="importDialog" aria-labelledby="importTitle">
+        <form th:action="@{/HR/TimeLogs/import}" method="post" enctype="multipart/form-data">
+          <header class="dialog-header">
+            <div><h2 id="importTitle">Upload time logs</h2><p>The attendance file from the machine or its software.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="importDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <input type="file" name="file" class="form-control" accept=".dat,.txt,.csv,.xlsx,.xls" required />
+            <ul class="small text-muted mt-3 mb-0 ps-3">
+              <li><b>From the machine's USB:</b> Data Mgt. › Download › Attendance — the <span class="mono">…attlog.dat</span> file.</li>
+              <li><b>From ZKTeco software</b> (ZKTime, ZKBio, Attendance Management): export the attendance logs to Excel or CSV.</li>
+              <li>The file needs each punch's user ID and date/time. Punches already saved are skipped, so uploading the same file twice is safe.</li>
+            </ul>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="importDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i>Upload</button>
+          </footer>
+        </form>
+      </dialog>
+
+      <dialog class="app-dialog app-dialog-sm" id="punchDialog" aria-labelledby="punchTitle">
+        <form th:action="@{/HR/TimeLogs/manual}" method="post">
+          <header class="dialog-header">
+            <div><h2 id="punchTitle">Add punch</h2><p>For a forgotten time-in/out or work away from the machine.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="punchDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div class="mb-3">
+              <label class="form-label" for="pEmp">Employee <span class="req">*</span></label>
+              <select id="pEmp" name="employeeId" class="form-select" required>
+                <option value="">Choose…</option>
+                <option th:each="e : ${activeEmployees}" th:value="${e.id}" th:text="${e.fullName + (e.payGroup != null ? '  · ' + e.payGroup : '')}"></option>
+              </select>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6"><label class="form-label" for="pDate">Date <span class="req">*</span></label><input id="pDate" type="date" name="date" class="form-control" required /></div>
+              <div class="col-3"><label class="form-label" for="pIn">Time in</label><input id="pIn" type="time" name="times" class="form-control" /></div>
+              <div class="col-3"><label class="form-label" for="pOut">Time out</label><input id="pOut" type="time" name="times" class="form-control" /></div>
+            </div>
+            <div><label class="form-label" for="pNote">Reason <span class="req">*</span></label><input id="pNote" name="note" class="form-control" maxlength="200" placeholder="e.g. Forgot to time out · on site at Talisay" required /></div>
+            <p class="form-hint mt-2 mb-0">Fill in only the time that's missing. Manual punches are marked so they can be told apart.</p>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="punchDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Add</button>
+          </footer>
+        </form>
+      </dialog>
+
+      <dialog class="app-dialog app-dialog-sm" id="applyDialog" aria-labelledby="applyTitle">
+        <form th:action="@{/HR/TimeLogs/apply}" method="post">
+          <header class="dialog-header">
+            <div><h2 id="applyTitle">Send to time sheet</h2><p>Writes REG, OT and late minutes per day from the punches.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="applyDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div th:if="${#lists.isEmpty(openPeriods)}" class="alert alert-warning"><span>There's no open payroll period. <a th:href="@{/HR/PayrollPeriod}">Create one</a> first.</span></div>
+            <th:block th:unless="${#lists.isEmpty(openPeriods)}">
+              <div class="mb-3">
+                <label class="form-label" for="aPeriod">Payroll period</label>
+                <select id="aPeriod" name="periodId" class="form-select" required>
+                  <option th:each="p : ${openPeriods}" th:value="${p.id}" th:text="${p.label}"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="aGroup">Group</label>
+                <select id="aGroup" name="group" class="form-select">
+                  <option value="">All groups</option>
+                  <option th:each="g : ${groups}" th:value="${g}" th:text="${g}"></option>
+                </select>
+              </div>
+              <span class="form-label d-block">Days already filled in on the time sheet</span>
+              <div class="seg mb-2">
+                <label><input type="radio" name="mode" value="fill" checked /><span>Keep them</span></label>
+                <label><input type="radio" name="mode" value="replace" /><span>Replace with logs</span></label>
+              </div>
+              <p class="form-hint mb-0">Days without punches are left as they are. Days with only one punch are skipped so you can add the missing one first.</p>
+            </th:block>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="applyDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary" th:disabled="${#lists.isEmpty(openPeriods)}"><i class="bi bi-box-arrow-in-right"></i>Send</button>
+          </footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

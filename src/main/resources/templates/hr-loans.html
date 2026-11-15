@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Loans & Deductions')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+
+    <main class="content-area" th:fragment="page" data-section="Human Resources" data-title="Loans &amp; Deductions" data-hr-page="loans">
+      <div class="page-header">
+        <div>
+          <div class="page-eyebrow">Human Resources</div>
+          <h1 class="page-title">Loans &amp; deductions</h1>
+          <p class="page-sub">Loans, cash advances, sinking fund and other installments. The amount per cut-off shows on every pay sheet from the start date and comes off the balance when the payroll is locked.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-primary" type="button" data-hr-new-loan><i class="bi bi-plus-lg"></i>Add schedule</button>
+        </div>
+      </div>
+
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-wallet2"></i>Schedules <span class="count-badge" th:text="${#lists.size(plans)}">0</span></h2></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(plans)}">
+          <table class="data-table">
+            <thead><tr><th>Employee</th><th>Type</th><th class="money">Total</th><th class="money">Per cut-off</th><th class="money">Deducted</th><th class="money">Balance</th><th>Status</th><th class="actions"></th></tr></thead>
+            <tbody>
+              <tr th:each="r : ${plans}" th:with="d=${r.plan()}">
+                <td><div class="cell-main" th:text="${r.employee() != null ? r.employee().fullName : '(removed employee)'}"></div><div class="cell-sub" th:text="${'From ' + #temporals.format(d.startDate, 'MMM d, yyyy')}"></div></td>
+                <td><div th:text="${r.kindLabel()}"></div><div class="cell-sub" th:text="${d.description}"></div></td>
+                <td class="money" th:text="${d.totalAmount == null ? 'Open-ended' : #numbers.formatDecimal(d.totalAmount, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(d.perCutoff, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money"><span th:text="${#numbers.formatDecimal(r.paid(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${r.installments() + ' cut-off(s)'}"></div></td>
+                <td class="money fw-semibold" th:text="${d.balance == null ? '—' : #numbers.formatDecimal(d.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td>
+                  <span th:if="${d.active}" class="status status-new">Deducting</span>
+                  <span th:if="${!d.active and d.balance != null and d.balance.signum() <= 0}" class="status status-accepted">Paid</span>
+                  <span th:if="${!d.active and (d.balance == null or d.balance.signum() > 0)}" class="status">Stopped</span>
+                </td>
+                <td class="actions">
+                  <button type="button" class="btn btn-sm btn-outline" data-hr-edit-loan
+                          th:attr="data-id=${d.id},data-employee=${d.employeeId},data-kind=${d.kind},data-description=${d.description},data-total=${d.totalAmount},data-per=${d.perCutoff},data-start=${d.startDate}">Edit</button>
+                  <form class="d-inline" th:action="@{/HR/Loans/{id}/toggle(id=${d.id})}" method="post" th:if="${d.active or d.balance == null or d.balance.signum() > 0}">
+                    <button class="btn btn-sm btn-ghost" type="submit" th:text="${d.active ? 'Stop' : 'Resume'}"></button>
+                  </form>
+                  <form class="d-inline" th:action="@{/HR/Loans/{id}/delete(id=${d.id})}" method="post" th:if="${r.installments() == 0}" data-confirm="Delete this schedule?" data-confirm-tone="danger" data-confirm-ok="Delete">
+                    <button class="btn btn-sm btn-ghost btn-icon" type="submit" aria-label="Delete"><i class="bi bi-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(plans)}">
+          <div class="empty-icon"><i class="bi bi-wallet"></i></div>
+          <h3>No schedules yet</h3>
+          <p>Add a loan or cash advance once, and its installment is deducted every cut-off until it's paid. One-time deductions can be added straight on the pay sheet.</p>
+        </div>
+      </section>
+
+      <dialog class="app-dialog app-dialog-md" id="loanDialog" aria-labelledby="loanDialogTitle">
+        <form th:action="@{/HR/Loans}" method="post" id="loanForm">
+          <input type="hidden" name="id" id="loanId" />
+          <header class="dialog-header">
+            <div><h2 id="loanDialogTitle">Add schedule</h2><p>Deducted every cut-off from the start date.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="loanDialog"><i class="bi bi-x-lg"></i></button>
+          </header>
+          <div class="dialog-body">
+            <div class="row g-3">
+              <div class="col-md-7">
+                <label class="form-label" for="loanEmployee">Employee <span class="req">*</span></label>
+                <select class="form-select" name="employeeId" id="loanEmployee" required>
+                  <option value="">Select…</option>
+                  <option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.fullName + (e.payGroup != null ? '  · ' + e.payGroup : '')}"></option>
+                </select>
+              </div>
+              <div class="col-md-5">
+                <label class="form-label" for="loanKind">Type <span class="req">*</span></label>
+                <select class="form-select" name="kind" id="loanKind"><option th:each="k : ${kinds}" th:value="${k.key}" th:text="${k.label}"></option></select>
+              </div>
+              <div class="col-12"><label class="form-label" for="loanDesc">Description</label><input class="form-control" name="description" id="loanDesc" maxlength="200" placeholder="e.g. Nozzle replacement" /></div>
+              <div class="col-md-4"><label class="form-label" for="loanTotal">Total amount (₱)</label><input class="form-control" type="number" min="0" step="0.01" name="totalAmount" id="loanTotal" /><div class="form-hint">Blank = no end (e.g. sinking fund)</div></div>
+              <div class="col-md-4"><label class="form-label" for="loanPer">Per cut-off (₱) <span class="req">*</span></label><input class="form-control" type="number" min="0.01" step="0.01" name="perCutoff" id="loanPer" required /></div>
+              <div class="col-md-4"><label class="form-label" for="loanStart">Start <span class="req">*</span></label><input class="form-control" type="date" name="startDate" id="loanStart" th:value="${today}" required /></div>
+            </div>
+            <p class="form-hint mt-3 mb-0" id="loanPreview"></p>
+          </div>
+          <footer class="dialog-footer">
+            <button type="button" class="btn btn-ghost" data-close-dialog="loanDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i>Save</button>
+          </footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Manual journal entry')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Manual journal entry">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Journal}">Journal</a></div><h1 class="page-title">Manual journal entry</h1>
+          <p class="page-sub">Debits must equal credits. Tag a line with a job order to count it in that job's costs.</p></div>
+      </div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <form th:action="@{/Accounting/Journal}" method="post" data-je-form>
+        <section class="panel mb-4"><div class="panel-body row g-3">
+          <div class="col-md-3"><label class="form-label" for="j1">Date</label><input id="j1" type="date" name="entryDate" class="form-control" th:value="${today}" /></div>
+          <div class="col-md-9"><label class="form-label" for="j2">Description <span class="req">*</span></label><input id="j2" name="memo" class="form-control" maxlength="500" required placeholder="e.g. BDO service charge for October" /></div>
+        </div></section>
+        <section class="panel mb-4">
+          <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-ul"></i>Lines</h2><button class="btn btn-sm btn-outline" type="button" data-add-row="jeLines"><i class="bi bi-plus-lg"></i>Add line</button></div>
+          <div class="table-wrap">
+            <table class="data-table je-table">
+              <thead><tr><th style="width:300px">Account</th><th>Memo</th><th style="width:200px">Job order</th><th class="money">Debit</th><th class="money">Credit</th><th style="width:40px"></th></tr></thead>
+              <tbody id="jeLines">
+                <tr th:each="i : ${#numbers.sequence(1, 2)}" data-je-line>
+                  <td><select name="j_account" class="form-select"><option value="">Choose…</option><option th:each="a : ${accountList}" th:value="${a.id}" th:text="${a.label}"></option></select></td>
+                  <td><input name="j_memo" class="form-control" maxlength="300" /></td>
+                  <td><select name="j_job" class="form-select"><option value="">—</option><option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}"></option></select></td>
+                  <td><input name="j_debit" class="form-control text-end" inputmode="decimal" /></td>
+                  <td><input name="j_credit" class="form-control text-end" inputmode="decimal" /></td>
+                  <td><button class="btn btn-sm btn-ghost btn-icon" type="button" data-remove-row aria-label="Remove line"><i class="bi bi-x-lg"></i></button></td>
+                </tr>
+              </tbody>
+              <tfoot><tr class="tb-total"><td colspan="3"><span data-je="diff"></span></td><td class="money" data-je="debit">0.00</td><td class="money" data-je="credit">0.00</td><td></td></tr></tfoot>
+            </table>
+          </div>
+        </section>
+        <div class="d-flex justify-content-end gap-2"><a class="btn btn-ghost" th:href="@{/Accounting/Journal}">Cancel</a><button class="btn btn-primary" type="submit" data-je-submit><i class="bi bi-check2"></i>Post entry</button></div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tools & Equipment')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Inventory" data-title="Tools & Equipment">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Inventory</div><h1 class="page-title">Tools &amp; equipment</h1><p class="page-sub">Each tool is tracked by asset tag: who has it, for which job, when it's due back, and when it needs maintenance.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" type="button" data-fill="toolDialog" data-title="Add tool or equipment"><i class="bi bi-plus-lg"></i>Add tool</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="kpi-grid hr-kpis">
+        <div class="kpi"><div class="kpi-label">Registered</div><div class="kpi-value" th:text="${#lists.size(rows)}">0</div><div class="kpi-note">Tools and equipment</div></div>
+        <div class="kpi"><div class="kpi-label">Checked out</div><div class="kpi-value" th:text="${issuedCount}">0</div><div class="kpi-note">With crews or on site</div></div>
+        <div class="kpi" th:classappend="${overdueCount > 0} ? ' kpi-warn'"><div class="kpi-label">Overdue</div><div class="kpi-value" th:text="${overdueCount}">0</div><div class="kpi-note">Past their return date</div></div>
+        <div class="kpi" th:classappend="${maintenanceCount > 0} ? ' kpi-warn'"><div class="kpi-label">Maintenance due</div><div class="kpi-value" th:text="${maintenanceCount}">0</div><div class="kpi-note">Within 7 days or past</div></div>
+      </section>
+      <section class="panel mb-4" th:if="${historyTool}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i><span th:text="${historyTool.tag + ' · ' + historyTool.name + ' — history'}"></span></h2><a class="btn btn-sm btn-ghost" th:href="@{/Inventory/ToolsAndEquipments}"><i class="bi bi-x-lg"></i></a></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Out</th><th>To</th><th>Job order</th><th>Back</th><th>Condition</th><th>Notes</th></tr></thead><tbody>
+          <tr th:each="h : ${historyRows}"><td th:text="${#temporals.format(h.issuedOn, 'MMM d, yyyy')}"></td><td th:text="${h.issuedTo}"></td>
+            <td th:text="${h.jobOrderId != null and jobMap[h.jobOrderId] != null ? jobMap[h.jobOrderId].label : '—'}"></td>
+            <td th:text="${h.returnedOn != null ? #temporals.format(h.returnedOn, 'MMM d, yyyy') : 'still out'}"></td><td th:text="${h.returnCondition ?: ''}"></td><td class="cell-wrap" th:text="${h.notes}"></td></tr>
+          <tr th:if="${#lists.isEmpty(historyRows)}"><td colspan="6" class="text-muted">Never issued.</td></tr>
+        </tbody></table></div>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-tools"></i>Register</h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search tag, name, holder…" data-filter-table="toolTable" aria-label="Search" /></div></div></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}">
+          <table class="data-table" id="toolTable">
+            <thead><tr><th>Tag</th><th>Tool</th><th>Status</th><th>With / where</th><th>Condition</th><th>Maintenance</th><th class="actions"></th></tr></thead>
+            <tbody><tr th:each="r : ${rows}" th:with="t=${r.tool()},o=${r.out()}" th:classappend="${t.status == 'RETIRED'} ? ' row-void'">
+              <td class="mono fw-semibold text-nowrap" th:text="${t.tag}"></td>
+              <td><div class="cell-main" th:text="${t.name}"></div><div class="cell-sub" th:text="${(t.category ?: '') + (t.brandModel != null ? ' · ' + t.brandModel : '') + (t.serialNumber != null ? ' · SN ' + t.serialNumber : '')}"></div></td>
+              <td><span class="status" th:classappend="${'status-tool-' + #strings.toLowerCase(t.status)}" th:text="${#strings.replace(t.status, '_', ' ')}"></span></td>
+              <td>
+                <th:block th:if="${o}"><div th:text="${o.issuedTo}"></div><div class="cell-sub"><span th:text="${r.job() != null ? r.job().label + ' · ' : ''}"></span><span th:text="${'since ' + #temporals.format(o.issuedOn, 'MMM d')}"></span>
+                  <span th:if="${o.expectedReturn}" th:classappend="${o.overdue} ? ' text-danger fw-semibold'" th:text="${' · due ' + #temporals.format(o.expectedReturn, 'MMM d')}"></span></div></th:block>
+                <span th:unless="${o}" th:text="${t.location ?: '—'}"></span>
+              </td>
+              <td th:text="${#strings.replace(t.condition, '_', ' ')}"></td>
+              <td th:classappend="${t.maintenanceDue} ? ' text-danger fw-semibold'" th:text="${t.nextMaintenance != null ? #temporals.format(t.nextMaintenance, 'MMM d, yyyy') : '—'}"></td>
+              <td class="actions">
+                <button th:if="${t.status == 'AVAILABLE'}" type="button" class="btn btn-sm btn-primary" data-fill="issueDialog" th:attr="data-title=${'Issue ' + t.tag + ' · ' + t.name},data-action=@{/Inventory/ToolsAndEquipments/{id}/issue(id=${t.id})}">Issue</button>
+                <button th:if="${o}" type="button" class="btn btn-sm btn-primary" data-fill="returnDialog" th:attr="data-title=${'Return ' + t.tag + ' from ' + o.issuedTo},data-action=@{/Inventory/ToolsAndEquipments/{id}/return(id=${t.id})}">Return</button>
+                <div class="dropdown d-inline-block">
+                  <button class="btn btn-sm btn-ghost btn-icon" type="button" data-bs-toggle="dropdown" aria-label="More"><i class="bi bi-three-dots"></i></button>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li><button class="dropdown-item" type="button" data-fill="toolDialog" th:attr="data-title=${'Edit ' + t.tag},data-f-id=${t.id},data-f-tag=${t.tag},data-f-name=${t.name},data-f-category=${t.category},data-f-brand-model=${t.brandModel},data-f-serial-number=${t.serialNumber},data-f-purchase-date=${t.purchaseDate},data-f-cost=${t.cost},data-f-condition=${t.condition},data-f-location=${t.location},data-f-next-maintenance=${t.nextMaintenance},data-f-status=${t.status},data-f-notes=${t.notes}"><i class="bi bi-pencil"></i>Edit</button></li>
+                    <li><a class="dropdown-item" th:href="@{/Inventory/ToolsAndEquipments(history=${t.id})}"><i class="bi bi-clock-history"></i>History</a></li>
+                  </ul>
+                </div>
+              </td>
+            </tr></tbody>
+          </table>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-tools"></i></div><h3>No tools registered</h3><p>Add vacuum pumps, gauges, welding sets, ladders, drills and the like, each with its asset tag.</p></div>
+      </section>
+
+      <dialog class="app-dialog" id="toolDialog" aria-labelledby="tTitle">
+        <form th:action="@{/Inventory/ToolsAndEquipments}" method="post"><input type="hidden" name="id" />
+          <header class="dialog-header"><div><h2 id="tTitle" data-dialog-title>Add tool</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="toolDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-3"><label class="form-label" for="t1">Asset tag <span class="req">*</span></label><input id="t1" name="tag" class="form-control mono" maxlength="40" placeholder="TL-001" required /></div>
+            <div class="col-md-5"><label class="form-label" for="t2">Name <span class="req">*</span></label><input id="t2" name="name" class="form-control" maxlength="160" placeholder="e.g. Vacuum pump" required /></div>
+            <div class="col-md-4"><label class="form-label" for="t3">Category</label><input id="t3" name="category" class="form-control" maxlength="80" list="toolCats" /><datalist id="toolCats"><option>Power tools</option><option>Hand tools</option><option>Testing &amp; measuring</option><option>Welding</option><option>Access (ladders, scaffolds)</option><option>Vehicles</option><option>Safety gear</option></datalist></div>
+            <div class="col-md-4"><label class="form-label" for="t4">Brand / model</label><input id="t4" name="brandModel" class="form-control" maxlength="120" /></div>
+            <div class="col-md-4"><label class="form-label" for="t5">Serial no.</label><input id="t5" name="serialNumber" class="form-control" maxlength="80" /></div>
+            <div class="col-md-4"><label class="form-label" for="t6">Location</label><input id="t6" name="location" class="form-control" maxlength="120" placeholder="e.g. Tool room" /></div>
+            <div class="col-md-3"><label class="form-label" for="t7">Purchase date</label><input id="t7" type="date" name="purchaseDate" class="form-control" /></div>
+            <div class="col-md-3"><label class="form-label" for="t8">Cost (₱)</label><input id="t8" name="cost" class="form-control" inputmode="decimal" /></div>
+            <div class="col-md-3"><label class="form-label" for="t9">Condition</label><select id="t9" name="condition" class="form-select"><option value="GOOD">Good</option><option value="FAIR">Fair</option><option value="NEEDS_REPAIR">Needs repair</option></select></div>
+            <div class="col-md-3"><label class="form-label" for="t10">Next maintenance</label><input id="t10" type="date" name="nextMaintenance" class="form-control" /></div>
+            <div class="col-md-4"><label class="form-label" for="t11">Status</label><select id="t11" name="status" class="form-select"><option value="AVAILABLE">Available</option><option value="MAINTENANCE">In maintenance</option><option value="RETIRED">Retired</option></select><div class="form-hint">Issued / returned is set by those buttons.</div></div>
+            <div class="col-md-8"><label class="form-label" for="t12">Notes</label><input id="t12" name="notes" class="form-control" maxlength="600" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="toolDialog">Cancel</button><button type="submit" class="btn btn-primary">Save</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog app-dialog-sm" id="issueDialog" aria-labelledby="iTitle">
+        <form method="post" th:action="@{/Inventory/ToolsAndEquipments/0/issue}">
+          <header class="dialog-header"><div><h2 id="iTitle" data-dialog-title>Issue tool</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="issueDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="mb-3"><label class="form-label" for="u1">Employee</label><select id="u1" name="employeeId" class="form-select"><option value="">— someone else (type below) —</option><option th:each="e : ${employees}" th:value="${e.id}" th:text="${e.fullName + (e.position != null ? '  · ' + e.position : '')}"></option></select></div>
+            <div class="mb-3"><label class="form-label" for="u2">Or name</label><input id="u2" name="issuedTo" class="form-control" maxlength="160" placeholder="e.g. subcontractor crew lead" /></div>
+            <div class="mb-3"><label class="form-label" for="u3">Job order</label><select id="u3" name="jobOrderId" class="form-select"><option value="">—</option><option th:each="j : ${jobOrders}" th:value="${j.id()}" th:text="${j.label}"></option></select></div>
+            <div class="row g-3"><div class="col-6"><label class="form-label" for="u4">Date out</label><input id="u4" type="date" name="issuedOn" class="form-control" th:value="${today}" /></div>
+              <div class="col-6"><label class="form-label" for="u5">Due back</label><input id="u5" type="date" name="expectedReturn" class="form-control" /></div>
+              <div class="col-12"><label class="form-label" for="u6">Notes</label><input id="u6" name="notes" class="form-control" maxlength="300" /></div></div>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="issueDialog">Cancel</button><button type="submit" class="btn btn-primary">Issue</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog app-dialog-sm" id="returnDialog" aria-labelledby="rTitle">
+        <form method="post" th:action="@{/Inventory/ToolsAndEquipments/0/return}">
+          <header class="dialog-header"><div><h2 id="rTitle" data-dialog-title>Return tool</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="returnDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-6"><label class="form-label" for="w1">Returned on</label><input id="w1" type="date" name="returnedOn" class="form-control" th:value="${today}" /></div>
+            <div class="col-6"><label class="form-label" for="w2">Condition</label><select id="w2" name="condition" class="form-select"><option value="GOOD">Good</option><option value="FAIR">Fair</option><option value="NEEDS_REPAIR">Needs repair</option></select></div>
+            <div class="col-12"><label class="form-label" for="w3">Notes</label><input id="w3" name="notes" class="form-control" maxlength="200" /><div class="form-hint">"Needs repair" puts it in maintenance.</div></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="returnDialog">Cancel</button><button type="submit" class="btn btn-primary">Return</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

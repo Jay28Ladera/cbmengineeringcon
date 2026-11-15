@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Issue Materials')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area content-wide" th:fragment="page" data-section="Inventory" data-title="Issue Materials">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Inventory/StockIssuance}">Stock issuance</a> › New</div><h1 class="page-title">Issue materials</h1>
+          <p class="page-sub">Only materials with stock are listed. You can't issue more than what's on hand.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <form th:action="@{/Inventory/StockIssuance}" method="post" class="panel">
+        <div class="panel-body"><div class="row g-3">
+          <div class="col-md-5"><label class="form-label" for="i1">Job order</label>
+            <select id="i1" name="jobOrderId" class="form-select"><option value="">— not for a job order —</option><option th:each="j : ${jobOrders}" th:value="${j.id()}" th:selected="${j.id() == jobOrderId}" th:text="${j.label}"></option></select></div>
+          <div class="col-md-2"><label class="form-label" for="i2">Date</label><input id="i2" type="date" name="issuedOn" class="form-control" th:value="${today}" /></div>
+          <div class="col-md-5"><label class="form-label" for="i3">Received by</label><input id="i3" name="issuedTo" class="form-control" maxlength="120" list="empList" placeholder="Foreman or crew member" />
+            <datalist id="empList"><option th:each="e : ${employees}" th:value="${e.fullName}"></option></datalist></div>
+          <div class="col-12"><label class="form-label" for="i4">Purpose</label><input id="i4" name="purpose" class="form-control" maxlength="300" placeholder="e.g. 2F AC piping, unit 3–6" /></div>
+        </div></div>
+        <div class="table-wrap">
+          <table class="data-table line-table" data-lines>
+            <thead><tr><th>Material</th><th style="width:140px" class="num">On hand</th><th style="width:140px" class="num">Qty to issue</th><th style="width:44px"></th></tr></thead>
+            <tbody>
+              <tr><td><select name="line_material" class="form-select form-select-sm material-pick"><option value="">Choose material…</option><option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-onhand=${m.onHand.stripTrailingZeros().toPlainString()}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td class="num onhand">—</td><td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td></tr>
+            </tbody>
+            <template>
+              <tr><td><select name="line_material" class="form-select form-select-sm material-pick"><option value="">Choose material…</option><option th:each="m : ${materials}" th:value="${m.id}" th:attr="data-unit=${m.unit},data-onhand=${m.onHand.stripTrailingZeros().toPlainString()}" th:text="${m.code + ' · ' + m.name}"></option></select></td>
+                <td class="num onhand">—</td><td><input name="line_qty" class="form-control form-control-sm num q" inputmode="decimal" /></td>
+                <td><button type="button" class="btn btn-sm btn-ghost btn-icon" data-remove-line aria-label="Remove"><i class="bi bi-x-lg"></i></button></td></tr>
+            </template>
+            <tfoot><tr><td colspan="4"><button type="button" class="btn btn-sm btn-outline" data-add-line><i class="bi bi-plus-lg"></i>Add material</button></td></tr></tfoot>
+          </table>
+        </div>
+        <div class="panel-footer d-flex justify-content-between">
+          <a class="btn btn-ghost" th:href="@{/Inventory/StockIssuance}">Cancel</a>
+          <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-up-right"></i>Issue</button>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

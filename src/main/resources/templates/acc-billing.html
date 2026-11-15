@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Client billing')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Client billing">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Client billing</h1>
+          <p class="page-sub">What clients owe CBM. Each job order gets billing terms (contract, downpayment, retention); Finance prepares downpayment, progress and retention billings, the CEO approves, and payments are recorded in Collections.</p></div>
+        <div class="page-actions"><a class="btn btn-outline" th:href="@{/Reports/BillingMonitoring}"><i class="bi bi-bar-chart-line"></i>Billing monitoring</a>
+          <a class="btn btn-primary" th:href="@{/Accounting/Collections/new}"><i class="bi bi-cash-coin"></i>Record collection</a></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Receivable<i class="bi bi-receipt"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(ar, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${#lists.size(open) + ' open billing(s)'}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Overdue<i class="bi bi-exclamation-triangle"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(overdue, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Past the due date</div></div>
+        <div class="kpi"><div class="kpi-label">Retention held<i class="bi bi-safe"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(held, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Billed on release</div></div>
+        <div class="kpi"><div class="kpi-label">Not yet billed<i class="bi bi-hourglass-split"></i></div><div class="kpi-value" style="font-size:1.7rem" th:text="${'₱' + #numbers.formatDecimal(unbilled, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Contract work still to bill</div></div>
+      </div>
+
+      <section class="panel mb-4" th:unless="${#lists.isEmpty(pending)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-pencil-square"></i>Drafts &amp; for approval <span class="count-badge" th:text="${#lists.size(pending)}"></span></h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Billing</th><th>Job order</th><th>Prepared</th><th class="money">Amount due</th></tr></thead>
+          <tbody><tr th:each="b : ${pending}" class="row-link" th:attr="data-href=@{/Accounting/Billing/{id}(id=${b.id})}">
+            <td><a class="mono" th:href="@{/Accounting/Billing/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${'status-sb-' + #strings.toLowerCase(b.status)}" th:text="${b.statusLabel}"></span><div class="cell-sub" th:text="${b.title}"></div></td>
+            <td th:text="${jobMap.get(b.jobOrderId) != null ? jobMap.get(b.jobOrderId).label() : ''}"></td>
+            <td class="small" th:text="${b.preparedBy + ' · ' + #temporals.format(b.preparedAt, 'MMM d')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+        </table></div>
+      </section>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i>Open billings <span class="count-badge" th:text="${#lists.size(open)}"></span></h2>
+          <div class="small text-muted" th:text="${'Current ₱' + #numbers.formatDecimal(aging.current, 1, 'COMMA', 2, 'POINT') + ' · 1–30 days ₱' + #numbers.formatDecimal(aging.d30, 1, 'COMMA', 2, 'POINT') + ' · 31–60 ₱' + #numbers.formatDecimal(aging.d60, 1, 'COMMA', 2, 'POINT') + ' · 61–90 ₱' + #numbers.formatDecimal(aging.d90, 1, 'COMMA', 2, 'POINT') + ' · over 90 ₱' + #numbers.formatDecimal(aging.over90, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(open)}"><table class="data-table">
+          <thead><tr><th>Billing</th><th>Job order</th><th>Due</th><th class="money">Amount due</th><th class="money">Collected</th><th class="money">Balance</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="b : ${open}" class="row-link" th:attr="data-href=@{/Accounting/Billing/{id}(id=${b.id})}">
+            <td><a class="mono" th:href="@{/Accounting/Billing/{id}(id=${b.id})}" th:text="${b.number}"></a> <span class="status" th:classappend="${'status-sb-' + #strings.toLowerCase(b.status)}" th:text="${b.statusLabel}"></span><div class="cell-sub" th:text="${b.title + (b.sentAt != null ? ' · sent' : ' · not sent yet') + (b.viewedAt != null ? ' · opened by client' : '')}"></div></td>
+            <td th:text="${jobMap.get(b.jobOrderId) != null ? jobMap.get(b.jobOrderId).label() : ''}"></td>
+            <td th:classappend="${b.overdue} ? ' overdue'"><span th:text="${#temporals.format(b.dueDate, 'MMM d, yyyy')}"></span><div class="cell-sub" th:if="${b.overdue}" th:text="${b.daysOverdue + ' day(s) overdue'}"></div></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.amountDue, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(b.collected, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="actions"><a class="btn btn-sm btn-outline" th:href="@{/Accounting/Collections/new(billing=${b.id})}">Collect</a></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(open)}">No unpaid billings.</div>
+      </section>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-briefcase"></i>Job orders</h2>
+          <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="sbJobs" aria-label="Search job orders" /></div></div></div>
+        <div class="table-wrap"><table class="data-table" id="sbJobs">
+          <thead><tr><th>Job order</th><th class="money">Contract</th><th class="num">Billed %</th><th class="money">Billed</th><th class="money">Collected</th><th class="money">Receivable</th><th class="money">Retention held</th><th class="actions"></th></tr></thead>
+          <tbody>
+            <tr th:each="r : ${rows}" class="row-link" th:attr="data-href=@{/Accounting/Billing/job/{id}(id=${r.job().id()})}">
+              <td><a th:href="@{/Accounting/Billing/job/{id}(id=${r.job().id()})}" th:text="${r.job().label()}"></a><div class="cell-sub" th:text="${r.job().status()}"></div></td>
+              <td class="money" th:text="${#numbers.formatDecimal(r.s().contract(), 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="num" th:text="${r.s().pctBilled + '%'}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(r.s().billed(), 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(r.s().collected(), 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money fw-semibold" th:text="${#numbers.formatDecimal(r.s().balance, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(r.s().retentionUnbilled, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="actions"><a class="btn btn-sm btn-ghost" th:href="@{/Accounting/Billing/job/{id}(id=${r.job().id()})}">Open</a></td>
+            </tr>
+            <tr th:each="r : ${unset}" class="row-link" th:attr="data-href=@{/Accounting/Billing/job/{id}(id=${r.job().id()})}">
+              <td><a th:href="@{/Accounting/Billing/job/{id}(id=${r.job().id()})}" th:text="${r.job().label()}"></a><div class="cell-sub" th:text="${r.job().status()}"></div></td>
+              <td colspan="6" class="text-muted small">Billing terms not set yet</td>
+              <td class="actions"><a class="btn btn-sm btn-primary" th:href="@{/Accounting/Billing/job/{id}(id=${r.job().id()})}">Set up</a></td>
+            </tr>
+          </tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(rows) and #lists.isEmpty(unset)}">No job orders yet. A job order is created when a client accepts a quotation.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Record collection')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Record collection">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/Collections}">Collections</a></div><h1 class="page-title">Record collection</h1>
+          <p class="page-sub">Enter what the client settled on each billing. If the client withheld tax, the cash is less: amount settled = cash received + tax withheld.</p></div>
+      </div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <form th:action="@{/Accounting/Collections/new}" method="get" class="panel mb-4">
+        <div class="panel-body row g-3 align-items-end">
+          <div class="col-md-6"><label class="form-label" for="c0">Job order</label>
+            <select id="c0" name="job" class="form-select" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
+              <option value="">Choose a job with unpaid billings…</option>
+              <option th:each="j : ${owing}" th:value="${j.id()}" th:text="${j.label()}" th:selected="${jobId == j.id()}"></option></select></div>
+          <div class="col-md-6 small text-muted" th:if="${#lists.isEmpty(owing)}">No unpaid billings. Issue a billing first in Client billing.</div>
+        </div>
+      </form>
+      <form th:if="${job != null}" th:action="@{/Accounting/Collections}" method="post" data-cr-form th:attr="data-cwt=${c.cwtRate},data-factor=${vatFactor}">
+        <input type="hidden" name="jobOrderId" th:value="${jobId}" />
+        <section class="panel mb-4">
+          <div class="panel-header"><h2 class="panel-title"><i class="bi bi-receipt"></i>Unpaid billings · <span th:text="${job.label()}"></span></h2></div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th style="width:40px"></th><th>Billing</th><th>Due</th><th class="money">Balance</th><th class="money" style="width:160px">Settled now</th><th class="money" style="width:150px">Tax withheld</th><th class="money">Cash</th></tr></thead>
+            <tbody><tr th:each="b : ${bills}" data-cr-row>
+              <td><input class="form-check-input" type="checkbox" data-cr-tick th:name="${'tick_' + b.id}" value="true" th:checked="${ticked.contains(b.id)}" th:attr="aria-label=${'Collect ' + b.number}" /></td>
+              <td><span class="mono" th:text="${b.number}"></span><div class="cell-sub" th:text="${b.title}"></div></td>
+              <td th:classappend="${b.overdue} ? ' overdue'" th:text="${#temporals.format(b.dueDate, 'MMM d')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td><input class="form-control text-end" inputmode="decimal" data-cr-amt th:name="${'amt_' + b.id}" th:value="${b.balance}" /></td>
+              <td><input class="form-control text-end" inputmode="decimal" data-cr-cwt th:name="${'cwt_' + b.id}" /></td>
+              <td class="money" data-cr-cash>—</td></tr></tbody>
+          </table></div>
+          <div class="panel-body d-flex">
+            <p class="small text-muted mb-0 me-4" th:text="${'Tax withheld defaults to ' + c.cwtRate.stripTrailingZeros().toPlainString() + '% of the amount net of VAT; change it to match the client’s BIR 2307.'}"></p>
+            <div class="acc-totals">
+              <div><span>Settled on billings</span><span data-cr="applied">0.00</span></div>
+              <div><span>Less tax withheld (CWT)</span><span data-cr="cwt">0.00</span></div>
+              <div class="grand"><span>Cash / cheque received</span><span data-cr="cash">0.00</span></div>
+            </div>
+          </div>
+        </section>
+        <section class="panel mb-4"><div class="panel-body row g-3">
+          <div class="col-md-3"><label class="form-label" for="c1">Date received</label><input id="c1" type="date" name="receivedDate" class="form-control" th:value="${today}" /></div>
+          <div class="col-md-3"><label class="form-label" for="c2">Method</label><select id="c2" name="method" class="form-select">
+            <option value="CHEQUE">Cheque</option><option value="TRANSFER">Bank transfer / deposit</option><option value="CASH">Cash</option></select></div>
+          <div class="col-md-6"><label class="form-label" for="c3">Deposited to <span class="req">*</span></label><select id="c3" name="bankId" class="form-select" required>
+            <option value="">Choose…</option><option th:each="bk : ${banks}" th:value="${bk.id}" th:text="${bk.label + (bk.cheques ? '' : ' (cash)')}"></option></select></div>
+          <div class="col-md-3"><label class="form-label" for="c4">Cheque / reference no.</label><input id="c4" name="chequeNo" class="form-control" maxlength="40" /></div>
+          <div class="col-md-3" data-cr-cheque><label class="form-label" for="c5">Client's bank</label><input id="c5" name="chequeBank" class="form-control" maxlength="80" /></div>
+          <div class="col-md-3" data-cr-cheque><label class="form-label" for="c6">Cheque date</label><input id="c6" type="date" name="chequeDate" class="form-control" /></div>
+          <div class="col-md-3"><label class="form-label" for="c7">CBM official receipt no.</label><input id="c7" name="orNo" class="form-control" maxlength="40" /></div>
+          <div class="col-md-9"><label class="form-label" for="c8">Memo</label><input id="c8" name="memo" class="form-control" maxlength="500" /></div>
+          <div class="col-md-3 d-flex align-items-end"><label class="oc-switch"><input type="checkbox" name="form2307" value="true" /><span></span>BIR 2307 received</label></div>
+        </div></section>
+        <div class="d-flex justify-content-end gap-2"><a class="btn btn-ghost" th:href="@{/Accounting/Collections}">Cancel</a><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Record collection</button></div>
+      </form>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

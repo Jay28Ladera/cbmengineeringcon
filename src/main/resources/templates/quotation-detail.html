@@ -25,25 +25,66 @@
       <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
 
       <!-- Where this quotation is in the workflow -->
-      <ol class="stepper" aria-label="Quotation progress">
+      <ol class="stepper stepper-5" aria-label="Quotation progress">
         <li th:classappend="${st == 'DRAFT'} ? 'current' : 'done'"><span class="dot">1</span>Draft &amp; price</li>
-        <li th:classappend="${st == 'SENT'} ? 'current' : (${st == 'DRAFT'} ? '' : 'done')"><span class="dot">2</span>Sent to client</li>
+        <li th:classappend="${st == 'FOR_APPROVAL'} ? 'current' : (${st == 'DRAFT'} ? '' : 'done')"><span class="dot">2</span>Approval</li>
+        <li th:classappend="${st == 'APPROVED' or st == 'SENT'} ? 'current' : (${st == 'ACCEPTED' or st == 'REJECTED'} ? 'done' : '')"><span class="dot">3</span>Sent to client</li>
         <li th:classappend="${st == 'ACCEPTED' or st == 'REJECTED'} ? (${st == 'REJECTED'} ? 'stopped' : (${jobOrder != null} ? 'done' : 'current')) : ''">
-          <span class="dot" th:text="${st == 'REJECTED'} ? '×' : '3'">3</span><span th:text="${st == 'REJECTED'} ? 'Rejected by client' : 'Client decision'">Client decision</span></li>
-        <li th:classappend="${jobOrder != null} ? 'done' : ''"><span class="dot">4</span>Job order</li>
+          <span class="dot" th:text="${st == 'REJECTED'} ? '×' : '4'">4</span><span th:text="${st == 'REJECTED'} ? 'Declined by client' : 'Client decision'">Client decision</span></li>
+        <li th:classappend="${jobOrder != null} ? 'done' : ''"><span class="dot">5</span>Job order</li>
       </ol>
 
       <!-- Next action -->
+      <th:block th:with="approverNames=${#strings.listJoin(approvers.![name], ', ')}">
+      <div class="alert alert-warning" th:if="${st == 'DRAFT' and signoff.returnNote != null}">
+        <b th:text="${'Returned for changes by ' + signoff.returnedBy + ':'}"></b> <span class="pre-line" th:text="${signoff.returnNote}"></span>
+      </div>
       <div class="next-step" th:if="${st == 'DRAFT'}">
-        <div><div class="label">Next step</div><div class="text">Add the priced items and save. Then mark the quotation as sent once the client has it.</div></div>
-        <form th:action="@{/Quotations/{id}/send(id=${quotation.id})}" method="post"
-              data-confirm="Mark this quotation as sent? Prices can no longer be edited after this." data-confirm-title="Issue quotation" data-confirm-ok="Mark as sent">
+        <div><div class="label">Next step</div>
+          <div class="text">Price the items and save. Then submit it for approval<span th:unless="${#lists.isEmpty(approvers)}" th:text="${' to ' + approverNames}"></span>; it can be sent to the client once approved.</div>
+          <div class="small text-muted mt-1" th:if="${noApproversChosen}">No approver has been chosen yet, so administrators approve. An administrator can tick <b>Can approve quotations</b> for the CEO in Users › Edit.</div></div>
+        <form th:action="@{/Quotations/{id}/submit(id=${quotation.id})}" method="post"
+              data-confirm="Submit this quotation for approval? The prices are locked while it waits." data-confirm-title="Submit for approval" data-confirm-ok="Submit">
           <button class="btn btn-dark" type="submit" th:disabled="${#lists.isEmpty(quotation.lineItems)}"
-                  th:title="${#lists.isEmpty(quotation.lineItems)} ? 'Save at least one priced item first' : ''"><i class="bi bi-send"></i>Mark as sent</button>
+                  th:title="${#lists.isEmpty(quotation.lineItems)} ? 'Save at least one priced item first' : ''"><i class="bi bi-send-check"></i>Submit for approval</button>
         </form>
       </div>
+
+      <div class="next-step" th:if="${st == 'FOR_APPROVAL'}">
+        <div><div class="label">Waiting for approval</div>
+          <div class="text"><span th:text="${'Submitted by ' + signoff.submittedBy + ' on ' + #temporals.format(signoff.submittedAt, 'MMM d, h:mm a')}"></span><span th:unless="${canApprove}" th:text="${'. Waiting for ' + approverNames + '.'}"></span></div>
+          <div class="small text-danger mt-1" th:if="${canApprove and !hasSignature}">You have no saved signature yet. <a th:href="@{/profile#signature}" data-full-load>Add it on My profile</a>, then approve.</div></div>
+        <div class="doc-actions">
+          <button type="button" class="btn btn-outline" data-open-dialog="returnDialog"><i class="bi bi-arrow-counterclockwise"></i><span th:text="${canApprove} ? 'Return for changes' : 'Withdraw to draft'"></span></button>
+          <form th:if="${canApprove}" th:action="@{/Quotations/{id}/approve(id=${quotation.id})}" method="post"
+                data-confirm="Approve this quotation? Your saved signature will be printed on it." data-confirm-title="Approve quotation" data-confirm-ok="Approve" data-confirm-tone="success">
+            <button class="btn btn-outline" type="submit" th:disabled="${!hasSignature}" title="Approve; the preparer sends it to the client"><i class="bi bi-patch-check"></i>Approve</button>
+          </form>
+          <button th:if="${canApprove}" type="button" class="btn btn-success" th:disabled="${!hasSignature}" data-open-dialog="approveSendDialog"><i class="bi bi-send-check"></i>Approve &amp; send to client</button>
+        </div>
+        <th:block th:if="${canApprove}">
+          <div th:replace="~{fragments/quote-doc :: approveSendDialog(@{/Quotations/{id}/approve-send(id=${quotation.id})}, ${inq.email}, ${submitterEmail}, ${'Thank you for considering CBM Engineering & Construction for ' + inq.projectName + '. Please find our quotation below. You can review it, then accept it by signing online or uploading a signed copy.'})}"></div>
+        </th:block>
+      </div>
+
+      <div class="next-step" th:if="${st == 'APPROVED'}">
+        <div><div class="label">Approved · ready to send</div>
+          <div class="text" th:text="${'Approved by ' + signoff.approverName + ' on ' + #temporals.format(signoff.approvedAt, 'MMM d, h:mm a') + '. Email it to the client, who can view and sign it online.'}"></div></div>
+        <div class="doc-actions">
+          <button type="button" class="btn btn-ghost" data-open-dialog="returnDialog" th:if="${canApprove}"><i class="bi bi-arrow-counterclockwise"></i>Back to draft</button>
+          <button type="button" class="btn btn-primary" data-open-dialog="sendDialog"><i class="bi bi-envelope-paper"></i>Send to client</button>
+        </div>
+      </div>
+
       <div class="next-step" th:if="${st == 'SENT'}">
-        <div><div class="label">Waiting for client</div><div class="text">Record the client's response when you receive it.</div></div>
+        <div><div class="label">Waiting for client</div>
+          <div class="text">
+            <span th:if="${signoff.emailed != null and signoff.emailed}" th:text="${'Emailed to ' + signoff.sentTo + (signoff.sentCc != null and !#strings.isEmpty(signoff.sentCc) ? ' (cc ' + signoff.sentCc + ')' : '') + ' on ' + #temporals.format(quotation.sentAt, 'MMM d, h:mm a') + '.'}"></span>
+            <span th:unless="${signoff.emailed != null and signoff.emailed}" th:text="${'Marked as sent on ' + #temporals.format(quotation.sentAt, 'MMM d, h:mm a') + '. Share the client link below.'}"></span>
+            <span th:text="${signoff.firstViewedAt != null ? ' Opened ' + signoff.viewCount + ' time(s), last ' + #temporals.format(signoff.lastViewedAt, 'MMM d, h:mm a') + '.' : ' Not opened yet.'}"></span>
+            <span class="text-danger" th:if="${signoff.expired}" th:text="${' The link expired on ' + #temporals.format(signoff.expiresAt, 'MMM d') + '.'}"></span>
+          </div>
+          <div class="small text-muted mt-1">If the client answers by phone or on paper instead, record it here.</div></div>
         <div class="doc-actions">
           <form th:action="@{/Quotations/{id}/decision(id=${quotation.id})}" method="post"
                 data-confirm="Record that the client rejected this quotation?" data-confirm-title="Client rejected" data-confirm-ok="Mark rejected" data-confirm-tone="danger">
@@ -57,16 +98,77 @@
           </form>
         </div>
       </div>
+
+      <div class="client-link no-print" th:if="${clientLink != null and (st == 'APPROVED' or st == 'SENT')}">
+        <span class="label">Client link</span>
+        <input class="form-control form-control-sm mono" readonly th:value="${clientLink}" id="clientLinkInput" onfocus="this.select()" />
+        <button type="button" class="btn btn-sm btn-outline" onclick="var i=document.getElementById('clientLinkInput');navigator.clipboard.writeText(i.value).then(function(){var b=event.target.closest('button');b.textContent='Copied';setTimeout(function(){b.innerHTML='<i class=&quot;bi bi-copy&quot;></i>Copy'},1500)});"><i class="bi bi-copy"></i>Copy</button>
+        <a class="btn btn-sm btn-ghost" th:href="${clientLink}" target="_blank" rel="noopener">Preview <i class="bi bi-box-arrow-up-right"></i></a>
+      </div>
+
+      <div class="next-step" th:if="${st == 'REJECTED' and signoff.clientRespondedAt != null}">
+        <div><div class="label">Declined by the client</div>
+          <div class="text" th:text="${(signoff.clientName != null ? signoff.clientName : 'The client') + ' declined on ' + #temporals.format(signoff.clientRespondedAt, 'MMM d, h:mm a') + (signoff.declineReason != null ? ': “' + signoff.declineReason + '”' : '. No reason given.')}"></div></div>
+      </div>
       <div class="next-step" th:if="${st == 'ACCEPTED' and jobOrder == null}">
-        <div><div class="label">Accepted</div><div class="text">Create the job order to start project delivery.</div></div>
+        <div><div class="label">Accepted</div>
+          <div class="text"><span th:if="${signoff.clientRespondedAt != null}" th:text="${'Accepted by ' + signoff.clientName + ' on ' + #temporals.format(signoff.clientRespondedAt, 'MMM d, h:mm a') + '. '}"></span>Create the job order to start project delivery.</div>
+          <div class="small mt-1" th:if="${signoff.hasClientFile()}"><a th:href="@{/Quotations/{id}/signed-copy(id=${quotation.id})}" target="_blank" rel="noopener"><i class="bi bi-file-earmark-check"></i> <span th:text="${'Signed copy: ' + signoff.clientFileName}"></span></a></div></div>
         <form th:action="@{/Quotations/{id}/job-order(id=${quotation.id})}" method="post">
           <button class="btn btn-primary" type="submit"><i class="bi bi-clipboard-plus"></i>Create job order</button>
         </form>
       </div>
       <div class="next-step" th:if="${jobOrder != null}">
-        <div><div class="label">Job order</div><div class="text">This quotation is now job order <strong class="mono" th:text="${jobOrder.jobOrderNumber}"></strong>.</div></div>
+        <div><div class="label">Job order</div><div class="text">This quotation is now job order <strong class="mono" th:text="${jobOrder.jobOrderNumber}"></strong>.
+          <a th:if="${signoff.hasClientFile()}" th:href="@{/Quotations/{id}/signed-copy(id=${quotation.id})}" target="_blank" rel="noopener" class="ms-1">View the signed copy</a></div></div>
         <a class="btn btn-outline" th:href="@{/JobOrders/{id}(id=${jobOrder.id})}">Open job order <i class="bi bi-arrow-right"></i></a>
       </div>
+
+      <!-- Return / withdraw -->
+      <dialog class="app-dialog" id="returnDialog" aria-labelledby="returnTitle" th:if="${st == 'FOR_APPROVAL' or st == 'APPROVED'}">
+        <form th:action="@{/Quotations/{id}/return(id=${quotation.id})}" method="post">
+          <header class="dialog-header"><div><h2 id="returnTitle" th:text="${canApprove} ? 'Return for changes' : 'Withdraw to draft'">Return for changes</h2>
+            <p>The quotation goes back to draft so the prices can be changed. It must be approved again before sending.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="returnDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <label class="form-label" for="returnNote">Note for the preparer</label>
+            <textarea id="returnNote" name="note" class="form-control" rows="4" maxlength="1000" placeholder="e.g. Labor days look short for 4 units; please check the copper pipe quantity."></textarea>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="returnDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary">Back to draft</button></footer>
+        </form>
+      </dialog>
+
+      <!-- Send to client -->
+      <dialog class="app-dialog" id="sendDialog" aria-labelledby="sendTitle" th:if="${st == 'APPROVED'}">
+        <form th:action="@{/Quotations/{id}/send(id=${quotation.id})}" method="post">
+          <input type="hidden" name="emailIt" value="true" />
+          <header class="dialog-header"><div><h2 id="sendTitle">Send to client</h2>
+            <p>The client gets an email with a button to view the quotation, then sign it online or upload a signed copy. Their reply comes to you.</p></div>
+            <button class="dialog-close" type="button" aria-label="Close" data-close-dialog="sendDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <div class="row g-3">
+              <div class="col-md-8"><label class="form-label" for="sendTo">To <span class="req">*</span></label>
+                <input id="sendTo" name="to" type="email" class="form-control" required th:value="${inq.email}" /></div>
+              <div class="col-md-4"><label class="form-label" for="sendDays">Valid for</label>
+                <div class="input-group"><input id="sendDays" name="validDays" type="number" min="1" max="365" class="form-control" value="30" /><span class="input-group-text">days</span></div></div>
+              <div class="col-12"><label class="form-label" for="sendCc">CC</label>
+                <input id="sendCc" name="cc" class="form-control" th:value="${approverEmails}" placeholder="name@example.com, another@example.com" />
+                <div class="form-hint">The approver is copied by default. Separate several addresses with commas.</div></div>
+              <div class="col-12"><label class="form-label" for="sendMsg">Message</label>
+                <textarea id="sendMsg" name="message" class="form-control" rows="4" maxlength="2000"
+                          th:text="${'Thank you for considering CBM Engineering & Construction for ' + inq.projectName + '. Please find our quotation below. You can review it, then accept it by signing online or uploading a signed copy.'}"></textarea></div>
+            </div>
+          </div>
+          <footer class="dialog-footer">
+            <button type="submit" form="markSentForm" class="btn btn-ghost me-auto" title="For a quotation you hand over or send another way">Mark as sent without email</button>
+            <button type="button" class="btn btn-ghost" data-close-dialog="sendDialog">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i>Send email</button>
+          </footer>
+        </form>
+        <form id="markSentForm" th:action="@{/Quotations/{id}/send(id=${quotation.id})}" method="post"><input type="hidden" name="emailIt" value="false" /></form>
+      </dialog>
+      </th:block>
 
       <!-- The document -->
       <article class="doc">
@@ -78,7 +180,7 @@
           <div class="doc-meta">
             <div class="doc-no" th:text="${quotation.quotationNumber}"></div>
             <div class="date">Date: <span th:text="${#temporals.format(quotation.createdAt, 'MMMM d, yyyy')}"></span></div>
-            <div class="mt-2"><span class="status" th:classappend="${'status-' + #strings.toLowerCase(st)}" th:text="${st}"></span></div>
+            <div class="mt-2"><span class="status" th:classappend="${'status-' + #strings.toLowerCase(st)}" th:text="${#strings.replace(st, '_', ' ')}"></span></div>
           </div>
         </header>
 
@@ -118,25 +220,14 @@
               <h2 class="mb-0">Priced items</h2>
               <button class="btn btn-sm btn-outline no-print" type="button" id="addLine"><i class="bi bi-plus-lg"></i>Add item</button>
             </div>
-            <div class="line-head"><span>Description</span><span>Qty</span><span>Unit</span><span>Unit price (₱)</span><span class="text-end">Amount</span><span></span></div>
+            <div class="line-head"><span>Type</span><span>Description</span><span>Qty</span><span>Unit</span><span>Unit price (₱)</span><span class="text-end">Amount</span><span></span></div>
             <div id="lineItems">
-              <div class="line-row" th:each="item : ${quotation.lineItems}">
-                <input class="form-control description" name="description" placeholder="Description of work or material" maxlength="500" required th:value="${item.description}" />
-                <input class="form-control" type="number" name="quantity" min="0.001" step="0.001" placeholder="Qty" required th:value="${item.quantity}" />
-                <input class="form-control" name="unit" placeholder="Unit" maxlength="40" th:value="${item.unit}" />
-                <input class="form-control" type="number" name="unitPrice" min="0" step="0.01" placeholder="0.00" required th:value="${item.unitPrice}" />
-                <div class="line-total">₱0.00</div>
-                <button class="btn btn-ghost btn-icon remove-line" type="button" aria-label="Remove item" title="Remove item"><i class="bi bi-x-lg"></i></button>
-              </div>
-              <div class="line-row" th:if="${#lists.isEmpty(quotation.lineItems)}">
-                <input class="form-control description" name="description" placeholder="Description of work or material" maxlength="500" required />
-                <input class="form-control" type="number" name="quantity" min="0.001" step="0.001" placeholder="Qty" required />
-                <input class="form-control" name="unit" placeholder="Unit" maxlength="40" value="lot" />
-                <input class="form-control" type="number" name="unitPrice" min="0" step="0.01" placeholder="0.00" required />
-                <div class="line-total">₱0.00</div>
-                <button class="btn btn-ghost btn-icon remove-line" type="button" aria-label="Remove item" title="Remove item"><i class="bi bi-x-lg"></i></button>
-              </div>
+              <th:block th:each="item : ${quotation.lineItems}">
+                <div th:replace="~{quotation-detail :: qline(${item})}"></div>
+              </th:block>
+              <th:block th:if="${#lists.isEmpty(quotation.lineItems)}"><div th:replace="~{quotation-detail :: qline(null)}"></div></th:block>
             </div>
+            <template id="qlineTemplate"><div th:replace="~{quotation-detail :: qline(null)}"></div></template>
           </section>
 
           <section class="doc-section">
@@ -158,6 +249,27 @@
                 </div>
               </div>
             </div>
+          </section>
+          <section class="doc-section no-print qcost-panel">
+            <div class="qcost-head">
+              <h2 class="mb-0">Costing <span class="qcost-tag">Internal · not printed</span></h2>
+              <div class="qcost-markup">
+                <label class="form-label mb-0" for="markupPct">Markup on cost</label>
+                <div class="input-group input-group-sm"><input id="markupPct" name="markupPct" class="form-control num" inputmode="decimal" th:value="${quotation.markupPct}" placeholder="e.g. 25" /><span class="input-group-text">%</span></div>
+                <button type="button" class="btn btn-sm btn-outline" id="applyMarkup">Apply to all lines</button>
+              </div>
+            </div>
+            <div class="qcost-grid">
+              <div><span>Materials</span><b id="cMaterial">₱0.00</b></div>
+              <div><span>Labor</span><b id="cLabor">₱0.00</b></div>
+              <div><span>Subcontract</span><b id="cSubcon">₱0.00</b></div>
+              <div><span>Equipment &amp; other</span><b id="cOther">₱0.00</b></div>
+              <div class="strong"><span>Total cost</span><b id="cTotal">₱0.00</b></div>
+              <div class="strong"><span>Selling price <small>(after discount, before VAT)</small></span><b id="cSell">₱0.00</b></div>
+              <div class="strong"><span>Gross profit</span><b id="cProfit">₱0.00</b></div>
+              <div class="strong"><span>Margin</span><b id="cMargin">—</b></div>
+            </div>
+            <div class="alert alert-warning mt-3 mb-0 py-2" id="uncostedWarn" hidden><span id="uncostedText"></span></div>
           </section>
           <section class="doc-section no-print">
             <div class="doc-actions">
@@ -205,11 +317,88 @@
               </div>
             </div>
           </section>
+          <section th:replace="~{fragments/quote-doc :: signatures(${quotation}, ${signoff})}"></section>
+          <section class="doc-section no-print qcost-panel" th:if="${quotation.costed}">
+            <div class="qcost-head"><h2 class="mb-0">Costing <span class="qcost-tag">Internal · not printed</span></h2></div>
+            <div class="table-wrap mb-3">
+              <table class="data-table">
+                <thead><tr><th>Type</th><th>Description</th><th class="money">Qty</th><th class="money">Unit cost</th><th class="money">Line cost</th><th class="money">Amount</th><th class="money">Markup</th></tr></thead>
+                <tbody>
+                  <tr th:each="item : ${quotation.lineItems}">
+                    <td class="text-nowrap" th:text="${item.kindLabel}"></td>
+                    <td><span th:text="${item.description}"></span><div class="cell-sub mono" th:if="${item.materialId != null and materialMap[item.materialId] != null}" th:text="${materialMap[item.materialId].code}"></div>
+                      <div class="cell-sub" th:if="${item.crew}" th:text="${item.crewSize + ' worker(s) × ' + item.workDays.stripTrailingZeros().toPlainString() + ' day(s) × ₱' + #numbers.formatDecimal(item.dailyRate, 1, 'COMMA', 2, 'POINT') + '/day = ' + item.manDays.toPlainString() + ' man-days'}"></div></td>
+                    <td class="money" th:text="${#numbers.formatDecimal(item.quantity, 1, 'COMMA', 2, 'POINT') + ' ' + item.unit}"></td>
+                    <td class="money" th:text="${item.unitCost != null ? '₱' + #numbers.formatDecimal(item.unitCost, 1, 'COMMA', 2, 'POINT') : 'no cost'}" th:classappend="${item.unitCost == null} ? ' text-warning'"></td>
+                    <td class="money" th:text="${'₱' + #numbers.formatDecimal(item.lineCost, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="money" th:text="${'₱' + #numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="money" th:text="${item.markupPct != null ? item.markupPct + '%' : '—'}"></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="qcost-grid">
+              <div><span>Materials</span><b th:text="${'₱' + #numbers.formatDecimal(quotation.getCostOf('MATERIAL'), 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div><span>Labor</span><b th:text="${'₱' + #numbers.formatDecimal(quotation.getCostOf('LABOR'), 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div><span>Subcontract</span><b th:text="${'₱' + #numbers.formatDecimal(quotation.getCostOf('SUBCON'), 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div><span>Equipment &amp; other</span><b th:text="${'₱' + #numbers.formatDecimal(quotation.getCostOf('EQUIPMENT').add(quotation.getCostOf('OTHER')), 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div class="strong"><span>Total cost</span><b th:text="${'₱' + #numbers.formatDecimal(quotation.totalCost, 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div class="strong"><span>Selling price <small>(after discount, before VAT)</small></span><b th:text="${'₱' + #numbers.formatDecimal(quotation.netSelling, 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div class="strong"><span>Gross profit</span><b th:classappend="${quotation.grossProfit.signum() < 0} ? ' text-danger'" th:text="${'₱' + #numbers.formatDecimal(quotation.grossProfit, 1, 'COMMA', 2, 'POINT')}"></b></div>
+              <div class="strong"><span>Margin</span><b th:text="${quotation.marginPct != null ? quotation.marginPct + '%' : '—'}"></b></div>
+            </div>
+            <div class="alert alert-warning mt-3 mb-0 py-2" th:if="${quotation.uncostedCount > 0}" th:text="${quotation.uncostedCount + ' line(s) have no cost, so the profit shown is too high.'}"></div>
+          </section>
         </th:block>
       </article>
     </main>
   </div>
 </div>
+
+<!-- One priced line (draft). Rendered for each saved line, for a blank line, and as the "Add item" template. -->
+<th:block th:if="${false}">
+  <div class="qline" th:fragment="qline(item)" th:attr="data-kind=${item != null ? item.kind : 'MATERIAL'}">
+    <div class="qline-main">
+      <select class="form-select kind" name="kind" aria-label="Type">
+        <option value="MATERIAL" th:selected="${item == null or item.kind == 'MATERIAL'}">Material</option>
+        <option value="LABOR" th:selected="${item != null and item.kind == 'LABOR'}">Labor</option>
+        <option value="SUBCON" th:selected="${item != null and item.kind == 'SUBCON'}">Subcontract</option>
+        <option value="EQUIPMENT" th:selected="${item != null and item.kind == 'EQUIPMENT'}">Equipment</option>
+        <option value="OTHER" th:selected="${item != null and item.kind == 'OTHER'}">Other</option>
+      </select>
+      <div class="qline-desc">
+        <select class="form-select mat" name="materialId" aria-label="Material from inventory">
+          <option value="">— not in inventory (type below) —</option>
+          <option th:each="h : ${hints}" th:value="${h.material().id}" th:selected="${item != null and item.materialId == h.material().id}"
+                  th:attr="data-name=${h.material().name},data-unit=${h.material().unit},data-cost=${h.suggested()},data-latest=${h.latest()},data-from=${h.latestFrom()},data-on=${h.latestOn() != null ? #temporals.format(h.latestOn(), 'MMM d') : ''},data-low=${h.low()},data-lowfrom=${h.lowFrom()},data-onhand=${h.material().onHand.stripTrailingZeros().toPlainString()},data-avg=${h.material().avgCost}"
+                  th:text="${h.material().code + ' · ' + h.material().name}"></option>
+        </select>
+        <input class="form-control description" name="description" placeholder="Description of work or material" maxlength="500" required th:value="${item != null ? item.description : ''}" />
+      </div>
+      <input class="form-control" type="number" name="quantity" min="0.001" step="0.001" placeholder="Qty" required th:value="${item != null ? item.quantity : ''}" />
+      <input class="form-control unit" name="unit" placeholder="Unit" maxlength="40" th:value="${item != null ? item.unit : 'lot'}" />
+      <input class="form-control price" type="number" name="unitPrice" min="0" step="0.01" placeholder="0.00" required th:value="${item != null ? item.unitPrice : ''}" />
+      <div class="line-total">₱0.00</div>
+      <button class="btn btn-ghost btn-icon remove-line" type="button" aria-label="Remove item" title="Remove item"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="qline-cost no-print">
+      <span class="qline-lbl">Our cost</span>
+      <div class="crew-in">
+        <input class="form-control form-control-sm crew" name="crewSize" type="number" min="1" step="1" placeholder="0" th:value="${item != null ? item.crewSize : ''}" aria-label="Workers" /><span>workers ×</span>
+        <input class="form-control form-control-sm days" name="workDays" type="number" min="0.5" step="0.5" placeholder="0" th:value="${item != null and item.workDays != null ? item.workDays.stripTrailingZeros().toPlainString() : ''}" aria-label="Days" /><span>days ×</span>
+        <div class="input-group input-group-sm rate-in"><span class="input-group-text">₱</span><input class="form-control rate" name="dailyRate" type="number" min="0" step="0.01" placeholder="rate" th:value="${item != null ? item.dailyRate : ''}" aria-label="Rate per day" /><span class="input-group-text">/day</span></div>
+        <select class="form-select form-select-sm hr-rate" aria-label="Rate from HR" th:unless="${#lists.isEmpty(laborRates)}">
+          <option value="">HR rate…</option>
+          <option th:each="r : ${laborRates}" th:value="${r.avg()}" th:text="${r.position() + ' · ₱' + #numbers.formatDecimal(r.avg(), 1, 'COMMA', 2, 'POINT') + (r.count() > 1 ? ' avg of ' + r.count() : '')}"></option>
+        </select>
+      </div>
+      <div class="input-group input-group-sm qline-in cost-in"><span class="input-group-text">₱</span><input class="form-control cost" name="unitCost" type="number" min="0" step="0.01" placeholder="per unit" th:value="${item != null ? item.unitCost : ''}" aria-label="Unit cost" /></div>
+      <div class="input-group input-group-sm qline-in mk-in"><input class="form-control mk" type="number" step="0.1" placeholder="markup" th:value="${item != null ? item.markupPct : ''}" aria-label="Markup percent" /><span class="input-group-text">%</span></div>
+      <span class="qline-calc"></span>
+      <span class="qline-hint"></span>
+    </div>
+  </div>
+</th:block>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>
