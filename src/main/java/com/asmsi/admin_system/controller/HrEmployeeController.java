@@ -70,6 +70,17 @@ public class HrEmployeeController {
             m.put("philhealth", plain(e.getPhilhealthAmount()));
             m.put("pagibig", plain(e.getPagibigAmount()));
             m.put("contributionCutoff", e.getContributionCutoff());
+            m.put("tin", e.getTin()); m.put("sssNo", e.getSssNo()); m.put("philhealthNo", e.getPhilhealthNo()); m.put("pagibigNo", e.getPagibigNo());
+            m.put("birthDate", e.getBirthDate() == null ? null : e.getBirthDate().toString());
+            m.put("address", e.getAddress()); m.put("taxStatus", e.getTaxStatus());
+            // What the contribution tables give for this rate (shown as a hint)
+            BigDecimal basis = PayrollCalculator.monthlyBasis(e, settings);
+            if (basis.signum() > 0) {
+                m.put("tableSss", plain(com.asmsi.admin_system.payroll.Statutory.sss(basis).ee()));
+                m.put("tablePh", plain(com.asmsi.admin_system.payroll.Statutory.philhealth(basis).ee()));
+                m.put("tablePi", plain(com.asmsi.admin_system.payroll.Statutory.pagibig(basis).ee()));
+                m.put("tableBasis", plain(basis));
+            }
             m.put("active", e.isActive());
             m.put("dateHired", e.getDateHired() == null ? null : e.getDateHired().toString());
             m.put("remarks", e.getRemarks());
@@ -118,6 +129,10 @@ public class HrEmployeeController {
                        @RequestParam(required = false) BigDecimal philhealth,
                        @RequestParam(required = false) BigDecimal pagibig,
                        @RequestParam(defaultValue = "SECOND") String contributionCutoff,
+                       @RequestParam(required = false) String tin, @RequestParam(required = false) String sssNo,
+                       @RequestParam(required = false) String philhealthNo, @RequestParam(required = false) String pagibigNo,
+                       @RequestParam(required = false) String birthDate, @RequestParam(required = false) String address,
+                       @RequestParam(required = false) String taxStatus,
                        @RequestParam(required = false) String dateHired,
                        @RequestParam(required = false) String remarks,
                        @RequestParam(defaultValue = "false") boolean active,
@@ -158,6 +173,9 @@ public class HrEmployeeController {
         e.setPhilhealthAmount(positive(philhealth));
         e.setPagibigAmount(positive(pagibig));
         e.setContributionCutoff(switch (contributionCutoff.toUpperCase()) { case "FIRST" -> "FIRST"; case "BOTH" -> "BOTH"; default -> "SECOND"; });
+        e.setTin(cut(tin, 40)); e.setSssNo(cut(sssNo, 40)); e.setPhilhealthNo(cut(philhealthNo, 40)); e.setPagibigNo(cut(pagibigNo, 40));
+        e.setBirthDate(parseDate(birthDate)); e.setAddress(cut(address, 300));
+        e.setTaxStatus(taxStatus == null ? "REGULAR" : switch (taxStatus.toUpperCase()) { case "MWE" -> "MWE"; case "NONE" -> "NONE"; default -> "REGULAR"; });
         e.setRemarks(cut(remarks, 600));
         e.setActive(active || isNew);
         employees.save(e);

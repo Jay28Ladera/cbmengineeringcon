@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Settings')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Administration" data-title="Settings">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Administration</div><h1 class="page-title">Settings</h1>
+          <p class="page-sub">The company details printed on every document, defaults for new quotations, document numbering, and whether email and storage are set up.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <nav class="seg-links mb-4" aria-label="Settings sections">
+        <a th:href="@{/Admin/Settings(tab='company')}" th:classappend="${tab == 'company'} ? 'on'"><i class="bi bi-building me-1"></i>Company profile</a>
+        <a th:href="@{/Admin/Settings(tab='defaults')}" th:classappend="${tab == 'defaults'} ? 'on'"><i class="bi bi-file-earmark-text me-1"></i>Quotation defaults</a>
+        <a th:href="@{/Admin/Settings(tab='numbering')}" th:classappend="${tab == 'numbering'} ? 'on'"><i class="bi bi-123 me-1"></i>Document numbering</a>
+        <a th:href="@{/Admin/Settings(tab='system')}" th:classappend="${tab == 'system'} ? 'on'"><i class="bi bi-hdd-network me-1"></i>Email &amp; system</a>
+      </nav>
+
+      <!-- ===================================================== Company -->
+      <div class="row g-4" th:if="${tab == 'company'}">
+        <div class="col-xl-8">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-building"></i>Company profile</h2></div>
+            <form class="panel-body" th:action="@{/Admin/Settings/company}" method="post">
+              <div class="row g-3">
+                <div class="col-md-8"><label class="form-label" for="coName">Registered name</label><input id="coName" name="name" class="form-control" maxlength="160" required th:value="${co.name}" /></div>
+                <div class="col-md-4"><label class="form-label" for="coTin">TIN</label><input id="coTin" name="tin" class="form-control" maxlength="40" placeholder="000-000-000-00000" th:value="${co.tin}" /></div>
+                <div class="col-md-8"><label class="form-label" for="coAddr">Registered address</label><input id="coAddr" name="address" class="form-control" maxlength="300" th:value="${co.address}" /></div>
+                <div class="col-md-2"><label class="form-label" for="coZip">ZIP</label><input id="coZip" name="zipCode" class="form-control" maxlength="10" th:value="${co.zipCode}" /></div>
+                <div class="col-md-2"><label class="form-label" for="coRdo">RDO</label><input id="coRdo" name="rdoCode" class="form-control" maxlength="10" th:value="${co.rdoCode}" /></div>
+                <div class="col-md-4"><label class="form-label" for="coPhone">Phone</label><input id="coPhone" name="phone" class="form-control" maxlength="60" th:value="${co.phone}" /></div>
+                <div class="col-md-4"><label class="form-label" for="coEmail">Email</label><input id="coEmail" name="emailAddress" type="email" class="form-control" maxlength="160" th:value="${co.email}" /></div>
+                <div class="col-md-4"><label class="form-label" for="coWeb">Website</label><input id="coWeb" name="website" class="form-control" maxlength="160" th:value="${co.website}" /></div>
+                <div class="col-md-12"><label class="form-label" for="coPay">Cheques payable to</label><input id="coPay" name="payableTo" class="form-control" maxlength="160" placeholder="Blank = the registered name" th:value="${co.payableTo}" />
+                  <div class="form-text">Printed on client billing statements.</div></div>
+              </div>
+              <h3 class="h6 mt-4 mb-2">Authorized signatory (BIR 2307)</h3>
+              <div class="row g-3">
+                <div class="col-md-5"><label class="form-label" for="coSig">Name</label><input id="coSig" name="signatory" class="form-control" maxlength="160" th:value="${co.signatory}" /></div>
+                <div class="col-md-4"><label class="form-label" for="coSigT">Title</label><input id="coSigT" name="signatoryTitle" class="form-control" maxlength="120" th:value="${co.signatoryTitle}" /></div>
+                <div class="col-md-3"><label class="form-label" for="coSigTin">TIN</label><input id="coSigTin" name="signatoryTin" class="form-control" maxlength="40" th:value="${co.signatoryTin}" /></div>
+              </div>
+              <div class="mt-4"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Save company profile</button></div>
+            </form>
+          </section>
+        </div>
+        <div class="col-xl-4">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-eye"></i>On printouts</h2></div>
+            <div class="panel-body">
+              <div class="preview-head"><img th:src="@{/images/logo-cbm.webp}" alt="" />
+                <div><b th:text="${co.name}"></b><small th:text="${#strings.isEmpty(co.contactLine) ? 'Add the address, phone and TIN to show them here.' : co.contactLine}"></small></div></div>
+              <p class="small text-muted mt-3 mb-0">Used on quotations (and the quotation email), purchase orders, payment vouchers, client billing statements and BIR Form 2307.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ===================================================== Defaults -->
+      <div class="row g-4" th:if="${tab == 'defaults'}">
+        <div class="col-xl-8">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-file-earmark-text"></i>New quotations start with</h2></div>
+            <form class="panel-body" th:action="@{/Admin/Settings/defaults}" method="post">
+              <div class="row g-3">
+                <div class="col-sm-4"><label class="form-label" for="dTax">VAT / tax</label>
+                  <div class="input-group"><input id="dTax" name="quoteTaxRate" type="number" min="0" max="100" step="0.01" class="form-control" th:value="${app.quoteTaxRate}" /><span class="input-group-text">%</span></div>
+                  <div class="form-text">12 if quotations are VAT-registered sales; 0 if not.</div></div>
+                <div class="col-sm-4"><label class="form-label" for="dDays">Valid for</label>
+                  <div class="input-group"><input id="dDays" name="quoteValidDays" type="number" min="1" max="365" class="form-control" th:value="${app.quoteValidDays}" /><span class="input-group-text">days</span></div>
+                  <div class="form-text">Pre-filled when a quotation is sent.</div></div>
+                <div class="col-12"><label class="form-label" for="dTerms">Terms and notes</label>
+                  <textarea id="dTerms" name="quoteTerms" rows="9" maxlength="4000" class="form-control" placeholder="Payment terms: 30% downpayment, progress billing…&#10;Inclusions / exclusions…&#10;Warranty…" th:text="${app.quoteTerms}"></textarea>
+                  <div class="form-text">Copied into each new quotation, where it can still be edited. Existing quotations don't change.</div></div>
+              </div>
+              <div class="mt-4 d-flex align-items-center gap-3"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Save defaults</button>
+                <span class="small text-muted" th:if="${app.updatedAt != null}" th:text="${'Last saved by ' + app.updatedBy + ' · ' + #temporals.format(app.updatedAt, 'MMM d, yyyy h:mm a')}"></span></div>
+            </form>
+          </section>
+        </div>
+        <div class="col-xl-4">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-sliders"></i>Other settings</h2></div>
+            <div class="panel-body small">
+              <p class="mb-2">These have their own pages:</p>
+              <ul class="mb-0 ps-3">
+                <li class="mb-1"><a th:href="@{/users}">Users</a>: roles, and who approves quotations, payment vouchers and client billings</li>
+                <li class="mb-1"><a th:href="@{/Admin/DepartmentAccess}">Department access</a>: which modules each department sees</li>
+                <li class="mb-1"><a th:href="@{/HR/PayrollSettings}">Payroll settings</a>: rates, contributions, cut-offs</li>
+                <li class="mb-1"><a th:href="@{/Accounting/Accounts}">Chart of accounts</a> and <a th:href="@{/Accounting/Banks}">bank accounts</a></li>
+                <li class="mb-1"><a th:href="@{/Purchasing/Suppliers}">Suppliers</a>: payment terms, VAT, withholding tax and ATC</li>
+                <li><a th:href="@{/Accounting/Closing}">Closing</a>: lock months and close the year</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- ===================================================== Numbering -->
+      <section class="panel" th:if="${tab == 'numbering'}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-123"></i>Document numbering</h2></div>
+        <div class="panel-body pb-0">
+          <p class="small text-muted mb-0">Documents are numbered <span class="mono">PREFIX-YEAR-0001</span> and start again at 0001 each January. If you are moving over from manual or other books mid-year, set where this year continues (for example, the last PO on paper was 150 → next 151). A number can't go back below one already issued, so there are never duplicates. Quotations (<span class="mono">Q-000123</span>) and job orders (<span class="mono">JO-000123</span>) follow the record number and can't be changed.</p>
+        </div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Document</th><th>Module</th><th>Last issued this year</th><th>Next number</th><th class="actions">Continue at</th></tr></thead>
+          <tbody><tr th:each="r : ${series}">
+            <td><b th:text="${r.s().label()}"></b></td>
+            <td class="small text-muted" th:text="${r.s().module()}"></td>
+            <td class="mono" th:text="${r.last() != null ? r.last() : '—'}"></td>
+            <td class="mono"><span th:text="${r.nextNumber}"></span> <span th:if="${r.seeded()}" class="status status-pending">set</span></td>
+            <td class="actions"><form th:action="@{/Admin/Settings/numbering}" method="post" class="d-inline-flex gap-1 align-items-center">
+              <input type="hidden" name="prefix" th:value="${r.s().prefix()}" />
+              <input name="next" type="number" class="form-control form-control-sm" style="width:100px" th:min="${r.lastNo() + 1}" max="999999" th:value="${r.next()}" th:attr="aria-label=${'Next ' + r.s().label() + ' number'}" required />
+              <button class="btn btn-sm btn-ghost" type="submit">Set</button></form></td>
+          </tr></tbody>
+        </table></div>
+      </section>
+
+      <!-- ===================================================== System -->
+      <div class="row g-4" th:if="${tab == 'system'}">
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-envelope"></i>Email</h2>
+              <span class="status" th:classappend="${mailOn} ? ' status-approved' : ' status-rejected'" th:text="${mailOn ? 'Set up' : 'Not set up'}"></span></div>
+            <div class="panel-body">
+              <dl class="kv">
+                <dt>Sends from</dt><dd class="mono" th:text="${mailFrom}"></dd>
+                <dt>Quotations from</dt><dd class="mono" th:text="${quoteFrom}"></dd>
+                <dt>Links in emails</dt><dd class="mono" th:text="${#strings.isEmpty(baseUrl) ? '(the address of each request)' : baseUrl}"></dd>
+              </dl>
+              <p class="small text-muted mt-3" th:unless="${mailOn}">Set <span class="mono">RESEND_API_KEY</span> in <span class="mono">secrets.properties</span> (your computer) or the Render environment variables. Until then, approvals, password resets and quotations are not emailed.</p>
+              <form th:action="@{/Admin/Settings/test-email}" method="post" class="d-flex gap-2 align-items-end mt-3">
+                <div class="flex-grow-1"><label class="form-label small mb-0" for="testTo">Send a test to</label><input id="testTo" type="email" name="to" class="form-control" required th:value="${me != null ? me.email : ''}" /></div>
+                <button class="btn btn-ghost" type="submit"><i class="bi bi-send"></i>Send test</button>
+              </form>
+              <p class="small text-muted mt-3 mb-0">Keys are never shown here; they stay in the environment.</p>
+            </div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-hdd-network"></i>System</h2></div>
+            <div class="panel-body">
+              <dl class="kv">
+                <th:block th:each="s : ${status}"><dt th:text="${s.key}"></dt><dd th:text="${s.value}"></dd></th:block>
+                <dt>Photo storage</dt><dd><span class="status" th:classappend="${cloudOn} ? ' status-approved' : ' status-pending'" th:text="${cloudOn ? 'Cloudinary' : 'Local folder'}"></span>
+                  <span class="small text-muted d-block mt-1" th:unless="${cloudOn}">Photos are saved on the server's disk, which Render clears on each deploy. Set the CLOUDINARY_* variables to keep them.</span></dd>
+              </dl>
+            </div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-shield-check"></i>Audit trail</h2></div>
+            <form class="panel-body" th:action="@{/Admin/Settings/audit}" method="post">
+              <p class="small text-muted">Every record created, changed or deleted, and every sign-in, is kept on the <a th:href="@{/Admin/Trails}">audit trail</a>.</p>
+              <div class="d-flex gap-2 align-items-end">
+                <div><label class="form-label small mb-0" for="keep">Keep for</label>
+                  <div class="input-group"><input id="keep" name="keepDays" type="number" min="0" max="3650" class="form-control" style="width:110px" th:value="${app.auditKeepDays}" /><span class="input-group-text">days</span></div></div>
+                <button class="btn btn-ghost" type="submit" data-confirm="Save? Lines older than this are deleted for good." data-confirm-ok="Save">Save</button>
+              </div>
+              <div class="form-text">0 keeps everything. BIR requires books and records to be kept for 5 years, so 1825 or more is safest.</div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

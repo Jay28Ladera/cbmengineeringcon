@@ -183,6 +183,8 @@ public class LedgerController {
             case "PAYMENT" -> "/Accounting/Payments/" + e.sourceId;
             case "RECEIPT" -> "/Inventory/StockReceiving/" + e.sourceId;
             case "ISSUE" -> "/Inventory/StockIssuance/" + e.sourceId;
+            case "ASSET", "ASSET_DISPOSAL" -> "/Accounting/FixedAssets/" + e.sourceId;
+            case "DEPRECIATION" -> "/Accounting/FixedAssets#depreciation";
             default -> null;
         };
     }

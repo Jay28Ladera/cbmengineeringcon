@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="${'BIR 2307 · ' + qt.label}">BIR 2307</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 11px/1.35 Arial, Helvetica, sans-serif; color: #000; background: #e9ecf1; }
+    .bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 16px; background: #0b1524; color: #fff; font-size: 13px; z-index: 2; }
+    .bar button { margin-left: auto; padding: 7px 16px; border: 0; border-radius: 6px; background: #c8151d; color: #fff; font-weight: 600; cursor: pointer; }
+    .page { width: 216mm; min-height: 330mm; margin: 16px auto; padding: 10mm 11mm; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); page-break-after: always; }
+    .hdr { display: grid; grid-template-columns: 1fr 2.2fr 1fr; border: 1.5px solid #000; }
+    .hdr > div { padding: 6px 8px; }
+    .hdr .mid { text-align: center; border-left: 1.5px solid #000; border-right: 1.5px solid #000; }
+    .hdr .mid b { display: block; font-size: 15px; margin-top: 2px; }
+    .formno { font-size: 22px; font-weight: 700; }
+    .part { background: #000; color: #fff; font-weight: 700; padding: 3px 8px; margin-top: 8px; font-size: 11px; letter-spacing: .04em; }
+    .row { display: grid; border: 1px solid #000; border-top: 0; }
+    .cell { padding: 3px 6px; border-left: 1px solid #000; min-height: 30px; }
+    .cell:first-child { border-left: 0; }
+    .lbl { font-size: 8.5px; color: #222; display: block; }
+    .val { font-size: 12px; font-weight: 700; margin-top: 2px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #000; padding: 4px 5px; vertical-align: top; }
+    th { font-size: 9px; background: #f0f0f0; font-weight: 700; text-align: center; }
+    td.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .sig { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #000; border-top: 0; }
+    .sig > div { padding: 8px; min-height: 70px; border-left: 1px solid #000; text-align: center; }
+    .sig > div:first-child { border-left: 0; }
+    .line { border-top: 1px solid #000; margin-top: 34px; padding-top: 3px; font-size: 9px; }
+    .note { font-size: 8.5px; color: #333; margin-top: 6px; }
+    @media print { @page { size: 8.5in 13in; margin: 0; } body { background: #fff; } .bar { display: none; } .page { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+<div class="bar"><b th:text="${'BIR Form 2307 · ' + qt.label + ' · ' + #lists.size(forms) + ' payee(s)'}"></b><button type="button" onclick="window.print()">Print</button></div>
+<div class="page" th:each="ps : ${forms}" th:with="s=${ps[0].supplier}">
+  <div class="hdr">
+    <div><span class="lbl">BIR Form No.</span><div class="formno">2307</div><span class="lbl">January 2018 (ENCS)</span></div>
+    <div class="mid">Republic of the Philippines · Department of Finance · Bureau of Internal Revenue<b>Certificate of Creditable Tax Withheld at Source</b></div>
+    <div></div>
+  </div>
+  <div class="row" style="grid-template-columns:1fr 1fr">
+    <div class="cell"><span class="lbl">1 For the Period From (MM/DD/YYYY)</span><div class="val" th:text="${#temporals.format(qt.from(), 'MM/dd/yyyy')}"></div></div>
+    <div class="cell"><span class="lbl">To (MM/DD/YYYY)</span><div class="val" th:text="${#temporals.format(qt.to(), 'MM/dd/yyyy')}"></div></div>
+  </div>
+  <div class="part">Part I – Payee Information</div>
+  <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">2 Taxpayer Identification Number (TIN)</span><div class="val" th:text="${s != null ? s.tin : ''}"></div></div></div>
+  <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">3 Payee's Name (Last Name, First Name, Middle Name for Individual OR Registered Name for Non-Individual)</span><div class="val" th:text="${s != null ? s.name : ''}"></div></div></div>
+  <div class="row" style="grid-template-columns:4fr 1fr"><div class="cell"><span class="lbl">4 Registered Address</span><div class="val" th:text="${s != null ? s.address : ''}"></div></div><div class="cell"><span class="lbl">4A ZIP Code</span><div class="val"></div></div></div>
+  <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">5 Foreign Address, if applicable</span><div class="val"></div></div></div>
+  <div class="part">Part II – Payor Information</div>
+  <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">6 Taxpayer Identification Number (TIN)</span><div class="val" th:text="${co.tin}"></div></div></div>
+  <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">7 Payor's Name (Registered Name for Non-Individual)</span><div class="val" th:text="${co.name}"></div></div></div>
+  <div class="row" style="grid-template-columns:4fr 1fr"><div class="cell"><span class="lbl">8 Registered Address</span><div class="val" th:text="${co.address}"></div></div><div class="cell"><span class="lbl">8A ZIP Code</span><div class="val" th:text="${co.zipCode}"></div></div></div>
+  <div class="part">Part III – Details of Monthly Income Payments and Taxes Withheld</div>
+  <table>
+    <thead>
+      <tr><th rowspan="2" style="width:30%">Income Payments Subject to Expanded Withholding Tax</th><th rowspan="2">ATC</th><th colspan="4">AMOUNT OF INCOME PAYMENTS</th><th rowspan="2">Tax Withheld for the Quarter</th></tr>
+      <tr><th th:each="m : ${qt.months}" th:text="${m + ' (' + (mStat.index + 1) + (mStat.index == 0 ? 'st' : (mStat.index == 1 ? 'nd' : 'rd')) + ' month)'}"></th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      <tr th:each="p : ${ps}">
+        <td th:text="${p.atcLabel}"></td><td style="text-align:center" th:text="${p.atc}"></td>
+        <td class="r" th:each="i : ${#numbers.sequence(0, 2)}" th:text="${p.getBase(i).signum() > 0 ? #numbers.formatDecimal(p.getBase(i), 1, 'COMMA', 2, 'POINT') : ''}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(p.totalBase, 1, 'COMMA', 2, 'POINT')}"></td>
+        <td class="r" th:text="${#numbers.formatDecimal(p.totalTax, 1, 'COMMA', 2, 'POINT')}"></td>
+      </tr>
+      <tr><td colspan="7" style="height:60px"></td></tr>
+      <tr><td><b>Total</b></td><td></td><td></td><td></td><td></td>
+        <td class="r"><b th:text="${#numbers.formatDecimal(#aggregates.sum(ps.![totalBase]), 1, 'COMMA', 2, 'POINT')}"></b></td>
+        <td class="r"><b th:text="${#numbers.formatDecimal(#aggregates.sum(ps.![totalTax]), 1, 'COMMA', 2, 'POINT')}"></b></td></tr>
+    </tbody>
+  </table>
+  <div class="part">Declaration</div>
+  <div style="border:1px solid #000;border-top:0;padding:6px 8px;font-size:9px">We declare under the penalties of perjury that this certificate has been made in good faith, verified by us, and to the best of our knowledge and belief, is true and correct, pursuant to the provisions of the National Internal Revenue Code, as amended, and the regulations issued under authority thereof.</div>
+  <div class="sig">
+    <div><b th:text="${co.signatory ?: ''}"></b><div th:text="${co.signatoryTitle != null ? co.signatoryTitle : ''}"></div><div class="line" th:text="${'Signature over printed name of Payor/Payor’s Authorized Representative · TIN ' + (co.signatoryTin ?: '')}"></div></div>
+    <div><div class="line">Conforme: Signature over printed name of Payee/Payee's Authorized Representative · TIN</div></div>
+  </div>
+  <p class="note" th:text="${'Generated from CBM portal payment vouchers ' + #strings.listJoin(ps[0].vouchers, ', ') + '. Check against the current BIR form before signing.'}"></p>
+</div>
+<div class="page" th:if="${#lists.isEmpty(forms)}" style="min-height:auto">No tax withheld in this quarter.</div>
+</body>
+</html>

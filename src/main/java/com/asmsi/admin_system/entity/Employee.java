@@ -74,6 +74,16 @@ public class Employee {
     @Column(name = "contribution_cutoff", length = 10)
     private String contributionCutoff = "SECOND";
 
+    // Government numbers and tax (BIR 2316, contribution reports)
+    @Column(length = 40) private String tin;
+    @Column(name = "sss_no", length = 40) private String sssNo;
+    @Column(name = "philhealth_no", length = 40) private String philhealthNo;
+    @Column(name = "pagibig_no", length = 40) private String pagibigNo;
+    @Column(name = "birth_date") private LocalDate birthDate;
+    @Column(length = 300) private String address;
+    /** REGULAR = withholding tax applies; MWE = minimum wage earner (exempt); NONE = no withholding. */
+    @Column(name = "tax_status", length = 10) private String taxStatus;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -139,4 +149,20 @@ public class Employee {
     public void setRemarks(String v) { remarks = v; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+
+    public String getTin() { return tin; }
+    public void setTin(String v) { tin = v; }
+    public String getSssNo() { return sssNo; }
+    public void setSssNo(String v) { sssNo = v; }
+    public String getPhilhealthNo() { return philhealthNo; }
+    public void setPhilhealthNo(String v) { philhealthNo = v; }
+    public String getPagibigNo() { return pagibigNo; }
+    public void setPagibigNo(String v) { pagibigNo = v; }
+    public LocalDate getBirthDate() { return birthDate; }
+    public void setBirthDate(LocalDate v) { birthDate = v; }
+    public String getAddress() { return address; }
+    public void setAddress(String v) { address = v; }
+    public String getTaxStatus() { return taxStatus == null || taxStatus.isBlank() ? "REGULAR" : taxStatus; }
+    public void setTaxStatus(String v) { taxStatus = v; }
+    public boolean isMinimumWage() { return "MWE".equals(getTaxStatus()); }
 }

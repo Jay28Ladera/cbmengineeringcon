@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Access Review')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Administration" data-title="Access Review">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Administration</div><h1 class="page-title">Access Review</h1>
+          <p class="page-sub">Who can open each module and who approves what, on one page. Check it before going live and whenever people join, move or leave.</p></div>
+        <div class="page-actions"><a class="btn btn-ghost" th:href="@{/Admin/AccessReview.csv}"><i class="bi bi-download"></i>CSV</a><a class="btn btn-primary" th:href="@{/users}"><i class="bi bi-people"></i>Users</a></div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Active accounts<i class="bi bi-people"></i></div><div class="kpi-value" th:text="${r.counts().users}"></div></div>
+        <div class="kpi"><div class="kpi-label">Admins<i class="bi bi-shield-lock"></i></div><div class="kpi-value" th:text="${r.counts().admins}"></div><div class="kpi-note">Full access</div></div>
+        <div class="kpi"><div class="kpi-label">Approvers<i class="bi bi-check2-square"></i></div><div class="kpi-value" th:text="${r.counts().approvers}"></div></div>
+        <div class="kpi"><div class="kpi-label">Waiting for approval<i class="bi bi-hourglass"></i></div><div class="kpi-value" th:text="${r.counts().pending}"></div></div>
+      </div>
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clipboard-check"></i>To look at</h2></div>
+        <ul class="list-unstyled panel-body mb-0">
+          <li th:each="i : ${r.issues()}" class="d-flex gap-2 align-items-start mb-2">
+            <i class="bi" th:classappend="${i.tone() == 'warn' ? 'bi-exclamation-triangle text-warning' : (i.tone() == 'ok' ? 'bi-check-circle text-success' : 'bi-info-circle text-primary')}"></i>
+            <span><span th:text="${i.text()}"></span> <a th:if="${i.href() != null}" th:href="@{${i.href()}}">Open</a></span></li>
+        </ul>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-grid-3x3"></i>Who can open what</h2>
+          <div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="arTable" aria-label="Search people" /></div></div>
+        <div class="table-wrap"><table class="data-table" id="arTable">
+          <thead><tr><th style="min-width:200px">Person</th><th>Access from</th>
+            <th th:each="m : ${modules}" class="text-center small" th:text="${m.label}"></th><th>Approves / signs</th><th>Last sign-in</th></tr></thead>
+          <tbody><tr th:each="p : ${r.people()}" th:classappend="${!#lists.isEmpty(p.flags())} ? ' ps-warn'">
+            <td><b th:text="${p.user().name}"></b> <span th:if="${p.admin}" class="status status-pending">Admin</span>
+              <div class="cell-sub" th:text="${p.user().username + (p.access().department() != null ? ' · ' + p.access().department() : '')}"></div>
+              <div class="small text-danger" th:each="f : ${p.flags()}"><i class="bi bi-exclamation-triangle"></i> <span th:text="${f}"></span></div></td>
+            <td class="small" th:text="${p.access().source()}"></td>
+            <td th:each="m : ${modules}" class="text-center"><i th:if="${p.can(m)}" class="bi bi-check-lg text-success" th:title="${m.label}"></i><span th:unless="${p.can(m)}" class="text-muted">·</span></td>
+            <td class="small"><div th:each="x : ${p.roles()}" th:text="${x}"></div><span th:if="${#lists.isEmpty(p.roles())}" class="text-muted">—</span></td>
+            <td class="small text-nowrap" th:text="${p.lastLogin() != null ? #temporals.format(p.lastLogin(), 'MMM d, yyyy') : '—'}"></td>
+          </tr></tbody>
+        </table></div>
+        <div class="panel-body small text-muted">Access comes from the person's department (Department Access) or a custom set on their account (Users). Dashboard, profile and org chart are open to everyone; Administration only to admins. Sign-ins are recorded from when the audit trail started.</div>
+      </section>
+      <section class="panel mt-4" th:unless="${#lists.isEmpty(r.pending())}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-hourglass"></i>Waiting for approval</h2></div>
+        <div class="table-wrap"><table class="data-table"><tbody><tr th:each="u : ${r.pending()}"><td th:text="${u.name}"></td><td class="small" th:text="${u.username}"></td><td class="small" th:text="${u.email}"></td></tr></tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -119,10 +119,11 @@ public class ClientBillingController {
                             @RequestParam(required = false) String dpPct, @RequestParam(required = false) String retentionPct,
                             @RequestParam(required = false) String cwtRate, @RequestParam(required = false) String termDays,
                             @RequestParam(required = false) String basis, @RequestParam(required = false) String clientRef,
-                            @RequestParam(required = false) String billTo, RedirectAttributes ra) {
+                            @RequestParam(required = false) String billTo, @RequestParam(required = false) String clientTin, RedirectAttributes ra) {
         try {
             Integer td = blank(termDays) ? null : Integer.valueOf(termDays.trim());
-            service.saveTerms(jobId, num(contractAmount), vatMode, num(dpPct), num(retentionPct), num(cwtRate), td, basis, clientRef, billTo, me().getName());
+            JobContract saved = service.saveTerms(jobId, num(contractAmount), vatMode, num(dpPct), num(retentionPct), num(cwtRate), td, basis, clientRef, billTo, me().getName());
+            saved.clientTin = cut(clientTin, 40); contracts.save(saved);
             ra.addFlashAttribute("success", "Billing terms saved.");
         } catch (NumberFormatException e) { ra.addFlashAttribute("error", "Payment terms must be a number of days.");
         } catch (IllegalArgumentException | IllegalStateException e) { ra.addFlashAttribute("error", e.getMessage()); }

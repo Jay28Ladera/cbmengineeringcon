@@ -14,6 +14,7 @@ public enum PayItem {
     SSS("SSS", false),
     PHILHEALTH("PhilHealth", false),
     PAGIBIG("Pag-IBIG", false),
+    WTAX("Withholding tax", false),
     OTHER_DEDUCTION("Other deduction", false);
 
     private final String label;
@@ -25,6 +26,8 @@ public enum PayItem {
     public boolean isEarning() { return earning; }
     public String getKey() { return name(); }
     public boolean isGovernment() { return this == SSS || this == PHILHEALTH || this == PAGIBIG; }
+    /** Earnings that are not taxable up to the ₱90,000 yearly ceiling (13th month and other benefits). */
+    public boolean isBenefit() { return this == THIRTEENTH_MONTH || this == MIDYEAR_BONUS || this == BONUS; }
     /** Kinds a loan / advance schedule can post. */
     public boolean isPlanKind() { return this == LOAN || this == CASH_ADVANCE || this == SINKING || this == OTHER_DEDUCTION; }
 

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Audit Trail')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Administration" data-title="Audit Trail">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Administration</div><h1 class="page-title" th:text="${record ? 'History of ' + recordTitle : 'Audit Trail'}">Audit Trail</h1>
+          <p class="page-sub">Who created, changed or deleted what, and when, with the values before and after. Sign-ins and failed sign-ins are listed too.</p></div>
+        <div class="page-actions" th:if="${record}"><a class="btn btn-ghost" th:href="@{/Admin/Trails}"><i class="bi bi-arrow-left"></i>Whole trail</a></div>
+      </div>
+
+      <div class="row g-3 mb-3" th:unless="${record}">
+        <div class="col-6 col-md-3"><section class="panel h-100"><div class="panel-body py-3"><div class="small text-muted">Last 24 hours</div><div class="audit-stat" th:text="${stats.today}"></div></div></section></div>
+        <div class="col-6 col-md-3"><section class="panel h-100"><div class="panel-body py-3"><div class="small text-muted">Deletions, 30 days</div><div class="audit-stat" th:text="${stats.deletes}"></div>
+          <a class="small" th:href="@{/Admin/Trails(action='DELETE')}">Show</a></div></section></div>
+        <div class="col-6 col-md-3"><section class="panel h-100"><div class="panel-body py-3"><div class="small text-muted">Failed sign-ins, 7 days</div><div class="audit-stat" th:classappend="${stats.failed > 0} ? ' text-danger'" th:text="${stats.failed}"></div>
+          <a class="small" th:href="@{/Admin/Trails(action='LOGIN_FAILED')}">Show</a></div></section></div>
+        <div class="col-6 col-md-3"><section class="panel h-100"><div class="panel-body py-3"><div class="small text-muted">Recording since</div>
+          <div class="fw-semibold" th:text="${stats.since != null ? #dates.format(stats.since, 'MMM d, yyyy') : 'today'}"></div>
+          <div class="small text-muted" th:text="${keepDays == 0 ? 'Kept indefinitely' : 'Kept ' + keepDays + ' days'}"></div></div></section></div>
+      </div>
+
+      <section class="panel mb-3" th:unless="${record}">
+        <form class="panel-body d-flex flex-wrap gap-2 align-items-end" method="get" th:action="@{/Admin/Trails}">
+          <div><label class="form-label small mb-0" for="af">From</label><input id="af" type="date" name="from" class="form-control form-control-sm" th:value="${f.from()}" /></div>
+          <div><label class="form-label small mb-0" for="at">To</label><input id="at" type="date" name="to" class="form-control form-control-sm" th:value="${f.to()}" /></div>
+          <div><label class="form-label small mb-0" for="au">User</label><select id="au" name="user" class="form-select form-select-sm"><option value="">Everyone</option>
+            <option th:each="u : ${users}" th:value="${u}" th:text="${u}" th:selected="${u == f.user()}"></option></select></div>
+          <div><label class="form-label small mb-0" for="am">Module</label><select id="am" name="module" class="form-select form-select-sm"><option value="">All</option>
+            <option th:each="m : ${modules}" th:value="${m}" th:text="${m}" th:selected="${m == f.module()}"></option></select></div>
+          <div><label class="form-label small mb-0" for="aa">What</label><select id="aa" name="action" class="form-select form-select-sm">
+            <option value="">Everything</option>
+            <option value="CHANGES" th:selected="${f.action() == 'CHANGES'}">Record changes</option>
+            <option value="CREATE" th:selected="${f.action() == 'CREATE'}">Created</option>
+            <option value="UPDATE" th:selected="${f.action() == 'UPDATE'}">Changed</option>
+            <option value="DELETE" th:selected="${f.action() == 'DELETE'}">Deleted</option>
+            <option value="SIGNIN" th:selected="${f.action() == 'SIGNIN'}">Sign-ins</option>
+            <option value="LOGIN_FAILED" th:selected="${f.action() == 'LOGIN_FAILED'}">Failed sign-ins</option></select></div>
+          <div class="flex-grow-1" style="min-width:180px"><label class="form-label small mb-0" for="aq">Search</label><input id="aq" name="q" class="form-control form-control-sm" placeholder="Number, name, value…" th:value="${f.q()}" /></div>
+          <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-funnel"></i>Filter</button>
+          <a class="btn btn-sm btn-ghost" th:href="@{/Admin/Trails}">Clear</a>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i><span th:text="${result.total() + ' line' + (result.total() == 1 ? '' : 's')}"></span></h2>
+          <span class="small text-muted" th:unless="${record}" th:text="${(f.from() != null ? #temporals.format(f.from(), 'MMM d, yyyy') : 'Start') + ' – ' + (f.to() != null ? #temporals.format(f.to(), 'MMM d, yyyy') : 'today')}"></span></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(result.groups())}"><div class="empty-icon"><i class="bi bi-shield-check"></i></div><h3>Nothing recorded</h3><p>No changes or sign-ins match this filter. Recording started when this version was installed.</p></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(result.groups())}"><table class="data-table">
+          <thead><tr><th style="width:150px">When</th><th style="width:170px">Who</th><th style="width:110px"></th><th>What</th></tr></thead>
+          <tbody>
+            <tr class="audit-row" th:each="g : ${result.groups()}" th:with="m=${g.main()}">
+              <td class="text-nowrap"><div th:text="${#temporals.format(m.at(), 'MMM d, yyyy')}"></div><div class="small text-muted" th:text="${#temporals.format(m.at(), 'h:mm:ss a')}"></div></td>
+              <td><div th:text="${m.who}"></div><div class="small text-muted mono" th:if="${m.username() != null and m.userName() != null}" th:text="${m.username()}"></div>
+                <div class="small text-muted mono" th:if="${m.ip() != null}" th:text="${m.ip()}"></div></td>
+              <td><span class="status" th:classappend="${' ' + m.tone}" th:text="${m.actionLabel}"></span></td>
+              <td>
+                <details th:if="${!#lists.isEmpty(m.diff) or g.size > 1}">
+                  <summary><span class="fw-semibold" th:text="${m.title}"></span><span class="small text-muted ms-2" th:text="${m.module()}"></span>
+                    <span class="more" th:text="${m.action() == 'UPDATE' ? #lists.size(m.diff) + ' field' + (#lists.size(m.diff) == 1 ? '' : 's') : 'details'}"></span>
+                    <span class="more" th:if="${g.size > 1}" th:text="${'+ ' + (g.size - 1) + ' related'}"></span></summary>
+                  <table class="audit-diff" th:unless="${#lists.isEmpty(m.diff)}">
+                    <tr th:each="c : ${m.diff}"><th th:text="${c.label}"></th>
+                      <td th:if="${m.action() == 'UPDATE'}"><span class="old" th:text="${#strings.isEmpty(c.before()) ? '(blank)' : c.before()}"></span> → <span class="new" th:text="${#strings.isEmpty(c.after()) ? '(blank)' : c.after()}"></span></td>
+                      <td th:unless="${m.action() == 'UPDATE'}" th:text="${c.after()}"></td></tr>
+                  </table>
+                  <ul class="audit-related" th:if="${g.size > 1}">
+                    <li th:each="r : ${g.related()}"><span class="status" th:classappend="${' ' + r.tone}" th:text="${r.actionLabel}" style="font-size:.7rem"></span>
+                      <span th:text="${r.title}"></span>
+                      <details th:unless="${#lists.isEmpty(r.diff)}" class="d-inline"><summary class="d-inline more">show</summary>
+                        <table class="audit-diff"><tr th:each="c : ${r.diff}"><th th:text="${c.label}"></th>
+                          <td th:if="${r.action() == 'UPDATE'}"><span class="old" th:text="${#strings.isEmpty(c.before()) ? '(blank)' : c.before()}"></span> → <span class="new" th:text="${#strings.isEmpty(c.after()) ? '(blank)' : c.after()}"></span></td>
+                          <td th:unless="${r.action() == 'UPDATE'}" th:text="${c.after()}"></td></tr></table></details></li>
+                  </ul>
+                </details>
+                <div th:if="${#lists.isEmpty(m.diff) and g.size == 1}"><span class="fw-semibold" th:text="${m.title}"></span><span class="small text-muted ms-2" th:text="${m.module()}"></span></div>
+                <div class="small mt-1" th:if="${m.entityId() != null}">
+                  <a th:if="${m.href != null}" th:href="@{${m.href}}">Open</a><span th:if="${m.href != null}" class="text-muted"> · </span>
+                  <a th:unless="${record}" th:href="@{/Admin/Trails(entity=${m.entity()},entityId=${m.entityId()})}">History of this record</a></div>
+              </td>
+            </tr>
+          </tbody>
+        </table></div>
+        <div class="panel-body d-flex justify-content-between" th:if="${result.page() > 0 or result.more()}">
+          <a class="btn btn-sm btn-ghost" th:if="${result.page() > 0}" th:href="@{/Admin/Trails(from=${f.from()},to=${f.to()},user=${f.user()},module=${f.module()},action=${f.action()},q=${f.q()},entity=${f.entity()},entityId=${f.entityId()},page=${result.page() - 1})}"><i class="bi bi-chevron-left"></i>Newer</a><span></span>
+          <a class="btn btn-sm btn-ghost" th:if="${result.more()}" th:href="@{/Admin/Trails(from=${f.from()},to=${f.to()},user=${f.user()},module=${f.module()},action=${f.action()},q=${f.q()},entity=${f.entity()},entityId=${f.entityId()},page=${result.page() + 1})}">Older<i class="bi bi-chevron-right"></i></a>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

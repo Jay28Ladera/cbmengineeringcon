@@ -91,7 +91,8 @@
             <div class="col-md-3"><label class="form-label" for="t6">Client withholds (CWT) %</label><select id="t6" name="cwtRate" class="form-select">
               <option th:each="r : ${ {'2','1','5','0'} }" th:value="${r}" th:text="${r == '0' ? 'None' : r + '%' + (r == '2' ? ' · contractors' : '')}" th:selected="${c.cwtRate.stripTrailingZeros().toPlainString() == r}"></option></select></div>
             <div class="col-md-3"><label class="form-label" for="t7">Payment terms (days)</label><input id="t7" name="termDays" class="form-control text-end" inputmode="numeric" th:value="${c.termDays}" /></div>
-            <div class="col-md-8"><label class="form-label" for="t8">Bill to</label><input id="t8" name="billTo" class="form-control" maxlength="300" th:value="${c.billTo}" /></div>
+            <div class="col-md-5"><label class="form-label" for="t8">Bill to</label><input id="t8" name="billTo" class="form-control" maxlength="300" th:value="${c.billTo}" /></div>
+            <div class="col-md-3"><label class="form-label" for="t10">Client TIN</label><input id="t10" name="clientTin" class="form-control" maxlength="40" th:value="${c.clientTin}" placeholder="For the SAWT" /></div>
             <div class="col-md-4"><label class="form-label" for="t9">Client's PO / contract no.</label><input id="t9" name="clientRef" class="form-control" maxlength="80" th:value="${c.clientRef}" /></div>
           </div>
           <div class="d-flex justify-content-end mt-3"><button class="btn btn-primary" type="submit"><i class="bi bi-check2"></i>Save terms</button></div>

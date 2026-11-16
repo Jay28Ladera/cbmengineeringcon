@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cash flow')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Cash flow">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Cash flow</h1>
+          <p class="page-sub" th:text="${'Money in and out of the bank and cash accounts, ' + #temporals.format(s.from(), 'MMM d') + ' – ' + #temporals.format(s.to(), 'MMM d, yyyy') + '.'}"></p></div>
+        <form class="page-actions d-flex flex-wrap gap-2 align-items-end" method="get">
+          <div class="btn-group">
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/CashFlow(preset='month')}">This month</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/CashFlow(preset='lastmonth')}">Last month</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/CashFlow(preset='quarter')}">Quarter</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/CashFlow(preset='year')}">This year</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/CashFlow(preset='lastyear')}">Last year</a>
+          </div>
+          <div><label class="form-label small mb-0" for="sf">From</label><input id="sf" type="date" name="from" class="form-control form-control-sm" th:value="${s.from()}" /></div>
+          <div><label class="form-label small mb-0" for="st">To</label><input id="st" type="date" name="to" class="form-control form-control-sm" th:value="${s.to()}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Opening<i class="bi bi-box-arrow-in-right"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.opening(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Money in<i class="bi bi-arrow-down-circle"></i></div><div class="kpi-value text-success" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.in(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Money out<i class="bi bi-arrow-up-circle"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.out(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Closing<i class="bi bi-box-arrow-right"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(s.closing(), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Net ' + #numbers.formatDecimal(s.closing().subtract(s.opening()), 1, 'COMMA', 2, 'POINT')}"></div></div>
+      </div>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-diagram-2"></i>Where it came from and went</h2></div>
+            <div class="table-wrap"><table class="data-table">
+              <thead><tr><th></th><th class="money">In</th><th class="money">Out</th><th class="money">Net</th></tr></thead>
+              <tbody><tr th:each="f : ${s.flows()}"><td th:text="${f.label()}"></td>
+                <td class="money" th:text="${f.in().signum() > 0 ? #numbers.formatDecimal(f.in(), 1, 'COMMA', 2, 'POINT') : ''}"></td>
+                <td class="money" th:text="${f.out().signum() > 0 ? #numbers.formatDecimal(f.out(), 1, 'COMMA', 2, 'POINT') : ''}"></td>
+                <td class="money fw-semibold" th:classappend="${f.net.signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(f.net, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+              <tfoot><tr class="tb-total"><td>Net change</td><td class="money" th:text="${#numbers.formatDecimal(s.in(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(s.out(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(s.in().subtract(s.out()), 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+            </table></div>
+            <div class="panel-body small text-muted" th:if="${s.transfers().signum() > 0}" th:text="${s.transfers() + ' transfer(s) between CBM’s own accounts are left out (deposits, petty cash refills).'}"></div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-bank"></i>By account</h2></div>
+            <div class="table-wrap"><table class="data-table">
+              <thead><tr><th>Account</th><th class="money">Opening</th><th class="money">In</th><th class="money">Out</th><th class="money">Closing</th></tr></thead>
+              <tbody><tr th:each="b : ${s.banks()}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${b.bank().accountId},from=${s.from()},to=${s.to()})}">
+                <td th:text="${b.bank().name}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.opening(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.in(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.out(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money fw-semibold" th:text="${#numbers.formatDecimal(b.closing(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+            </table></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

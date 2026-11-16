@@ -1131,3 +1131,29 @@ textarea.form-control { min-height: 96px; }
 .status-sb-partial { background: #fef3c7; color: #92400e; }
 .status-sb-paid { background: #e8f6ee; color: var(--green); }
 .status-sb-void { background: var(--red-50); color: var(--red-700); }
+
+/* Link tabs (Admin › Settings, Audit Trail) */
+.seg-links { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border: 1px solid var(--steel-200); border-radius: var(--radius-sm); background: var(--steel-50); }
+.seg-links a { display: block; padding: 6px 14px; border-radius: 4px; font-size: .82rem; font-weight: 600; color: var(--steel-600); text-decoration: none; }
+.seg-links a:hover { color: var(--navy-900); }
+.seg-links a.on { background: var(--surface); color: var(--navy-900); box-shadow: var(--shadow-sm); }
+.kv { display: grid; grid-template-columns: minmax(140px, 220px) 1fr; gap: 8px 16px; margin: 0; font-size: .9rem; }
+.kv dt { color: var(--steel-600); font-weight: 500; }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.preview-head { border: 1px dashed var(--steel-200); border-radius: var(--radius-sm); padding: 14px 16px; display: flex; gap: 14px; align-items: center; background: var(--surface); }
+.preview-head img { height: 46px; }
+.preview-head b { display: block; text-transform: uppercase; font-size: .95rem; letter-spacing: .02em; }
+.preview-head small { display: block; color: var(--steel-600); font-size: .75rem; }
+/* Audit trail */
+.audit-row td { vertical-align: top; }
+.audit-row details summary { cursor: pointer; list-style: none; }
+.audit-row details summary::-webkit-details-marker { display: none; }
+.audit-row details summary .more { color: var(--steel-600); font-size: .78rem; margin-left: 6px; }
+.audit-diff { width: 100%; margin-top: 8px; font-size: .8rem; border-collapse: collapse; }
+.data-table .audit-diff th, .data-table .audit-diff td { padding: 3px 8px; border-top: 1px solid var(--steel-100); border-bottom: 0; font-size: .8rem; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.audit-diff th { color: var(--steel-600); font-weight: 500; width: 28%; }
+.audit-diff .old { color: #a23a3a; text-decoration: line-through; text-decoration-color: rgba(162,58,58,.45); }
+.audit-diff .new { color: #1d6b3a; }
+.audit-related { margin: 8px 0 0; padding: 0; list-style: none; font-size: .8rem; }
+.audit-related li { padding: 4px 0; border-top: 1px dashed var(--steel-100); }
+.audit-stat { font-size: 1.35rem; font-weight: 700; color: var(--navy-900); line-height: 1.1; }

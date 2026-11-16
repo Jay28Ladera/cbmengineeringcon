@@ -92,6 +92,17 @@
     $('empPh').value = d ? d.philhealth || '' : '';
     $('empPi').value = d ? d.pagibig || '' : '';
     $('empCutoff').value = d ? d.contributionCutoff || 'SECOND' : 'SECOND';
+    if ($('empTin')) {
+      $('empTin').value = d ? d.tin || '' : '';
+      $('empSssNo').value = d ? d.sssNo || '' : '';
+      $('empPhNo').value = d ? d.philhealthNo || '' : '';
+      $('empPiNo').value = d ? d.pagibigNo || '' : '';
+      $('empBirth').value = d ? d.birthDate || '' : '';
+      $('empAddr').value = d ? d.address || '' : '';
+      $('empTax').value = d ? d.taxStatus || 'REGULAR' : 'REGULAR';
+      $('empTableHint').textContent = d && d.tableBasis
+        ? 'By the 2025 tables, on ₱' + d.tableBasis + ' a month: SSS ₱' + d.tableSss + ', PhilHealth ₱' + d.tablePh + ', Pag-IBIG ₱' + d.tablePi + ' a month.' : '';
+    }
     $('empRemarks').value = d ? d.remarks || '' : '';
     $('empActive').checked = d ? !!d.active : true;
     $('rateChangeWrap').hidden = true; $('rateNoteWrap').hidden = true;

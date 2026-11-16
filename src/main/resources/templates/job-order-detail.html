@@ -122,6 +122,16 @@
             <div><dt>Retention held</dt><dd th:text="${'₱' + #numbers.formatDecimal(billing.retentionUnbilled, 1, 'COMMA', 2, 'POINT')}"></dd></div>
           </dl>
         </div>
+        <div class="panel-body border-top" th:if="${profit != null and (profit.revenue().signum() != 0 or profit.cost.signum() != 0)}">
+          <dl class="meta-grid">
+            <div><dt>Revenue (net of VAT)</dt><dd th:text="${'₱' + #numbers.formatDecimal(profit.revenue(), 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Cost to date</dt><dd th:text="${'₱' + #numbers.formatDecimal(profit.cost, 1, 'COMMA', 2, 'POINT')}"></dd></div>
+            <div><dt>Gross profit</dt><dd class="fw-semibold" th:classappend="${profit.grossProfit.signum() < 0} ? ' text-danger'" th:text="${'₱' + #numbers.formatDecimal(profit.grossProfit, 1, 'COMMA', 2, 'POINT') + (profit.margin != null ? ' · ' + profit.margin + '%' : '')}"></dd></div>
+            <div><dt>Budget used</dt><dd th:text="${profit.costPctOfBudget != null ? profit.costPctOfBudget + '%' : '—'}"></dd></div>
+            <div><dt>Projected profit</dt><dd th:classappend="${profit.projectedProfit != null and profit.projectedProfit.signum() < 0} ? ' text-danger'" th:text="${profit.projectedProfit != null ? '₱' + #numbers.formatDecimal(profit.projectedProfit, 1, 'COMMA', 2, 'POINT') : '—'}"></dd></div>
+            <div><dt>&nbsp;</dt><dd><a th:href="@{/Reports/ProjectProfitability/{id}(id=${jobOrder.id})}">Profitability details</a></dd></div>
+          </dl>
+        </div>
         <div class="panel-body small text-muted" th:if="${billing == null}">No billing terms yet. Set the contract amount, downpayment and retention to start billing the client.</div>
       </section>
 

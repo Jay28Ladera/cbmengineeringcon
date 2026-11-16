@@ -21,6 +21,7 @@ public class JobContract {
     @Column(nullable = false, length = 6) public String basis = "ITEMS";
     @Column(name = "client_ref", length = 80) public String clientRef;
     @Column(name = "bill_to", length = 300) public String billTo;
+    @Column(name = "client_tin", length = 40) public String clientTin;
     @Column(name = "updated_by", length = 120) public String updatedBy;
     @Column(name = "updated_at") public LocalDateTime updatedAt;
 

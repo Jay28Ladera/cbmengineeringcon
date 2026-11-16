@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Import & Backup')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Administration" data-title="Import & Backup">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Administration</div><h1 class="page-title">Import &amp; Backup</h1>
+          <p class="page-sub">Bring existing records in from Excel or CSV instead of typing them, and download a full copy of the data.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <div class="row g-4">
+        <div class="col-xl-7">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-upload"></i>Import</h2></div>
+            <div class="panel-body">
+              <nav class="seg-links mb-3" aria-label="What to import">
+                <a th:each="k : ${kinds}" th:href="@{/Admin/Data(kind=${k.key})}" th:classappend="${k == kind} ? 'on'" th:text="${k.label}"></a>
+              </nav>
+              <p class="small text-muted" th:text="${kind.help}"></p>
+              <ol class="small ps-3 mb-3">
+                <li>Download the template <a th:href="@{/Admin/Data/template/{k}(k=${kind.key})}"><i class="bi bi-download"></i> <span th:text="${'template-' + #strings.toLowerCase(kind.key) + '.csv'}"></span></a> and fill it in Excel (keep the header row; columns can be in any order, and unused ones can be deleted).</li>
+                <li>Save it as Excel (.xlsx) or CSV and upload it here.</li>
+                <li>Check the preview: nothing is saved until you confirm.</li>
+              </ol>
+              <form th:action="@{/Admin/Data/import}" method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-end flex-wrap">
+                <input type="hidden" name="kind" th:value="${kind.key}" />
+                <div class="flex-grow-1"><label class="form-label small mb-0" for="impFile">File</label><input id="impFile" type="file" name="file" accept=".csv,.xlsx,.xls" class="form-control" required /></div>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i>Check file</button>
+              </form>
+              <div class="small text-muted mt-3" th:switch="${kind.key}">
+                <p class="mb-0" th:case="'MATERIALS'">Opening quantities go into stock at the unit cost given (net of VAT). Afterwards, bring their value into the books in <a th:href="@{/Accounting/Opening}">Accounting › Opening balances</a> › inventory.</p>
+                <p class="mb-0" th:case="'EMPLOYEES'">Rate type is DAILY or MONTHLY; contribution cutoff FIRST (26–10), SECOND (11–25) or BOTH; tax status REGULAR, MWE or NONE. Blank cells leave existing values as they are.</p>
+                <p class="mb-0" th:case="'OPENING'">Use the balances at the start date from your old books. Cash and bank balances can go here too (or use Accounting › Opening balances). Customer and supplier balances are posted as totals; enter open invoices and bills in Client Billing and Payables if you need them per client or supplier.</p>
+                <p class="mb-0" th:case="*">VAT registered and Subcontractor: Yes / No. EWT rate in % (1, 2, 5…). Payee type: Corporation or Individual.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="col-xl-5">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-cloud-download"></i>Backup</h2></div>
+            <div class="panel-body">
+              <p class="small">A ZIP with every table as a CSV, plus a <span class="mono">restore.sql</span> to load it into a new database. Opening a CSV in Excel lets you look at any record.</p>
+              <p class="small text-muted" th:if="${lastBackup != null}" th:text="${'Last downloaded ' + #dates.format(lastBackup.at, 'MMM d, yyyy h:mm a') + ' by ' + lastBackup.user_name + '.'}"></p>
+              <p class="small text-warning-emphasis" th:if="${lastBackup == null}"><i class="bi bi-exclamation-triangle"></i> No backup downloaded yet.</p>
+              <form th:action="@{/Admin/Data/backup}" method="get" class="d-flex gap-3 align-items-center flex-wrap" data-no-nav>
+                <label class="oc-switch"><input type="checkbox" name="audit" value="true" /><span></span>Include the audit trail</label>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-download"></i>Download backup</button>
+              </form>
+              <p class="small text-muted mt-3 mb-0">Keep it somewhere safe and private: it holds pay, government IDs and client data. Download one before go-live and at each month-end. The database host (Neon) also keeps its own restore history; this file is your copy outside it.</p>
+            </div>
+            <details class="panel-body border-top"><summary class="small fw-semibold" th:text="${#lists.size(tables) + ' tables'}"></summary>
+              <ul class="small text-muted mt-2 mb-0" style="columns:2"><li th:each="t : ${tables}" th:text="${t.name() + ' (~' + t.rows() + ')'}"></li></ul></details>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

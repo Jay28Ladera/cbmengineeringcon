@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Project profitability')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Project profitability">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Project profitability</h1>
+          <p class="page-sub">Revenue billed and costs charged to each job order (net of VAT), against the quotation's cost budget. "Projected" assumes the remaining work costs like the work done so far.</p></div>
+        <div class="page-actions"><button class="btn btn-outline" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button></div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Contracts (net of VAT)<i class="bi bi-file-earmark-text"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(contract, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Revenue billed<i class="bi bi-receipt"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(rev, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Costs to date<i class="bi bi-tools"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(cost, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Committed, not yet received or billed: ₱' + #numbers.formatDecimal(committed, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Gross margin<i class="bi bi-percent"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${margin != null ? margin + '%' : '—'}"></div><div class="kpi-note" th:text="${'₱' + #numbers.formatDecimal(rev.subtract(cost), 1, 'COMMA', 2, 'POINT')}"></div></div>
+      </div>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Job order</th><th class="money">Contract</th><th class="num">Done</th><th class="money">Revenue</th><th class="money">Cost</th><th class="money">Gross profit</th><th style="width:160px">Margin</th><th class="money">Budget</th><th class="num">Budget used</th><th class="money">Projected profit</th><th>Status</th></tr></thead>
+          <tbody><tr th:each="j : ${jobs}" class="row-link" th:attr="data-href=@{/Reports/ProjectProfitability/{id}(id=${j.jobId()})}">
+            <td><a th:href="@{/Reports/ProjectProfitability/{id}(id=${j.jobId()})}" th:text="${j.label()}"></a><div class="cell-sub" th:text="${j.status()}"></div></td>
+            <td class="money" th:text="${j.contract() != null ? #numbers.formatDecimal(j.contract(), 1, 'COMMA', 2, 'POINT') : '—'}"></td>
+            <td class="num" th:text="${j.pctComplete() != null ? #numbers.formatDecimal(j.pctComplete(), 1, 0) + '%' : '—'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.revenue(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.cost, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:classappend="${j.grossProfit.signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(j.grossProfit, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><div th:replace="~{fragments/acc :: marginBar(${j.margin})}"></div></td>
+            <td class="money" th:text="${j.budget() != null ? #numbers.formatDecimal(j.budget(), 1, 'COMMA', 2, 'POINT') : '—'}"></td>
+            <td class="num" th:text="${j.costPctOfBudget != null ? j.costPctOfBudget + '%' : '—'}"></td>
+            <td class="money" th:classappend="${j.projectedProfit != null and j.projectedProfit.signum() < 0} ? ' text-danger'" th:text="${j.projectedProfit != null ? #numbers.formatDecimal(j.projectedProfit, 1, 'COMMA', 2, 'POINT') : '—'}"></td>
+            <td><span class="status" th:classappend="${j.flag == 'OK' ? 'status-approved' : (j.flag == 'LOSS' ? 'status-rejected' : 'status-pending')}" th:text="${j.flag == 'OK' ? 'On track' : (j.flag == 'LOSS' ? 'Projected loss' : 'Over budget')}"></span></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(jobs)}">No job orders yet.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

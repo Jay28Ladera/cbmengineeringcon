@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Income statement')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Income statement">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Income statement</h1>
+          <p class="page-sub" th:text="${'For ' + #temporals.format(s.from(), 'MMMM d, yyyy') + ' to ' + #temporals.format(s.to(), 'MMMM d, yyyy') + ', compared with ' + #temporals.format(s.priorFrom(), 'MMM d') + ' – ' + #temporals.format(s.priorTo(), 'MMM d, yyyy') + '. Amounts net of VAT.'}"></p></div>
+        <form class="page-actions d-flex flex-wrap gap-2 align-items-end" method="get">
+          <div class="btn-group">
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/IncomeStatement(preset='month')}">This month</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/IncomeStatement(preset='lastmonth')}">Last month</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/IncomeStatement(preset='quarter')}">Quarter</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/IncomeStatement(preset='year')}">This year</a>
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/IncomeStatement(preset='lastyear')}">Last year</a>
+          </div>
+          <div><label class="form-label small mb-0" for="sf">From</label><input id="sf" type="date" name="from" class="form-control form-control-sm" th:value="${s.from()}" /></div>
+          <div><label class="form-label small mb-0" for="st">To</label><input id="st" type="date" name="to" class="form-control form-control-sm" th:value="${s.to()}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table fs-table">
+          <thead><tr><th>Account</th><th class="money">This period</th><th class="money">Previous</th><th class="money">Change</th></tr></thead>
+          <tbody>
+            <th:block th:each="sec : ${ {s.revenue(), s.direct()} }">
+              <tr class="acc-type-head"><td colspan="4" th:text="${sec.title()}"></td></tr>
+              <tr th:each="l : ${sec.lines()}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${l.account().id},from=${s.from()},to=${s.to()})}">
+                <td><span class="mono small" th:text="${l.account().code}"></span> <span th:text="${l.account().name}"></span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.amount(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money text-muted" th:text="${#numbers.formatDecimal(l.prior(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money small" th:text="${#numbers.formatDecimal(l.change, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr class="fw-semibold"><td th:text="${'Total ' + #strings.toLowerCase(sec.title())}"></td><td class="money" th:text="${#numbers.formatDecimal(sec.total(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money text-muted" th:text="${#numbers.formatDecimal(sec.prior(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+            </th:block>
+            <tr class="tb-total"><td th:text="${'Gross profit' + (s.grossMargin != null ? ' (' + s.grossMargin + '%)' : '')}"></td><td class="money" th:text="${#numbers.formatDecimal(s.grossProfit(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(s.grossPrior(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+            <th:block th:with="sec=${s.opex()}">
+              <tr class="acc-type-head"><td colspan="4" th:text="${sec.title()}"></td></tr>
+              <tr th:each="l : ${sec.lines()}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${l.account().id},from=${s.from()},to=${s.to()})}">
+                <td><span class="mono small" th:text="${l.account().code}"></span> <span th:text="${l.account().name}"></span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.amount(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money text-muted" th:text="${#numbers.formatDecimal(l.prior(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money small" th:text="${#numbers.formatDecimal(l.change, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr class="fw-semibold"><td>Total operating expenses</td><td class="money" th:text="${#numbers.formatDecimal(sec.total(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money text-muted" th:text="${#numbers.formatDecimal(sec.prior(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+            </th:block>
+            <tr class="tb-total"><td>Operating income</td><td class="money" th:text="${#numbers.formatDecimal(s.operating(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(s.operatingPrior(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+            <th:block th:unless="${#lists.isEmpty(s.other().lines())}">
+              <tr th:each="l : ${s.other().lines()}"><td><span class="mono small" th:text="${l.account().code}"></span> <span th:text="${l.account().name}"></span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(l.amount(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money text-muted" th:text="${#numbers.formatDecimal(l.prior(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+            </th:block>
+            <tr class="tb-total" style="font-size:1.05rem"><td th:text="${'Net income' + (s.netMargin != null ? ' (' + s.netMargin + '% of revenue)' : '')}"></td>
+              <td class="money" th:classappend="${s.net().signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(s.net(), 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(s.netPrior(), 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr>
+          </tbody>
+        </table></div>
+        <div class="panel-body small text-muted">Before income tax. Revenue is recognized when a billing is issued; costs when materials are issued to a job, bills and subcon billings are posted, and payroll is posted.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

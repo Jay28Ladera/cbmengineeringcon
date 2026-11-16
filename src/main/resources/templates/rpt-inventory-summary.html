@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inventory summary')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Inventory summary">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Inventory summary</h1>
+          <p class="page-sub" th:text="${'Stock on hand at average cost. ' + low + ' item(s) at or below their reorder level.'}"></p></div>
+        <div class="page-actions"><button class="btn btn-outline" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button></div>
+      </div>
+      <div class="alert mb-3" th:classappend="${value.compareTo(ledgerValue) == 0} ? 'alert-success' : 'alert-warning'"
+           th:text="${value.compareTo(ledgerValue) == 0 ? 'Stock value matches account 1200 Inventory in the ledger: ₱' + #numbers.formatDecimal(value, 1, 'COMMA', 2, 'POINT') + '.' : 'Stock value ₱' + #numbers.formatDecimal(value, 1, 'COMMA', 2, 'POINT') + ' differs from the ledger (₱' + #numbers.formatDecimal(ledgerValue, 1, 'COMMA', 2, 'POINT') + '). Use Accounting › Opening Balances to bring them in line.'}"></div>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Code</th><th>Material</th><th>Category</th><th class="num">On hand</th><th>Unit</th><th class="money">Avg cost</th><th class="money">Value</th><th>Stock</th></tr></thead>
+          <tbody><tr th:each="m : ${materials}" th:classappend="${!m.active} ? ' row-void'">
+            <td class="mono small" th:text="${m.code}"></td><td th:text="${m.name}"></td>
+            <td class="small" th:text="${m.categoryId != null ? categoryMap.get(m.categoryId) : ''}"></td>
+            <td class="num" th:text="${m.onHand.stripTrailingZeros().toPlainString()}"></td><td th:text="${m.unit}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(m.avgCost, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(m.stockValue, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span th:if="${m.low}" class="status status-pending">Reorder</span></td></tr></tbody>
+          <tfoot><tr class="tb-total"><td colspan="6">Total</td><td class="money" th:text="${#numbers.formatDecimal(value, 1, 'COMMA', 2, 'POINT')}"></td><td></td></tr></tfoot>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

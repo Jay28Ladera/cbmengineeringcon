@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Fixed Assets')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Fixed Assets">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Fixed Assets</h1>
+          <p class="page-sub">Equipment, vehicles, tools and office property, depreciated straight-line each month. Depreciation of equipment assigned to a project is charged to that job.</p></div>
+        <div class="page-actions"><button class="btn btn-primary" type="button" data-open-dialog="faNew"><i class="bi bi-plus-lg"></i>Add asset</button></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Cost<i class="bi bi-truck"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(cost, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Assets in use</div></div>
+        <div class="kpi"><div class="kpi-label">Accumulated depreciation<i class="bi bi-graph-down"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(accumulated, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${lastRun != null ? 'Posted through ' + #temporals.format(lastRun.monthEnd, 'MMMM yyyy') : 'No depreciation posted yet'}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">Book value<i class="bi bi-wallet2"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(bookValue, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Cost less depreciation</div></div>
+      </div>
+
+      <section class="panel mb-4" id="depreciation">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-calendar-check"></i>Monthly depreciation</h2>
+          <form method="get" class="d-flex gap-2 align-items-center"><label class="small text-muted" for="dm">Month</label><input id="dm" type="month" name="month" class="form-control form-control-sm" th:value="${month}" onchange="this.form.submit()" /></form></div>
+        <div class="panel-body" th:if="${alreadyRun}"><span class="status status-approved">Posted</span> <span th:text="${'Depreciation for ' + monthLabel + ' is already posted.'}"></span></div>
+        <th:block th:unless="${alreadyRun}">
+          <div class="panel-body text-muted" th:if="${#lists.isEmpty(preview)}" th:text="${'Nothing to depreciate for ' + monthLabel + '.'}"></div>
+          <div class="table-wrap" th:unless="${#lists.isEmpty(preview)}"><table class="data-table">
+            <thead><tr><th>Asset</th><th>Charged to</th><th class="money">Amount</th></tr></thead>
+            <tbody><tr th:each="l : ${preview}"><td><a th:href="@{/Accounting/FixedAssets/{id}(id=${l.a().id})}" th:text="${l.a().code + ' · ' + l.a().name}"></a></td>
+              <td class="small" th:text="${l.jobId() != null and jobMap.get(l.jobId()) != null ? jobMap.get(l.jobId()).label + ' (5050)' : 'Office (6140)'}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(l.amount(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+            <tfoot><tr class="tb-total"><td colspan="2" th:text="${'Total for ' + monthLabel}"></td><td class="money" th:text="${#numbers.formatDecimal(previewTotal, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+          </table></div>
+          <form class="panel-body border-top d-flex justify-content-between align-items-center" th:unless="${#lists.isEmpty(preview)}" th:action="@{/Accounting/FixedAssets/depreciation}" method="post"
+                th:attr="data-confirm=${'Post depreciation for ' + monthLabel + '?'}" data-confirm-ok="Post">
+            <input type="hidden" name="month" th:value="${month}" />
+            <span class="small text-muted" th:text="${month != nextMonth ? 'The next month to post is ' + nextMonth + '. Months are posted in order.' : 'Dr depreciation (5050 jobs / 6140 office), Cr accumulated depreciation (1510).'}"></span>
+            <button class="btn btn-primary" type="submit" th:disabled="${!canRun}"><i class="bi bi-check2-circle"></i>Post depreciation</button>
+          </form>
+        </th:block>
+        <details class="panel-body border-top" th:unless="${#lists.isEmpty(runs)}"><summary class="small fw-semibold">Months posted</summary>
+          <table class="data-table mt-2"><tbody><tr th:each="r : ${runs}" th:classappend="${!r.posted} ? ' row-void'">
+            <td th:text="${#temporals.format(r.monthEnd, 'MMMM yyyy')}"></td><td class="small" th:text="${r.assetCount + ' asset(s)'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.total, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="small"><a th:if="${r.journalId != null}" th:href="@{/Accounting/Journal/{id}(id=${r.journalId})}">Entry</a> <span th:unless="${r.posted}" class="status status-draft">Undone</span></td>
+            <td class="actions"><form th:if="${r.posted and lastRun != null and lastRun.id == r.id}" th:action="@{/Accounting/FixedAssets/depreciation/{id}/void(id=${r.id})}" method="post" data-confirm="Undo this month's depreciation? Its entry is reversed." data-confirm-tone="danger" data-confirm-ok="Undo">
+              <button class="btn btn-sm btn-ghost" type="submit">Undo</button></form></td></tr></tbody></table>
+        </details>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-truck"></i><span th:text="${disposed ? 'Disposed of' : 'In use'}"></span></h2>
+          <div class="d-flex gap-2 align-items-center">
+            <a class="small" th:if="${!disposed and disposedCount > 0}" th:href="@{/Accounting/FixedAssets(show='disposed')}" th:text="${'Disposed of (' + disposedCount + ')'}"></a>
+            <a class="small" th:if="${disposed}" th:href="@{/Accounting/FixedAssets}">In use</a>
+            <div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="faTable" aria-label="Search assets" /></div></div></div>
+        <div class="empty-state" th:if="${#lists.isEmpty(rows)}"><div class="empty-icon"><i class="bi bi-truck"></i></div><h3>No assets yet</h3><p>Add equipment, vehicles and tools that last more than a year, so they are depreciated each month.</p></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}"><table class="data-table" id="faTable">
+          <thead><tr><th>Asset</th><th>Category</th><th>Used on</th><th>Acquired</th><th class="money">Cost</th><th class="money">Depreciation</th><th class="money">Book value</th><th class="money">Per month</th></tr></thead>
+          <tbody><tr th:each="v : ${rows}" class="row-link" th:attr="data-href=@{/Accounting/FixedAssets/{id}(id=${v.a().id})}">
+            <td><b th:text="${v.a().code}"></b> <span th:text="${v.a().name}"></span><div class="cell-sub" th:text="${(v.a().serialNo != null ? 'S/N ' + v.a().serialNo : '') + (v.a().plateNo != null ? ' · ' + v.a().plateNo : '') + (v.a().custodian != null ? ' · ' + v.a().custodian : '')}"></div></td>
+            <td class="small" th:text="${v.a().categoryLabel}"></td>
+            <td class="small" th:text="${v.a().jobOrderId != null and jobMap.get(v.a().jobOrderId) != null ? jobMap.get(v.a().jobOrderId).number : 'Office'}"></td>
+            <td class="small text-nowrap" th:text="${#temporals.format(v.a().acquiredDate, 'MMM d, yyyy')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(v.a().cost, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money"><span th:text="${#numbers.formatDecimal(v.accumulated(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${v.pct + '%'}"></div></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(v.bookValue, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money small" th:text="${v.fullyDepreciated ? 'Fully depreciated' : #numbers.formatDecimal(v.a().monthly, 1, 'COMMA', 2, 'POINT')}"></td>
+          </tr></tbody>
+        </table></div>
+      </section>
+
+      <dialog class="app-dialog" id="faNew" aria-labelledby="faNewTitle">
+        <form th:action="@{/Accounting/FixedAssets}" method="post" data-fa-form>
+          <header class="dialog-header"><div><h2 id="faNewTitle">Add asset</h2><p>Anything that costs a significant amount and lasts more than a year.</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="faNew"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-8"><label class="form-label" for="fa1">Name</label><input id="fa1" name="name" class="form-control" maxlength="160" required placeholder="e.g. Mini dump truck, Welding machine, Laptop" /></div>
+            <div class="col-md-4"><label class="form-label" for="fa2">Category</label><select id="fa2" name="category" class="form-select" data-fa-category>
+              <option th:each="c : ${categories}" th:value="${c.key()}" th:text="${c.label()}" th:attr="data-life=${c.lifeMonths() / 12}"></option></select></div>
+            <div class="col-md-4"><label class="form-label" for="fa3">Date acquired</label><input id="fa3" type="date" name="acquiredDate" class="form-control" required th:value="${today}" /></div>
+            <div class="col-md-4"><label class="form-label" for="fa4">Cost (₱)</label><input id="fa4" name="cost" type="number" step="0.01" min="0.01" class="form-control" required /><div class="form-hint">Net of VAT, plus delivery and setup</div></div>
+            <div class="col-md-4"><label class="form-label" for="fa5">Useful life (years)</label><input id="fa5" name="lifeYears" type="number" step="0.5" min="0.5" max="50" class="form-control" value="5" required /></div>
+            <div class="col-md-4"><label class="form-label" for="fa6">Salvage value (₱)</label><input id="fa6" name="salvage" type="number" step="0.01" min="0" class="form-control" value="0" /></div>
+            <div class="col-md-4"><label class="form-label" for="fa7">Serial no.</label><input id="fa7" name="serialNo" class="form-control" maxlength="80" /></div>
+            <div class="col-md-4"><label class="form-label" for="fa8">Plate no.</label><input id="fa8" name="plateNo" class="form-control" maxlength="20" /></div>
+            <div class="col-md-6"><label class="form-label" for="fa9">Custodian</label><input id="fa9" name="custodian" class="form-control" maxlength="120" /></div>
+            <div class="col-md-6"><label class="form-label" for="fa10">Used on project</label><select id="fa10" name="jobOrderId" class="form-select"><option value="">Office / not on a project</option>
+              <option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}"></option></select></div>
+            <div class="col-12"><span class="form-label d-block">In the books</span>
+              <div class="seg">
+                <label><input type="radio" name="acquiredHow" value="PAID" checked data-fa-how /><span>Bought now – paid from a bank</span></label>
+                <label><input type="radio" name="acquiredHow" value="BOOKED" data-fa-how /><span>Already recorded (bill / entry)</span></label>
+                <label><input type="radio" name="acquiredHow" value="OPENING" data-fa-how /><span>Owned before (opening balance)</span></label>
+              </div></div>
+            <div class="col-md-6" data-fa-show="PAID"><label class="form-label" for="fa11">Paid from</label><select id="fa11" name="bankId" class="form-select"><option th:each="b : ${banks}" th:value="${b.id}" th:text="${b.label}"></option></select></div>
+            <div class="col-md-6" data-fa-show="OPENING BOOKED" hidden><label class="form-label" for="fa12">Depreciation to date (₱)</label><input id="fa12" name="openingAccum" type="number" step="0.01" min="0" class="form-control" value="0" /><div class="form-hint">Accumulated before this system, if any</div></div>
+            <div class="col-md-6" data-fa-show="OPENING BOOKED" hidden><label class="form-label" for="fa13">Depreciate from (month)</label><input id="fa13" name="depStart" type="month" class="form-control" /><div class="form-hint">Blank = month acquired (or the next, if after the 15th)</div></div>
+            <div class="col-12"><p class="form-hint mb-0" data-fa-help></p></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="faNew">Cancel</button><button class="btn btn-primary" type="submit">Add asset</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

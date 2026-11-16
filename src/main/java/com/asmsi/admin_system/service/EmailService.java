@@ -114,6 +114,12 @@ public class EmailService {
 
     public String link(String path) { return appUrl(path); }
 
+    /** For Admin › Settings: whether mail can be sent here, and from which addresses (no keys shown). */
+    public boolean isConfigured() { return resendApiKey != null && !resendApiKey.isBlank(); }
+    public String getFromAddress() { return fromEmail; }
+    public String getQuoteFromAddress() { return quoteFrom == null || quoteFrom.isBlank() ? fromEmail : quoteFrom; }
+    public String getBaseUrl() { return baseUrl; }
+
     private String appUrl(String path) {
         String root = (baseUrl == null || baseUrl.isBlank())
                 ? ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()

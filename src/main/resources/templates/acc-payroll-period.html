@@ -25,26 +25,28 @@
         <div class="kpi"><div class="kpi-label">Deductions<i class="bi bi-dash-circle"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(earned.subtract(net), 1, 'COMMA', 2, 'POINT')}"></div>
           <div class="kpi-note"><span th:each="d, st : ${ded}" th:text="${d.key + ' ₱' + #numbers.formatDecimal(d.value, 1, 'COMMA', 2, 'POINT') + (st.last ? '' : ' · ')}"></span></div></div>
         <div class="kpi accent"><div class="kpi-label">Net pay<i class="bi bi-cash"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(net, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">To release</div></div>
-        <div class="kpi"><div class="kpi-label">Charged to jobs<i class="bi bi-briefcase"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${x != null ? '₱' + #numbers.formatDecimal(x.toJobs, 1, 'COMMA', 2, 'POINT') : '—'}"></div><div class="kpi-note">Direct labor</div></div>
+        <div class="kpi"><div class="kpi-label">Employer share<i class="bi bi-building"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(employer, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">SSS (with EC), PhilHealth, Pag-IBIG</div></div>
+        <div class="kpi"><div class="kpi-label">Charged to jobs<i class="bi bi-briefcase"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${x != null ? '₱' + #numbers.formatDecimal(x.toJobs, 1, 'COMMA', 2, 'POINT') : '—'}"></div><div class="kpi-note">Direct labor, with employer shares</div></div>
       </div>
 
       <form th:action="@{/Accounting/Payroll/{id}/post(id=${p.id})}" method="post" class="panel">
         <div class="panel-header"><h2 class="panel-title"><i class="bi bi-people"></i>Employees</h2>
           <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="prTable" aria-label="Search employees" /></div></div></div>
         <div class="table-wrap"><table class="data-table" id="prTable">
-          <thead><tr><th>Employee</th><th>Group</th><th class="money">Earned</th><th class="money">Deductions</th><th class="money">Net pay</th><th style="width:300px">Charge to</th></tr></thead>
+          <thead><tr><th>Employee</th><th>Group</th><th class="money">Earned</th><th class="money">Deductions</th><th class="money">Net pay</th><th class="money" title="SSS with EC, PhilHealth and Pag-IBIG paid by CBM">Employer</th><th style="width:300px">Charge to</th></tr></thead>
           <tbody><tr th:each="e : ${lines}" th:with="l=${e.line()}">
             <td><span th:text="${l.name}"></span><div class="cell-sub" th:text="${l.position}"></div></td>
             <td class="small" th:text="${l.payGroup}"></td>
             <td class="money" th:text="${#numbers.formatDecimal(e.earned(), 1, 'COMMA', 2, 'POINT')}"></td>
             <td class="money" th:text="${#numbers.formatDecimal(e.earned().subtract(l.netPay), 1, 'COMMA', 2, 'POINT')}"></td>
             <td class="money fw-semibold" th:text="${#numbers.formatDecimal(l.netPay, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money small text-muted" th:text="${e.employer().signum() == 0 ? '—' : #numbers.formatDecimal(e.employer(), 1, 'COMMA', 2, 'POINT')}"></td>
             <td><select class="form-select form-select-sm" th:name="${'job_' + l.employeeId}" th:disabled="${x != null}" th:attr="aria-label=${'Charge ' + l.name + ' to'}">
               <option value="">Office (salaries 6010)</option>
               <option th:each="j : ${jobs}" th:value="${j.id()}" th:text="${j.label()}" th:selected="${e.jobId() == j.id()}"></option></select></td></tr></tbody>
         </table></div>
         <div class="panel-body border-top d-flex justify-content-between align-items-center" th:if="${x == null}">
-          <span class="small text-muted">The choice per employee is remembered for the next period. Employer shares of SSS, PhilHealth and Pag-IBIG are not in the HR pay sheet; record them with a journal entry (6020) until they are.</span>
+          <span class="small text-muted">The choice per employee is remembered for the next period. Employer shares of SSS, PhilHealth and Pag-IBIG are posted with the payroll: to direct labor of the job, or 6020 for office staff.</span>
           <div class="d-flex gap-2 align-items-end">
             <div><label class="form-label small mb-0" for="pd">Post on</label><input id="pd" type="date" name="date" class="form-control form-control-sm" th:value="${p.endDate}" /></div>
             <button class="btn btn-primary" type="submit" th:disabled="${!p.locked or #lists.isEmpty(lines)}"><i class="bi bi-check2-circle"></i>Post payroll</button></div>

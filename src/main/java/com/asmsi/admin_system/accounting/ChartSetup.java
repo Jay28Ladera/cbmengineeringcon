@@ -1,5 +1,6 @@
 package com.asmsi.admin_system.accounting;
 
+import java.util.List;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -31,8 +32,11 @@ public class ChartSetup implements ApplicationRunner {
         {"1400", "Advances to Suppliers", "ASSET", "Other current assets", "1"},
         {"1410", "Advances to Employees", "ASSET", "Other current assets", "1"},
         {"1500", "Tools and Equipment", "ASSET", "Property and equipment", "1"},
-        {"1510", "Accumulated Depreciation", "ASSET", "Property and equipment", "0"},
+        {"1510", "Accumulated Depreciation", "ASSET", "Property and equipment", "1"},
         {"1520", "Service Vehicles", "ASSET", "Property and equipment", "0"},
+        {"1530", "Construction Equipment", "ASSET", "Property and equipment", "0"},
+        {"1540", "Office Equipment and Furniture", "ASSET", "Property and equipment", "0"},
+        {"1550", "Building and Leasehold Improvements", "ASSET", "Property and equipment", "0"},
         {"2010", "Accounts Payable - Suppliers", "LIABILITY", "Payables", "1"},
         {"2020", "Accounts Payable - Subcontractors", "LIABILITY", "Payables", "1"},
         {"2030", "Retention Payable", "LIABILITY", "Payables", "1"},
@@ -55,10 +59,12 @@ public class ChartSetup implements ApplicationRunner {
         {"4020", "Sales - Aircon Supplies", "INCOME", "Revenue", "1"},
         {"4030", "Service Income - Repairs and Maintenance", "INCOME", "Revenue", "0"},
         {"4090", "Other Income", "INCOME", "Other income", "1"},
+        {"4095", "Gain on Disposal of Assets", "INCOME", "Other income", "1"},
         {"5010", "Materials Used", "EXPENSE", "Cost of contracts", "1"},
         {"5020", "Direct Labor", "EXPENSE", "Cost of contracts", "1"},
         {"5030", "Subcontract Costs", "EXPENSE", "Cost of contracts", "1"},
         {"5040", "Equipment Rental", "EXPENSE", "Cost of contracts", "0"},
+        {"5050", "Depreciation - Equipment Used on Projects", "EXPENSE", "Cost of contracts", "1"},
         {"5090", "Other Direct Costs", "EXPENSE", "Cost of contracts", "0"},
         {"6010", "Salaries and Wages - Office", "EXPENSE", "Operating expenses", "0"},
         {"6020", "Employer Contributions (SSS, PhilHealth, Pag-IBIG)", "EXPENSE", "Operating expenses", "0"},
@@ -75,6 +81,7 @@ public class ChartSetup implements ApplicationRunner {
         {"6130", "Bank Charges", "EXPENSE", "Operating expenses", "0"},
         {"6140", "Depreciation", "EXPENSE", "Operating expenses", "0"},
         {"6150", "Inventory Losses and Shrinkage", "EXPENSE", "Operating expenses", "1"},
+        {"6160", "Loss on Disposal of Assets", "EXPENSE", "Operating expenses", "1"},
         {"6190", "Miscellaneous Expense", "EXPENSE", "Operating expenses", "1"},
     };
 
@@ -86,6 +93,10 @@ public class ChartSetup implements ApplicationRunner {
             Account x = new Account();
             x.code = a[0]; x.name = a[1]; x.type = a[2]; x.groupName = a[3]; x.systemAccount = "1".equals(a[4]);
             accounts.save(x);
+        }
+        // Accounts that automatic postings now use (payroll employer shares, depreciation)
+        for (String code : List.of(Acct.EMPLOYER_CONTRIBUTIONS, Acct.DEPRECIATION, Acct.ACCUMULATED_DEPRECIATION)) {
+            accounts.findByCode(code).ifPresent(x -> { if (!x.systemAccount) { x.systemAccount = true; accounts.save(x); } });
         }
         if (banks.count() == 0) {
             BankAccount cash = new BankAccount();

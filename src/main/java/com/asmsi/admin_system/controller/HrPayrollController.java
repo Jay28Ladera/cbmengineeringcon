@@ -276,7 +276,7 @@ public class HrPayrollController {
             hol = hol.add(l.specialHolPay).add(l.regularHolPay); nd = nd.add(l.ndPay); other = other.add(l.otherEarnings);
             gross = gross.add(l.grossPay); lates = lates.add(l.lateAmount); absent = absent.add(l.absentAmount);
             loans = loans.add(l.deductionSum("LOAN", "CASH_ADVANCE", "SINKING"));
-            gov = gov.add(l.deductionSum("SSS", "PHILHEALTH", "PAGIBIG"));
+            gov = gov.add(l.deductionSum("SSS", "PHILHEALTH", "PAGIBIG", "WTAX"));
             others = others.add(l.deductionSum("OTHER_DEDUCTION"));
             ded = ded.add(l.totalDeductions); net = net.add(l.netPay);
         }
@@ -381,7 +381,9 @@ public class HrPayrollController {
                                @RequestParam(required = false) String shiftStart, @RequestParam(required = false) String shiftEnd,
                                @RequestParam(required = false) String breakStart, @RequestParam(required = false) String breakEnd,
                                @RequestParam(required = false) Integer otBlockMinutes,
-                               @RequestParam(defaultValue = "false") boolean otFromLogs, RedirectAttributes redirect) {
+                               @RequestParam(defaultValue = "false") boolean otFromLogs,
+                               @RequestParam(defaultValue = "false") boolean withholdTax,
+                               @RequestParam(defaultValue = "false") boolean autoContributions, RedirectAttributes redirect) {
         PayrollSettings s = payroll.settings();
         s.setOtMultiplier(nonNeg(otMultiplier)); s.setSundayMultiplier(nonNeg(sundayMultiplier));
         s.setSundayOtMultiplier(nonNeg(sundayOtMultiplier));
@@ -398,6 +400,8 @@ public class HrPayrollController {
         if (bs != null && be != null && !be.isBefore(bs)) { s.setBreakStart(bs); s.setBreakEnd(be); }
         if (otBlockMinutes != null) s.setOtBlockMinutes(Math.max(1, Math.min(120, otBlockMinutes)));
         s.setOtFromLogs(otFromLogs);
+        s.setWithholdTax(withholdTax);
+        s.setAutoContributions(autoContributions);
         settingsRepo.save(s);
         redirect.addFlashAttribute("success", "Pay rules saved. Open pay sheets use them right away; locked ones keep their figures.");
         return "redirect:/HR/PayrollSettings";

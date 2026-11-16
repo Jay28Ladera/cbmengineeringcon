@@ -286,7 +286,7 @@ public class CashController {
         return "acc-payroll";
     }
 
-    public record EmpLine(PayLine line, BigDecimal earned, Long jobId) {}
+    public record EmpLine(PayLine line, BigDecimal earned, Long jobId, BigDecimal employer) {}
 
     @GetMapping("/Payroll/{periodId}")
     @Transactional(readOnly = true)
@@ -296,11 +296,15 @@ public class CashController {
         employeeJobs.findAll().forEach(e -> defaults.put(e.employeeId, e.jobOrderId));
         List<EmpLine> ls = new ArrayList<>();
         Map<String, BigDecimal> ded = new TreeMap<>();
-        BigDecimal earned = BigDecimal.ZERO, net = BigDecimal.ZERO;
-        for (PayLine l : payroll.lines(p)) {
-            if (l.netPay.signum() == 0 && l.deductions.isEmpty()) continue;
+        BigDecimal earned = BigDecimal.ZERO, net = BigDecimal.ZERO, employer = BigDecimal.ZERO;
+        List<PayLine> all = payroll.lines(p).stream().filter(l -> l.netPay.signum() != 0 || !l.deductions.isEmpty()).toList();
+        Map<Long, BigDecimal[]> er = payrollPosting.employerShares(all);
+        for (PayLine l : all) {
             BigDecimal e = PayrollPostingService.earned(l);
-            ls.add(new EmpLine(l, e, defaults.get(l.employeeId)));
+            BigDecimal[] sh = er.get(l.employeeId);
+            BigDecimal t = sh[0].add(sh[1]).add(sh[2]);
+            employer = employer.add(t);
+            ls.add(new EmpLine(l, e, defaults.get(l.employeeId), t));
             for (PayLine.Item it : l.deductions) ded.merge(it.label, it.amount, BigDecimal::add);
             earned = earned.add(e); net = net.add(l.netPay);
         }
@@ -309,7 +313,7 @@ public class CashController {
         model.addAttribute("x", x);
         model.addAttribute("lines", ls);
         model.addAttribute("ded", ded);
-        model.addAttribute("earned", earned); model.addAttribute("net", net);
+        model.addAttribute("earned", earned); model.addAttribute("net", net); model.addAttribute("employer", employer);
         model.addAttribute("jobs", lookups.jobOrders());
         model.addAttribute("jobMap", lookups.jobMap());
         model.addAttribute("banks", banks.findByActiveTrueOrderByKindAscNameAsc());

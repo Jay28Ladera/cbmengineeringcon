@@ -37,7 +37,7 @@
                 <td class="money"><span th:text="${'₱' + #numbers.formatDecimal(r.ordered(), 1, 'COMMA', 2, 'POINT')}"></span><div class="cell-sub" th:text="${r.orders() + ' PO(s)'}"></div></td>
                 <td class="actions">
                   <a class="btn btn-sm btn-ghost" th:href="@{/Purchasing/Procurements/new(supplier=${s.id})}" title="New purchase order"><i class="bi bi-bag-plus"></i></a>
-                  <button type="button" class="btn btn-sm btn-outline" data-fill="supplierDialog" th:attr="data-title=${'Edit ' + s.name},data-f-id=${s.id},data-f-name=${s.name},data-f-contact-person=${s.contactPerson},data-f-phone=${s.phone},data-f-email=${s.email},data-f-address=${s.address},data-f-tin=${s.tin},data-f-payment-terms=${s.paymentTerms},data-f-supplies=${s.supplies},data-f-notes=${s.notes},data-f-active=${s.active},data-f-vat-registered=${s.isVat() ? 'YES' : 'NO'},data-f-ewt-rate=${s.ewt().stripTrailingZeros().toPlainString()}">Edit</button>
+                  <button type="button" class="btn btn-sm btn-outline" data-fill="supplierDialog" th:attr="data-title=${'Edit ' + s.name},data-f-id=${s.id},data-f-name=${s.name},data-f-contact-person=${s.contactPerson},data-f-phone=${s.phone},data-f-email=${s.email},data-f-address=${s.address},data-f-tin=${s.tin},data-f-payment-terms=${s.paymentTerms},data-f-supplies=${s.supplies},data-f-notes=${s.notes},data-f-active=${s.active},data-f-vat-registered=${s.isVat() ? 'YES' : 'NO'},data-f-payee-type=${s.payeeType ?: 'CORPORATION'},data-f-atc=${s.atc},data-f-ewt-rate=${s.ewt().stripTrailingZeros().toPlainString()}">Edit</button>
                 </td>
               </tr>
             </tbody>
@@ -64,6 +64,9 @@
                 <select id="s10" name="vatRegistered" class="form-select"><option value="YES">VAT-registered (12% input VAT)</option><option value="NO">Non-VAT</option></select></div>
               <div class="col-md-4"><label class="form-label" for="s11">Withholding tax (EWT)</label>
                 <select id="s11" name="ewtRate" class="form-select"><option value="1">1% · goods</option><option value="2">2% · services, contractors</option><option value="5">5% · rentals</option><option value="10">10% · professional fees</option><option value="15">15% · professional fees (higher)</option><option value="0">None</option></select></div>
+              <div class="col-md-3"><label class="form-label" for="s12">Payee type (BIR)</label>
+                <select id="s12" name="payeeType" class="form-select"><option value="CORPORATION">Corporation / partnership</option><option value="INDIVIDUAL">Individual / sole proprietor</option></select></div>
+              <div class="col-md-3"><label class="form-label" for="s13">ATC (optional)</label><input id="s13" name="atc" class="form-control" maxlength="10" placeholder="Auto from the EWT rate" /></div>
               <div class="col-md-4 d-flex align-items-end"><p class="small text-muted mb-1">Used on bills and payment vouchers; can be changed per bill.</p></div>
               <div class="col-md-9"><label class="form-label" for="s9">Notes</label><input id="s9" name="notes" class="form-control" maxlength="1000" /></div>
               <div class="col-md-3 d-flex align-items-end"><label class="oc-switch"><input type="checkbox" name="active" value="true" checked /><span></span>Active</label></div>

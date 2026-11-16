@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Payroll Taxes')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Payroll Taxes">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Payroll Taxes</h1>
+          <p class="page-sub">Withholding tax on compensation and SSS, PhilHealth and Pag-IBIG contributions, from locked payrolls (counted in the month the cut-off ends). Monthly: the 1601-C and contribution lists. Yearly: the alphalist and each employee's BIR 2316.</p></div>
+        <div class="page-actions">
+          <a class="btn btn-ghost" th:href="@{/Accounting/Remittances}"><i class="bi bi-bank"></i>Remittances</a>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-3 align-items-end mb-3">
+        <nav class="seg-links" aria-label="Period">
+          <a th:href="@{/Accounting/PayrollTaxes(month=${monthValue})}" th:classappend="${!yearly} ? 'on'">Monthly</a>
+          <a th:href="@{/Accounting/PayrollTaxes(view='year',year=${year})}" th:classappend="${yearly} ? 'on'">Yearly (2316)</a>
+        </nav>
+        <form th:unless="${yearly}" method="get" class="d-flex gap-2 align-items-end">
+          <a class="btn btn-sm btn-ghost" th:href="@{/Accounting/PayrollTaxes(month=${prevMonth})}" aria-label="Previous month"><i class="bi bi-chevron-left"></i></a>
+          <div><label class="form-label small mb-0" for="ptm">Month</label><input id="ptm" type="month" name="month" class="form-control form-control-sm" th:value="${monthValue}" onchange="this.form.submit()" /></div>
+          <a class="btn btn-sm btn-ghost" th:href="@{/Accounting/PayrollTaxes(month=${nextMonth})}" aria-label="Next month"><i class="bi bi-chevron-right"></i></a>
+        </form>
+        <form th:if="${yearly}" method="get" class="d-flex gap-2 align-items-end">
+          <input type="hidden" name="view" value="year" />
+          <div><label class="form-label small mb-0" for="pty">Year</label><input id="pty" name="year" type="number" min="2000" max="2100" class="form-control form-control-sm" style="width:100px" th:value="${year}" /></div>
+          <button class="btn btn-sm btn-ghost" type="submit">Show</button>
+        </form>
+      </div>
+
+      <div class="alert alert-warning mb-3" th:unless="${#lists.isEmpty(s.open())}">
+        <span th:text="${#lists.size(s.open()) + ' payroll period' + (#lists.size(s.open()) == 1 ? ' is' : 's are') + ' not locked yet, so not counted'}"></span><th:block th:if="${#lists.size(s.open()) <= 3}">: <span th:text="${#strings.listJoin(s.open().![label], '; ')}"></span></th:block>.
+        <a th:href="@{/HR/PayrollPeriod}">Payroll periods</a>
+      </div>
+      <div class="empty-state panel" th:if="${#lists.isEmpty(s.rows())}"><div class="empty-icon"><i class="bi bi-receipt"></i></div><h3>No locked payroll</h3>
+        <p th:text="${'No payroll period ending in ' + s.label() + ' is locked yet. Lock the pay sheets in HR, then they show here.'}"></p></div>
+
+      <!-- ================================================= Monthly -->
+      <th:block th:if="${!yearly and !#lists.isEmpty(s.rows())}">
+        <div class="kpi-grid">
+          <div class="kpi accent"><div class="kpi-label">Tax withheld · 1601-C<i class="bi bi-receipt"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(r.tax(), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Due the 10th of next month (eFPS: 11th–15th)</div></div>
+          <div class="kpi"><div class="kpi-label">SSS<i class="bi bi-shield-check"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(s.total().sssEe.add(s.total().sssEr), 1, 'COMMA', 2, 'POINT')}"></div>
+            <div class="kpi-note" th:text="${'Employee ₱' + #numbers.formatDecimal(s.total().sssEe, 1, 'COMMA', 2, 'POINT') + ' · employer ₱' + #numbers.formatDecimal(s.total().sssEr, 1, 'COMMA', 2, 'POINT')}"></div></div>
+          <div class="kpi"><div class="kpi-label">PhilHealth<i class="bi bi-heart-pulse"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(s.total().phEe.add(s.total().phEr), 1, 'COMMA', 2, 'POINT')}"></div>
+            <div class="kpi-note" th:text="${'Employee ₱' + #numbers.formatDecimal(s.total().phEe, 1, 'COMMA', 2, 'POINT') + ' · employer ₱' + #numbers.formatDecimal(s.total().phEr, 1, 'COMMA', 2, 'POINT')}"></div></div>
+          <div class="kpi"><div class="kpi-label">Pag-IBIG<i class="bi bi-house"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(s.total().piEe.add(s.total().piEr), 1, 'COMMA', 2, 'POINT')}"></div>
+            <div class="kpi-note" th:text="${'Employee ₱' + #numbers.formatDecimal(s.total().piEe, 1, 'COMMA', 2, 'POINT') + ' · employer ₱' + #numbers.formatDecimal(s.total().piEr, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        </div>
+        <div class="row g-4">
+          <div class="col-xl-5">
+            <section class="panel">
+              <div class="panel-header"><h2 class="panel-title"><i class="bi bi-file-earmark-text"></i>BIR 1601-C</h2><span class="small text-muted" th:text="${s.label()}"></span></div>
+              <div class="table-wrap"><table class="data-table">
+                <tbody>
+                  <tr><td>Total compensation</td><td class="money" th:text="${#numbers.formatDecimal(r.total(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                  <tr><td class="ps-3 small">Less: minimum wage earners' pay</td><td class="money small" th:text="${#numbers.formatDecimal(r.mwePay(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                  <tr><td class="ps-3 small">13th month and other benefits</td><td class="money small" th:text="${#numbers.formatDecimal(r.benefits(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                  <tr><td class="ps-3 small">SSS, PhilHealth, Pag-IBIG (employee)</td><td class="money small" th:text="${#numbers.formatDecimal(r.govEe(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                  <tr><td>Total non-taxable</td><td class="money" th:text="${#numbers.formatDecimal(r.nonTaxable(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                  <tr class="tb-total"><td>Taxable compensation</td><td class="money" th:text="${#numbers.formatDecimal(r.taxable(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                  <tr class="tb-total"><td>Tax required to be withheld</td><td class="money" th:text="${#numbers.formatDecimal(r.tax(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                </tbody>
+              </table></div>
+              <div class="panel-body small text-muted" th:text="${#lists.size(s.periods()) + ' locked cut-off(s): ' + #strings.listJoin(s.periods().![label], ', ')}"></div>
+            </section>
+          </div>
+          <div class="col-12">
+            <section class="panel">
+              <div class="panel-header"><h2 class="panel-title"><i class="bi bi-people"></i>By employee</h2>
+                <a class="btn btn-sm btn-ghost" th:href="@{/Accounting/PayrollTaxes/contributions.csv(month=${monthValue})}"><i class="bi bi-download"></i>Contributions CSV</a></div>
+              <div class="table-wrap"><table class="data-table">
+                <thead><tr><th style="min-width:200px">Employee</th><th class="money">Compensation</th><th class="money">Taxable</th><th class="money">W/tax</th>
+                  <th class="money" title="Employee / employer, employer includes EC">SSS</th><th class="money">PhilHealth</th><th class="money">Pag-IBIG</th></tr></thead>
+                <tbody><tr th:each="e : ${s.rows()}">
+                  <td><span th:text="${e.name}"></span><div class="cell-sub"><span th:if="${e.mwe}" class="status status-draft me-1">MWE</span><span th:text="${e.sssNo != null ? 'SSS ' + e.sssNo : ''}"></span></div></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(e.compensation, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(e.taxable, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money fw-semibold" th:text="${e.wtax.signum() == 0 ? '—' : #numbers.formatDecimal(e.wtax, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money small" th:text="${#numbers.formatDecimal(e.sssEe, 1, 'COMMA', 2, 'POINT') + ' / ' + #numbers.formatDecimal(e.sssEr, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money small" th:text="${#numbers.formatDecimal(e.phEe, 1, 'COMMA', 2, 'POINT') + ' / ' + #numbers.formatDecimal(e.phEr, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money small" th:text="${#numbers.formatDecimal(e.piEe, 1, 'COMMA', 2, 'POINT') + ' / ' + #numbers.formatDecimal(e.piEr, 1, 'COMMA', 2, 'POINT')}"></td>
+                </tr></tbody>
+                <tfoot><tr class="tb-total"><td>Total</td>
+                  <td class="money" th:text="${#numbers.formatDecimal(s.total().compensation, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(s.total().taxable, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(s.total().wtax, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money small" th:text="${#numbers.formatDecimal(s.total().sssEe, 1, 'COMMA', 2, 'POINT') + ' / ' + #numbers.formatDecimal(s.total().sssEr, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money small" th:text="${#numbers.formatDecimal(s.total().phEe, 1, 'COMMA', 2, 'POINT') + ' / ' + #numbers.formatDecimal(s.total().phEr, 1, 'COMMA', 2, 'POINT')}"></td>
+                  <td class="money small" th:text="${#numbers.formatDecimal(s.total().piEe, 1, 'COMMA', 2, 'POINT') + ' / ' + #numbers.formatDecimal(s.total().piEr, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+              </table></div>
+              <div class="panel-body small text-muted">SSS, PhilHealth and Pag-IBIG columns show employee / employer share. The CSV has each employee's numbers for the SSS R-3, PhilHealth RF-1 and Pag-IBIG MCRF uploads. Pay the agencies and BIR in <a th:href="@{/Accounting/Remittances}">Remittances</a>; the amounts owed there come from the posted payrolls.</div>
+            </section>
+          </div>
+        </div>
+      </th:block>
+
+      <!-- ================================================= Yearly -->
+      <th:block th:if="${yearly and !#lists.isEmpty(s.rows())}">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Compensation<i class="bi bi-cash-stack"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(s.total().compensation, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${#lists.size(s.rows()) + ' employees · ' + #lists.size(s.periods()) + ' cut-offs'}"></div></div>
+          <div class="kpi"><div class="kpi-label">Tax due (annual table)<i class="bi bi-calculator"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(#aggregates.sum(s.rows().![taxDue]), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Annual table on taxable pay</div></div>
+          <div class="kpi"><div class="kpi-label">Withheld<i class="bi bi-receipt"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(s.total().wtax, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">From the pay sheets</div></div>
+          <div class="kpi accent"><div class="kpi-label">Still to withhold<i class="bi bi-exclamation-circle"></i></div><div class="kpi-value" th:text="${'₱' + #numbers.formatDecimal(#aggregates.sum(s.rows().![adjustment]), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Negative = refund to employees</div></div>
+        </div>
+        <div class="alert alert-info mb-3" th:if="${year >= #temporals.year(#temporals.createNow()) or !#lists.isEmpty(s.open())}">The year isn't complete, so tax due is figured on the pay locked so far and can look lower than what was withheld. The figures are final once December's payroll is locked; do the year-end adjustment then.</div>
+        <div class="alert alert-warning mb-3" th:if="${missingTin > 0}" th:text="${missingTin + ' employee(s) have no TIN. Add it in HR › Employees before printing the 2316 and filing the alphalist.'}"></div>
+        <section class="panel">
+          <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-columns"></i>Alphalist of employees · <span th:text="${year}"></span></h2>
+            <div class="d-flex gap-2">
+              <a class="btn btn-sm btn-ghost" th:href="@{/Accounting/PayrollTaxes/alphalist.csv(year=${year})}"><i class="bi bi-download"></i>Alphalist CSV</a>
+              <a class="btn btn-sm btn-primary" target="_blank" th:href="@{/Accounting/PayrollTaxes/2316(year=${year})}"><i class="bi bi-printer"></i>Print all 2316</a></div></div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>Employee</th><th>TIN</th><th class="money">Compensation</th><th class="money">Non-taxable</th><th class="money">Taxable</th><th class="money">Tax due</th><th class="money">Withheld</th><th class="money">To withhold / (refund)</th><th class="actions"></th></tr></thead>
+            <tbody><tr th:each="e : ${s.rows()}">
+              <td><span th:text="${e.name}"></span><div class="cell-sub"><span th:if="${e.mwe}" class="status status-draft me-1">MWE</span><span th:text="${e.periods + ' cut-offs'}"></span></div></td>
+              <td class="mono small" th:text="${e.missingTin ? '—' : e.tin}" th:classappend="${e.missingTin} ? ' text-danger'"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(e.compensation, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(e.nonTaxable, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(e.taxableYear, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(e.taxDue, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money" th:text="${#numbers.formatDecimal(e.wtax, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="money fw-semibold" th:classappend="${e.adjustment.signum() > 0 ? ' text-danger' : (e.adjustment.signum() < 0 ? ' text-success' : '')}"
+                  th:text="${e.adjustment.signum() == 0 ? '—' : (e.adjustment.signum() < 0 ? '(' + #numbers.formatDecimal(e.adjustment.negate(), 1, 'COMMA', 2, 'POINT') + ')' : #numbers.formatDecimal(e.adjustment, 1, 'COMMA', 2, 'POINT'))}"></td>
+              <td class="actions"><a class="btn btn-sm btn-ghost" target="_blank" th:href="@{/Accounting/PayrollTaxes/2316(year=${year},employee=${e.employeeId})}">2316</a></td>
+            </tr></tbody>
+          </table></div>
+          <div class="panel-body small text-muted">
+            Year-end adjustment: in the last payroll of December, add a <b>Withholding tax</b> line on the pay sheet for anyone with tax still to withhold; give back any over-withheld tax (an earning line, or a refund) the same way. Benefits over ₱90,000 become taxable here. File the 1604-C alphalist by January 31 and give each employee the 2316 (signed by both) by the same date.
+          </div>
+        </section>
+      </th:block>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

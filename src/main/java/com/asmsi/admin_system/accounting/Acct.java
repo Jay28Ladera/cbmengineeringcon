@@ -28,6 +28,12 @@ public final class Acct {
     public static final String SALARIES_PAYABLE = "2160";
     public static final String SINKING_FUND = "2170";
     public static final String SALARIES_OFFICE = "6010";
+    public static final String EMPLOYER_CONTRIBUTIONS = "6020";
+    public static final String DEPRECIATION = "6140";
+    public static final String ACCUMULATED_DEPRECIATION = "1510";
+    public static final String GAIN_ON_DISPOSAL = "4095";
+    public static final String LOSS_ON_DISPOSAL = "6160";
+    public static final String DEPRECIATION_JOBS = "5050";
     public static final String CUSTOMER_DEPOSITS = "2200";
 
     public static final String OWNERS_CAPITAL = "3010";

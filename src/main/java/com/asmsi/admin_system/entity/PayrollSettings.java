@@ -28,6 +28,10 @@ public class PayrollSettings {
     @Column(name = "ot_block_minutes") private Integer otBlockMinutes = 30;
     /** Whether time after the shift becomes OT automatically when logs are applied. */
     @Column(name = "ot_from_logs") private Boolean otFromLogs = Boolean.TRUE;
+    /** Deduct withholding tax on compensation (BIR table) automatically. */
+    @Column(name = "withhold_tax") private Boolean withholdTax = Boolean.TRUE;
+    /** When an employee's SSS / PhilHealth / Pag-IBIG amount is blank, compute it from the contribution tables. */
+    @Column(name = "auto_contributions") private Boolean autoContributions = Boolean.FALSE;
     @Column(name = "company_name", length = 160) private String companyName = "CBM Engineering & Construction";
 
     public Long getId() { return id; }
@@ -65,4 +69,8 @@ public class PayrollSettings {
     public void setOtFromLogs(Boolean v) { otFromLogs = v; }
     public String getCompanyName() { return companyName; }
     public void setCompanyName(String v) { companyName = v; }
+    public boolean isWithholdTax() { return withholdTax == null || withholdTax; }
+    public void setWithholdTax(Boolean v) { withholdTax = v; }
+    public boolean isAutoContributions() { return autoContributions != null && autoContributions; }
+    public void setAutoContributions(Boolean v) { autoContributions = v; }
 }

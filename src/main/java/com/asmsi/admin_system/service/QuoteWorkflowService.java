@@ -40,6 +40,9 @@ public class QuoteWorkflowService {
     private final OrganizationNodeRepository orgNodes;
     private final EmailService email;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.asmsi.admin_system.admin.SettingsService settings;
+
     public QuoteWorkflowService(QuotationRepository quotations, QuotationSignoffRepository signoffs, QuoteApproverRepository approvers,
                                 UserRepository users, UserSignatureRepository signatures, OrganizationNodeRepository orgNodes, EmailService email) {
         this.quotations = quotations; this.signoffs = signoffs; this.approvers = approvers; this.users = users;
@@ -171,18 +174,22 @@ public class QuoteWorkflowService {
             List<String> ccClean = new ArrayList<>();
             if (cc != null) for (String c : cc) if (c != null && c.trim().matches("[^@\\s]+@[^@\\s]+\\.[^@\\s]+") && !c.trim().equalsIgnoreCase(to.trim()) && !ccClean.contains(c.trim())) ccClean.add(c.trim());
             var inq = q.getInquiry();
-            String subject = "Quotation " + q.getQuotationNumber() + " · " + nz(inq.getProjectName()) + " | CBM Engineering & Construction";
+            var co = settings.company();
+            String coName = co.name == null || co.name.isBlank() ? "CBM Engineering & Construction" : co.name;
+            String coLine = co.getContactLine();
+            String subject = "Quotation " + q.getQuotationNumber() + " · " + nz(inq.getProjectName()) + " | " + coName;
             String body = "<p>Dear " + esc(nz(inq.getFullName())) + ",</p>"
-                    + (message == null || message.isBlank() ? "<p>Thank you for considering CBM Engineering &amp; Construction. Please find our quotation for your project below.</p>"
+                    + (message == null || message.isBlank() ? "<p>Thank you for considering " + esc(coName) + ". Please find our quotation for your project below.</p>"
                                                             : "<p>" + esc(message.trim()).replace("\n", "<br>") + "</p>")
                     + summaryTable(q)
                     + button(link, "View and sign the quotation")
                     + "<p style='color:#6b7785;font-size:13px'>You can read the full quotation, download or print it, and accept it by signing online or uploading a signed copy. This link is for you only and is valid until "
                     + esc(so.expiresAt.format(DAY)) + ".</p>"
-                    + "<p>Regards,<br><b>" + esc(by.getName()) + "</b><br>CBM Engineering &amp; Construction</p>";
+                    + "<p>Regards,<br><b>" + esc(by.getName()) + "</b><br>" + esc(coName)
+                    + (coLine.isEmpty() ? "" : "<br><span style='color:#6b7785;font-size:12px'>" + esc(coLine) + "</span>") + "</p>";
             String text = "Dear " + nz(inq.getFullName()) + ",\n\n" + (message == null || message.isBlank() ? "Please find our quotation for your project." : message.trim())
                     + "\n\nQuotation " + q.getQuotationNumber() + " · total " + peso(q.getGrandTotal())
-                    + "\nView and sign it here: " + link + "\n(valid until " + so.expiresAt.format(DAY) + ")\n\nRegards,\n" + by.getName() + "\nCBM Engineering & Construction";
+                    + "\nView and sign it here: " + link + "\n(valid until " + so.expiresAt.format(DAY) + ")\n\nRegards,\n" + by.getName() + "\n" + coName + (coLine.isEmpty() ? "" : "\n" + coLine);
             String failed = email.trySendHtml(to.trim(), ccClean, by.getEmail(), subject, wrap(body), text);
             if (failed != null)
                 throw new IllegalStateException("The email could not be sent: " + failed + ". The quotation was not marked as sent; you can also copy the client link and send it yourself, then use \"Mark as sent\".");

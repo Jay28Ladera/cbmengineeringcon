@@ -30,13 +30,14 @@
     .sign div { flex: 1; border-top: 1px solid #142033; padding-top: 3px; text-align: center; color: #526176; font-size: 11px; }
     .draft { color: #a15c00; font-weight: 700; }
     @media print { @page { size: A4; margin: 0; } body { background: #fff; } .bar { display: none; } .sheet { margin: 0; box-shadow: none; } }
+      .co-line { display: block; font-size: 10px; color: #555; max-width: 420px; margin-top: 2px; line-height: 1.35; }
   </style>
 </head>
 <body>
   <div class="bar"><b th:text="${'Purchase order ' + po.number}"></b><span th:if="${po.editable}">· DRAFT — not yet placed</span><button type="button" onclick="window.print()">Print</button></div>
   <div class="sheet">
     <div class="top">
-      <div class="co"><img th:src="@{/images/logo-cbm.webp}" alt="" /><div><b>CBM Engineering &amp; Construction</b><span>Purchasing</span></div></div>
+      <div class="co"><img th:src="@{/images/logo-cbm.webp}" alt="" /><div><b th:text="${company != null ? company.name : 'CBM Engineering & Construction'}">CBM Engineering &amp; Construction</b><span>Purchasing</span><small class="co-line" th:if="${company != null and !#strings.isEmpty(company.contactLine)}" th:text="${company.contactLine}"></small></div></div>
       <div class="ttl"><h1>PURCHASE ORDER</h1><div class="no" th:text="${po.number}"></div><div th:text="${'Date: ' + #temporals.format(po.orderDate, 'MMMM d, yyyy')}"></div><div class="draft" th:if="${po.editable}">DRAFT</div></div>
     </div>
     <div class="parties">

@@ -181,3 +181,60 @@
   }
   document.addEventListener('input', function (e) { var f = e.target.closest && e.target.closest('form[data-ca-form]'); if (f) calc(f); });
 })();
+
+/* Bank reconciliation: cleared balance and difference update as items are ticked. */
+(function () {
+  function num(v) { var n = parseFloat(String(v == null ? '' : v).replace(/,/g, '')); return isNaN(n) ? 0 : n; }
+  function peso(n) { return n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function calc(f) {
+    var c = num(f.getAttribute('data-opening'));
+    f.querySelectorAll('tr[data-recon-row] input[type=checkbox]').forEach(function (b) {
+      if (b.checked) c += num(b.getAttribute('data-amount'));
+      b.closest('tr').classList.toggle('row-selected', b.checked);
+    });
+    c = Math.round(c * 100) / 100;
+    var st = f.querySelector('[data-recon-stmt]'), d = st ? Math.round((num(st.value) - c) * 100) / 100 : null;
+    f.querySelector('[data-recon=cleared]').textContent = peso(c);
+    if (d !== null) {
+      var el = f.querySelector('[data-recon=diff]'); el.textContent = peso(d); el.className = 'kpi-value ' + (d === 0 ? 'text-success' : 'text-danger'); el.style.fontSize = '1.6rem';
+      var fin = f.querySelector('[data-recon-finish]'); if (fin) fin.disabled = d !== 0;
+    }
+  }
+  function form(el) { return el && el.closest ? el.closest('form[data-recon-form]') : null; }
+  document.addEventListener('change', function (e) {
+    var f = form(e.target); if (!f) return;
+    if (e.target.matches('[data-recon-all]')) f.querySelectorAll('tr[data-recon-row]:not([hidden]) input[type=checkbox]').forEach(function (b) { if (!b.disabled) b.checked = e.target.checked; });
+    calc(f);
+  });
+  document.addEventListener('input', function (e) { var f = form(e.target); if (f) calc(f); });
+  function init() { document.querySelectorAll('form[data-recon-form]').forEach(calc); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  document.addEventListener('app:navigated', init);
+})();
+
+/* Fixed assets: life by category, fields for how the asset is in the books, and the monthly amount. */
+(function () {
+  var HELP = {
+    PAID: 'Posts Dr asset / Cr the bank now.',
+    BOOKED: 'No entry: the cost is already in the asset account (e.g. a supplier bill coded to 1500–1550). Enter depreciation already booked, if any.',
+    OPENING: 'Posts Dr asset / Cr opening balance equity, and the depreciation to date to accumulated depreciation.'
+  };
+  function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function sync(f) {
+    var how = (f.querySelector('[data-fa-how]:checked') || {}).value || 'PAID';
+    f.querySelectorAll('[data-fa-show]').forEach(function (el) { el.hidden = el.getAttribute('data-fa-show').split(' ').indexOf(how) < 0; });
+    var cost = num(f.cost.value), salvage = num(f.salvage.value), months = Math.round(num(f.lifeYears.value) * 12);
+    var monthly = months > 0 && cost > salvage ? (cost - salvage) / months : 0;
+    var help = f.querySelector('[data-fa-help]');
+    if (help) help.textContent = HELP[how] + (monthly > 0 ? ' Depreciation: ₱' + monthly.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' a month for ' + months + ' months.' : '');
+  }
+  document.addEventListener('change', function (e) {
+    var f = e.target.closest && e.target.closest('form[data-fa-form]'); if (!f) return;
+    if (e.target.matches('[data-fa-category]')) { var o = e.target.selectedOptions[0]; if (o && o.getAttribute('data-life')) f.lifeYears.value = o.getAttribute('data-life'); }
+    sync(f);
+  });
+  document.addEventListener('input', function (e) { var f = e.target.closest && e.target.closest('form[data-fa-form]'); if (f) sync(f); });
+  function init() { document.querySelectorAll('form[data-fa-form]').forEach(sync); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+  document.addEventListener('app:navigated', init);
+})();

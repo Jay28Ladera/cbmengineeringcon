@@ -90,11 +90,12 @@
       <li class="sidebar-group" th:if="${access.contains('ACCOUNTING')}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmAccounting"
                 title="Accounting" aria-controls="cbmAccounting"
-                th:attr="aria-expanded=${#arrays.contains({'client-billing','collections','payables','payments','acc-banks','acc-journal','acc-accounts','acc-trial-balance','acc-opening','subcon-billings','admin-expenses','petty-cash','acc-payroll','remittances'}, activePage)}">
+                th:attr="aria-expanded=${#arrays.contains({'acc-dashboard','acc-income','acc-balance-sheet','acc-cash-flow','acc-closing','client-billing','collections','payables','payments','acc-banks','acc-journal','acc-accounts','acc-trial-balance','acc-opening','subcon-billings','admin-expenses','petty-cash','acc-payroll','acc-payroll-taxes','acc-assets','remittances','bir','bank-recon'}, activePage)}">
           <i class="bi bi-calculator"></i><span class="sidebar-text">Accounting</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
         </button>
-        <div id="cbmAccounting" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'client-billing','collections','payables','payments','acc-banks','acc-journal','acc-accounts','acc-trial-balance','acc-opening','subcon-billings','admin-expenses','petty-cash','acc-payroll','remittances'}, activePage)} ? ' show'">
+        <div id="cbmAccounting" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'acc-dashboard','acc-income','acc-balance-sheet','acc-cash-flow','acc-closing','client-billing','collections','payables','payments','acc-banks','acc-journal','acc-accounts','acc-trial-balance','acc-opening','subcon-billings','admin-expenses','petty-cash','acc-payroll','acc-payroll-taxes','acc-assets','remittances','bir','bank-recon'}, activePage)} ? ' show'">
           <ul>
+            <li><a th:href="@{/Accounting/Dashboard}" class="sidebar-link" th:classappend="${activePage == 'acc-dashboard'} ? ' active'"><span class="sidebar-text">Dashboard</span></a></li>
             <li><a th:href="@{/Accounting/Billing}" class="sidebar-link" th:classappend="${activePage == 'client-billing'} ? ' active'"><span class="sidebar-text">Client Billing</span></a></li>
             <li><a th:href="@{/Accounting/Collections}" class="sidebar-link" th:classappend="${activePage == 'collections'} ? ' active'"><span class="sidebar-text">Collections</span></a></li>
             <li><a th:href="@{/Accounting/Payables}" class="sidebar-link" th:classappend="${activePage == 'payables'} ? ' active'"><span class="sidebar-text">Payables</span></a></li>
@@ -103,11 +104,19 @@
             <li><a th:href="@{/Accounting/AdminExpenses}" class="sidebar-link" th:classappend="${activePage == 'admin-expenses'} ? ' active'"><span class="sidebar-text">Admin Expenses</span></a></li>
             <li><a th:href="@{/Accounting/PettyCash}" class="sidebar-link" th:classappend="${activePage == 'petty-cash'} ? ' active'"><span class="sidebar-text">Petty Cash</span></a></li>
             <li><a th:href="@{/Accounting/Payroll}" class="sidebar-link" th:classappend="${activePage == 'acc-payroll'} ? ' active'"><span class="sidebar-text">Payroll Posting</span></a></li>
+            <li><a th:href="@{/Accounting/PayrollTaxes}" class="sidebar-link" th:classappend="${activePage == 'acc-payroll-taxes'} ? ' active'"><span class="sidebar-text">Payroll Taxes</span></a></li>
+            <li><a th:href="@{/Accounting/FixedAssets}" class="sidebar-link" th:classappend="${activePage == 'acc-assets'} ? ' active'"><span class="sidebar-text">Fixed Assets</span></a></li>
             <li><a th:href="@{/Accounting/Remittances}" class="sidebar-link" th:classappend="${activePage == 'remittances'} ? ' active'"><span class="sidebar-text">Remittances</span></a></li>
+            <li><a th:href="@{/Accounting/Bir}" class="sidebar-link" th:classappend="${activePage == 'bir'} ? ' active'"><span class="sidebar-text">BIR Reports</span></a></li>
+            <li><a th:href="@{/Accounting/BankRecon}" class="sidebar-link" th:classappend="${activePage == 'bank-recon'} ? ' active'"><span class="sidebar-text">Bank Reconciliation</span></a></li>
             <li><a th:href="@{/Accounting/Banks}" class="sidebar-link" th:classappend="${activePage == 'acc-banks'} ? ' active'"><span class="sidebar-text">Banks &amp; Cash</span></a></li>
             <li><a th:href="@{/Accounting/Journal}" class="sidebar-link" th:classappend="${activePage == 'acc-journal'} ? ' active'"><span class="sidebar-text">Journal</span></a></li>
             <li><a th:href="@{/Accounting/Accounts}" class="sidebar-link" th:classappend="${activePage == 'acc-accounts'} ? ' active'"><span class="sidebar-text">Chart of Accounts</span></a></li>
+            <li><a th:href="@{/Accounting/IncomeStatement(preset='month')}" class="sidebar-link" th:classappend="${activePage == 'acc-income'} ? ' active'"><span class="sidebar-text">Income Statement</span></a></li>
+            <li><a th:href="@{/Accounting/BalanceSheet}" class="sidebar-link" th:classappend="${activePage == 'acc-balance-sheet'} ? ' active'"><span class="sidebar-text">Balance Sheet</span></a></li>
+            <li><a th:href="@{/Accounting/CashFlow(preset='month')}" class="sidebar-link" th:classappend="${activePage == 'acc-cash-flow'} ? ' active'"><span class="sidebar-text">Cash Flow</span></a></li>
             <li><a th:href="@{/Accounting/TrialBalance}" class="sidebar-link" th:classappend="${activePage == 'acc-trial-balance'} ? ' active'"><span class="sidebar-text">Trial Balance</span></a></li>
+            <li><a th:href="@{/Accounting/Closing}" class="sidebar-link" th:classappend="${activePage == 'acc-closing'} ? ' active'"><span class="sidebar-text">Closing</span></a></li>
             <li><a th:href="@{/Accounting/Opening}" class="sidebar-link" th:classappend="${activePage == 'acc-opening'} ? ' active'"><span class="sidebar-text">Opening Balances</span></a></li>
 
           </ul>
@@ -148,13 +157,13 @@
             <li><a th:href="@{/Reports/PaymentListing}" class="sidebar-link" th:classappend="${activePage == 'report-payments'} ? ' active'"><span class="sidebar-text">Payment Listing</span></a></li>
             <li><a th:href="@{/Reports/SubconBillingListing}" class="sidebar-link" th:classappend="${activePage == 'report-subcon-billings'} ? ' active'"><span class="sidebar-text">Subcon Billing Listing</span></a></li>
             <li><a th:href="@{/Reports/AdminExpenseListing}" class="sidebar-link" th:classappend="${activePage == 'report-admin-expenses'} ? ' active'"><span class="sidebar-text">Admin Expense Listing</span></a></li>
-            <li><a th:href="@{/Reports/InventorySummary}" class="sidebar-link" th:classappend="${activePage == 'report-inventory-summary'} ? ' active'"><span class="sidebar-text">Inventory Summary</span><span class="soon sidebar-text">Soon</span></a></li>
-            <li><a th:href="@{/Reports/InventoryMovement}" class="sidebar-link" th:classappend="${activePage == 'report-inventory-movement'} ? ' active'"><span class="sidebar-text">Inventory Movement</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/InventorySummary}" class="sidebar-link" th:classappend="${activePage == 'report-inventory-summary'} ? ' active'"><span class="sidebar-text">Inventory Summary</span></a></li>
+            <li><a th:href="@{/Reports/InventoryMovement}" class="sidebar-link" th:classappend="${activePage == 'report-inventory-movement'} ? ' active'"><span class="sidebar-text">Inventory Movement</span></a></li>
             <li><a th:href="@{/Reports/ProjectSalaryCost}" class="sidebar-link" th:classappend="${activePage == 'report-project-salary-cost'} ? ' active'"><span class="sidebar-text">Project Salary Cost</span></a></li>
             <li><a th:href="@{/Reports/BillingMonitoring}" class="sidebar-link" th:classappend="${activePage == 'report-billing-monitoring'} ? ' active'"><span class="sidebar-text">Billing Monitoring</span></a></li>
-            <li><a th:href="@{/Reports/ProjectProfitability}" class="sidebar-link" th:classappend="${activePage == 'report-project-profitability'} ? ' active'"><span class="sidebar-text">Project Profitability</span><span class="soon sidebar-text">Soon</span></a></li>
-            <li><a th:href="@{/Reports/ProjectExpenseBreakdown}" class="sidebar-link" th:classappend="${activePage == 'report-project-expenses'} ? ' active'"><span class="sidebar-text">Project Expense Breakdown</span><span class="soon sidebar-text">Soon</span></a></li>
-            <li><a th:href="@{/Reports/ProjectMonthlySummary}" class="sidebar-link" th:classappend="${activePage == 'report-project-monthly'} ? ' active'"><span class="sidebar-text">Project Monthly Summary</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Reports/ProjectProfitability}" class="sidebar-link" th:classappend="${activePage == 'report-project-profitability'} ? ' active'"><span class="sidebar-text">Project Profitability</span></a></li>
+            <li><a th:href="@{/Reports/ProjectExpenseBreakdown}" class="sidebar-link" th:classappend="${activePage == 'report-project-expenses'} ? ' active'"><span class="sidebar-text">Project Expense Breakdown</span></a></li>
+            <li><a th:href="@{/Reports/ProjectMonthlySummary}" class="sidebar-link" th:classappend="${activePage == 'report-project-monthly'} ? ' active'"><span class="sidebar-text">Project Monthly Summary</span></a></li>
           </ul>
         </div>
       </li>
@@ -162,15 +171,17 @@
       <li class="sidebar-group" th:if="${isAdmin}">
         <button class="sidebar-link sidebar-group-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#cbmAdmin"
                 title="Administration" aria-controls="cbmAdmin"
-                th:attr="aria-expanded=${#arrays.contains({'users','department-access','settings','trails'}, activePage)}">
+                th:attr="aria-expanded=${#arrays.contains({'users','department-access','settings','trails','data','access-review'}, activePage)}">
           <i class="bi bi-shield-lock"></i><span class="sidebar-text">Administration</span><i class="bi bi-chevron-down toggle-arrow sidebar-text"></i>
         </button>
-        <div id="cbmAdmin" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'users','department-access','settings','trails'}, activePage)} ? ' show'">
+        <div id="cbmAdmin" class="collapse sidebar-submenu" th:classappend="${#arrays.contains({'users','department-access','settings','trails','data','access-review'}, activePage)} ? ' show'">
           <ul>
             <li><a th:href="@{/users}" class="sidebar-link" th:classappend="${activePage == 'users'} ? ' active'"><span class="sidebar-text">Users</span></a></li>
             <li><a th:href="@{/Admin/DepartmentAccess}" class="sidebar-link" th:classappend="${activePage == 'department-access'} ? ' active'"><span class="sidebar-text">Department Access</span></a></li>
-            <li><a th:href="@{/Admin/Settings}" class="sidebar-link" th:classappend="${activePage == 'settings'} ? ' active'"><span class="sidebar-text">Settings</span><span class="soon sidebar-text">Soon</span></a></li>
-            <li><a th:href="@{/Admin/Trails}" class="sidebar-link" th:classappend="${activePage == 'trails'} ? ' active'"><span class="sidebar-text">Audit Trail</span><span class="soon sidebar-text">Soon</span></a></li>
+            <li><a th:href="@{/Admin/Settings}" class="sidebar-link" th:classappend="${activePage == 'settings'} ? ' active'"><span class="sidebar-text">Settings</span></a></li>
+            <li><a th:href="@{/Admin/AccessReview}" class="sidebar-link" th:classappend="${activePage == 'access-review'} ? ' active'"><span class="sidebar-text">Access Review</span></a></li>
+            <li><a th:href="@{/Admin/Trails}" class="sidebar-link" th:classappend="${activePage == 'trails'} ? ' active'"><span class="sidebar-text">Audit Trail</span></a></li>
+            <li><a th:href="@{/Admin/Data}" class="sidebar-link" th:classappend="${activePage == 'data'} ? ' active'"><span class="sidebar-text">Import &amp; Backup</span></a></li>
           </ul>
         </div>
       </li>
@@ -178,6 +189,6 @@
   </nav>
 
   <div class="sidebar-footer sidebar-text">
-    <span>&copy; CBM Engineering &amp; Construction</span>
+    <span th:text="${'© ' + (company != null ? company.name : 'CBM Engineering & Construction')}">&copy; CBM Engineering &amp; Construction</span>
   </div>
 </aside>

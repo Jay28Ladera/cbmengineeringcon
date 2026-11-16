@@ -117,7 +117,8 @@
   // ---- stock adjustment dialog: direction follows the reason; cost only when adding; job only for returns
   function adjSync(f) {
     if (!f) return;
-    var r = f.querySelector('#adjReason'), o = r.options[r.selectedIndex], dir = o.getAttribute('data-dir');
+    var r = f.querySelector('#adjReason'); if (!r) return;
+    var o = r.options[r.selectedIndex], dir = o.getAttribute('data-dir');
     if (dir) f.querySelectorAll('[name=direction]').forEach(function (x) { x.checked = x.value === dir; x.disabled = true; });
     else f.querySelectorAll('[name=direction]').forEach(function (x) { x.disabled = false; });
     var cur = (f.querySelector('[name=direction]:checked') || {}).value;

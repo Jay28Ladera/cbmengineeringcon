@@ -51,8 +51,18 @@
               <div class="col-md-8 d-flex align-items-center"><label class="oc-switch"><input type="checkbox" name="otFromLogs" value="true" th:checked="${settings.otFromLogs}" /><span></span>Count time after the shift as OT automatically</label></div>
             </div>
           </section>
+          <section class="form-section">
+            <h3 class="form-section-title"><span class="no">04</span>Contributions and withholding tax</h3>
+            <div class="row g-3">
+              <div class="col-md-6"><label class="oc-switch"><input type="checkbox" name="withholdTax" value="true" th:checked="${settings.withholdTax}" /><span></span>Withhold tax on compensation (BIR table)</label>
+                <div class="form-hint">Taxable pay = gross − 13th month / bonuses − lates and absences − employee SSS, PhilHealth, Pag-IBIG. Minimum wage earners and employees set to "don't withhold" are skipped.</div></div>
+              <div class="col-md-6"><label class="oc-switch"><input type="checkbox" name="autoContributions" value="true" th:checked="${settings.autoContributions}" /><span></span>Use the contribution tables when an employee's amount is blank</label>
+                <div class="form-hint">SSS 15% of the salary credit (5% employee), PhilHealth 5% (half each), Pag-IBIG 2% each up to ₱10,000. Fixed amounts on the employee still win.</div></div>
+            </div>
+            <p class="form-hint mb-0 mt-2">Employer shares are worked out from the employee shares and posted with the payroll in Accounting.</p>
+          </section>
           <section class="form-section mb-0">
-            <h3 class="form-section-title"><span class="no">04</span>Rates and payslips</h3>
+            <h3 class="form-section-title"><span class="no">05</span>Rates and payslips</h3>
             <div class="row g-3">
               <div class="col-md-4"><label class="form-label" for="s9">Hours per day</label><input id="s9" class="form-control" type="number" step="1" min="1" max="24" name="hoursPerDay" th:value="*{hoursPerDay}" required /><div class="form-hint">Rate/hr = rate/day ÷ this</div></div>
               <div class="col-md-4"><label class="form-label" for="s10">Working days per year</label><input id="s10" class="form-control" type="number" step="1" min="200" max="366" name="workDaysPerYear" th:value="*{workDaysPerYear}" required /><div class="form-hint">Daily rate of monthly staff with none set = monthly × 12 ÷ this</div></div>

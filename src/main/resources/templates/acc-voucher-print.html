@@ -30,13 +30,14 @@
     .sign .line img { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); max-height: 46px; max-width: 90%; }
     .stamp { display: inline-block; padding: 2px 8px; border: 2px solid #a15c00; color: #a15c00; font-weight: 700; letter-spacing: .08em; }
     @media print { @page { size: A4; margin: 0; } body { background: #fff; } .bar { display: none; } .sheet { margin: 0; box-shadow: none; } }
+      .co-line { display: block; font-size: 10px; color: #555; max-width: 420px; margin-top: 2px; line-height: 1.35; }
   </style>
 </head>
 <body>
   <div class="bar"><b th:text="${'Payment voucher ' + v.number}"></b><span th:text="${'· ' + v.statusLabel}"></span><button type="button" onclick="window.print()">Print</button></div>
   <div class="sheet">
     <div class="top">
-      <div class="co"><img th:src="@{/images/logo-cbm.webp}" alt="" /><div><b>CBM Engineering &amp; Construction</b><span>Finance · Disbursement</span></div></div>
+      <div class="co"><img th:src="@{/images/logo-cbm.webp}" alt="" /><div><b th:text="${company != null ? company.name : 'CBM Engineering & Construction'}">CBM Engineering &amp; Construction</b><span>Finance · Disbursement</span><small class="co-line" th:if="${company != null and !#strings.isEmpty(company.contactLine)}" th:text="${company.contactLine}"></small></div></div>
       <div class="ttl"><h1 th:text="${v.method == 'CASH' ? 'CASH VOUCHER' : 'CHECK VOUCHER'}"></h1><div class="no" th:text="${v.number}"></div>
         <div th:text="${'Date: ' + #temporals.format(v.voucherDate, 'MMMM d, yyyy')}"></div>
         <div th:if="${v.status == 'DRAFT' or v.status == 'FOR_APPROVAL'}"><span class="stamp">NOT YET APPROVED</span></div>

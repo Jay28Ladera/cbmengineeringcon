@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="${'BIR 2316 · ' + year}">BIR 2316</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 11px/1.35 Arial, Helvetica, sans-serif; color: #000; background: #e9ecf1; }
+    .bar { position: sticky; top: 0; display: flex; gap: 10px; align-items: center; padding: 10px 16px; background: #0b1524; color: #fff; font-size: 13px; z-index: 2; }
+    .bar button { margin-left: auto; padding: 7px 16px; border: 0; border-radius: 6px; background: #c8151d; color: #fff; font-weight: 600; cursor: pointer; }
+    .page { width: 216mm; min-height: 330mm; margin: 16px auto; padding: 9mm 10mm; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.12); page-break-after: always; }
+    .hdr { display: grid; grid-template-columns: 1fr 2.4fr 1fr; border: 1.5px solid #000; }
+    .hdr > div { padding: 6px 8px; }
+    .hdr .mid { text-align: center; border-left: 1.5px solid #000; border-right: 1.5px solid #000; }
+    .hdr .mid b { display: block; font-size: 14px; margin-top: 2px; }
+    .formno { font-size: 22px; font-weight: 700; }
+    .part { background: #000; color: #fff; font-weight: 700; padding: 3px 8px; margin-top: 7px; font-size: 10.5px; letter-spacing: .03em; }
+    .row { display: grid; border: 1px solid #000; border-top: 0; }
+    .cell { padding: 3px 6px; border-left: 1px solid #000; min-height: 28px; }
+    .cell:first-child { border-left: 0; }
+    .lbl { font-size: 8.5px; color: #222; display: block; }
+    .val { font-size: 11.5px; font-weight: 700; margin-top: 2px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .two > div:first-child { border-right: 1px solid #000; }
+    table { width: 100%; border-collapse: collapse; }
+    td { border: 1px solid #000; border-top: 0; padding: 3px 6px; vertical-align: top; }
+    td.n { width: 26px; text-align: center; font-size: 9px; }
+    td.r { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; width: 34%; font-weight: 700; }
+    tr.h td { background: #f0f0f0; font-weight: 700; font-size: 9.5px; }
+    .sig { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid #000; border-top: 0; }
+    .sig > div { padding: 8px; min-height: 76px; border-left: 1px solid #000; text-align: center; font-size: 9px; }
+    .sig > div:first-child { border-left: 0; }
+    .line { border-top: 1px solid #000; margin-top: 36px; padding-top: 3px; }
+    .note { font-size: 8.5px; color: #333; margin-top: 6px; }
+    @media print { @page { size: 8.5in 13in; margin: 0; } body { background: #fff; } .bar { display: none; } .page { margin: 0; box-shadow: none; } }
+  </style>
+</head>
+<body>
+<div class="bar"><b th:text="${'BIR Form 2316 · ' + year + ' · ' + #lists.size(rows) + ' employee(s)'}"></b><button type="button" onclick="window.print()">Print</button></div>
+<div class="page" th:if="${#lists.isEmpty(rows)}"><p>No locked payroll for this employee in <span th:text="${year}"></span>.</p></div>
+<div class="page" th:each="e : ${rows}" th:with="from=${e.hired != null and e.hired.isAfter(s.from()) ? e.hired : s.from()}">
+  <div class="hdr">
+    <div><span class="lbl">BIR Form No.</span><div class="formno">2316</div><span class="lbl">January 2018 (ENCS)</span></div>
+    <div class="mid">Republic of the Philippines · Department of Finance · Bureau of Internal Revenue<b>Certificate of Compensation Payment / Tax Withheld</b><span class="lbl">For Compensation Payment With or Without Tax Withheld</span></div>
+    <div></div>
+  </div>
+  <div class="row" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="cell"><span class="lbl">1 For the Year (YYYY)</span><div class="val" th:text="${year}"></div></div>
+    <div class="cell"><span class="lbl">2 For the Period From (MM/DD)</span><div class="val" th:text="${#temporals.format(from, 'MM/dd')}"></div></div>
+    <div class="cell"><span class="lbl">To (MM/DD)</span><div class="val" th:text="${#temporals.format(s.to(), 'MM/dd')}"></div></div>
+  </div>
+  <div class="two">
+    <div>
+      <div class="part">Part I – Employee Information</div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">3 TIN</span><div class="val" th:text="${e.tin}"></div></div></div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">4 Employee's Name (Last Name, First Name, Middle Name)</span><div class="val" th:text="${e.name}"></div></div></div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">6 Registered Address</span><div class="val" th:text="${e.address}"></div></div></div>
+      <div class="row" style="grid-template-columns:1fr 1fr"><div class="cell"><span class="lbl">7 Date of Birth (MM/DD/YYYY)</span><div class="val" th:text="${e.birthDate != null ? #temporals.format(e.birthDate, 'MM/dd/yyyy') : ''}"></div></div>
+        <div class="cell"><span class="lbl">Employee No.</span><div class="val" th:text="${e.employeeNo}"></div></div></div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">Minimum Wage Earner (MWE)</span><div class="val" th:text="${e.mwe ? 'Yes' : 'No'}"></div></div></div>
+      <div class="part">Part II – Employer Information (Present)</div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">12 TIN</span><div class="val" th:text="${co.tin}"></div></div></div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">13 Employer's Name</span><div class="val" th:text="${co.name}"></div></div></div>
+      <div class="row" style="grid-template-columns:4fr 1fr"><div class="cell"><span class="lbl">14 Registered Address</span><div class="val" th:text="${co.address}"></div></div><div class="cell"><span class="lbl">14A ZIP</span><div class="val" th:text="${co.zipCode}"></div></div></div>
+      <div class="row" style="grid-template-columns:1fr"><div class="cell"><span class="lbl">15 Type of Employer</span><div class="val">Main Employer</div></div></div>
+      <div class="part">Part IV-A – Summary</div>
+      <table>
+        <tr><td class="n">19</td><td>Gross Compensation Income from Present Employer</td><td class="r" th:text="${#numbers.formatDecimal(e.compensation, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">20</td><td>Less: Total Non-Taxable/Exempt Compensation (Item 38)</td><td class="r" th:text="${#numbers.formatDecimal(e.nonTaxable, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">21</td><td>Taxable Compensation Income from Present Employer (Item 52)</td><td class="r" th:text="${#numbers.formatDecimal(e.taxableYear, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">22</td><td>Add: Taxable Compensation from Previous Employer</td><td class="r">0.00</td></tr>
+        <tr><td class="n">23</td><td>Gross Taxable Compensation Income</td><td class="r" th:text="${#numbers.formatDecimal(e.taxableYear, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">24</td><td>Tax Due</td><td class="r" th:text="${#numbers.formatDecimal(e.taxDue, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">25A</td><td>Amount of Taxes Withheld – Present Employer</td><td class="r" th:text="${#numbers.formatDecimal(e.wtax, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">25B</td><td>Previous Employer</td><td class="r">0.00</td></tr>
+        <tr><td class="n">26</td><td>Total Amount of Taxes Withheld as Adjusted</td><td class="r" th:text="${#numbers.formatDecimal(e.wtax, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="part">Part IV-B – Details of Compensation Income</div>
+      <table>
+        <tr class="h"><td colspan="3">A. Non-Taxable / Exempt Compensation Income</td></tr>
+        <tr><td class="n">29</td><td>Basic Salary / Statutory Minimum Wage (MWE)</td><td class="r" th:text="${#numbers.formatDecimal(e.mwePay, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">30–33</td><td>Holiday, Overtime, Night Shift Differential, Hazard Pay (MWE)</td><td class="r">incl. above</td></tr>
+        <tr><td class="n">34</td><td>13th Month Pay and Other Benefits (max ₱90,000)</td><td class="r" th:text="${#numbers.formatDecimal(e.exemptBenefits, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">35</td><td>De Minimis Benefits</td><td class="r">0.00</td></tr>
+        <tr><td class="n">36</td><td>SSS, GSIS, PHIC &amp; Pag-IBIG Contributions and Union Dues (employee share only)</td><td class="r" th:text="${#numbers.formatDecimal(e.govEe, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">37</td><td>Salaries and Other Forms of Compensation</td><td class="r">0.00</td></tr>
+        <tr><td class="n">38</td><td><b>Total Non-Taxable/Exempt Compensation Income</b></td><td class="r" th:text="${#numbers.formatDecimal(e.nonTaxable, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr class="h"><td colspan="3">B. Taxable Compensation Income – Regular</td></tr>
+        <tr><td class="n">39</td><td>Basic Salary, Overtime, Holiday Pay, Night Differential and Other Pay (net of lates, absences and employee contributions)</td><td class="r" th:text="${#numbers.formatDecimal(e.taxableRegular, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr class="h"><td colspan="3">Supplementary</td></tr>
+        <tr><td class="n">51</td><td>Taxable 13th Month Pay and Other Benefits (over ₱90,000)</td><td class="r" th:text="${#numbers.formatDecimal(e.taxableBenefits, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+        <tr><td class="n">52</td><td><b>Total Taxable Compensation Income</b></td><td class="r" th:text="${#numbers.formatDecimal(e.taxableYear, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+      </table>
+      <div class="note" th:if="${e.adjustment.signum() != 0}" th:text="${e.adjustment.signum() > 0 ? 'Note: ₱' + #numbers.formatDecimal(e.adjustment, 1, 'COMMA', 2, 'POINT') + ' still to be withheld (year-end adjustment) before this certificate is final.' : 'Note: ₱' + #numbers.formatDecimal(e.adjustment.negate(), 1, 'COMMA', 2, 'POINT') + ' over-withheld, to be refunded to the employee.'}"></div>
+    </div>
+  </div>
+  <div class="part">Declaration</div>
+  <div class="row" style="grid-template-columns:1fr"><div class="cell" style="font-size:8.5px">We declare, under the penalties of perjury, that this certificate has been made in good faith, verified by us, and to the best of our knowledge and belief, is true and correct, pursuant to the provisions of the National Internal Revenue Code, as amended, and the regulations issued under authority thereof. Further, we give our consent to the processing of our information as contemplated under the Data Privacy Act of 2012 (R.A. No. 10173) for legitimate and lawful purposes.</div></div>
+  <div class="sig">
+    <div><div class="line"><b th:text="${co.signatory}"></b><br /><span th:text="${co.signatoryTitle != null ? co.signatoryTitle : 'Present Employer / Authorized Agent'}"></span><br />Signature over Printed Name · Date Signed</div></div>
+    <div><div class="line"><b th:text="${e.name}"></b><br />Employee<br />Signature over Printed Name · Date Signed</div></div>
+  </div>
+  <div class="note">Prepared from the CBM payroll records. Check the figures against the payroll register before signing.</div>
+</div>
+</body>
+</html>

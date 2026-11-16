@@ -78,6 +78,7 @@ public class PurchasingController {
                                @RequestParam(required = false) String paymentTerms, @RequestParam(required = false) String supplies,
                                @RequestParam(required = false) String notes, @RequestParam(defaultValue = "false") boolean active,
                                @RequestParam(required = false) String vatRegistered, @RequestParam(required = false) String ewtRate,
+                               @RequestParam(required = false) String payeeType, @RequestParam(required = false) String atc,
                                RedirectAttributes ra) {
         if (blank(name)) { ra.addFlashAttribute("error", "Enter the supplier's name."); return "redirect:/Purchasing/Suppliers"; }
         Supplier s = id == null ? new Supplier() : suppliers.findById(id).orElse(new Supplier());
@@ -87,6 +88,8 @@ public class PurchasingController {
         s.vatRegistered = "NO".equals(vatRegistered) ? Boolean.FALSE : "YES".equals(vatRegistered) ? Boolean.TRUE : s.vatRegistered;
         BigDecimal ew = num(ewtRate);
         if (ew != null && ew.signum() >= 0 && ew.compareTo(BigDecimal.valueOf(32)) <= 0) s.ewtRate = ew;
+        s.payeeType = "INDIVIDUAL".equals(payeeType) ? "INDIVIDUAL" : "CORPORATION";
+        s.atc = atc == null || atc.isBlank() ? null : atc.trim().toUpperCase();
         suppliers.save(s);
         ra.addFlashAttribute("success", (id == null ? "Added " : "Saved ") + s.name + ".");
         return "redirect:/Purchasing/Suppliers";

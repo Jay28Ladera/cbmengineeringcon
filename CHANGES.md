@@ -459,3 +459,208 @@ Subcon Billing Listing, Admin Expense Listing, Project Salary Cost.
 | Trial balance | In balance |
 
 Loans that employees had before accounting started will show as a credit in 1410 once payroll deducts them. Bring their balances in once with a journal entry: Dr 1410 / Cr 3900.
+
+# Accounting phase 4: statements, job profitability, dashboard, closing (Nov 16, 2026)
+
+## Accounting dashboard (Accounting › Dashboard, the new landing page)
+
+- **Totals:** cash and bank by account, what clients owe (overdue and retention), what CBM owes (due in 7 days, taxes).
+- **This month:** a short profit-and-loss summary against last month, plus the year-to-date net.
+- **Jobs:** each job with its margin bar and status (on track, over budget, projected loss).
+- **Due lists:** bills due within 7 days and overdue client billings.
+- **Alerts:** items waiting for approval, approved payments to release, locked payrolls not yet posted, jobs at risk.
+
+## Financial statements
+
+- **Income statement:**
+  - Revenue, cost of contracts, gross profit and margin, operating expenses, operating income, other income and net income.
+  - Compared with the previous period (the previous months for whole months).
+  - Presets: this month, last month, quarter, this year, last year. Each account opens its ledger.
+- **Balance sheet** as of any date:
+  - Assets and liabilities by group; equity with the net income not yet closed.
+  - Shows whether it balances.
+- **Cash flow:**
+  - Opening, money in, money out and closing per bank or cash account.
+  - Grouped by where the money came from and went (collections, payments to suppliers and subcontractors, salaries, remittances, petty cash).
+  - Transfers between CBM's own accounts are left out.
+
+## Job profitability (Reports › Project Profitability, Expense Breakdown, Monthly Summary)
+
+- **Per job:** contract (net of VAT), % accomplished, revenue billed, and cost to date by kind (materials, labor, subcontract, equipment, other direct, site expenses). Then gross profit and margin.
+- **Budget vs actual:** compared with the cost entered in the quotation's costing.
+- **Committed costs:** POs ordered but not received, and subcontract work not yet billed.
+- **Projection:**
+  - Estimated cost at completion = cost so far ÷ % accomplished.
+  - From it, the projected profit and margin.
+  - Flags: *Over budget* (cost runs ahead of progress or past the budget) and *Projected loss*.
+- **Job order page:** now shows revenue, cost, gross profit, budget used and projected profit, with a link to the details.
+- **Expense breakdown:** costs per job and kind for a period.
+- **Monthly summary:** revenue, cost and profit per month, overall and per job.
+
+## Inventory reports
+
+- **Inventory Summary:** stock on hand at average cost, reorder flags, and a check against account 1200 in the ledger.
+- **Inventory Movement:** opening, in, out and closing per material for a period, with values.
+
+## Closing (Accounting › Closing)
+
+- **Close through a date:** nothing can be posted on or before it, whether from bills, payments, stock or journal entries. The message says why. *Reopen all periods* undoes it.
+- **Year-end:** brings every income and expense account to zero with an entry dated December 31. The net goes to 3100 Retained Earnings, and the year is locked.
+- **Rules:** a year can be closed only after it ends, and only in order. *Reopen* undoes the closing entry.
+- The income statement leaves out closing entries, so a closed year still shows its figures.
+
+All Reports menu items are now live.
+
+# Phase 5: bank reconciliation and BIR outputs (Nov 16, 2026)
+
+## Bank reconciliation (Accounting › Bank Reconciliation)
+
+- **Start:** choose a bank account and enter the statement's ending date and balance. The opening is the last reconciled balance.
+- **Tick** each book entry that appears on the statement. The cleared balance and the difference update as you tick, and *Finish* unlocks at zero.
+- **Import statement (CSV):**
+  - Download it from online banking, or save the Excel file as CSV.
+  - The header row is detected automatically: a date column, plus either *Amount* or *Debit/Withdrawal* and *Credit/Deposit*. *Description* and *Check/Reference No.* are used when present.
+  - Each line is matched to a book entry with the same amount within 7 days before to 60 days after (cheques clear late), using the cheque number when it is there. Matches are ticked.
+- **Statement lines not in the books** are listed. Bank charges (6130) and interest (4090) are *Recorded* in one click: posted and ticked. Others can be ignored or entered in their own module, then *Match again*.
+- **Result:** the outstanding cheques and deposits in transit, so that statement + in transit − outstanding = balance in the books.
+- **Reconciled lines** stay cleared, so the next month starts from the right balance. The latest reconciliation can be reopened.
+
+## BIR (Accounting › BIR Reports), by quarter
+
+- **BIR 2307 for every supplier and subcontractor** CBM withheld tax from:
+  - Taken from released payment vouchers.
+  - Income payments by month (net of VAT) and tax withheld, with the ATC.
+  - Printable on legal-size paper, one per payee or all at once.
+  - *Edit* sets a payee's TIN, address, type (corporation or individual) and an ATC override.
+- **ATC by rate:**
+
+  | EWT rate | ATC |
+  |---|---|
+  | 1% goods | WC158 |
+  | 2% services | WC160 |
+  | 2% subcontractors | WC120 |
+  | 5% rentals | WC100 |
+  | 10% / 15% professional fees | WC010 / WC011 |
+
+  Individuals use WI instead of WC. Suppliers can now carry a payee type and ATC (Purchasing › Suppliers).
+- **1601-EQ summary** by ATC, and a **QAP CSV** in the alphalist column order.
+- **VAT (2550Q):** output VAT, input VAT, sales and purchases per month, and the VAT payable.
+- **Tax withheld by clients (SAWT):** per client with TIN (new *Client TIN* field in the billing terms), ATC and whether every 2307 was received. **SAWT CSV** export.
+- **Company details:** CBM's registered name, TIN, address, RDO and signatory, printed on the 2307.
+
+Have the accountant check the figures and the ATCs before filing. The CSVs are for the BIR alphalist data entry module.
+
+# Phase 6: Admin Settings and Audit Trail (Nov 16, 2026)
+
+Every sidebar module is now built; no page is marked "Soon".
+
+## Admin › Settings
+
+- **Company profile:**
+  - Registered name, address, ZIP, RDO, TIN, phone, email, website, "cheques payable to", and the 2307 signatory.
+  - Printed under the logo on quotations, purchase orders, payment vouchers, client billing statements and BIR 2307, and in the quotation email signature.
+  - The same record as *Company details* on the BIR page.
+- **Quotation defaults:**
+  - VAT/tax %, terms and notes, and validity days.
+  - New quotations start with these values. The validity is pre-filled when a quotation is sent.
+- **Document numbering:**
+  - Shows each series (PO, RR, IS, ADJ, JV, BL, DV, PB, CR, SC, SCB, PCV, PCR, CA, RM), the last number issued this year and the next one.
+  - *Continue at* sets where this year continues, for when you move over from manual books.
+  - It can't go below a number already issued, so there are no duplicates.
+- **Email & system:**
+  - Shows whether email is set up and the sender addresses, without showing keys, plus a *Send test* button.
+  - Shows database size and version, photo storage (Cloudinary or local), uptime and memory.
+  - Sets how long the audit trail is kept.
+
+## Admin › Audit Trail
+
+- **Recorded automatically:**
+  - Every record created, changed or deleted anywhere in the portal: who, when, from which IP, and each field's value before and after.
+  - Deleted records keep their full contents.
+  - Sign-ins, failed sign-ins and sign-outs.
+- **Grouped by save:** what is saved together appears together, e.g. a voided journal entry with its reversal. High-volume detail (journal lines, time sheet days, stock movements, payroll results, bank statement lines) is summarised as "12 created".
+- **Filters:** date, user, module, type (created / changed / deleted / sign-ins / failed sign-ins) and search by number, name or value. Each line has *Open* and *History of this record*.
+- **Reliability:** the trail is written in the same transaction as the change, so a failed save leaves no line. A problem writing the trail never blocks the save.
+- **Notes:**
+  - Changes made directly in the database (SQL) are not recorded.
+  - Recording starts from this version.
+  - Tables `sys_settings`, `sys_number_seed` and `sys_audit`, and the new `acc_company` columns, are created on startup.
+
+# Phase 7: payroll taxes and contributions, fixed assets (Nov 16, 2026)
+
+## Payroll: withholding tax and contributions
+
+- **Withholding tax on compensation:** deducted automatically on each pay sheet using the BIR table (TRAIN, 2023 onward). The period's taxable pay is annualised.
+  - Taxable pay = gross − 13th month / bonuses − lates and absences − employee SSS, PhilHealth and Pag-IBIG.
+  - It appears as a *Withholding tax* line, and a typed-in amount replaces it for that cut-off.
+  - Shown in the pay sheet's "Gov't & tax" column and in the Excel export (W/TAX column).
+- **Employee tax status (HR › Employees):** *Withhold per BIR table*, *Minimum wage earner (exempt)* or *Don't withhold*.
+- **New employee fields:** TIN, SSS / PhilHealth / Pag-IBIG numbers, birth date and address. The dialog also shows what the 2025 contribution tables give for the employee's rate.
+- **Contribution tables (HR › Pay rules › "Use the contribution tables"):** used when an employee's SSS, PhilHealth or Pag-IBIG amount is blank. Fixed amounts still win.
+  - SSS: 15% of the salary credit (₱5,000–35,000). The employee pays 5%; the employer pays 10% plus EC.
+  - PhilHealth: 5% of the monthly basic (₱10,000–100,000), split equally.
+  - Pag-IBIG: 2% each, up to ₱10,000.
+  - Rates are in `payroll/Statutory.java`.
+- **Employer shares** are worked out from the employee shares actually deducted and posted with the payroll:
+  - Dr direct labor of the job (5020), or 6020 for office staff.
+  - Cr SSS / PhilHealth / Pag-IBIG payable.
+  - Withholding tax goes to 2120.
+  - Shown per employee on the payroll posting page.
+- **Accounting › Payroll Taxes:**
+  - **Monthly:** the 1601-C figures (compensation, non-taxable, taxable, tax withheld), SSS / PhilHealth / Pag-IBIG employee and employer shares per employee, and a contributions CSV.
+  - **Yearly:** alphalist of employees with tax due by the annual table, tax withheld, and what is still to withhold or refund. Alphalist CSV (1604-C) and a printable **BIR 2316** per employee.
+
+## Fixed assets (Accounting › Fixed Assets)
+
+- **Register:** code, category (construction equipment 1530, tools 1500, vehicles 1520, office 1540, building 1550), serial and plate no., custodian, location, project, cost, salvage value and useful life.
+- **How it's in the books:**
+  - *bought now*: Dr asset / Cr bank.
+  - *already recorded*: through a bill or entry; no new entry.
+  - *owned before*: opening balance, with depreciation to date.
+- **Monthly depreciation:** straight-line, one entry a month, posted in order and undoable for the latest month.
+  - Assets used on a project go to 5050, charged to that job; others go to 6140.
+  - Cr accumulated depreciation (1510).
+- **Schedule per asset:** posted and projected months, accumulated depreciation and book value.
+- **Sell / dispose:** removes cost and depreciation, records the cash received, and books the gain (4095) or loss (6160). Can be undone.
+- **New accounts:** 1530, 1540, 1550, 4095, 5050, 6160.
+
+# Phase 8: go-live tools (Nov 16, 2026)
+
+## Admin › Import & Backup
+
+- **Import from Excel (.xlsx) or CSV** for:
+  - suppliers and subcontractors;
+  - materials, with opening stock;
+  - employees;
+  - opening account balances (trial balance).
+- **How it works:**
+  - Download the template, fill it in, then upload.
+  - The header row is found automatically: columns can be in any order, and common spellings work ("Supplier Name", "UOM", "Daily rate", "Dr/Cr"…).
+  - **Check first:** the preview marks each row New / Update / Skip / Problem with the reason. Nothing is saved until you confirm.
+  - On confirm, all valid rows are saved in one transaction.
+- **Matching existing records:**
+  - Suppliers by name.
+  - Materials by code, else name.
+  - Employees by employee no., biometric ID or name. People on the org chart keep their name, position and department.
+  - Blank cells leave existing values unchanged.
+- **Opening stock** goes in at the given cost. The preview reminds you to bring it into the books in Accounting › Opening balances.
+- **Opening balances** post one entry (source OPENING), with any difference to 3900. It warns if a trial-balance opening was posted before.
+- **Each import** is recorded on the audit trail, and every record it creates or changes appears there too.
+- **Backup:**
+  - ZIP of every table as CSV (PostgreSQL COPY, one consistent snapshot), plus `restore.sql` and a README. The audit trail is optional.
+  - Tested: restored into an empty database, every row count and the ledger matched.
+  - Who downloaded it and when is shown and recorded.
+
+## Admin › Access Review
+
+- Everyone's module access in one grid, where it comes from (admin, department or custom), and what they approve or sign: quotations, payment vouchers and client billings, canvass steps.
+- Last sign-in and failed sign-ins.
+- **Flags:**
+  - an approver who can't open the module they approve in;
+  - an account with no modules;
+  - no sign-in for 90+ days;
+  - too many admins, or only one;
+  - no payment or quotation approver set;
+  - canvass steps without a signer;
+  - sign-ups waiting for approval.
+- CSV export.

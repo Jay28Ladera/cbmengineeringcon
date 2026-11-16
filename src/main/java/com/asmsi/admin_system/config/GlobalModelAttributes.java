@@ -22,15 +22,23 @@ public class GlobalModelAttributes {
 
     private final AccessService accessService;
     private final com.asmsi.admin_system.repository.QuotationRepository quotations;
+    private final com.asmsi.admin_system.admin.SettingsService settings;
 
-    public GlobalModelAttributes(AccessService accessService, com.asmsi.admin_system.repository.QuotationRepository quotations) {
+    public GlobalModelAttributes(AccessService accessService, com.asmsi.admin_system.repository.QuotationRepository quotations,
+                                 com.asmsi.admin_system.admin.SettingsService settings) {
         this.accessService = accessService;
         this.quotations = quotations;
+        this.settings = settings;
     }
 
     @ModelAttribute
     public void addUserAttributes(Model model, HttpServletRequest request) {
         model.addAttribute("allModules", com.asmsi.admin_system.entity.AccessModule.values());
+        // Company profile and defaults from Admin › Settings (held in memory), for printouts and forms.
+        try {
+            model.addAttribute("company", settings.company());
+            model.addAttribute("appSettings", settings.app());
+        } catch (RuntimeException ignore) { }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !(auth.getPrincipal() instanceof User user)) {
             model.addAttribute("role", "user");

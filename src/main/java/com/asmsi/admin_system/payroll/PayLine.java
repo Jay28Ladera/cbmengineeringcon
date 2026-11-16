@@ -68,6 +68,16 @@ public class PayLine {
     public BigDecimal totalDeductions = BigDecimal.ZERO;
     public BigDecimal netPay = BigDecimal.ZERO;
 
+    /** Pay subject to withholding tax this period (gross less benefits, lates, absences and employee contributions). */
+    public BigDecimal taxable = BigDecimal.ZERO;
+    /** 13th month, bonuses: non-taxable up to ₱90,000 a year. */
+    public BigDecimal benefits = BigDecimal.ZERO;
+    /** Employer shares that go with this period's contributions (not deducted from pay). */
+    public BigDecimal erSss = BigDecimal.ZERO;
+    public BigDecimal erEc = BigDecimal.ZERO;
+    public BigDecimal erPhilhealth = BigDecimal.ZERO;
+    public BigDecimal erPagibig = BigDecimal.ZERO;
+
     public String remarks;
     public List<String> warnings = new ArrayList<>();
 
@@ -85,6 +95,8 @@ public class PayLine {
         for (Item i : deductions) for (String k : kinds) if (k.equals(i.kind)) t = t.add(i.amount);
         return t;
     }
+
+    public BigDecimal employerTotal() { return erSss.add(erEc).add(erPhilhealth).add(erPagibig); }
 
     public boolean hasActivity() {
         return grossPay.signum() != 0 || totalDeductions.signum() != 0 || regDays.signum() != 0;

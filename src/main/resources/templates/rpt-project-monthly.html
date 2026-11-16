@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Project monthly summary')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Project monthly summary">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Project monthly summary</h1>
+          <p class="page-sub" th:text="${'Revenue and cost on job orders, month by month, ' + year + '.'}"></p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <a class="btn btn-sm btn-outline" th:href="@{/Reports/ProjectMonthlySummary(year=${year - 1})}"><i class="bi bi-chevron-left"></i></a>
+          <span class="btn btn-sm btn-ghost disabled" th:text="${year}"></span>
+          <a class="btn btn-sm btn-outline" th:href="@{/Reports/ProjectMonthlySummary(year=${year + 1})}"><i class="bi bi-chevron-right"></i></a>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-calendar3"></i>All jobs</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Month</th><th class="money">Revenue</th><th class="money">Cost</th><th class="money">Profit</th></tr></thead>
+          <tbody><tr th:each="e : ${byMonth}"><td th:text="${#temporals.format(e.key.atDay(1), 'MMMM')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(e.value[0], 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(e.value[1], 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:classappend="${e.value[0].subtract(e.value[1]).signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(e.value[0].subtract(e.value[1]), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#maps.isEmpty(byMonth)}">Nothing posted to jobs in this year.</div>
+      </section>
+      <section class="panel" th:unless="${#lists.isEmpty(rows)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-briefcase"></i>By job</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Month</th><th>Job order</th><th class="money">Revenue</th><th class="money">Cost</th><th class="money">Profit</th></tr></thead>
+          <tbody><tr th:each="r : ${rows}" class="row-link" th:attr="data-href=@{/Reports/ProjectProfitability/{id}(id=${r.jobId()})}">
+            <td th:text="${#temporals.format(r.month().atDay(1), 'MMM yyyy')}"></td>
+            <td th:text="${jobMap.get(r.jobId()) != null ? jobMap.get(r.jobId()).label() : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.revenue(), 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(r.cost(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:classappend="${r.profit.signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(r.profit, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

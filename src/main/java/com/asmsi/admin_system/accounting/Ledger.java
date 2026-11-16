@@ -35,6 +35,11 @@ public class Ledger {
     /** Posts an entry. Lines with zero amounts are dropped; debits must equal credits. */
     @Transactional
     public JournalEntry post(LocalDate date, String memo, String source, Long sourceId, String sourceRef, List<JournalLine> in, String by) {
+        if (locks != null && !"CLOSING".equals(source)) {
+            PeriodLock lk = locks.findById(1L).orElse(null);
+            if (lk != null && lk.lockedThrough != null && date != null && !date.isAfter(lk.lockedThrough))
+                throw new IllegalStateException("The books are closed through " + lk.lockedThrough + ". Use a later date, or reopen the period in Accounting › Closing.");
+        }
         List<JournalLine> keep = new ArrayList<>();
         BigDecimal dr = BigDecimal.ZERO, cr = BigDecimal.ZERO;
         for (JournalLine l : in) {
@@ -63,6 +68,12 @@ public class Ledger {
         for (JournalLine l : keep) { l.journalId = e.id; l.sortOrder = n++; lines.save(l); }
         return e;
     }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false) private PeriodLockRepository locks;
+
+    /** Profit-and-loss activity in a period (year-end closing entries left out). */
+    @Transactional(readOnly = true)
+    public List<Balance> operating(LocalDate from, LocalDate to) { return toBalances(lines.operatingBetween(from, to)); }
 
     /** Voids an entry by posting its mirror image on the given date; both stay on record. */
     @Transactional

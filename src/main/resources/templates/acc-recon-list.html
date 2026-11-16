@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Bank reconciliation')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Bank reconciliation">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Bank reconciliation</h1>
+          <p class="page-sub">Each month, match the bank statement to the books: tick what the bank shows (or import the statement file), add bank charges and interest, and finish when the difference is zero. What stays unticked are outstanding cheques and deposits in transit.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <section class="panel mb-4">
+        <div class="table-wrap" th:unless="${#lists.isEmpty(rows)}"><table class="data-table">
+          <thead><tr><th>Bank account</th><th class="money">Balance in books</th><th>Last reconciled</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="r : ${rows}">
+            <td><div class="cell-main" th:text="${r.bank().name}"></div><div class="cell-sub" th:text="${(r.bank().bankName ?: '') + (r.bank().accountNo != null ? ' · ' + r.bank().accountNo : '')}"></div></td>
+            <td class="money" th:text="${#numbers.formatDecimal(r.book(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span th:if="${r.last() != null}" th:text="${#temporals.format(r.last().statementDate, 'MMM d, yyyy') + ' · ₱' + #numbers.formatDecimal(r.last().statementBalance, 1, 'COMMA', 2, 'POINT')}"></span>
+              <span th:if="${r.last() == null}" class="text-muted small">Never</span></td>
+            <td class="actions">
+              <a th:if="${r.draft() != null}" class="btn btn-sm btn-primary" th:href="@{/Accounting/BankRecon/{id}(id=${r.draft().id})}" th:text="${'Continue ' + #temporals.format(r.draft().statementDate, 'MMM d')}"></a>
+              <button th:if="${r.draft() == null}" type="button" class="btn btn-sm btn-primary" data-fill="startDialog"
+                      th:attr="data-f-bank-id=${r.bank().id},data-title=${'Reconcile ' + r.bank().name}">Reconcile</button></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted" th:if="${#lists.isEmpty(rows)}">No bank accounts yet. Add them in <a th:href="@{/Accounting/Banks}">Banks &amp; Cash</a>.</div>
+      </section>
+      <section class="panel" th:unless="${#lists.isEmpty(history)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-clock-history"></i>History</h2></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Statement date</th><th>Bank</th><th class="money">Statement balance</th><th>Status</th><th>By</th></tr></thead>
+          <tbody><tr th:each="h : ${history}" class="row-link" th:attr="data-href=@{/Accounting/BankRecon/{id}(id=${h.id})}">
+            <td th:text="${#temporals.format(h.statementDate, 'MMM d, yyyy')}"></td>
+            <td th:text="${bankMap.get(h.bankId) != null ? bankMap.get(h.bankId).name : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(h.statementBalance, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span class="status" th:classappend="${h.done} ? 'status-approved' : 'status-pending'" th:text="${h.done ? 'Reconciled' : 'In progress'}"></span></td>
+            <td class="small" th:text="${h.done ? h.completedBy : h.createdBy}"></td></tr></tbody>
+        </table></div>
+      </section>
+      <dialog class="app-dialog" id="startDialog">
+        <form th:action="@{/Accounting/BankRecon}" method="post">
+          <input type="hidden" name="bankId" />
+          <header class="dialog-header"><div><h2 data-dialog-title>Reconcile</h2><p>From the bank statement (or online banking) for the period.</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="startDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="sd">Statement ending date</label><input id="sd" type="date" name="statementDate" class="form-control" th:value="${lastMonthEnd}" required /></div>
+            <div class="col-md-6"><label class="form-label" for="sb">Ending balance on the statement</label><input id="sb" name="statementBalance" class="form-control text-end" inputmode="decimal" required /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="startDialog">Cancel</button><button type="submit" class="btn btn-primary">Start</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

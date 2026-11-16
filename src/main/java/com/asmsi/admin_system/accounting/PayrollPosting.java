@@ -18,6 +18,8 @@ public class PayrollPosting {
     @Column(name = "net_pay", nullable = false, precision = 16, scale = 2) public BigDecimal net = BigDecimal.ZERO;
     @Column(name = "to_jobs", nullable = false, precision = 16, scale = 2) public BigDecimal toJobs = BigDecimal.ZERO;
     /** POSTED · RELEASED · VOID */
+    /** SSS (with EC), PhilHealth and Pag-IBIG employer shares posted with this payroll. */
+    @Column(name = "employer_share", precision = 16, scale = 2) public BigDecimal employerShare = BigDecimal.ZERO;
     @Column(nullable = false, length = 10) public String status = "POSTED";
     @Column(name = "journal_id") public Long journalId;
     @Column(name = "posted_by", length = 120) public String postedBy;

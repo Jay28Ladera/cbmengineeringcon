@@ -51,7 +51,7 @@ public class PayablesController {
     }
 
     @GetMapping({"", "/"})
-    public String home() { return "redirect:/Accounting/Payables"; }
+    public String home() { return "redirect:/Accounting/Dashboard"; }
 
     // ================================================================== Payables
 

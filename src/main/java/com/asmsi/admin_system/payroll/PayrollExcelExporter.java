@@ -55,6 +55,7 @@ public class PayrollExcelExporter {
                 new Col("SSS", l -> l.amount("SSS"), true),
                 new Col("PHILHEALTH", l -> l.amount("PHILHEALTH"), true),
                 new Col("PAG-IBIG", l -> l.amount("PAGIBIG"), true),
+                new Col("W/TAX", l -> l.amount("WTAX"), true),
                 new Col("OTHERS", l -> l.amount("OTHER_DEDUCTION"), true),
                 new Col("TOTAL DEDUCTIONS", l -> l.totalDeductions, true),
                 new Col("NET PAY", l -> l.netPay, true),

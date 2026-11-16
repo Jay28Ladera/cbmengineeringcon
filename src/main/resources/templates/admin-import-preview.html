@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Check import')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Administration" data-title="Check import">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Admin/Data(kind=${kind.key})}">Import &amp; Backup</a></div><h1 class="page-title" th:text="${'Check: ' + kind.label}"></h1>
+          <p class="page-sub" th:text="${fileName + ' · ' + #lists.size(p.rows()) + ' rows. Nothing is saved yet.'}"></p></div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">New<i class="bi bi-plus-circle"></i></div><div class="kpi-value" th:text="${p.count('NEW')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Update<i class="bi bi-arrow-repeat"></i></div><div class="kpi-value" th:text="${p.count('UPDATE')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Skipped<i class="bi bi-dash-circle"></i></div><div class="kpi-value" th:text="${p.count('SKIP')}"></div></div>
+        <div class="kpi" th:classappend="${p.count('ERROR') > 0} ? ' accent'"><div class="kpi-label">Problems<i class="bi bi-exclamation-triangle"></i></div><div class="kpi-value" th:text="${p.count('ERROR')}"></div><div class="kpi-note">These rows are left out</div></div>
+      </div>
+      <div class="alert alert-info mb-3" th:each="w : ${p.warnings()}" th:text="${w}"></div>
+      <section class="panel mb-3">
+        <form class="panel-body d-flex gap-3 align-items-end justify-content-between flex-wrap" th:action="@{/Admin/Data/import/{k}/apply(k=${kind.key})}" method="post"
+              th:attr="data-confirm=${'Import ' + (p.count('NEW') + p.count('UPDATE')) + ' row(s)?' + (p.count('ERROR') > 0 ? ' Rows with problems are left out.' : '')}" data-confirm-ok="Import">
+          <div th:if="${kind.key == 'MATERIALS' or kind.key == 'OPENING'}"><label class="form-label small mb-0" for="impDate" th:text="${kind.key == 'OPENING' ? 'Balances as of' : 'Opening stock date'}"></label>
+            <input id="impDate" type="date" name="date" class="form-control" th:value="${today}" required /></div>
+          <span class="small text-muted" th:unless="${kind.key == 'MATERIALS' or kind.key == 'OPENING'}">Fix the problem rows in the file and check again, or import the rest now.</span>
+          <div class="d-flex gap-2"><a class="btn btn-ghost" th:href="@{/Admin/Data(kind=${kind.key})}">Cancel</a>
+            <button class="btn btn-primary" type="submit" th:disabled="${!p.ok}"><i class="bi bi-check2-circle"></i>Import</button></div>
+        </form>
+      </section>
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-check"></i>Rows</h2>
+          <div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="impTable" aria-label="Search rows" /></div></div>
+        <div class="table-wrap"><table class="data-table" id="impTable">
+          <thead><tr><th style="width:70px">Line</th><th style="width:110px"></th><th>Record</th><th>Details</th></tr></thead>
+          <tbody><tr th:each="r : ${p.rows()}" th:classappend="${r.error} ? ' table-danger'">
+            <td class="mono small" th:text="${r.line()}"></td>
+            <td><span class="status" th:classappend="${r.action() == 'NEW' ? ' status-approved' : (r.action() == 'UPDATE' ? ' status-pending' : (r.action() == 'ERROR' ? ' status-rejected' : ' status-draft'))}"
+                      th:text="${r.action() == 'NEW' ? 'New' : (r.action() == 'UPDATE' ? 'Update' : (r.action() == 'ERROR' ? 'Problem' : 'Skip'))}"></span></td>
+            <td th:text="${r.label()}"></td>
+            <td class="small" th:classappend="${r.error} ? ' text-danger'" th:text="${r.detail()}"></td></tr></tbody>
+        </table></div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -22,6 +22,10 @@ public class Supplier {
     /** Subcontractors are kept with the suppliers (same bills, vouchers and withholding) and listed apart. */
     @Column(name = "subcon") public Boolean subcon;
     @Column(length = 80) public String trade;
+    /** For BIR forms: CORPORATION or INDIVIDUAL, and an ATC that overrides the one worked out from the EWT rate. */
+    @Column(name = "payee_type", length = 12) public String payeeType;
+    @Column(length = 10) public String atc;
+    public boolean isIndividual() { return "INDIVIDUAL".equals(payeeType); }
     @Column(name = "accreditation", length = 300) public String accreditation;
     public boolean isSubcon() { return Boolean.TRUE.equals(subcon); }
     /** e.g. COD, 30 days, 50% down. */

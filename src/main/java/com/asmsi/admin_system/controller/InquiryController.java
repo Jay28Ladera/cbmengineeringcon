@@ -27,7 +27,10 @@ public class InquiryController {
     private final InquiryRepository inquiries;
     private final QuotationRepository quotations;
 
-    public InquiryController(InquiryRepository inquiries, QuotationRepository quotations) {
+    private final com.asmsi.admin_system.admin.SettingsService settings;
+
+    public InquiryController(InquiryRepository inquiries, QuotationRepository quotations, com.asmsi.admin_system.admin.SettingsService settings) {
+        this.settings = settings;
         this.inquiries = inquiries;
         this.quotations = quotations;
     }
@@ -233,6 +236,10 @@ public class InquiryController {
         return quotations.findByInquiryId(inquiry.getId()).orElseGet(() -> {
             Quotation draft = new Quotation();
             draft.setInquiry(inquiry);
+            // Defaults from Admin › Settings.
+            var d = settings.app();
+            draft.setTaxRate(d.getQuoteTaxRate());
+            if (d.quoteTerms != null && !d.quoteTerms.isBlank()) draft.setTerms(d.quoteTerms);
             Quotation saved = quotations.saveAndFlush(draft);
             saved.setQuotationNumber("Q-%06d".formatted(saved.getId()));
             return quotations.save(saved);

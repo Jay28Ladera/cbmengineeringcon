@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Bank reconciliation')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Bank reconciliation">
+      <div class="page-header">
+        <div><div class="page-eyebrow"><a th:href="@{/Accounting/BankRecon}">Bank reconciliation</a></div>
+          <h1 class="page-title"><span th:text="${v.bank().name}"></span> <span class="status" th:classappend="${r.done} ? 'status-approved' : 'status-pending'" th:text="${r.done ? 'Reconciled' : 'In progress'}"></span></h1>
+          <p class="page-sub" th:text="${'Statement ending ' + #temporals.format(r.statementDate, 'MMMM d, yyyy') + ' · starting from ₱' + #numbers.formatDecimal(r.openingBalance, 1, 'COMMA', 2, 'POINT') + ' (last reconciled balance)'}"></p></div>
+        <div class="page-actions" th:unless="${r.done}">
+          <button class="btn btn-outline" type="button" data-open-dialog="importDialog"><i class="bi bi-upload"></i>Import statement (CSV)</button>
+          <button class="btn btn-outline" type="button" data-open-dialog="reconAdjDialog"><i class="bi bi-plus-lg"></i>Bank charge / interest</button>
+          <form th:action="@{/Accounting/BankRecon/{id}/delete(id=${r.id})}" method="post" class="d-inline" data-confirm="Delete this reconciliation? The ticks are cleared." data-confirm-tone="danger" data-confirm-ok="Delete"><button class="btn btn-ghost" type="submit"><i class="bi bi-trash"></i></button></form>
+        </div>
+        <div class="page-actions" th:if="${r.done}">
+          <form th:action="@{/Accounting/BankRecon/{id}/reopen(id=${r.id})}" method="post" class="d-inline"><button class="btn btn-outline" type="submit"><i class="bi bi-unlock"></i>Reopen</button></form>
+          <button class="btn btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+
+      <form th:action="@{/Accounting/BankRecon/{id}/tick(id=${r.id})}" method="post" data-recon-form th:attr="data-opening=${r.openingBalance}">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="kpi-label">Statement ending balance<i class="bi bi-bank"></i></div>
+            <input th:unless="${r.done}" name="statementBalance" class="form-control form-control-lg text-end fw-bold mt-1" inputmode="decimal" th:value="${r.statementBalance}" data-recon-stmt aria-label="Statement ending balance" />
+            <div th:if="${r.done}" class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(r.statementBalance, 1, 'COMMA', 2, 'POINT')}"></div></div>
+          <div class="kpi"><div class="kpi-label">Cleared balance<i class="bi bi-check2-square"></i></div><div class="kpi-value" style="font-size:1.6rem" data-recon="cleared" th:text="${#numbers.formatDecimal(v.clearedBalance(), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Opening + ticked items</div></div>
+          <div class="kpi accent"><div class="kpi-label">Difference<i class="bi bi-plus-slash-minus"></i></div><div class="kpi-value" style="font-size:1.6rem" data-recon="diff" th:text="${#numbers.formatDecimal(v.difference(), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Must be zero to finish</div></div>
+          <div class="kpi"><div class="kpi-label">Balance in books<i class="bi bi-journal"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${#numbers.formatDecimal(v.book(), 1, 'COMMA', 2, 'POINT')}"></div>
+            <div class="kpi-note" th:text="${'Outstanding cheques ₱' + #numbers.formatDecimal(v.outstandingCheques(), 1, 'COMMA', 2, 'POINT') + ' · deposits in transit ₱' + #numbers.formatDecimal(v.depositsInTransit(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+        </div>
+
+        <section class="panel mb-4" th:unless="${#lists.isEmpty(unmatched)}">
+          <div class="panel-header"><h2 class="panel-title"><i class="bi bi-question-circle"></i>On the statement but not found in the books <span class="count-badge" th:text="${#lists.size(unmatched)}"></span></h2>
+            <form th:action="@{/Accounting/BankRecon/{id}/rematch(id=${r.id})}" method="post" class="d-inline"><button class="btn btn-sm btn-ghost" type="submit"><i class="bi bi-arrow-repeat"></i>Match again</button></form></div>
+          <div class="table-wrap"><table class="data-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Ref</th><th class="money">Amount</th><th class="actions"></th></tr></thead>
+            <tbody><tr th:each="s : ${unmatched}">
+              <td th:text="${#temporals.format(s.txnDate, 'MMM d')}"></td><td class="cell-wrap" th:text="${s.description}"></td><td class="small" th:text="${s.reference}"></td>
+              <td class="money" th:classappend="${s.amount.signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(s.amount, 1, 'COMMA', 2, 'POINT')}"></td>
+              <td class="actions text-nowrap">
+                <button th:unless="${r.done}" type="button" class="btn btn-sm btn-outline" data-fill="reconAdjDialog"
+                        th:attr="data-f-kind=${s.amount.signum() < 0 ? 'CHARGE' : 'INTEREST'},data-f-amount=${s.amount.abs()},data-f-date=${s.txnDate},data-f-memo=${s.description},data-f-stmt-line-id=${s.id}">Record</button>
+                <button th:unless="${r.done}" type="submit" class="btn btn-sm btn-ghost" th:formaction="@{/Accounting/BankRecon/{id}/stmt/{l}/ignore(id=${r.id},l=${s.id})}" formnovalidate>Ignore</button></td></tr></tbody>
+          </table></div>
+          <div class="panel-body small text-muted">Usually bank charges, interest, or a deposit or cheque not yet entered. Record charges and interest here; enter anything else in its own module (collection, payment), then <i>Match again</i>.</div>
+        </section>
+
+        <section class="panel mb-4">
+          <div class="panel-header"><h2 class="panel-title"><i class="bi bi-list-check"></i>Items in the books up to the statement date</h2>
+            <div class="table-toolbar"><div class="search-input"><i class="bi bi-search"></i><input type="search" class="form-control" placeholder="Search…" data-filter-table="reconTable" aria-label="Search items" /></div></div></div>
+          <div class="table-wrap"><table class="data-table" id="reconTable">
+            <thead><tr><th style="width:40px"><input class="form-check-input" type="checkbox" data-recon-all th:disabled="${r.done}" aria-label="Tick all" /></th><th>Date</th><th>Entry</th><th>Description</th><th class="money">Deposit</th><th class="money">Withdrawal</th><th>On statement</th></tr></thead>
+            <tbody><tr th:each="x : ${v.rows()}" th:classappend="${x.cleared()} ? ' row-selected'" data-recon-row>
+              <td><input class="form-check-input" type="checkbox" name="line" th:value="${x.line().id}" th:checked="${x.cleared()}" th:disabled="${r.done}" th:attr="data-amount=${x.amount},aria-label=${'Cleared ' + x.entry().number}" /></td>
+              <td class="text-nowrap" th:text="${#temporals.format(x.entry().entryDate, 'MMM d')}"></td>
+              <td><a class="mono small" th:href="@{/Accounting/Journal/{id}(id=${x.entry().id})}" th:text="${x.entry().number}"></a><div class="cell-sub" th:text="${x.entry().sourceRef}"></div></td>
+              <td class="cell-wrap"><span th:text="${x.entry().memo}"></span><div class="cell-sub" th:if="${x.line().memo}" th:text="${x.line().memo}"></div></td>
+              <td class="money" th:text="${x.line().debit.signum() > 0 ? #numbers.formatDecimal(x.line().debit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+              <td class="money" th:text="${x.line().credit.signum() > 0 ? #numbers.formatDecimal(x.line().credit, 1, 'COMMA', 2, 'POINT') : ''}"></td>
+              <td class="small" th:with="s=${byLine.get(x.line().id)}"><span th:if="${s != null}" class="text-success" th:text="${#temporals.format(s.txnDate, 'MMM d') + ' · matched'}"></span></td></tr></tbody>
+          </table></div>
+          <div class="panel-body text-muted small" th:if="${#lists.isEmpty(v.rows())}">No bank entries up to this date.</div>
+        </section>
+        <div class="d-flex justify-content-end gap-2" th:unless="${r.done}">
+          <button class="btn btn-outline" type="submit" name="action" value="save"><i class="bi bi-save"></i>Save progress</button>
+          <button class="btn btn-primary" type="submit" name="action" value="complete" data-recon-finish><i class="bi bi-check2-circle"></i>Finish reconciliation</button>
+        </div>
+      </form>
+
+      <dialog class="app-dialog" id="importDialog">
+        <form th:action="@{/Accounting/BankRecon/{id}/import(id=${r.id})}" method="post" enctype="multipart/form-data">
+          <header class="dialog-header"><div><h2>Import bank statement</h2><p>Download the statement from online banking as CSV (or open the Excel file and Save As → CSV).</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="importDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body">
+            <input type="file" name="file" accept=".csv,.txt,text/csv" class="form-control" required />
+            <p class="small text-muted mt-3 mb-0">Needs a header row with a <b>Date</b> column and either <b>Amount</b> (deposits positive, withdrawals negative) or <b>Debit/Withdrawal</b> and <b>Credit/Deposit</b> columns. Description and Reference/Check No. are used when present. Each line is matched to an entry with the same amount close to its date, and ticked.</p>
+          </div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="importDialog">Cancel</button><button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i>Import and match</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="reconAdjDialog">
+        <form th:action="@{/Accounting/BankRecon/{id}/adjust(id=${r.id})}" method="post">
+          <input type="hidden" name="stmtLineId" />
+          <header class="dialog-header"><div><h2>Bank charge or interest</h2><p>Posted to the books and ticked as cleared.</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="reconAdjDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="aj1">Kind</label><select id="aj1" name="kind" class="form-select"><option value="CHARGE">Bank charge (6130)</option><option value="INTEREST">Interest earned (4090)</option></select></div>
+            <div class="col-md-6"><label class="form-label" for="aj2">Amount</label><input id="aj2" name="amount" class="form-control text-end" inputmode="decimal" required /></div>
+            <div class="col-md-6"><label class="form-label" for="aj3">Date</label><input id="aj3" type="date" name="date" class="form-control" th:value="${r.statementDate}" /></div>
+            <div class="col-md-6"><label class="form-label" for="aj4">Memo</label><input id="aj4" name="memo" class="form-control" maxlength="300" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="reconAdjDialog">Cancel</button><button type="submit" class="btn btn-primary">Post</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

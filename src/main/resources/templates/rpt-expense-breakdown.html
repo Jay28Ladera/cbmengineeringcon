@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Project expense breakdown')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Reports" data-title="Project expense breakdown">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Reports</div><h1 class="page-title">Project expense breakdown</h1>
+          <p class="page-sub">Costs charged to each job in the period, by kind (net of VAT).</p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <div><label class="form-label small mb-0" for="rf">From</label><input id="rf" type="date" name="from" class="form-control form-control-sm" th:value="${from}" /></div>
+          <div><label class="form-label small mb-0" for="rt">To</label><input id="rt" type="date" name="to" class="form-control form-control-sm" th:value="${to}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <section class="panel">
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Job order</th><th class="money">Materials</th><th class="money">Labor</th><th class="money">Subcontract</th><th class="money">Equipment</th><th class="money">Other direct</th><th class="money">Site expenses</th><th class="money">Total</th></tr></thead>
+          <tbody><tr th:each="j : ${jobs}" class="row-link" th:attr="data-href=@{/Reports/ProjectProfitability/{id}(id=${j.jobId()})}">
+            <td th:text="${j.label()}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.materials(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.labor(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.subcon(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.equipment(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.otherDirect(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.siteExpenses(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(j.cost, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+          <tfoot><tr class="tb-total"><td>Total</td><td class="money" th:each="i : ${#numbers.sequence(0, 6)}" th:text="${#numbers.formatDecimal(t[i], 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(jobs)}">No costs charged to jobs in this period.</div>
+      </section>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

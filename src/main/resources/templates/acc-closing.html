@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Closing')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Closing">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Closing</h1>
+          <p class="page-sub">Close a month once it is reviewed, so nothing can be posted into it by mistake. At year end, close the year: income and expenses go to retained earnings and the new year starts at zero.</p></div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:if="${error}" class="alert alert-danger mb-3" th:text="${error}"></div>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-lock"></i>Closed through</h2></div>
+            <div class="panel-body">
+              <p class="fs-5 fw-semibold mb-1" th:text="${lock != null and lock.lockedThrough != null ? #temporals.format(lock.lockedThrough, 'MMMM d, yyyy') : 'Nothing closed yet'}"></p>
+              <p class="small text-muted" th:if="${lock != null and lock.lockedThrough != null}" th:text="${'by ' + lock.lockedBy + ' · ' + #temporals.format(lock.lockedAt, 'MMM d, yyyy h:mm a')}"></p>
+              <form th:action="@{/Accounting/Closing/lock}" method="post" class="d-flex gap-2 align-items-end mt-3" data-confirm="Close the books through this date? Postings dated on or before it will be refused." data-confirm-ok="Close">
+                <div><label class="form-label small mb-0" for="lt">Close through</label><input id="lt" type="date" name="through" class="form-control" th:value="${lastMonthEnd}" required /></div>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-lock"></i>Close</button>
+              </form>
+              <form th:if="${lock != null and lock.lockedThrough != null}" th:action="@{/Accounting/Closing/lock}" method="post" class="mt-2" data-confirm="Reopen every period? Back-dated postings will be allowed again." data-confirm-tone="danger" data-confirm-ok="Reopen all">
+                <button class="btn btn-sm btn-ghost text-danger" type="submit"><i class="bi bi-unlock"></i>Reopen all periods</button></form>
+              <p class="small text-muted mt-3 mb-0">Before closing a month: post the payroll, record the month's bills and petty cash, check the trial balance, and reconcile the bank balances.</p>
+            </div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-calendar-check"></i>Year-end</h2></div>
+            <div class="panel-body">
+              <form th:action="@{/Accounting/Closing/year}" method="post" class="d-flex gap-2 align-items-end" data-confirm="Close the year? Its income and expenses move to retained earnings and the year is locked." data-confirm-ok="Close year">
+                <div><label class="form-label small mb-0" for="cy">Year</label><input id="cy" name="year" class="form-control" th:value="${lastYear}" style="width:110px" /></div>
+                <button class="btn btn-primary" type="submit">Close year</button>
+              </form>
+            </div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(closes)}"><table class="data-table">
+              <thead><tr><th>Year</th><th class="money">Net income</th><th>Closed</th><th class="actions"></th></tr></thead>
+              <tbody><tr th:each="c : ${closes}" th:classappend="${c.status != 'CLOSED'} ? ' row-void'">
+                <td><a th:href="@{/Accounting/IncomeStatement(from=${c.year + '-01-01'},to=${c.year + '-12-31'})}" th:text="${c.year}"></a> <span th:if="${c.status != 'CLOSED'}" class="status status-draft">Reopened</span></td>
+                <td class="money" th:text="${#numbers.formatDecimal(c.netIncome, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="small" th:text="${c.closedBy + ' · ' + #temporals.format(c.closedAt, 'MMM d, yyyy')}"></td>
+                <td class="actions"><form th:if="${c.status == 'CLOSED'}" th:action="@{/Accounting/Closing/year/{id}/reopen(id=${c.id})}" method="post" data-confirm="Reopen this year?" data-confirm-tone="danger" data-confirm-ok="Reopen"><button class="btn btn-sm btn-ghost" type="submit">Reopen</button></form></td></tr></tbody>
+            </table></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

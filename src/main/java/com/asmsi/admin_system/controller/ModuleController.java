@@ -20,24 +20,8 @@ public class ModuleController {
 
     record Module(String group, String title, String activePage, String icon, String summary, List<String> planned) {}
 
-    private static final Map<String, Module> MODULES = Map.ofEntries(
-            entry("/Admin/Settings", "Administration", "Settings", "settings", "bi-gear",
-                    "Company details and system preferences.",
-                    "Company profile for quotations", "Numbering formats", "Default tax rate"),
-            entry("/Admin/Trails", "Administration", "Audit Trail", "trails", "bi-shield-check",
-                    "History of deleted and changed records.",
-                    "Deleted-record log", "Who changed what and when"),
-            entry("/Reports/InventorySummary", "Reports", "Inventory Summary", "report-inventory-summary", "bi-file-earmark-bar-graph",
-                    "Current stock and value per material.", "Stock on hand and value"),
-            entry("/Reports/InventoryMovement", "Reports", "Inventory Movement", "report-inventory-movement", "bi-file-earmark-bar-graph",
-                    "Stock received, issued and adjusted over time.", "Movement by material and period"),
-            entry("/Reports/ProjectProfitability", "Reports", "Project Profitability", "report-project-profitability", "bi-file-earmark-bar-graph",
-                    "Contract amount against actual costs.", "Revenue, cost and margin per project"),
-            entry("/Reports/ProjectExpenseBreakdown", "Reports", "Project Expense Breakdown", "report-project-expenses", "bi-file-earmark-bar-graph",
-                    "Material, labor and subcontract costs per project.", "Cost by category"),
-            entry("/Reports/ProjectMonthlySummary", "Reports", "Project Monthly Summary", "report-project-monthly", "bi-file-earmark-bar-graph",
-                    "Month-by-month project activity.", "Monthly totals per project")
-    );
+    // Every planned module is built now. Add an entry here for a future one that is not ready yet.
+    private static final Map<String, Module> MODULES = Map.of();
 
     private static Map.Entry<String, Module> entry(String path, String group, String title, String activePage,
                                                    String icon, String summary, String... planned) {
@@ -45,8 +29,7 @@ public class ModuleController {
     }
 
     @GetMapping({
-            "/Purchasing/*", "/Inventory/*", "/Accounting/*", "/HR/*",
-            "/Admin/Settings", "/Admin/Trails", "/Reports/*"
+            "/Purchasing/*", "/Inventory/*", "/Accounting/*", "/HR/*", "/Reports/*"
     })
     public String module(HttpServletRequest request, Model model) {
         String path = request.getRequestURI().substring(request.getContextPath().length());

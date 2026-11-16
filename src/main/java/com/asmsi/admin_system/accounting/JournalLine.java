@@ -19,6 +19,8 @@ public class JournalLine {
     @Column(name = "job_order_id") public Long jobOrderId;
     @Column(name = "supplier_id") public Long supplierId;
     @Column(name = "sort_order") public int sortOrder;
+    /** Bank reconciliation in which this bank/cash line was matched to the statement (null = not yet cleared). */
+    @Column(name = "recon_id") public Long reconId;
 
     public JournalLine() {}
     public static JournalLine dr(Long accountId, BigDecimal amount, String memo) { JournalLine l = new JournalLine(); l.accountId = accountId; l.debit = amount; l.memo = memo; return l; }

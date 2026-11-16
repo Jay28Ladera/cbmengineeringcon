@@ -51,12 +51,17 @@ public class InventoryService {
 
     /** Next document number for the year, e.g. PO-2026-0007. */
     public String nextNumber(String table, String prefix) {
-        String like = prefix + "-" + LocalDate.now().getYear() + "-";
-        List<String> last = jdbc.queryForList("select number from " + table + " where number like ? order by number desc limit 1", String.class, like + "%");
-        int n = 1;
-        if (!last.isEmpty()) {
-            try { n = Integer.parseInt(last.get(0).substring(like.length())) + 1; } catch (NumberFormatException ignore) { }
+        int yr = LocalDate.now().getYear();
+        String like = prefix + "-" + yr + "-";
+        // Last number issued and the starting number set in Admin › Settings, in one round trip.
+        Object[] row = jdbc.query("select (select number from " + table + " where number like ? order by number desc limit 1),"
+                + " (select next_no from sys_number_seed where prefix = ? and yr = ?)",
+                rs -> rs.next() ? new Object[]{rs.getString(1), rs.getObject(2)} : new Object[2], like + "%", prefix, yr);
+        long n = 1;
+        if (row[0] != null) {
+            try { n = Long.parseLong(((String) row[0]).substring(like.length())) + 1; } catch (NumberFormatException ignore) { }
         }
+        if (row[1] != null) n = Math.max(n, ((Number) row[1]).longValue());
         return like + String.format("%04d", n);
     }
 

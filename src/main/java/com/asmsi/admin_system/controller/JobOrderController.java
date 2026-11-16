@@ -28,6 +28,7 @@ public class JobOrderController {
 
     @org.springframework.beans.factory.annotation.Autowired private com.asmsi.admin_system.accounting.ClientBillingService billingService;
     @org.springframework.beans.factory.annotation.Autowired private com.asmsi.admin_system.accounting.JobContractRepository billingTerms;
+    @org.springframework.beans.factory.annotation.Autowired private com.asmsi.admin_system.accounting.FinanceService finance;
 
     @GetMapping("/{id}")
     public String view(@PathVariable Long id, Model model) {
@@ -38,6 +39,7 @@ public class JobOrderController {
         model.addAttribute("mat", materials.forJobOrder(order.getId(), order.getQuotation()));
         model.addAttribute("billingSet", billingTerms.existsById(id));
         model.addAttribute("billing", billingTerms.existsById(id) ? billingService.summary(id) : null);
+        model.addAttribute("profit", finance.job(id));
         model.addAttribute("activePage", "job-orders");
         return "job-order-detail";
     }

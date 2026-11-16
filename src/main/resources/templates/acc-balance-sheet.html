@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Balance sheet')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Balance sheet">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Balance sheet</h1>
+          <p class="page-sub" th:text="${'As of ' + #temporals.format(s.asOf(), 'MMMM d, yyyy')}"></p></div>
+        <form class="page-actions d-flex gap-2 align-items-end" method="get">
+          <div><label class="form-label small mb-0" for="ba">As of</label><input id="ba" type="date" name="asOf" class="form-control form-control-sm" th:value="${s.asOf()}" /></div>
+          <button class="btn btn-sm btn-outline" type="submit">Show</button>
+          <button class="btn btn-sm btn-ghost" type="button" onclick="window.print()"><i class="bi bi-printer"></i>Print</button>
+        </form>
+      </div>
+      <div class="alert mb-3" th:classappend="${s.balanced} ? 'alert-success' : 'alert-danger'" th:text="${s.balanced ? 'Assets equal liabilities plus equity.' : 'Out of balance — check the trial balance.'}"></div>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-safe2"></i>Assets</h2></div>
+            <div class="table-wrap"><table class="data-table"><tbody>
+              <th:block th:each="g : ${s.assets()}">
+                <tr class="acc-type-head"><td th:text="${g.name()}"></td><td class="money" th:text="${#numbers.formatDecimal(g.total(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                <tr th:each="b : ${g.rows()}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${b.account().id},to=${s.asOf()})}">
+                  <td><span class="mono small" th:text="${b.account().code}"></span> <span th:text="${b.account().name}"></span></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              </th:block>
+            </tbody>
+            <tfoot><tr class="tb-total"><td>Total assets</td><td class="money" th:text="${#numbers.formatDecimal(s.totalAssets(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot></table></div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-journal-minus"></i>Liabilities &amp; equity</h2></div>
+            <div class="table-wrap"><table class="data-table"><tbody>
+              <th:block th:each="g : ${s.liabilities()}">
+                <tr class="acc-type-head"><td th:text="${g.name()}"></td><td class="money" th:text="${#numbers.formatDecimal(g.total(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+                <tr th:each="b : ${g.rows()}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${b.account().id},to=${s.asOf()})}">
+                  <td><span class="mono small" th:text="${b.account().code}"></span> <span th:text="${b.account().name}"></span></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              </th:block>
+              <tr class="fw-semibold"><td>Total liabilities</td><td class="money" th:text="${#numbers.formatDecimal(s.totalLiabilities(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr class="acc-type-head"><td>Equity</td><td></td></tr>
+              <th:block th:each="g : ${s.equity()}">
+                <tr th:each="b : ${g.rows()}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${b.account().id},to=${s.asOf()})}">
+                  <td><span class="mono small" th:text="${b.account().code}"></span> <span th:text="${b.account().name}"></span></td>
+                  <td class="money" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              </th:block>
+              <tr><td>Net income not yet closed <span class="small text-muted">(current earnings)</span></td><td class="money" th:text="${#numbers.formatDecimal(s.earnings(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+              <tr class="fw-semibold"><td>Total equity</td><td class="money" th:text="${#numbers.formatDecimal(s.totalEquity(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+            </tbody>
+            <tfoot><tr class="tb-total"><td>Total liabilities &amp; equity</td><td class="money" th:text="${#numbers.formatDecimal(s.totalLiabilities().add(s.totalEquity()), 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot></table></div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -23,5 +23,12 @@
   </div>
   <div class="panel-body text-muted small" th:if="${#lists.isEmpty(jlines)}">Nothing posted yet.</div>
 </section>
+<!-- A margin % as a small bar: green when healthy, amber when thin, red when negative -->
+<div th:fragment="marginBar(m)" class="d-flex align-items-center gap-2">
+  <div style="flex:1;height:8px;background:var(--steel-100,#eef1f5);border-radius:4px;overflow:hidden;min-width:60px">
+    <div th:if="${m != null}" th:style="${'height:100%;border-radius:4px;width:' + (m.signum() < 0 ? 100 : (m.doubleValue() > 100 ? 100 : m.doubleValue())) + '%;background:' + (m.signum() < 0 ? '#c8151d' : (m.doubleValue() < 10 ? '#d97706' : '#15803d'))}"></div>
+  </div>
+  <span class="small fw-semibold" style="min-width:52px;text-align:right" th:classappend="${m != null and m.signum() < 0} ? ' text-danger'" th:text="${m != null ? m + '%' : '—'}"></span>
+</div>
 </body>
 </html>

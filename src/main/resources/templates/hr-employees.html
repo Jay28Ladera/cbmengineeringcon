@@ -181,7 +181,7 @@
 
             <section class="form-section">
               <h3 class="form-section-title"><span class="no">03</span>Standard contributions</h3>
-              <p class="form-hint mt-0 mb-2">Deducted automatically on the chosen cut-off. Leave blank to enter them on the pay sheet each time. An amount typed on the pay sheet replaces these for that cut-off.</p>
+              <p class="form-hint mt-0 mb-2">Deducted automatically on the chosen cut-off. Leave blank to enter them on the pay sheet each time (or to use the contribution tables, if that is turned on in Pay rules). An amount typed on the pay sheet replaces these for that cut-off. <span id="empTableHint"></span></p>
               <div class="row g-3">
                 <div class="col-md-3"><label class="form-label" for="empSss">SSS (₱)</label><input id="empSss" name="sss" type="number" min="0" step="0.01" class="form-control" /></div>
                 <div class="col-md-3"><label class="form-label" for="empPh">PhilHealth (₱)</label><input id="empPh" name="philhealth" type="number" min="0" step="0.01" class="form-control" /></div>
@@ -198,7 +198,26 @@
             </section>
 
             <section class="form-section">
-              <h3 class="form-section-title"><span class="no">04</span>Other</h3>
+              <h3 class="form-section-title"><span class="no">04</span>Government numbers and tax</h3>
+              <div class="row g-3">
+                <div class="col-md-3"><label class="form-label" for="empTin">TIN</label><input id="empTin" name="tin" class="form-control" maxlength="40" placeholder="000-000-000-000" /></div>
+                <div class="col-md-3"><label class="form-label" for="empSssNo">SSS no.</label><input id="empSssNo" name="sssNo" class="form-control" maxlength="40" /></div>
+                <div class="col-md-3"><label class="form-label" for="empPhNo">PhilHealth no.</label><input id="empPhNo" name="philhealthNo" class="form-control" maxlength="40" /></div>
+                <div class="col-md-3"><label class="form-label" for="empPiNo">Pag-IBIG MID no.</label><input id="empPiNo" name="pagibigNo" class="form-control" maxlength="40" /></div>
+                <div class="col-md-3"><label class="form-label" for="empBirth">Birth date</label><input id="empBirth" name="birthDate" type="date" class="form-control" /></div>
+                <div class="col-md-5"><label class="form-label" for="empAddr">Address</label><input id="empAddr" name="address" class="form-control" maxlength="300" /></div>
+                <div class="col-md-4"><label class="form-label" for="empTax">Withholding tax</label>
+                  <select id="empTax" name="taxStatus" class="form-select">
+                    <option value="REGULAR">Withhold per BIR table</option>
+                    <option value="MWE">Minimum wage earner (exempt)</option>
+                    <option value="NONE">Don't withhold</option>
+                  </select></div>
+              </div>
+              <p class="form-hint mb-0 mt-2">Printed on BIR Form 2316 and the contribution reports. Pay up to ₱250,000 a year has no tax, so most daily-paid crew have none withheld anyway.</p>
+            </section>
+
+            <section class="form-section">
+              <h3 class="form-section-title"><span class="no">05</span>Other</h3>
               <div class="row g-3">
                 <div class="col-md-9"><label class="form-label" for="empRemarks">Remarks</label><input id="empRemarks" name="remarks" class="form-control" maxlength="600" /></div>
                 <div class="col-md-3 d-flex align-items-end">
@@ -208,7 +227,7 @@
             </section>
 
             <section class="form-section mb-0" id="rateHistoryWrap" hidden>
-              <h3 class="form-section-title"><span class="no">05</span>Rate history</h3>
+              <h3 class="form-section-title"><span class="no">06</span>Rate history</h3>
               <ul class="rate-history" id="rateHistory"></ul>
             </section>
           </div>

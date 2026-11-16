@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('BIR')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="BIR">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">BIR</h1>
+          <p class="page-sub">Figures for the quarter's returns, from the books: BIR 2307 for every supplier and subcontractor CBM withheld tax from, the 1601-EQ and QAP by ATC, tax withheld by clients (SAWT), and VAT for the 2550Q. Have your accountant review before filing.</p></div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Accounting/Bir(year=${prev.year()},q=${prev.q()})}"><i class="bi bi-chevron-left"></i></a>
+          <span class="btn btn-ghost disabled fw-semibold" th:text="${qt.label + ' · ' + #temporals.format(qt.from(), 'MMM d') + ' – ' + #temporals.format(qt.to(), 'MMM d')}"></span>
+          <a class="btn btn-outline" th:href="@{/Accounting/Bir(year=${next.year()},q=${next.q()})}"><i class="bi bi-chevron-right"></i></a>
+          <button class="btn btn-outline" type="button" data-open-dialog="coDialog"><i class="bi bi-building"></i>Company details</button>
+        </div>
+      </div>
+      <div th:if="${success}" class="alert alert-success mb-3" th:text="${success}"></div>
+      <div th:unless="${co.complete}" class="alert alert-warning mb-3">Enter CBM's TIN and registered address in <b>Company details</b>; they are printed on every 2307.</div>
+      <div th:unless="${#lists.isEmpty(missingTin)}" class="alert alert-warning mb-3" th:text="${'No TIN yet for: ' + #strings.listJoin(missingTin, ', ') + '. Use Edit on their row below.'}"></div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Tax withheld from payees<i class="bi bi-file-earmark-text"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(ewtTotal, 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note" th:text="${#lists.size(payees) + ' payee line(s) · 1601-EQ'}"></div></div>
+        <div class="kpi"><div class="kpi-label">Output VAT<i class="bi bi-arrow-up-right"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(vatOut, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label">Input VAT<i class="bi bi-arrow-down-left"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(vatIn, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">VAT payable (2550Q)<i class="bi bi-cash"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(vatOut.subtract(vatIn), 1, 'COMMA', 2, 'POINT')}"></div><div class="kpi-note">Negative = excess input VAT</div></div>
+      </div>
+
+      <section class="panel mb-4">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-file-earmark-ruled"></i>BIR 2307 to give payees</h2>
+          <div class="d-flex gap-2">
+            <a class="btn btn-sm btn-outline" th:href="@{/Accounting/Bir/qap.csv(year=${qt.year()},q=${qt.q()})}" data-full-load><i class="bi bi-download"></i>QAP (CSV)</a>
+            <a th:unless="${#lists.isEmpty(payees)}" class="btn btn-sm btn-primary" target="_blank" rel="noopener" th:href="@{/Accounting/Bir/2307(year=${qt.year()},q=${qt.q()})}" data-full-load><i class="bi bi-printer"></i>Print all 2307</a></div></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(payees)}"><table class="data-table">
+          <thead><tr><th>Payee</th><th>TIN</th><th>ATC</th><th class="money" th:each="m : ${qt.months}" th:text="${m}"></th><th class="money">Income payments</th><th class="money">Tax withheld</th><th class="actions"></th></tr></thead>
+          <tbody><tr th:each="p : ${payees}">
+            <td><span th:text="${p.supplier != null ? p.supplier.name : ''}"></span><div class="cell-sub" th:text="${#strings.listJoin(p.vouchers, ', ')}"></div></td>
+            <td class="mono small" th:classappend="${p.supplier == null or p.supplier.tin == null} ? ' text-danger'" th:text="${p.supplier != null and p.supplier.tin != null ? p.supplier.tin : 'missing'}"></td>
+            <td><span class="mono" th:text="${p.atc}"></span> <span class="small text-muted" th:text="${p.rate.stripTrailingZeros().toPlainString() + '%'}"></span></td>
+            <td class="money" th:each="i : ${#numbers.sequence(0, 2)}" th:text="${p.getBase(i).signum() > 0 ? #numbers.formatDecimal(p.getBase(i), 1, 'COMMA', 2, 'POINT') : ''}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(p.totalBase, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(p.totalTax, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="actions text-nowrap">
+              <button th:if="${p.supplier != null}" type="button" class="btn btn-sm btn-ghost" data-fill="payeeDialog"
+                th:attr="data-action=@{/Accounting/Bir/payee/{id}(id=${p.supplier.id})},data-title=${'BIR details · ' + p.supplier.name},data-f-tin=${p.supplier.tin},data-f-address=${p.supplier.address},data-f-payee-type=${p.supplier.payeeType ?: 'CORPORATION'},data-f-atc=${p.supplier.atc},data-f-back=${'/Accounting/Bir?year=' + qt.year() + '&q=' + qt.q()}">Edit</button>
+              <a th:if="${p.supplier != null}" class="btn btn-sm btn-outline" target="_blank" rel="noopener" th:href="@{/Accounting/Bir/2307(year=${qt.year()},q=${qt.q()},supplier=${p.supplier.id})}" data-full-load>2307</a></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(payees)}">No tax withheld on payments released this quarter.</div>
+        <div class="panel-body small text-muted border-top" th:unless="${#lists.isEmpty(payees)}">From released payment vouchers. Income payment = amount paid net of VAT. The ATC follows the payee's EWT rate (1% goods WC158, 2% services WC160 or contractors WC120, 5% rentals WC100, 10–15% professional fees WC010/011; WI for individuals) unless set on the payee.</div>
+      </section>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-table"></i>1601-EQ by ATC</h2></div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(atcs)}"><table class="data-table">
+              <thead><tr><th>ATC</th><th class="num">Rate</th><th class="money">Tax base</th><th class="money">Tax withheld</th></tr></thead>
+              <tbody><tr th:each="a : ${atcs}"><td><span class="mono" th:text="${a.atc()}"></span><div class="cell-sub" th:text="${a.label()}"></div></td>
+                <td class="num" th:text="${a.rate().stripTrailingZeros().toPlainString() + '%'}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(a.totalBase, 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money fw-semibold" th:text="${#numbers.formatDecimal(a.totalTax, 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+              <tfoot><tr class="tb-total"><td colspan="3">Total</td><td class="money" th:text="${#numbers.formatDecimal(ewtTotal, 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+            </table></div>
+            <div class="panel-body text-muted small" th:if="${#lists.isEmpty(atcs)}">Nothing withheld this quarter.</div>
+            <div class="panel-body small text-muted border-top">Remit monthly with 0619-E (first two months) and the quarter with 1601-EQ; record payments in <a th:href="@{/Accounting/Remittances}">Remittances</a>.</div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-percent"></i>VAT · 2550Q</h2></div>
+            <div class="table-wrap"><table class="data-table">
+              <thead><tr><th>Month</th><th class="money">VATable sales</th><th class="money">Output VAT</th><th class="money">Purchases</th><th class="money">Input VAT</th></tr></thead>
+              <tbody><tr th:each="m : ${vat}"><td th:text="${m.month()}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(m.sales, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(m.output(), 1, 'COMMA', 2, 'POINT')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(m.purchases, 1, 'COMMA', 2, 'POINT')}"></td><td class="money" th:text="${#numbers.formatDecimal(m.input(), 1, 'COMMA', 2, 'POINT')}"></td></tr></tbody>
+              <tfoot><tr class="tb-total"><td colspan="2">VAT payable</td><td class="money" th:text="${#numbers.formatDecimal(vatOut, 1, 'COMMA', 2, 'POINT')}"></td><td></td>
+                <td class="money" th:text="${'(' + #numbers.formatDecimal(vatIn, 1, 'COMMA', 2, 'POINT') + ') = ' + #numbers.formatDecimal(vatOut.subtract(vatIn), 1, 'COMMA', 2, 'POINT')}"></td></tr></tfoot>
+            </table></div>
+            <div class="panel-body small text-muted border-top">Sales and purchases are the VAT ÷ 12%. Output VAT is booked when a client billing is issued; input VAT from supplier bills and subcon billings.</div>
+          </section>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-inboxes"></i>Tax withheld by clients (SAWT)</h2>
+          <a class="btn btn-sm btn-outline" th:href="@{/Accounting/Bir/sawt.csv(year=${qt.year()},q=${qt.q()})}" data-full-load><i class="bi bi-download"></i>SAWT (CSV)</a></div>
+        <div class="table-wrap" th:unless="${#lists.isEmpty(clients)}"><table class="data-table">
+          <thead><tr><th>Client (withholding agent)</th><th>TIN</th><th>ATC</th><th class="money">Income payment</th><th class="money">Tax withheld</th><th>BIR 2307</th></tr></thead>
+          <tbody><tr th:each="c : ${clients}" class="row-link" th:attr="data-href=@{/Accounting/Billing/job/{id}(id=${c.jobId()})}">
+            <td th:text="${c.client()}"></td>
+            <td class="mono small" th:classappend="${c.tin() == null} ? ' text-danger'" th:text="${c.tin() ?: 'missing (set in billing terms)'}"></td>
+            <td class="mono" th:text="${c.atc()}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(c.base(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:text="${#numbers.formatDecimal(c.tax(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><span class="status" th:classappend="${c.all2307()} ? 'status-approved' : 'status-pending'" th:text="${c.all2307() ? 'All received' : 'Waiting'}"></span></td></tr></tbody>
+        </table></div>
+        <div class="panel-body text-muted small" th:if="${#lists.isEmpty(clients)}">No tax withheld by clients on collections this quarter.</div>
+        <div class="panel-body small text-muted border-top">Claimed as tax credit on CBM's income tax return; mark each 2307 received on its collection.</div>
+      </section>
+
+      <dialog class="app-dialog" id="coDialog">
+        <form th:action="@{/Accounting/Bir/company}" method="post">
+          <input type="hidden" name="back" th:value="${'/Accounting/Bir?year=' + qt.year() + '&q=' + qt.q()}" />
+          <header class="dialog-header"><div><h2>Company details</h2><p>As registered with the BIR (COR / Form 2303).</p></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="coDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-8"><label class="form-label" for="c1">Registered name</label><input id="c1" name="name" class="form-control" maxlength="160" th:value="${co.name}" /></div>
+            <div class="col-md-4"><label class="form-label" for="c2">TIN</label><input id="c2" name="tin" class="form-control" maxlength="40" th:value="${co.tin}" placeholder="000-000-000-000" /></div>
+            <div class="col-md-9"><label class="form-label" for="c3">Registered address</label><input id="c3" name="address" class="form-control" maxlength="300" th:value="${co.address}" /></div>
+            <div class="col-md-3"><label class="form-label" for="c4">ZIP code</label><input id="c4" name="zipCode" class="form-control" maxlength="10" th:value="${co.zipCode}" /></div>
+            <div class="col-md-3"><label class="form-label" for="c5">RDO code</label><input id="c5" name="rdoCode" class="form-control" maxlength="10" th:value="${co.rdoCode}" /></div>
+            <div class="col-md-5"><label class="form-label" for="c6">Signatory</label><input id="c6" name="signatory" class="form-control" maxlength="160" th:value="${co.signatory}" /></div>
+            <div class="col-md-4"><label class="form-label" for="c7">Title</label><input id="c7" name="signatoryTitle" class="form-control" maxlength="120" th:value="${co.signatoryTitle}" /></div>
+            <div class="col-md-4"><label class="form-label" for="c8">Signatory TIN</label><input id="c8" name="signatoryTin" class="form-control" maxlength="40" th:value="${co.signatoryTin}" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="coDialog">Cancel</button><button type="submit" class="btn btn-primary">Save</button></footer>
+        </form>
+      </dialog>
+      <dialog class="app-dialog" id="payeeDialog">
+        <form th:action="@{/Accounting/Bir}" method="post">
+          <input type="hidden" name="back" />
+          <header class="dialog-header"><div><h2 data-dialog-title>BIR details</h2></div><button class="dialog-close" type="button" aria-label="Close" data-close-dialog="payeeDialog"><i class="bi bi-x-lg"></i></button></header>
+          <div class="dialog-body"><div class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="pe1">TIN</label><input id="pe1" name="tin" class="form-control" maxlength="40" /></div>
+            <div class="col-md-6"><label class="form-label" for="pe2">Payee type</label><select id="pe2" name="payeeType" class="form-select"><option value="CORPORATION">Corporation / partnership</option><option value="INDIVIDUAL">Individual / sole proprietor</option></select></div>
+            <div class="col-md-8"><label class="form-label" for="pe3">Registered address</label><input id="pe3" name="address" class="form-control" maxlength="300" /></div>
+            <div class="col-md-4"><label class="form-label" for="pe4">ATC (optional)</label><input id="pe4" name="atc" class="form-control" maxlength="10" placeholder="Auto" /></div>
+          </div></div>
+          <footer class="dialog-footer"><button type="button" class="btn btn-ghost" data-close-dialog="payeeDialog">Cancel</button><button type="submit" class="btn btn-primary">Save</button></footer>
+        </form>
+      </dialog>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

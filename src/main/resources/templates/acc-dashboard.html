@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Accounting dashboard')}"></head>
+<body>
+<div class="app-shell">
+  <div th:replace="~{fragments/sidebar :: sidebar(role=${role}, activePage=${activePage})}"></div>
+  <div class="main-content">
+    <div th:replace="~{fragments/header :: header(${username})}"></div>
+    <main class="content-area" th:fragment="page" data-section="Accounting" data-title="Accounting dashboard">
+      <div class="page-header">
+        <div><div class="page-eyebrow">Accounting</div><h1 class="page-title">Dashboard</h1>
+          <p class="page-sub" th:text="${'Where CBM stands today, ' + #temporals.format(#temporals.createToday(), 'MMMM d, yyyy') + '.'}"></p></div>
+        <div class="page-actions">
+          <a class="btn btn-outline" th:href="@{/Accounting/IncomeStatement(preset='month')}"><i class="bi bi-graph-up"></i>Income statement</a>
+          <a class="btn btn-outline" th:href="@{/Accounting/BalanceSheet}"><i class="bi bi-columns-gap"></i>Balance sheet</a>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mb-3" th:if="${forApproval > 0 or toRelease > 0 or unpostedPayroll > 0 or !#lists.isEmpty(watch)}">
+        <a th:if="${forApproval > 0}" class="alert alert-info mb-0 py-2 px-3 text-decoration-none" th:href="@{/Approvals}"><i class="bi bi-pen me-1"></i><span th:text="${forApproval + ' waiting for approval'}"></span></a>
+        <a th:if="${toRelease > 0}" class="alert alert-info mb-0 py-2 px-3 text-decoration-none" th:href="@{/Accounting/Payments}"><i class="bi bi-cash-stack me-1"></i><span th:text="${toRelease + ' approved payment(s) to release'}"></span></a>
+        <a th:if="${unpostedPayroll > 0}" class="alert alert-warning mb-0 py-2 px-3 text-decoration-none" th:href="@{/Accounting/Payroll}"><i class="bi bi-people me-1"></i><span th:text="${unpostedPayroll + ' locked payroll(s) not posted'}"></span></a>
+        <a th:if="${!#lists.isEmpty(watch)}" class="alert alert-danger mb-0 py-2 px-3 text-decoration-none" th:href="@{/Reports/ProjectProfitability}"><i class="bi bi-exclamation-triangle me-1"></i><span th:text="${#lists.size(watch) + ' job(s) over budget or losing money'}"></span></a>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Cash &amp; bank<i class="bi bi-bank"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(cashTotal, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note"><a th:href="@{/Accounting/CashFlow(preset='month')}">Cash flow this month</a></div></div>
+        <div class="kpi"><div class="kpi-label">Clients owe<i class="bi bi-receipt"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(ar, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Overdue ₱' + #numbers.formatDecimal(overdueTotal, 1, 'COMMA', 2, 'POINT') + ' · retention ₱' + #numbers.formatDecimal(retention, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi accent"><div class="kpi-label">CBM owes<i class="bi bi-wallet2"></i></div><div class="kpi-value" style="font-size:1.6rem" th:text="${'₱' + #numbers.formatDecimal(ap, 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Due in 7 days ₱' + #numbers.formatDecimal(dueSoonTotal, 1, 'COMMA', 2, 'POINT') + ' · taxes ₱' + #numbers.formatDecimal(taxOwed, 1, 'COMMA', 2, 'POINT')}"></div></div>
+        <div class="kpi"><div class="kpi-label" th:text="${'Net income ' + #temporals.format(monthLabel.atDay(1), 'MMMM')}"></div><div class="kpi-value" style="font-size:1.6rem" th:classappend="${month.net().signum() < 0} ? ' text-danger'" th:text="${'₱' + #numbers.formatDecimal(month.net(), 1, 'COMMA', 2, 'POINT')}"></div>
+          <div class="kpi-note" th:text="${'Year to date ₱' + #numbers.formatDecimal(ytd.net(), 1, 'COMMA', 2, 'POINT')}"></div></div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-graph-up"></i><span th:text="${'This month · ' + #temporals.format(monthLabel.atDay(1), 'MMMM yyyy')}"></span></h2></div>
+            <div class="panel-body">
+              <div class="acc-totals" style="margin-left:0;max-width:none">
+                <div><span>Revenue</span><span th:text="${#numbers.formatDecimal(month.revenue().total(), 1, 'COMMA', 2, 'POINT')}"></span></div>
+                <div><span>Cost of contracts</span><span th:text="${'(' + #numbers.formatDecimal(month.direct().total(), 1, 'COMMA', 2, 'POINT') + ')'}"></span></div>
+                <div class="fw-semibold"><span th:text="${'Gross profit' + (month.grossMargin != null ? ' · ' + month.grossMargin + '%' : '')}"></span><span th:text="${#numbers.formatDecimal(month.grossProfit(), 1, 'COMMA', 2, 'POINT')}"></span></div>
+                <div><span>Operating expenses</span><span th:text="${'(' + #numbers.formatDecimal(month.opex().total(), 1, 'COMMA', 2, 'POINT') + ')'}"></span></div>
+                <div th:if="${month.other().total().signum() != 0}"><span>Other income</span><span th:text="${#numbers.formatDecimal(month.other().total(), 1, 'COMMA', 2, 'POINT')}"></span></div>
+                <div class="grand"><span>Net income</span><span th:text="${#numbers.formatDecimal(month.net(), 1, 'COMMA', 2, 'POINT')}"></span></div>
+                <div class="text-muted small"><span>Last month</span><span th:text="${#numbers.formatDecimal(month.netPrior(), 1, 'COMMA', 2, 'POINT')}"></span></div>
+              </div>
+            </div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-bank"></i>Cash by account</h2></div>
+            <div class="table-wrap"><table class="data-table"><tbody>
+              <tr th:each="c : ${cash}" class="row-link" th:attr="data-href=@{/Accounting/Accounts/{id}(id=${c.bank().accountId})}">
+                <td><span th:text="${c.bank().name}"></span><div class="cell-sub" th:text="${c.bank().kind == 'BANK' ? (c.bank().bankName ?: 'Bank') : (c.bank().kind == 'PETTY' ? 'Petty cash' : 'Cash on hand')}"></div></td>
+                <td class="money fw-semibold" th:classappend="${c.balance().signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(c.balance(), 1, 'COMMA', 2, 'POINT')}"></td></tr>
+            </tbody></table></div>
+          </section>
+        </div>
+      </div>
+
+      <section class="panel mb-4" th:unless="${#lists.isEmpty(jobs)}">
+        <div class="panel-header"><h2 class="panel-title"><i class="bi bi-briefcase"></i>Jobs</h2><a class="small" th:href="@{/Reports/ProjectProfitability}">All jobs</a></div>
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Job order</th><th class="num">Done</th><th class="money">Revenue</th><th class="money">Cost</th><th class="money">Gross profit</th><th style="width:180px">Margin</th><th>Status</th></tr></thead>
+          <tbody><tr th:each="j : ${jobs}" class="row-link" th:attr="data-href=@{/Reports/ProjectProfitability/{id}(id=${j.jobId()})}">
+            <td th:text="${j.label()}"></td>
+            <td class="num" th:text="${j.pctComplete() != null ? #numbers.formatDecimal(j.pctComplete(), 1, 0) + '%' : '—'}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.revenue(), 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money" th:text="${#numbers.formatDecimal(j.cost, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td class="money fw-semibold" th:classappend="${j.grossProfit.signum() < 0} ? ' text-danger'" th:text="${#numbers.formatDecimal(j.grossProfit, 1, 'COMMA', 2, 'POINT')}"></td>
+            <td><div th:replace="~{fragments/acc :: marginBar(${j.margin})}"></div></td>
+            <td><span class="status" th:classappend="${j.flag == 'OK' ? 'status-approved' : (j.flag == 'LOSS' ? 'status-rejected' : 'status-pending')}" th:text="${j.flag == 'OK' ? 'On track' : (j.flag == 'LOSS' ? 'Projected loss' : 'Over budget')}"></span></td></tr></tbody>
+        </table></div>
+      </section>
+
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-calendar-week"></i>Bills due within 7 days</h2><a class="small" th:href="@{/Accounting/Payables}">Payables</a></div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(dueSoon)}"><table class="data-table"><tbody>
+              <tr th:each="b : ${dueSoon}" class="row-link" th:attr="data-href=@{/Accounting/Payables/{id}(id=${b.id})}">
+                <td><span class="mono small" th:text="${b.number}"></span> <span th:text="${supplierMap.get(b.supplierId) != null ? supplierMap.get(b.supplierId).name : ''}"></span></td>
+                <td th:classappend="${b.overdue} ? ' overdue'" th:text="${#temporals.format(b.dueDate, 'MMM d')}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+            </tbody></table></div>
+            <div class="panel-body text-muted small" th:if="${#lists.isEmpty(dueSoon)}">Nothing due this week.</div>
+          </section>
+        </div>
+        <div class="col-lg-6">
+          <section class="panel h-100">
+            <div class="panel-header"><h2 class="panel-title"><i class="bi bi-exclamation-circle"></i>Overdue client billings</h2><a class="small" th:href="@{/Accounting/Billing}">Client billing</a></div>
+            <div class="table-wrap" th:unless="${#lists.isEmpty(overdue)}"><table class="data-table"><tbody>
+              <tr th:each="b : ${overdue}" class="row-link" th:attr="data-href=@{/Accounting/Billing/{id}(id=${b.id})}">
+                <td><span class="mono small" th:text="${b.number}"></span> <span th:text="${jobMap.get(b.jobOrderId) != null ? jobMap.get(b.jobOrderId).number() : ''}"></span></td>
+                <td class="overdue" th:text="${b.daysOverdue + ' days'}"></td>
+                <td class="money" th:text="${#numbers.formatDecimal(b.balance, 1, 'COMMA', 2, 'POINT')}"></td></tr>
+            </tbody></table></div>
+            <div class="panel-body text-muted small" th:if="${#lists.isEmpty(overdue)}">No overdue billings.</div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

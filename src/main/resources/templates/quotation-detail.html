@@ -151,7 +151,7 @@
               <div class="col-md-8"><label class="form-label" for="sendTo">To <span class="req">*</span></label>
                 <input id="sendTo" name="to" type="email" class="form-control" required th:value="${inq.email}" /></div>
               <div class="col-md-4"><label class="form-label" for="sendDays">Valid for</label>
-                <div class="input-group"><input id="sendDays" name="validDays" type="number" min="1" max="365" class="form-control" value="30" /><span class="input-group-text">days</span></div></div>
+                <div class="input-group"><input id="sendDays" name="validDays" type="number" min="1" max="365" class="form-control" value="30" th:value="${appSettings != null ? appSettings.quoteValidDays : 30}" /><span class="input-group-text">days</span></div></div>
               <div class="col-12"><label class="form-label" for="sendCc">CC</label>
                 <input id="sendCc" name="cc" class="form-control" th:value="${approverEmails}" placeholder="name@example.com, another@example.com" />
                 <div class="form-hint">The approver is copied by default. Separate several addresses with commas.</div></div>

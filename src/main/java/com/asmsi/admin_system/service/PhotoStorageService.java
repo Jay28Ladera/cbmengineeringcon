@@ -38,6 +38,9 @@ public class PhotoStorageService {
         public PhotoException(String message) { super(message); }
     }
 
+    /** True when Cloudinary keys are set (photos go to the cloud, not the local uploads folder). */
+    public boolean isCloudConfigured() { return !blank(cloudName) && !blank(apiKey) && !blank(apiSecret); }
+
     /** Saves the photo and returns its public URL. */
     public String store(MultipartFile file, String folder) throws PhotoException {
         if (file == null || file.isEmpty()) throw new PhotoException("No photo was selected.");
