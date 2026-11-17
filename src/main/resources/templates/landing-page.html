@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -8,8 +9,8 @@
   <!-- Requesting the CSRF token here (top of the page) makes Spring create it before any HTML is sent;
        otherwise the quote form near the bottom fails to render for first-time visitors. -->
   <meta name="_csrf" th:content="${_csrf.token}" />
-  <meta name="description" content="CBM Engineering &amp; Construction: engineering, construction, HVAC, electrical and technical services in Cebu. Request a project quotation online." />
-  <title>CBM Engineering &amp; Construction | Engineering, construction and technical services in Cebu</title>
+  <meta name="description" content="CBM Engineering &amp; Construction: engineering, construction, HVAC, electrical and technical services in Cebu, Manila and nearby areas. Request a project quotation online." />
+  <title>CBM Engineering &amp; Construction | Engineering, construction and technical services</title>
   <link rel="icon" type="image/png" th:href="@{/images/favicon.png}" />
   <link rel="preload" as="font" type="font/woff2" crossorigin th:href="@{/vendor/fonts/barlow-condensed-latin-700-normal.woff2}" />
   <link rel="preload" as="font" type="font/woff2" crossorigin th:href="@{/vendor/fonts/ibm-plex-sans-latin-400-normal.woff2}" />
@@ -20,8 +21,8 @@
 
   <div class="topline">
     <div class="container">
-      <span>Engineering · Construction · Technical services — serving Cebu and nearby areas</span>
-      <a href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>
+      <span>Engineering · Construction · Technical services — serving Cebu, Quezon City and nearby areas</span>
+      <a href="mailto:admincbm@cbmengineeringcon.com">admincbm@cbmengineeringcon.com</a>
     </div>
   </div>
 
@@ -56,7 +57,7 @@
           <div class="hero-facts rv" style="--d:.75s">
             <span>Skilled technical team</span>
             <span>Project-focused delivery</span>
-            <span>Based in Mandaue, Cebu</span>
+            <span>Based in Mandaue, Cebu, Carcar, Cebu and Quezon City</span>
           </div>
         </div>
         <aside class="spec-card rv rv-right" style="--d:.35s" aria-label="Company summary">
@@ -64,7 +65,7 @@
           <div class="spec-title">Company sheet</div>
           <div class="spec-row" style="--i:0"><span>Disciplines</span><span>Civil · Electrical · Mechanical · HVAC</span></div>
           <div class="spec-row" style="--i:1"><span>Services</span><span>Plan · Build · Maintain</span></div>
-          <div class="spec-row" style="--i:2"><span>Coverage</span><span>Cebu and nearby areas</span></div>
+          <div class="spec-row" style="--i:2"><span>Coverage</span><span>Quezon City · Cebu and nearby areas</span></div>
           <div class="spec-row" style="--i:3"><span>Quotations</span><span>Request online below</span></div>
         </aside>
       </div>
@@ -93,13 +94,13 @@
             <div class="no">01</div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M3 21h18M5 21V10l7-5 7 5v11"/><path pathLength="1" d="M9 21v-6h6v6"/><path pathLength="1" d="M12 5V2"/></svg>
             <h3>Engineering &amp; construction</h3>
-            <p>Civil, structural and architectural works for commercial, industrial and residential projects, from site preparation to turnover.</p>
+            <p>Civil and architectural works for commercial, industrial and residential projects, from site preparation to turnover.</p>
           </article>
           <article class="service rv" style="--d:0.08s">
             <div class="no">02</div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle pathLength="1" cx="12" cy="12" r="9"/><circle pathLength="1" cx="12" cy="12" r="1.6"/><path pathLength="1" d="M12 10.4c0-3 1-5.4 3.4-5.4M13.6 12c3 0 5.4 1 5.4 3.4M12 13.6c0 3-1 5.4-3.4 5.4M10.4 12c-3 0-5.4-1-5.4-3.4"/></svg>
             <h3>Air conditioning &amp; ventilation</h3>
-            <p>Supply, installation and servicing of split, packaged and central HVAC systems, plus ventilation and exhaust.</p>
+            <p>Supply, installation and servicing of split, packaged and central HVAC systems, including VRF/VRV specialist services, ventilation and exhaust.</p>
           </article>
           <article class="service rv" style="--d:0.16s">
             <div class="no">03</div>
@@ -139,7 +140,7 @@
           <p class="lede rv" style="--d:.2s">Every project follows the same accountable steps, so you always know what happens next.</p>
         </div>
         <div class="steps rv-steps">
-          <div class="step" style="--i:0"><h3>Inquiry</h3><p>Send your scope through the form below. We review it and confirm what's needed.</p></div>
+          <div class="step" style="--i:0"><h3>Inquiry</h3><p>Send your scope through the form below. We review it, call for more information and schedule a site visit when needed.</p></div>
           <div class="step" style="--i:1"><h3>Site visit &amp; assessment</h3><p>Where useful, our team inspects the site and takes measurements.</p></div>
           <div class="step" style="--i:2"><h3>Quotation</h3><p>You receive an itemized quotation with clear terms.</p></div>
           <div class="step" style="--i:3"><h3>Job order &amp; delivery</h3><p>Once approved, the work is scheduled, executed and turned over.</p></div>
@@ -161,7 +162,7 @@
           <article class="job rv" style="--d:.15s"><div><strong>Company Driver</strong><span>Company transport support</span></div><span class="count">1 opening</span></article>
         </div>
         <div class="careers-cta rv" style="--d:.25s">
-          <a class="btn btn-red" href="mailto:cbmengineering.hr@gmail.com?subject=CBM%20Job%20Application">Apply by email <span class="arrow">→</span></a>
+          <a class="btn btn-red" href="mailto:admincbm@cbmengineeringcon.com?subject=CBM%20Job%20Application">Apply by email <span class="arrow">→</span></a>
           <span>Send your résumé and the position you're applying for.</span>
         </div>
       </div>
@@ -206,7 +207,6 @@
             <legend><b>02</b>Services needed <span class="req">*</span></legend>
             <div class="checks">
               <label class="check"><input type="checkbox" name="Services" value="Engineering &amp; construction" />Engineering &amp; construction</label>
-              <label class="check"><input type="checkbox" name="Services" value="Civil &amp; structural works" />Civil &amp; structural works</label>
               <label class="check"><input type="checkbox" name="Services" value="Architectural &amp; fit-out works" />Architectural &amp; fit-out works</label>
               <label class="check"><input type="checkbox" name="Services" value="Electrical &amp; technical services" />Electrical &amp; technical services</label>
               <label class="check"><input type="checkbox" name="Services" value="Mechanical systems" />Mechanical systems</label>
@@ -253,16 +253,16 @@
         <div class="rv">
           <span class="eyebrow">Let's get to work</span>
           <h2>Talk with the CBM team.</h2>
-          <p>For project inquiries and job applications, email <a class="mail" href="mailto:cbmengineering.hr@gmail.com">cbmengineering.hr@gmail.com</a>.</p>
+          <p>For project inquiries and job applications, email <a class="mail" href="mailto:admincbm@cbmengineeringcon.com">admincbm@cbmengineeringcon.com</a> or <a class="mail" href="mailto:carlcbm@cbmengineeringcon.com">carlcbm@cbmengineeringcon.com</a>.</p>
         </div>
-        <a class="btn btn-red rv" style="--d:.15s" href="mailto:cbmengineering.hr@gmail.com">Email CBM <span class="arrow">→</span></a>
+        <a class="btn btn-red rv" style="--d:.15s" href="mailto:admincbm@cbmengineeringcon.com">Email CBM <span class="arrow">→</span></a>
       </div>
     </section>
   </main>
 
   <footer class="footer">
     <div class="container">
-      <span>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> CBM Engineering &amp; Construction · Mandaue, Cebu</span>
+      <span>© <span th:text="${#dates.year(#dates.createNow())}">2026</span> CBM Engineering &amp; Construction · Cebu / Manila</span>
       <a th:href="@{/login}">Workspace login</a>
     </div>
   </footer>
